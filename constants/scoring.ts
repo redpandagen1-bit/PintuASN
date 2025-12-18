@@ -1,0 +1,28 @@
+export const TWK_CONFIG = {
+  QUESTIONS: 30,
+  POINTS_CORRECT: 5,
+  PASSING_GRADE: 65,
+  MAX_SCORE: 150,
+} as const;
+
+export const TIU_CONFIG = {
+  QUESTIONS: 35,
+  POINTS_CORRECT: 5,
+  PASSING_GRADE: 80,
+  MAX_SCORE: 175,
+} as const;
+
+export const TKP_CONFIG = {
+  QUESTIONS: 45,
+  POINTS_MIN: 1,
+  POINTS_MAX: 5,
+  PASSING_GRADE: 166,
+  MAX_SCORE: 225,
+} as const;
+
+export const EXAM_CONFIG = {
+  TOTAL_QUESTIONS: 110,
+  DURATION_MINUTES: 100,
+  DURATION_MS: 6000000,
+  AUTO_SAVE_INTERVAL: 60000, // 60 seconds
+} as const;
