@@ -1,3 +1,5 @@
+// HANYA scoring configuration - JANGAN TAMBAH YANG LAIN
+
 export const TWK_CONFIG = {
   QUESTIONS: 30,
   POINTS_CORRECT: 5,
@@ -20,9 +22,5 @@ export const TKP_CONFIG = {
   MAX_SCORE: 225,
 } as const;
 
-export const EXAM_CONFIG = {
-  TOTAL_QUESTIONS: 110,
-  DURATION_MINUTES: 100,
-  DURATION_MS: 6000000,
-  AUTO_SAVE_INTERVAL: 60000, // 60 seconds
-} as const;
+export const TOTAL_QUESTIONS = 110;
+export const TOTAL_MAX_SCORE = 550;
