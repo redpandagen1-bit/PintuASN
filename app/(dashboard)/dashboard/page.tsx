@@ -1,0 +1,226 @@
+import { Suspense } from 'react';
+import { currentUser } from '@clerk/nextjs/server';
+import { getActivePackages, getUserAttempts } from '@/lib/supabase/queries';
+import { QuickStats } from '@/components/shared/quick-stats';
+import { PackageCardUser } from '@/components/shared/package-card-user';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { Calendar, TrendingUp } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+async function DashboardContent() {
+  const user = await currentUser();
+  if (!user) throw new Error('User not found');
+
+  const userId = user.id;
+  const firstName = user.firstName || 'Pengguna';
+
+  // Fetch data
+  const [packages, attempts] = await Promise.all([
+    getActivePackages(),
+    getUserAttempts(userId),
+  ]);
+
+  // Calculate stats
+  const totalAttempts = attempts.length;
+  const completedAttempts = attempts.filter(a => a.status === 'completed');
+  const scores = completedAttempts
+    .filter(a => a.final_score !== null)
+    .map(a => a.final_score!);
+  
+  const averageScore = scores.length > 0 
+    ? scores.reduce((sum, score) => sum + score, 0) / scores.length 
+    : 0;
+  
+  const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
+
+  // Limit packages to first 6 for display
+  const displayedPackages = packages.slice(0, 6);
+  const hasMorePackages = packages.length > 6;
+
+  // Check for active attempts
+  const packageIdsWithAttempts = new Set(
+    attempts
+      .filter(a => a.status === 'in_progress')
+      .map(a => a.package_id)
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold text-slate-900">
+          Selamat datang, {firstName}!
+        </h1>
+        <p className="text-lg text-slate-600">
+          Siap latihan hari ini?
+        </p>
+      </div>
+
+      {/* Quick Stats */}
+      <QuickStats 
+        totalAttempts={totalAttempts}
+        averageScore={averageScore}
+        bestScore={bestScore}
+      />
+
+      {/* Available Packages */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-900">
+            Paket Tryout Tersedia
+          </h2>
+          {hasMorePackages && (
+            <Link href="/packages">
+              <Button variant="outline">
+                Lihat Semua Paket
+              </Button>
+            </Link>
+          )}
+        </div>
+        
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {displayedPackages.map((pkg) => (
+            <PackageCardUser 
+              key={pkg.id}
+              packageData={pkg}
+              hasActiveAttempt={packageIdsWithAttempts.has(pkg.id)}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Recent Attempts */}
+      {attempts.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-slate-900">
+              Riwayat Terakhir
+            </h2>
+            <Link href="/dashboard/history">
+              <Button variant="outline">
+                Lihat Semua Riwayat
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-3">
+            {attempts.slice(0, 3).map((attempt) => (
+              <Card key={attempt.id}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">
+                      {attempt.package_id}
+                    </CardTitle>
+                    <Badge variant={
+                      attempt.status === 'completed' ? 'default' : 'secondary'
+                    }>
+                      {attempt.status === 'completed' ? 'Selesai' : 
+                       attempt.status === 'in_progress' ? 'Berlangsung' : 'Dibatalkan'}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600">Tanggal:</span>
+                      <span>
+                        {new Date(attempt.started_at).toLocaleDateString('id-ID')}
+                      </span>
+                    </div>
+                    {attempt.final_score !== null && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Skor:</span>
+                        <span className="font-semibold">
+                          {attempt.final_score}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Empty State for Packages */}
+      {packages.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+              <TrendingUp className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              Belum Ada Paket Tryout
+            </h3>
+            <p className="text-slate-600 mb-4">
+              Paket tryout akan segera tersedia. Cek kembali nanti!
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Welcome Section Skeleton */}
+      <div className="text-center space-y-2">
+        <Skeleton className="h-9 w-64 mx-auto" />
+        <Skeleton className="h-6 w-48 mx-auto" />
+      </div>
+
+      {/* Stats Skeleton */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+                <Skeleton className="h-12 w-12 rounded-lg" />
+              </div>
+              <Skeleton className="h-3 w-32 mt-2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Packages Skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-4 w-20 mt-2" />
+              </CardHeader>
+              <CardContent className="pb-3">
+                <Skeleton className="h-4 w-24" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-full" />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
