@@ -4,7 +4,7 @@ import { getActivePackages, getUserAttempts } from '@/lib/supabase/queries';
 import { QuickStats } from '@/components/shared/quick-stats';
 import { PackageCardUser } from '@/components/shared/package-card-user';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Calendar, TrendingUp } from 'lucide-react';
