@@ -1,10 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Dialog,
@@ -14,10 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, Clock, Flag, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { QuestionDisplay } from '@/components/exam/question-display';
 import { cn } from '@/lib/utils';
 
 interface ExamInterfaceProps {
@@ -39,7 +38,6 @@ interface ExamInterfaceProps {
     };
   }>;
   initialAnswers: Record<string, string>;
-  startedAt: string;
   timeRemaining: number;
 }
 
@@ -48,7 +46,6 @@ export function ExamInterface({
   packageTitle,
   questions,
   initialAnswers,
-  startedAt,
   timeRemaining
 }: ExamInterfaceProps) {
   const { 
@@ -64,7 +61,7 @@ export function ExamInterface({
 
   const { timeLeft, isExpired } = useExamTimer(timeRemaining);
 
-  const { isSaving, lastSaved } = useAutoSave(attemptId, answers);
+  const { isSaving } = useAutoSave(attemptId, answers);
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -151,76 +148,15 @@ export function ExamInterface({
         <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full">
           {/* Left: Question Display */}
           <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
-            {/* Question Card */}
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <Badge variant="secondary">
-                      {currentQuestion?.category}
-                    </Badge>
-                    <span className="text-sm text-slate-600">
-                      Soal {currentIndex + 1} dari {questions.length}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleFlag(currentQuestion?.id)}
-                    className={cn(
-                      flaggedQuestions.has(currentQuestion?.id) && "text-orange-600"
-                    )}
-                  >
-                    <Flag className={cn(
-                      "h-4 w-4",
-                      flaggedQuestions.has(currentQuestion?.id) && "fill-current"
-                    )} />
-                  </Button>
-                </div>
-
-                {/* Question Image (if exists) */}
-                {currentQuestion?.image_url && (
-                  <div className="mb-4">
-                    <img 
-                      src={currentQuestion.image_url} 
-                      alt="Question image"
-                      className="max-w-full h-auto rounded-lg border border-slate-200"
-                    />
-                  </div>
-                )}
-
-                {/* Question Text */}
-                <div className="text-lg font-medium text-slate-900 mb-6">
-                  {currentQuestion?.content}
-                </div>
-
-                {/* Choices */}
-                <div className="space-y-3">
-                  {currentQuestion?.choices.map((choice) => (
-                    <button
-                      key={choice.id}
-                      onClick={() => selectAnswer(currentQuestion.id, choice.id)}
-                      className={cn(
-                        "w-full p-4 text-left rounded-lg border-2 transition-colors flex items-center gap-3",
-                        answers.get(currentQuestion.id) === choice.id
-                          ? "border-blue-600 bg-blue-50"
-                          : "border-slate-200 hover:border-slate-300 bg-white"
-                      )}
-                    >
-                      <span className="font-semibold text-slate-700">
-                        {choice.label}.
-                      </span>
-                      <span className="text-slate-900">
-                        {choice.content}
-                      </span>
-                      {answers.get(currentQuestion.id) === choice.id && (
-                        <CheckCircle2 className="h-5 w-5 text-blue-600 ml-auto" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <QuestionDisplay
+              question={currentQuestion}
+              currentIndex={currentIndex}
+              totalQuestions={questions.length}
+              selectedAnswer={answers.get(currentQuestion?.id)}
+              onAnswerSelect={(choiceId: string) => selectAnswer(currentQuestion.id, choiceId)}
+              isFlagged={flaggedQuestions.has(currentQuestion?.id)}
+              onToggleFlag={() => toggleFlag(currentQuestion?.id)}
+            />
 
             {/* Bottom Navigation */}
             <div className="flex items-center justify-between">
@@ -277,7 +213,7 @@ export function ExamInterface({
                     >
                       {index + 1}
                       {isFlagged && (
-                        <Flag className="absolute -top-1 -right-1 h-3 w-3 text-orange-600 fill-current" />
+                        <div className="absolute -top-1 -right-1 h-3 w-3 bg-orange-600 rounded-full"></div>
                       )}
                     </button>
                   );
@@ -350,7 +286,7 @@ export function ExamInterface({
                 >
                   {index + 1}
                   {isFlagged && (
-                    <Flag className="absolute -top-1 -right-1 h-2 w-2 text-orange-600 fill-current" />
+                    <div className="absolute -top-1 -right-1 h-2 w-2 bg-orange-600 rounded-full"></div>
                   )}
                 </button>
               );
