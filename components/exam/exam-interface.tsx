@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -17,26 +17,14 @@ import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { QuestionDisplay } from '@/components/exam/question-display';
+import { QuestionNavigator } from '@/components/exam/question-navigator';
 import { cn } from '@/lib/utils';
+import type { QuestionWithChoices } from '@/types/exam';
 
 interface ExamInterfaceProps {
   attemptId: string;
   packageTitle: string;
-  questions: Array<{
-    id: string;
-    position: number;
-    questions: {
-      id: string;
-      category: string;
-      content: string;
-      image_url?: string;
-      choices: Array<{
-        id: string;
-        label: string;
-        content: string;
-      }>;
-    };
-  }>;
+  questions: QuestionWithChoices[];
   initialAnswers: Record<string, string>;
   timeRemaining: number;
 }
@@ -186,129 +174,26 @@ export function ExamInterface({
             </div>
           </div>
 
-          {/* Right: Navigator Sidebar (hidden on mobile) */}
-          <div className="hidden lg:block w-80 p-6 border-l border-slate-200 overflow-y-auto bg-white">
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-900">
-                Navigasi Soal
-              </h2>
-              
-              <div className="grid grid-cols-10 gap-2">
-                {questions.map((q, index) => {
-                  const questionId = q.questions.id;
-                  const isAnswered = answers.has(questionId);
-                  const isFlagged = flaggedQuestions.has(questionId);
-                  const isCurrent = index === currentIndex;
-
-                  return (
-                    <button
-                      key={questionId}
-                      onClick={() => goToQuestion(index)}
-                      className={cn(
-                        "relative aspect-square rounded-lg border-2 font-semibold transition-colors text-sm",
-                        isCurrent && "border-blue-600 bg-blue-600 text-white",
-                        !isCurrent && isAnswered && "border-green-600 bg-green-50 text-green-700",
-                        !isCurrent && !isAnswered && "border-slate-300 bg-white text-slate-600"
-                      )}
-                    >
-                      {index + 1}
-                      {isFlagged && (
-                        <div className="absolute -top-1 -right-1 h-3 w-3 bg-orange-600 rounded-full"></div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Legend */}
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-blue-600 border border-blue-600"></div>
-                  <span className="text-slate-700">Soal Aktif</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-green-50 border border-green-600"></div>
-                  <span className="text-slate-700">Sudah Dijawab</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded bg-white border border-slate-300"></div>
-                  <span className="text-slate-700">Belum Dijawab</span>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="pt-4 border-t border-slate-200">
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Dijawab:</span>
-                    <span className="font-medium">{answers.size}/{questions.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Ditandai:</span>
-                    <span className="font-medium">{flaggedQuestions.size}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Question Navigator Sidebar */}
+          <QuestionNavigator
+            questions={questions}
+            currentIndex={currentIndex}
+            answers={answers}
+            flaggedQuestions={flaggedQuestions}
+            onNavigate={goToQuestion}
+          />
         </div>
       </div>
 
-      {/* Mobile Navigator (bottom sheet) */}
+      {/* Mobile Navigator Component */}
       <div className="lg:hidden bg-white border-t border-slate-200 p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-900">
-              Navigasi Soal
-            </h3>
-            <div className="text-xs text-slate-600">
-              Dijawab: {answers.size}/{questions.length}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-10 gap-1 mb-3">
-            {questions.map((q, index) => {
-              const questionId = q.questions.id;
-              const isAnswered = answers.has(questionId);
-              const isFlagged = flaggedQuestions.has(questionId);
-              const isCurrent = index === currentIndex;
-
-              return (
-                <button
-                  key={questionId}
-                  onClick={() => goToQuestion(index)}
-                  className={cn(
-                    "relative aspect-square rounded border text-xs font-medium",
-                    isCurrent && "border-blue-600 bg-blue-600 text-white",
-                    !isCurrent && isAnswered && "border-green-600 bg-green-50 text-green-700",
-                    !isCurrent && !isAnswered && "border-slate-300 bg-white text-slate-600"
-                  )}
-                >
-                  {index + 1}
-                  {isFlagged && (
-                    <div className="absolute -top-1 -right-1 h-2 w-2 bg-orange-600 rounded-full"></div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Legend */}
-          <div className="flex justify-center gap-4 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-blue-600 border border-blue-600"></div>
-              <span>Aktif</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-green-50 border border-green-600"></div>
-              <span>Dijawab</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded bg-white border border-slate-300"></div>
-              <span>Belum</span>
-            </div>
-          </div>
-        </div>
+        <QuestionNavigator
+          questions={questions}
+          currentIndex={currentIndex}
+          answers={answers}
+          flaggedQuestions={flaggedQuestions}
+          onNavigate={goToQuestion}
+        />
       </div>
 
       {/* Submit Confirmation Dialog */}
