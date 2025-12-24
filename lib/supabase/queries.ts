@@ -40,17 +40,62 @@ export async function getPackageById(packageId: string): Promise<Package> {
 
 export async function getPackageQuestions(packageId: string) {
   const supabase = await createClient();
+  
   const { data, error } = await supabase
     .from('package_questions')
     .select(`
       position,
-      question:questions (*, choices (*))
+      questions!inner (
+        id,
+        category,
+        content,
+        image_url,
+        explanation,
+        topic,
+        difficulty,
+        choices (
+          id,
+          label,
+          content,
+          is_answer,
+          score
+        )
+      )
     `)
     .eq('package_id', packageId)
-    .order('position');
+    .order('position', { ascending: true });
   
-  if (error) throw error;
-  return data;
+  if (error) {
+    console.error('getPackageQuestions error:', error);
+    throw new Error(`Failed to fetch package questions: ${error.message}`);
+  }
+  
+  if (!data || data.length === 0) {
+    throw new Error(`No questions found for package ${packageId}`);
+  }
+  
+  // Transform to flat QuestionWithChoices[] structure
+  const questions = data.map((pq: any) => ({
+    id: pq.questions.id,
+    category: pq.questions.category,
+    content: pq.questions.content,
+    image_url: pq.questions.image_url || null,
+    explanation: pq.questions.explanation || null,
+    topic: pq.questions.topic || null,
+    difficulty: pq.questions.difficulty || 'medium',
+    choices: pq.questions.choices || []
+  }));
+  
+  // Validate: Each question must have exactly 5 choices
+  questions.forEach((q: any, index: number) => {
+    if (!q.choices || q.choices.length !== 5) {
+      console.error(`Question ${index + 1} validation failed:`, q);
+      throw new Error(`Question ${index + 1} (${q.category}) does not have 5 choices`);
+    }
+  });
+  
+  console.log(`✓ Loaded ${questions.length} questions for package ${packageId}`);
+  return questions;
 }
 
 export async function createAttempt(attempt: Partial<Attempt>): Promise<Attempt> {
@@ -67,33 +112,98 @@ export async function createAttempt(attempt: Partial<Attempt>): Promise<Attempt>
 
 export async function getAttemptById(attemptId: string): Promise<Attempt> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+
+  // Step 1: Fetch attempt only (no join to avoid coerce error)
+  const { data: attempt, error: attemptError } = await supabase
     .from('attempts')
     .select('*')
     .eq('id', attemptId)
     .single();
   
-  if (error) throw error;
-  return data;
+  if (attemptError) {
+    console.error('getAttemptById - attempt error:', {
+      code: attemptError.code,
+      message: attemptError.message,
+      details: attemptError.details,
+      hint: attemptError.hint
+    });
+    throw new Error(`Failed to fetch attempt: ${attemptError.message}`);
+  }
+  
+  if (!attempt) {
+    throw new Error(`Attempt ${attemptId} not found`);
+  }
+  
+  console.log('✓ Attempt fetched:', {
+    id: attempt.id,
+    user_id: attempt.user_id,
+    package_id: attempt.package_id,
+    status: attempt.status
+  });
+  
+  // Step 2: Fetch package separately (same pattern as getAttemptWithAnswers)
+  const { data: pkg, error: pkgError } = await supabase
+    .from('packages')
+    .select('id, title, description, difficulty')
+    .eq('id', attempt.package_id)
+    .single();
+  
+  if (pkgError) {
+    console.error('getAttemptById - package error:', pkgError);
+    console.warn(`Package ${attempt.package_id} not found or inaccessible`);
+  }
+  
+  if (pkg) {
+    console.log('✓ Package fetched:', pkg.title);
+  }
+  
+  // Step 3: Combine results with proper type casting
+  const result: Attempt = {
+    ...attempt,
+    packages: pkg || {
+      id: attempt.package_id,
+      title: 'Unknown Package',
+      description: null,
+      difficulty: 'medium'
+    }
+  };
+  
+  return result;
 }
 
 export async function getAttemptWithAnswers(attemptId: string) {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  
+  // Fetch attempt
+  const { data: attempt, error: attemptError } = await supabase
     .from('attempts')
-    .select(`
-      *,
-      attempt_answers (
-        *,
-        question:questions (*, choices (*)),
-        choice:choices (*)
-      )
-    `)
+    .select('*')
     .eq('id', attemptId)
     .single();
   
-  if (error) throw error;
-  return data;
+  if (attemptError) {
+    console.error('getAttemptWithAnswers - attempt error:', attemptError);
+    throw new Error(`Failed to fetch attempt: ${attemptError.message}`);
+  }
+  
+  // Fetch answers separately
+  const { data: answers, error: answersError } = await supabase
+    .from('attempt_answers')
+    .select('*')
+    .eq('attempt_id', attemptId);
+  
+  if (answersError) {
+    console.error('getAttemptWithAnswers - answers error:', answersError);
+    throw new Error(`Failed to fetch answers: ${answersError.message}`);
+  }
+  
+  console.log(`✓ Loaded attempt ${attemptId} with ${answers?.length || 0} answers`);
+  
+  // Return format matching page.tsx destructuring
+  return {
+    attempt,
+    answers: answers || []
+  };
 }
 
 export async function getUserAttempts(userId: string): Promise<Attempt[]> {

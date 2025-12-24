@@ -96,7 +96,7 @@ export function ExamInterface({
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [isExpired]);
 
-  const currentQuestion = questions[currentIndex]?.questions;
+  const currentQuestion = questions[currentIndex];
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">

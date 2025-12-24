@@ -10,12 +10,13 @@ import { ExamInterface } from '@/components/exam/exam-interface';
 export default async function ExamPage({ 
   params 
 }: { 
-  params: { attemptId: string } 
+  params: Promise<{ attemptId: string }> 
 }) {
+  const { attemptId } = await params;
   const user = await currentUser();
   if (!user) redirect('/sign-in');
 
-  const attempt = await getAttemptById(params.attemptId);
+  const attempt = await getAttemptById(attemptId);
   if (!attempt) notFound();
 
   if (attempt.user_id !== user.id) {
@@ -23,7 +24,7 @@ export default async function ExamPage({
   }
 
   if (attempt.status === 'completed') {
-    redirect(`/exam/${params.attemptId}/result`);
+    redirect(`/exam/${attemptId}/result`);
   }
 
   if (attempt.status !== 'in_progress') {
@@ -32,7 +33,7 @@ export default async function ExamPage({
 
   const packageQuestions = await getPackageQuestions(attempt.package_id);
 
-  const { answers: existingAnswers } = await getAttemptWithAnswers(params.attemptId);
+  const { answers: existingAnswers } = await getAttemptWithAnswers(attemptId);
 
   const initialAnswers = new Map(
     existingAnswers.map(ans => [ans.question_id, ans.choice_id])
@@ -40,7 +41,7 @@ export default async function ExamPage({
 
   return (
     <ExamInterface
-      attemptId={params.attemptId}
+      attemptId={attemptId}
       packageTitle={attempt.packages.title}
       questions={packageQuestions}
       initialAnswers={Object.fromEntries(initialAnswers)}
