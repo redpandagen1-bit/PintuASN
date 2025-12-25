@@ -79,3 +79,46 @@ export interface PackageQuestion {
   order_number: number;
   created_at: string;
 }
+
+// Types for Review functionality
+export interface ReviewChoice {
+  id: string;
+  label: string;
+  content: string;
+  is_answer: boolean;
+  score?: number;
+}
+
+export interface ReviewQuestion {
+  position: number;
+  id: string;
+  category: 'TWK' | 'TIU' | 'TKP';
+  content: string;
+  image_url?: string | null;
+  explanation?: string | null;
+  topic?: string | null;
+  difficulty: 'easy' | 'medium' | 'hard';
+  choices: ReviewChoice[];
+  userAnswer: {
+    id: string;
+    attempt_id: string;
+    question_id: string;
+    choice_id: string;
+    is_flagged: boolean;
+    answered_at: string;
+  } | null;
+  isCorrect: boolean | null; // null for TKP questions
+  score: number | null; // only for TKP questions
+  userChoice: ReviewChoice | null;
+  correctChoice: ReviewChoice | null;
+  isFlagged: boolean;
+}
+
+export interface ReviewData {
+  attempt: Attempt & {
+    packages: Package;
+  };
+  questions: ReviewQuestion[];
+}
+
+export type ReviewFilter = 'all' | 'incorrect' | 'low_score' | 'TWK' | 'TIU' | 'TKP';

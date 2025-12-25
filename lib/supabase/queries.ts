@@ -217,3 +217,113 @@ export async function getUserAttempts(userId: string): Promise<Attempt[]> {
   if (error) throw error;
   return data;
 }
+
+export async function getReviewData(attemptId: string) {
+  const supabase = await createClient();
+  
+  // Get attempt details
+  const { data: attempt, error: attemptError } = await supabase
+    .from('attempts')
+    .select(`
+      *,
+      packages (
+        id, 
+        title, 
+        description, 
+        difficulty
+      )
+    `)
+    .eq('id', attemptId)
+    .eq('status', 'completed')
+    .single();
+  
+  if (attemptError) {
+    throw new Error(`Failed to fetch attempt: ${attemptError.message}`);
+  }
+  
+  if (!attempt) {
+    throw new Error(`Attempt ${attemptId} not found or not completed`);
+  }
+  
+  // Get package questions with choices
+  const { data: packageQuestions, error: questionsError } = await supabase
+    .from('package_questions')
+    .select(`
+      position,
+      questions!inner (
+        id,
+        category,
+        content,
+        image_url,
+        explanation,
+        topic,
+        difficulty,
+        choices (
+          id,
+          label,
+          content,
+          is_answer,
+          score
+        )
+      )
+    `)
+    .eq('package_id', attempt.package_id)
+    .order('position', { ascending: true });
+  
+  if (questionsError) {
+    throw new Error(`Failed to fetch questions: ${questionsError.message}`);
+  }
+  
+  // Get user answers
+  const { data: userAnswers, error: answersError } = await supabase
+    .from('attempt_answers')
+    .select('*')
+    .eq('attempt_id', attemptId);
+  
+  if (answersError) {
+    throw new Error(`Failed to fetch answers: ${answersError.message}`);
+  }
+  
+  // Transform data to structured format
+  const questions = packageQuestions.map((pq, index: number) => {
+    const question = pq.questions;
+    const userAnswer = userAnswers.find((answer) => answer.question_id === question.id);
+    
+    // Find correct answer for TWK/TIU questions
+    const correctChoice = question.choices.find((choice) => choice.is_answer);
+    const userChoice = question.choices.find((choice) => choice.id === userAnswer?.choice_id);
+    
+    // Determine if answer is correct
+    const isCorrect = question.category !== 'TKP' 
+      ? userAnswer?.choice_id === correctChoice?.id 
+      : null; // TKP doesn't have correct/incorrect
+    
+    // Calculate score for TKP questions
+    const score = question.category === 'TKP' && userChoice 
+      ? userChoice.score || 1 
+      : null;
+    
+    return {
+      position: index + 1,
+      id: question.id,
+      category: question.category,
+      content: question.content,
+      image_url: question.image_url || null,
+      explanation: question.explanation || null,
+      topic: question.topic || null,
+      difficulty: question.difficulty || 'medium',
+      choices: question.choices || [],
+      userAnswer: userAnswer || null,
+      isCorrect,
+      score,
+      userChoice,
+      correctChoice,
+      isFlagged: userAnswer?.is_flagged || false
+    };
+  });
+  
+  return {
+    attempt,
+    questions
+  };
+}
