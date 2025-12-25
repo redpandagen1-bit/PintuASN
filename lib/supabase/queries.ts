@@ -218,6 +218,62 @@ export async function getUserAttempts(userId: string): Promise<Attempt[]> {
   return data;
 }
 
+export async function getUserStats(userId: string) {
+  const supabase = await createClient();
+  
+  // Get all attempts for the user
+  const { data: attempts, error } = await supabase
+    .from('attempts')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false }); // ✅ GANTI submitted_at → completed_at
+  
+  if (error) throw error;
+  
+  const completedAttempts = attempts || [];
+  const totalAttempts = attempts?.length || 0;
+  
+  // Calculate statistics
+  const scores = completedAttempts
+    .filter(a => a.final_score !== null)
+    .map(a => a.final_score!);
+  
+  const averageScore = scores.length > 0 
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+    : 0;
+  
+  const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
+  
+  // Calculate pass rate
+  // Passing criteria: ALL THREE must meet minimum (TWK≥65, TIU≥80, TKP≥166)
+  const passedAttempts = completedAttempts.filter(attempt => 
+    attempt.score_twk >= 65 && 
+    attempt.score_tiu >= 80 && 
+    attempt.score_tkp >= 166
+  ).length;
+  
+  const passRate = totalAttempts > 0 
+    ? Math.round((passedAttempts / totalAttempts) * 100) 
+    : 0;
+  
+  return {
+    totalAttempts,
+    averageScore,
+    bestScore,
+    passRate,
+    recentAttempts: completedAttempts.slice(0, 5),
+  };
+}
+
+export type UserStats = {
+  totalAttempts: number;
+  averageScore: number;
+  bestScore: number;
+  passRate: number;
+  recentAttempts: Attempt[];
+};
+
 export async function getReviewData(attemptId: string) {
   const supabase = await createClient();
   
