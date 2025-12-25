@@ -218,6 +218,78 @@ export async function getUserAttempts(userId: string): Promise<Attempt[]> {
   return data;
 }
 
+export async function getAttemptHistory(
+  userId: string, 
+  sortBy: 'newest' | 'oldest' | 'highest_score' = 'newest',
+  filterBy: 'all' | 'passed' | 'failed' = 'all',
+  page: number = 1,
+  limit: number = 20
+) {
+  const supabase = await createClient();
+  
+  // Build query
+  let query = supabase
+    .from('attempts')
+    .select(`
+      *,
+      packages (
+        id,
+        title,
+        difficulty
+      )
+    `, { count: 'exact' })
+    .eq('user_id', userId)
+    .eq('status', 'completed');
+
+  // Apply filter
+  // IMPORTANT: Passed = ALL THREE categories meet minimum
+  // TWK ≥ 65 AND TIU ≥ 80 AND TKP ≥ 166
+  if (filterBy === 'passed') {
+    query = query
+      .gte('score_twk', 65)
+      .gte('score_tiu', 80)
+      .gte('score_tkp', 166);
+  } else if (filterBy === 'failed') {
+    // Failed = ANY category below threshold
+    // In PostgreSQL, we need to use .or() but Supabase client doesn't support complex OR easily
+    // So we'll fetch all and filter in JavaScript (see below)
+  }
+
+  // Apply sorting
+  if (sortBy === 'newest') {
+    query = query.order('completed_at', { ascending: false }); // ✅ GANTI
+  } else if (sortBy === 'oldest') {
+    query = query.order('completed_at', { ascending: true }); // ✅ GANTI
+  } else if (sortBy === 'highest_score') {
+    query = query.order('final_score', { ascending: false });
+  }
+
+  // Apply pagination
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error, count } = await query.range(from, to);
+
+  if (error) throw error;
+
+  // Post-filter for 'failed' (since Supabase client doesn't easily support complex OR)
+  let filteredData = data;
+  if (filterBy === 'failed') {
+    filteredData = data.filter(attempt => 
+      attempt.score_twk < 65 || 
+      attempt.score_tiu < 80 || 
+      attempt.score_tkp < 166
+    );
+  }
+
+  return {
+    attempts: filteredData as (Attempt & { packages: Package })[],
+    totalCount: count || 0,
+    totalPages: Math.ceil((count || 0) / limit),
+    currentPage: page,
+  };
+}
+
 export async function getUserStats(userId: string) {
   const supabase = await createClient();
   
@@ -272,6 +344,13 @@ export type UserStats = {
   bestScore: number;
   passRate: number;
   recentAttempts: Attempt[];
+};
+
+export type AttemptHistoryData = {
+  attempts: (Attempt & { packages: Package })[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
 };
 
 export async function getReviewData(attemptId: string) {
