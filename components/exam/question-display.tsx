@@ -117,16 +117,16 @@ export function QuestionDisplay({
                   <RadioGroupItem 
                     value={choice.id} 
                     id={choice.id}
-                    className="mt-1"
+                    className="mt-1 min-h-[44px] min-w-[44px]"
                   />
                   <div className="flex items-start gap-3 flex-1">
                     <Badge 
                       variant="outline" 
-                      className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+                      className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm"
                     >
                       {choice.label}
                     </Badge>
-                    <div className="flex-1 text-slate-900 leading-relaxed text-left">
+                    <div className="flex-1 text-slate-900 leading-relaxed text-left text-sm sm:text-base">
                       {choice.content}
                     </div>
                   </div>

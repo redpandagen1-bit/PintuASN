@@ -105,21 +105,21 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600">
                   {reviewData.questions.filter(q => q.category === 'TWK').length}
                 </div>
                 <div className="text-sm text-blue-600">Soal TWK</div>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
                   {reviewData.questions.filter(q => q.category === 'TIU').length}
                 </div>
                 <div className="text-sm text-green-600">Soal TIU</div>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
+                <div className="text-xl sm:text-2xl font-bold text-purple-600">
                   {reviewData.questions.filter(q => q.category === 'TKP').length}
                 </div>
                 <div className="text-sm text-purple-600">Soal TKP</div>
@@ -131,8 +131,8 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
 
       {/* Filter Bar */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b pb-4 mb-6">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="h-4 w-4 text-slate-500" />
+        <div className="flex items-start sm:items-center gap-2 flex-wrap">
+          <Filter className="h-4 w-4 text-slate-500 mt-1 sm:mt-0" />
           <div className="flex gap-2 flex-wrap">
             {filterOptions.map((option) => (
               <Button
@@ -140,7 +140,7 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
                 variant={activeFilter === option.value ? "default" : "outline"}
                 size="sm"
                 onClick={() => handleFilterChange(option.value)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 min-h-[44px] text-xs sm:text-sm"
               >
                 {option.label}
                 <Badge variant="secondary" className="text-xs">
@@ -151,7 +151,7 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
           </div>
         </div>
         
-        <div className="mt-3 text-sm text-slate-600">
+        <div className="mt-3 text-xs sm:text-sm text-slate-600">
           Menampilkan {currentQuestions.length} dari {filteredQuestions.length} soal
         </div>
       </div>

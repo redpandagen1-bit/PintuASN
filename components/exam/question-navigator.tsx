@@ -94,7 +94,7 @@ function CategorySection({
                 data-question-index={globalIndex}
                 onClick={() => onNavigate(globalIndex)}
                 className={cn(
-                  "relative aspect-square rounded-md border-2 font-semibold text-sm transition-all hover:scale-105",
+                  "relative aspect-square rounded-md border-2 font-semibold text-xs sm:text-sm transition-all hover:scale-105 min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px]",
                   isCurrent && "border-green-600 bg-green-100 text-green-800 font-bold",
                   !isCurrent && isAnswered && isFlagged && "border-yellow-600 bg-yellow-100 text-yellow-800",
                   !isCurrent && isAnswered && !isFlagged && "border-blue-600 bg-blue-100 text-blue-800",
@@ -104,7 +104,7 @@ function CategorySection({
               >
                 {globalIndex + 1}
                 {isFlagged && !isCurrent && (
-                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-yellow-500 rounded-full"></div>
+                  <div className="absolute -top-1 -right-1 h-3 w-3 sm:h-3 sm:w-3 bg-yellow-500 rounded-full"></div>
                 )}
               </button>
             );

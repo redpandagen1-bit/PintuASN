@@ -104,13 +104,13 @@ export function ExamInterface({
   return (
     <div className="flex flex-col h-screen bg-slate-50">
       {/* Top Bar (sticky) */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-3 sm:px-4 py-2 sm:py-3">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           {/* Timer */}
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-slate-600" />
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             <span className={cn(
-              "text-lg font-mono font-semibold",
+              "text-base sm:text-lg font-mono font-semibold",
               timeLeft < 600 && "text-red-600"
             )}>
               {formatTime(Math.floor(timeLeft))}
@@ -119,7 +119,7 @@ export function ExamInterface({
 
           {/* Package Title */}
           <div className="hidden md:block">
-            <h1 className="text-lg font-semibold text-slate-900 truncate max-w-md">
+            <h1 className="text-base sm:text-lg font-semibold text-slate-900 truncate max-w-md">
               {packageTitle}
             </h1>
           </div>
@@ -128,6 +128,8 @@ export function ExamInterface({
           <Button 
             onClick={() => setShowSubmitDialog(true)}
             variant="default"
+            size="sm"
+            className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
           >
             Submit Ujian
           </Button>
@@ -138,7 +140,7 @@ export function ExamInterface({
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full">
           {/* Left: Question Display */}
-          <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
+          <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
             <QuestionDisplay
               question={currentQuestion}
               currentIndex={currentIndex}
@@ -150,19 +152,22 @@ export function ExamInterface({
             />
 
             {/* Bottom Navigation */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-4 sm:mt-6">
               <Button
                 variant="outline"
                 onClick={prevQuestion}
                 disabled={currentIndex === 0}
+                size="sm"
+                className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
               >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Sebelumnya
+                <ChevronLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Sebelumnya</span>
+                <span className="sm:hidden">Prev</span>
               </Button>
 
               {/* Auto-save indicator */}
               {isSaving && (
-                <div className="text-sm text-slate-600">
+                <div className="text-xs sm:text-sm text-slate-600">
                   Menyimpan...
                 </div>
               )}
@@ -170,9 +175,12 @@ export function ExamInterface({
               <Button
                 onClick={nextQuestion}
                 disabled={currentIndex === questions.length - 1}
+                size="sm"
+                className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
               >
-                Selanjutnya
-                <ChevronRight className="h-4 w-4 ml-2" />
+                <span className="hidden sm:inline">Selanjutnya</span>
+                <span className="sm:hidden">Next</span>
+                <ChevronRight className="h-4 w-4 ml-1 sm:ml-2" />
               </Button>
             </div>
           </div>

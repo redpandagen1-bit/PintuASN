@@ -32,7 +32,7 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
     const isCorrectAnswer = question.correctChoice?.id === choice.id;
     const isMaxScore = question.category === 'TKP' && choice.score === 5;
 
-    let baseClass = "flex items-start gap-3 p-4 rounded-lg border-2 transition-all duration-200";
+    let baseClass = "flex items-start gap-3 p-3 sm:p-4 rounded-lg border-2 transition-all duration-200";
 
     if (question.category === 'TKP') {
       // For TKP questions
@@ -187,8 +187,8 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
               <AccordionItem value="explanation" className="border-none">
                 <AccordionTrigger className="py-2 text-left hover:no-underline">
                   <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4" />
-                    <span>Lihat Pembahasan</span>
+                    <Info className="h-4 w-4 sm:h-4 sm:w-4" />
+                    <span className="text-sm sm:text-base">Lihat Pembahasan</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pt-4">
