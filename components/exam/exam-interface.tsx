@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, HelpCircle } from 'lucide-react';
 import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
 import { useAutoSave } from '@/hooks/use-auto-save';
@@ -54,9 +54,57 @@ export function ExamInterface({
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when not typing in an input
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      switch (event.key) {
+        case 'ArrowLeft':
+          if (currentIndex > 0) {
+            prevQuestion();
+          }
+          break;
+        case 'ArrowRight':
+          if (currentIndex < questions.length - 1) {
+            nextQuestion();
+          }
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+          // Select answer choices 1-5
+          const choiceIndex = parseInt(event.key) - 1;
+          const choices = currentQuestion?.choices || [];
+          if (choiceIndex < choices.length) {
+            selectAnswer(currentQuestion.id, choices[choiceIndex].id);
+          }
+          break;
+        case 'f':
+          // Toggle flag
+          toggleFlag(currentQuestion.id);
+          break;
+        case '?':
+          // Show keyboard help
+          setShowKeyboardHelp(true);
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, questions.length, currentQuestion, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
 
   function formatTime(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
@@ -103,18 +151,30 @@ export function ExamInterface({
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
+      {/* Skip to main content link for keyboard users */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50"
+      >
+        Langsung ke konten utama
+      </a>
+      
       {/* Top Bar (sticky) */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 px-3 sm:px-4 py-2 sm:py-3">
+      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 px-3 sm:px-4 py-2 sm:py-3">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           {/* Timer */}
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
-            <span className={cn(
-              "text-base sm:text-lg font-mono font-semibold",
-              timeLeft < 600 && "text-red-600"
-            )}>
+            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" aria-hidden="true" />
+            <div 
+              className={cn(
+                "text-base sm:text-lg font-mono font-semibold",
+                timeLeft < 600 && "text-red-600"
+              )}
+              aria-live="polite"
+              aria-atomic="true"
+            >
               {formatTime(Math.floor(timeLeft))}
-            </span>
+            </div>
           </div>
 
           {/* Package Title */}
@@ -130,17 +190,18 @@ export function ExamInterface({
             variant="default"
             size="sm"
             className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
+            aria-label="Kirim ujian"
           >
             Submit Ujian
           </Button>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <main id="main-content" className="flex-1 flex overflow-hidden">
         <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full">
           {/* Left: Question Display */}
-          <div className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+          <section className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
             <QuestionDisplay
               question={currentQuestion}
               currentIndex={currentIndex}
@@ -152,13 +213,14 @@ export function ExamInterface({
             />
 
             {/* Bottom Navigation */}
-            <div className="flex items-center justify-between mt-4 sm:mt-6">
+            <nav className="flex items-center justify-between mt-4 sm:mt-6" aria-label="Navigasi soal">
               <Button
                 variant="outline"
                 onClick={prevQuestion}
                 disabled={currentIndex === 0}
                 size="sm"
                 className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
+                aria-label="Soal sebelumnya"
               >
                 <ChevronLeft className="h-4 w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline">Sebelumnya</span>
@@ -167,7 +229,11 @@ export function ExamInterface({
 
               {/* Auto-save indicator */}
               {isSaving && (
-                <div className="text-xs sm:text-sm text-slate-600">
+                <div 
+                  className="text-xs sm:text-sm text-slate-600"
+                  role="status"
+                  aria-live="polite"
+                >
                   Menyimpan...
                 </div>
               )}
@@ -177,24 +243,27 @@ export function ExamInterface({
                 disabled={currentIndex === questions.length - 1}
                 size="sm"
                 className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
+                aria-label="Soal selanjutnya"
               >
                 <span className="hidden sm:inline">Selanjutnya</span>
                 <span className="sm:hidden">Next</span>
                 <ChevronRight className="h-4 w-4 ml-1 sm:ml-2" />
               </Button>
-            </div>
-          </div>
+            </nav>
+          </section>
 
           {/* Question Navigator Sidebar */}
-          <QuestionNavigator
-            questions={questions}
-            currentIndex={currentIndex}
-            answers={answers}
-            flaggedQuestions={flaggedQuestions}
-            onNavigate={goToQuestion}
-          />
+          <nav>
+            <QuestionNavigator
+              questions={questions}
+              currentIndex={currentIndex}
+              answers={answers}
+              flaggedQuestions={flaggedQuestions}
+              onNavigate={goToQuestion}
+            />
+          </nav>
         </div>
-      </div>
+      </main>
 
       {/* Mobile Navigator Component */}
       <div className="lg:hidden bg-white border-t border-slate-200 p-4">
@@ -261,6 +330,59 @@ export function ExamInterface({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Keyboard Help Dialog */}
+      <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5" />
+              Pintasan Keyboard
+            </DialogTitle>
+            <DialogDescription>
+              Gunakan keyboard untuk navigasi cepat
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 text-xs font-mono bg-slate-100 border border-slate-300 rounded">←</kbd>
+                <span>Soal sebelumnya</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 text-xs font-mono bg-slate-100 border border-slate-300 rounded">→</kbd>
+                <span>Soal selanjutnya</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 text-xs font-mono bg-slate-100 border border-slate-300 rounded">1-5</kbd>
+                <span>Pilih jawaban</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 text-xs font-mono bg-slate-100 border border-slate-300 rounded">F</kbd>
+                <span>Tandai soal</span>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={() => setShowKeyboardHelp(false)}>
+              Tutup
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Keyboard Help Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowKeyboardHelp(true)}
+        className="fixed bottom-4 right-4 min-h-[44px] bg-white border border-slate-200 shadow-md hover:bg-slate-50"
+        aria-label="Bantuan keyboard"
+      >
+        <HelpCircle className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

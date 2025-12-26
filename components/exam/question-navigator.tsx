@@ -93,8 +93,17 @@ function CategorySection({
                 key={questionId}
                 data-question-index={globalIndex}
                 onClick={() => onNavigate(globalIndex)}
+                aria-label={`Soal ${globalIndex + 1}${
+                  isCurrent ? ', soal saat ini' : ''
+                }${
+                  isAnswered ? ', dijawab' : ', belum dijawab'
+                }${
+                  isFlagged ? ', ditandai' : ''
+                }`}
+                aria-current={isCurrent ? 'page' : undefined}
                 className={cn(
                   "relative aspect-square rounded-md border-2 font-semibold text-xs sm:text-sm transition-all hover:scale-105 min-h-[44px] min-w-[44px] sm:min-h-[40px] sm:min-w-[40px]",
+                  "focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
                   isCurrent && "border-green-600 bg-green-100 text-green-800 font-bold",
                   !isCurrent && isAnswered && isFlagged && "border-yellow-600 bg-yellow-100 text-yellow-800",
                   !isCurrent && isAnswered && !isFlagged && "border-blue-600 bg-blue-100 text-blue-800",
@@ -104,7 +113,7 @@ function CategorySection({
               >
                 {globalIndex + 1}
                 {isFlagged && !isCurrent && (
-                  <div className="absolute -top-1 -right-1 h-3 w-3 sm:h-3 sm:w-3 bg-yellow-500 rounded-full"></div>
+                  <div className="absolute -top-1 -right-1 h-3 w-3 sm:h-3 sm:w-3 bg-yellow-500 rounded-full" aria-hidden="true"></div>
                 )}
               </button>
             );
@@ -119,22 +128,24 @@ function Legend() {
   return (
     <div className="space-y-2 text-sm">
       <h4 className="font-semibold text-slate-900 mb-2">Legenda:</h4>
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 rounded border-2 border-green-600 bg-green-100"></div>
-        <span className="text-slate-700">Soal Ini</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 rounded border-2 border-blue-600 bg-blue-100"></div>
-        <span className="text-slate-700">Dijawab</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 rounded border-2 border-yellow-400 bg-yellow-50"></div>
-        <span className="text-slate-700">Ditandai</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 rounded border-2 border-slate-300 bg-white"></div>
-        <span className="text-slate-700">Belum Dijawab</span>
-      </div>
+      <ul className="space-y-2">
+        <li className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded border-2 border-green-600 bg-green-100" aria-hidden="true"></div>
+          <span className="text-slate-700">Soal Ini</span>
+        </li>
+        <li className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded border-2 border-blue-600 bg-blue-100" aria-hidden="true"></div>
+          <span className="text-slate-700">Dijawab</span>
+        </li>
+        <li className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded border-2 border-yellow-400 bg-yellow-50" aria-hidden="true"></div>
+          <span className="text-slate-700">Ditandai</span>
+        </li>
+        <li className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded border-2 border-slate-300 bg-white" aria-hidden="true"></div>
+          <span className="text-slate-700">Belum Dijawab</span>
+        </li>
+      </ul>
     </div>
   );
 }
@@ -227,7 +238,7 @@ export function QuestionNavigator({
             size="sm"
             className="w-full max-w-xs mx-auto block mb-2"
           >
-            <Navigation className="h-4 w-4 mr-2" />
+            <Navigation className="h-4 w-4 mr-2" aria-hidden="true" />
             Navigasi Soal
             <Badge variant="secondary" className="ml-2">
               {totalAnswered}/{totalQuestions}
@@ -237,7 +248,7 @@ export function QuestionNavigator({
         <SheetContent side="bottom" className="h-[80vh] overflow-y-auto">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
-              <Navigation className="h-5 w-5" />
+              <Navigation className="h-5 w-5" aria-hidden="true" />
               Navigasi Soal
             </SheetTitle>
             <SheetDescription>

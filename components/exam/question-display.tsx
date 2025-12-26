@@ -41,11 +41,12 @@ export function QuestionDisplay({
 }: QuestionDisplayProps) {
   // Detect if all choices have short text for 2-column layout
   const hasShortText = question.choices.every(c => c.content.length < 50);
+  
   return (
     <Card className="mb-6">
       <CardContent className="p-6">
         {/* Question Header */}
-        <div className="flex items-center justify-between mb-6">
+        <header className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Badge 
               variant="secondary"
@@ -69,10 +70,12 @@ export function QuestionDisplay({
             className={cn(
               isFlagged && "text-orange-600 hover:text-orange-700"
             )}
+            aria-label={isFlagged ? "Hapus tanda soal" : "Tandai soal"}
+            aria-pressed={isFlagged}
           >
             <Flag className={cn("h-4 w-4", isFlagged && "fill-current")} />
           </Button>
-        </div>
+        </header>
 
         {/* Question Content */}
         <div className="space-y-6">
@@ -94,46 +97,54 @@ export function QuestionDisplay({
           )}
 
           {/* Answer Choices */}
-          <RadioGroup 
-            value={selectedAnswer || ''} 
-            onValueChange={onAnswerSelect}
-            className={cn(
-              "gap-3",
-              hasShortText ? "grid grid-cols-1 md:grid-cols-2" : "space-y-3"
-            )}
-          >
-            {question.choices.map((choice) => (
-              <div key={choice.id}>
-                <Label
-                  htmlFor={choice.id}
-                  className={cn(
-                    "flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
-                    "hover:border-slate-300 hover:bg-slate-50",
-                    selectedAnswer === choice.id
-                      ? "border-blue-600 bg-blue-50"
-                      : "border-slate-200 bg-white"
-                  )}
-                >
-                  <RadioGroupItem 
-                    value={choice.id} 
-                    id={choice.id}
-                    className="mt-1 min-h-[44px] min-w-[44px]"
-                  />
-                  <div className="flex items-start gap-3 flex-1">
-                    <Badge 
-                      variant="outline" 
-                      className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm"
+          <div>
+            <fieldset>
+              <legend className="sr-only">Pilihan jawaban</legend>
+              <RadioGroup 
+                value={selectedAnswer || ''} 
+                onValueChange={onAnswerSelect}
+                className={cn(
+                  "gap-3",
+                  hasShortText ? "grid grid-cols-1 md:grid-cols-2" : "space-y-3"
+                )}
+              >
+                {question.choices.map((choice) => (
+                  <div key={choice.id}>
+                    <Label
+                      htmlFor={choice.id}
+                      className={cn(
+                        "flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
+                        "hover:border-slate-300 hover:bg-slate-50",
+                        "focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200",
+                        selectedAnswer === choice.id
+                          ? "border-blue-600 bg-blue-50"
+                          : "border-slate-200 bg-white"
+                      )}
                     >
-                      {choice.label}
-                    </Badge>
-                    <div className="flex-1 text-slate-900 leading-relaxed text-left text-sm sm:text-base">
-                      {choice.content}
-                    </div>
+                      <RadioGroupItem 
+                        value={choice.id} 
+                        id={choice.id}
+                        className="mt-1 min-h-[44px] min-w-[44px]"
+                        aria-describedby={`choice-${choice.id}-label`}
+                      />
+                      <div className="flex items-start gap-3 flex-1">
+                        <Badge 
+                          variant="outline" 
+                          className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm"
+                          id={`choice-${choice.id}-label`}
+                        >
+                          {choice.label}
+                        </Badge>
+                        <div className="flex-1 text-slate-900 leading-relaxed text-left text-sm sm:text-base">
+                          {choice.content}
+                        </div>
+                      </div>
+                    </Label>
                   </div>
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
+                ))}
+              </RadioGroup>
+            </fieldset>
+          </div>
         </div>
       </CardContent>
     </Card>

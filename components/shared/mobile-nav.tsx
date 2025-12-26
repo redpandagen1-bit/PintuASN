@@ -23,20 +23,21 @@ export function MobileNav({ className }: MobileNavProps) {
     <div className={cn('flex flex-col space-y-4', className)}>
       {/* Logo */}
       <div className="flex items-center space-x-2 pb-4 border-b border-slate-200">
-        <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+        <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center" aria-hidden="true">
           <span className="text-white font-bold text-sm">CPNS</span>
         </div>
         <span className="font-bold text-xl text-slate-900">SKD Tryout</span>
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex flex-col space-y-2">
+      <nav className="flex flex-col space-y-2" aria-label="Navigasi seluler">
         {navigation.map((item) => (
           <Button
             key={item.name}
             variant={pathname === item.href ? 'default' : 'ghost'}
             asChild
             className="justify-start"
+            aria-current={pathname === item.href ? 'page' : undefined}
           >
             <Link href={item.href}>
               {item.name}

@@ -21,19 +21,20 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="container flex h-16 items-center justify-between">
         {/* Logo/Brand */}
-        <Link href="/dashboard" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+        <Link href="/dashboard" className="flex items-center space-x-2" aria-label="SKD Tryout - Halaman Dashboard">
+          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center" aria-hidden="true">
             <span className="text-white font-bold text-sm">CPNS</span>
           </div>
           <span className="font-bold text-xl text-slate-900">SKD Tryout</span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-6" aria-label="Navigasi utama">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
+              aria-current={pathname === item.href ? 'page' : undefined}
               className={`text-sm font-medium transition-colors hover:text-blue-600 ${
                 pathname === item.href
                   ? 'text-blue-600'
@@ -54,9 +55,10 @@ export function Navbar() {
                 variant="ghost"
                 size="icon"
                 className="md:hidden"
+                aria-label="Toggle menu navigasi"
+                aria-expanded={false}
               >
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
