@@ -9,7 +9,10 @@ export async function getProfile(userId: string): Promise<Profile> {
     .eq('user_id', userId)
     .single();
   
-  if (error) throw error;
+  if (error) {
+  console.error('getProfile error:', error);
+  throw new Error(`Failed to fetch profile: ${error.message || 'Unknown error'}`);
+}
   return data;
 }
 
@@ -22,7 +25,13 @@ export async function getActivePackages(): Promise<Package[]> {
     .eq('is_deleted', false)
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
+  if (error) {
+  console.error('getActivePackages error:', error);
+  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+    throw new Error('Network error: Unable to connect to database');
+  }
+  throw new Error(`Failed to fetch packages: ${error.message || 'Unknown error'}`);
+}
   return data;
 }
 
@@ -34,7 +43,16 @@ export async function getPackageById(packageId: string): Promise<Package> {
     .eq('id', packageId)
     .single();
   
-  if (error) throw error;
+  if (error) {
+  console.error('getPackageById error:', error);
+  if (error.code === 'PGRST116') {
+    throw new Error('Package not found');
+  }
+  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+    throw new Error('Network error: Unable to connect to database');
+  }
+  throw new Error(`Failed to fetch package: ${error.message || 'Unknown error'}`);
+}
   return data;
 }
 
@@ -106,71 +124,76 @@ export async function createAttempt(attempt: Partial<Attempt>): Promise<Attempt>
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+  console.error('createAttempt error:', error);
+  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+    throw new Error('Network error: Unable to connect to database');
+  }
+  throw new Error(`Failed to create attempt: ${error.message || 'Unknown error'}`);
+}
   return data;
 }
 
-export async function getAttemptById(attemptId: string): Promise<Attempt> {
+export async function getAttemptById(attemptId: string) {
   const supabase = await createClient();
-
-  // Step 1: Fetch attempt only (no join to avoid coerce error)
+  
   const { data: attempt, error: attemptError } = await supabase
     .from('attempts')
-    .select('*')
+    .select(`
+      *,
+      packages (
+        id,
+        title,
+        difficulty
+      )
+    `)
     .eq('id', attemptId)
     .single();
-  
+
   if (attemptError) {
     console.error('getAttemptById - attempt error:', {
-      code: attemptError.code,
       message: attemptError.message,
+      code: attemptError.code,
       details: attemptError.details,
       hint: attemptError.hint
     });
-    throw new Error(`Failed to fetch attempt: ${attemptError.message}`);
+    
+    // ✅ Buat error message yang lebih deskriptif
+    const errorMessage = attemptError.code === 'PGRST116' 
+      ? 'Attempt not found'
+      : attemptError.message || 'Database error occurred';
+    
+    throw new Error(errorMessage);
   }
-  
-  if (!attempt) {
-    throw new Error(`Attempt ${attemptId} not found`);
-  }
-  
-  console.log('✓ Attempt fetched:', {
-    id: attempt.id,
-    user_id: attempt.user_id,
-    package_id: attempt.package_id,
-    status: attempt.status
-  });
-  
-  // Step 2: Fetch package separately (same pattern as getAttemptWithAnswers)
-  const { data: pkg, error: pkgError } = await supabase
-    .from('packages')
-    .select('id, title, description, difficulty')
-    .eq('id', attempt.package_id)
-    .single();
-  
-  if (pkgError) {
-    console.error('getAttemptById - package error:', pkgError);
-    console.warn(`Package ${attempt.package_id} not found or inaccessible`);
-  }
-  
-  if (pkg) {
-    console.log('✓ Package fetched:', pkg.title);
-  }
-  
-  // Step 3: Combine results with proper type casting
-  const result: Attempt = {
-    ...attempt,
-    packages: pkg || {
-      id: attempt.package_id,
-      title: 'Unknown Package',
-      description: null,
-      difficulty: 'medium'
-    }
-  };
-  
-  return result;
-}
 
+  if (!attempt) {
+    throw new Error('Attempt not found');
+  }
+
+  // Fetch questions
+  const { data: questions, error: questionsError } = await supabase
+    .from('questions')
+    .select('*')
+    .eq('package_id', attempt.package_id)
+    .order('order_number');
+
+  if (questionsError) {
+    console.error('getAttemptById - questions error:', questionsError);
+    
+    // ✅ Handle connection errors
+    const errorMessage = questionsError.message?.includes('fetch')
+      ? 'Network error: Unable to connect to database'
+      : questionsError.message || 'Failed to load questions';
+    
+    throw new Error(errorMessage);
+  }
+
+  if (!questions || questions.length === 0) {
+    throw new Error('No questions found for this exam');
+  }
+
+  return { attempt, questions };
+}
 export async function getAttemptWithAnswers(attemptId: string) {
   const supabase = await createClient();
   
@@ -214,7 +237,13 @@ export async function getUserAttempts(userId: string): Promise<Attempt[]> {
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
+  if (error) {
+  console.error('getUserAttempts error:', error);
+  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+    throw new Error('Network error: Unable to connect to database');
+  }
+  throw new Error(`Failed to fetch attempts: ${error.message || 'Unknown error'}`);
+}
   return data;
 }
 
@@ -270,7 +299,13 @@ export async function getAttemptHistory(
 
   const { data, error, count } = await query.range(from, to);
 
-  if (error) throw error;
+  if (error) {
+  console.error('getAttemptHistory error:', error);
+  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+    throw new Error('Network error: Unable to connect to database');
+  }
+  throw new Error(`Failed to fetch attempt history: ${error.message || 'Unknown error'}`);
+}
 
   // Post-filter for 'failed' (since Supabase client doesn't easily support complex OR)
   let filteredData = data;
@@ -301,7 +336,13 @@ export async function getUserStats(userId: string) {
     .eq('status', 'completed')
     .order('completed_at', { ascending: false }); // ✅ GANTI submitted_at → completed_at
   
-  if (error) throw error;
+  if (error) {
+  console.error('getUserStats error:', error);
+  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+    throw new Error('Network error: Unable to connect to database');
+  }
+  throw new Error(`Failed to fetch user stats: ${error.message || 'Unknown error'}`);
+}
   
   const completedAttempts = attempts || [];
   const totalAttempts = attempts?.length || 0;
