@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import type { Profile } from '@/types/database';
 
 interface ProfileEditDialogProps {
@@ -44,6 +45,7 @@ export function ProfileEditDialog({
     
     if (!validateForm()) return;
     
+    const toastId = toast.loading('Menyimpan perubahan...');
     setIsLoading(true);
     try {
       const response = await fetch('/api/profile', {
@@ -63,10 +65,11 @@ export function ProfileEditDialog({
       }
 
       const result = await response.json();
+      toast.success('Profil berhasil diperbarui!', { id: toastId });
       onProfileUpdate(result.profile);
     } catch (error) {
       console.error('Profile update error:', error);
-      // TODO: Show error toast or notification
+      toast.error(error instanceof Error ? error.message : 'Gagal memperbarui profil', { id: toastId });
     } finally {
       setIsLoading(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
@@ -64,6 +65,7 @@ export function ExamInterface({
   }
 
   const handleSubmit = async () => {
+    const toastId = toast.loading('Mengirim ujian...');
     setIsSubmitting(true);
 
     try {
@@ -80,10 +82,11 @@ export function ExamInterface({
         throw new Error('Failed to submit exam');
       }
 
+      toast.success('Ujian berhasil dikirim!', { id: toastId });
       router.push(`/exam/${attemptId}/result`);
     } catch (error) {
       console.error('Submit error:', error);
-      alert('Gagal mengirim ujian. Silakan coba lagi.');
+      toast.error('Gagal mengirim ujian. Silakan coba lagi.', { id: toastId });
       setIsSubmitting(false);
     }
   };

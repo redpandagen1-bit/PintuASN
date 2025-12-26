@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 
 export function useAutoSave(
   attemptId: string,
@@ -24,7 +25,7 @@ export function useAutoSave(
       setIsSaving(true);
       
       try {
-        await fetch('/api/exam/save', {
+        const response = await fetch('/api/exam/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -33,9 +34,14 @@ export function useAutoSave(
           }),
         });
         
+        if (!response.ok) {
+          throw new Error('Gagal menyimpan jawaban');
+        }
+        
         setLastSaved(new Date());
       } catch (error) {
         console.error('Auto-save failed:', error);
+        toast.error('Gagal menyimpan jawaban secara otomatis');
       } finally {
         setIsSaving(false);
       }

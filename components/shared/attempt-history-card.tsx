@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,12 @@ import {
   Eye, 
   BookOpen,
   CheckCircle,
-  XCircle
+  XCircle,
+  Copy,
+  Check
 } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import type { Attempt, Package } from '@/types/database';
 
 interface AttemptHistoryCardProps {
@@ -19,6 +23,8 @@ interface AttemptHistoryCardProps {
 }
 
 export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
+  const [isCopied, setIsCopied] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', {
@@ -42,6 +48,22 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
     const maxPossibleScore = 175;
     const passingScore = maxPossibleScore * 0.7;
     return attempt.final_score !== null && attempt.final_score >= passingScore;
+  };
+
+  const handleCopyLink = async () => {
+    const url = typeof window !== 'undefined' 
+      ? `${window.location.origin}/exam/${attempt.id}/result`
+      : '';
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopied(true);
+      toast.success('Link hasil berhasil disalin!');
+      
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      toast.error('Gagal menyalin link');
+    }
   };
 
 
@@ -128,18 +150,39 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
         )}
 
         {/* Actions */}
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm" className="flex-1">
-            <Link href={`/exam/${attempt.id}/result`}>
-              <Eye className="h-4 w-4 mr-2" />
-              Lihat Hasil
-            </Link>
-          </Button>
-          <Button asChild size="sm" className="flex-1">
-            <Link href={`/exam/${attempt.id}/review`}>
-              <BookOpen className="h-4 w-4 mr-2" />
-              Lihat Pembahasan
-            </Link>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm" className="flex-1">
+              <Link href={`/exam/${attempt.id}/result`}>
+                <Eye className="h-4 w-4 mr-2" />
+                Lihat Hasil
+              </Link>
+            </Button>
+            <Button asChild size="sm" className="flex-1">
+              <Link href={`/exam/${attempt.id}/review`}>
+                <BookOpen className="h-4 w-4 mr-2" />
+                Lihat Pembahasan
+              </Link>
+            </Button>
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyLink}
+            className="w-full"
+          >
+            {isCopied ? (
+              <>
+                <Check className="h-4 w-4 mr-2 text-green-600" />
+                Link Tersalin!
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 mr-2" />
+                Salin Link Hasil
+              </>
+            )}
           </Button>
         </div>
       </CardContent>
