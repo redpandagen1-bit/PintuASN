@@ -158,7 +158,6 @@ export async function getAttemptById(attemptId: string) {
       hint: attemptError.hint
     });
     
-    // ✅ Buat error message yang lebih deskriptif
     const errorMessage = attemptError.code === 'PGRST116' 
       ? 'Attempt not found'
       : attemptError.message || 'Database error occurred';
@@ -170,17 +169,28 @@ export async function getAttemptById(attemptId: string) {
     throw new Error('Attempt not found');
   }
 
-  // Fetch questions
-  const { data: questions, error: questionsError } = await supabase
-    .from('questions')
-    .select('*')
+  // ✅ FIX: Fetch questions melalui junction table package_questions
+  const { data: packageQuestions, error: questionsError } = await supabase
+    .from('package_questions')
+    .select(`
+      position,
+      questions (
+        *,
+        choices (
+          id,
+          label,
+          content,
+          is_answer,
+          score
+        )
+      )
+    `)
     .eq('package_id', attempt.package_id)
-    .order('order_number');
+    .order('position');
 
   if (questionsError) {
     console.error('getAttemptById - questions error:', questionsError);
     
-    // ✅ Handle connection errors
     const errorMessage = questionsError.message?.includes('fetch')
       ? 'Network error: Unable to connect to database'
       : questionsError.message || 'Failed to load questions';
@@ -188,9 +198,14 @@ export async function getAttemptById(attemptId: string) {
     throw new Error(errorMessage);
   }
 
-  if (!questions || questions.length === 0) {
+  if (!packageQuestions || packageQuestions.length === 0) {
     throw new Error('No questions found for this exam');
   }
+
+  // ✅ Extract questions from the nested structure and sort by position
+  const questions = packageQuestions
+    .map(pq => pq.questions)
+    .filter(q => q !== null);
 
   return { attempt, questions };
 }
