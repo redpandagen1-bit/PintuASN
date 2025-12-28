@@ -10,8 +10,8 @@ import { MobileNav } from './mobile-nav';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Riwayat', href: '/dashboard/history' },
-  { name: 'Profil', href: '/dashboard/profile' },
+  { name: 'Riwayat', href: '/history' },
+  { name: 'Profil', href: '/profile' },
 ];
 
 export function Navbar() {

@@ -8,8 +8,6 @@ interface ResultPageProps {
   };
 }
 
-
-
 const calculateTimeTaken = (startedAt: string, completedAt?: string | null) => {
   if (!completedAt) return '0 menit 0 detik';
   
@@ -90,5 +88,26 @@ export default async function ResultPage({ params }: ResultPageProps) {
     notFound();
   }
 
-  return <ResultContent {...resultData!} />;
+  // Explicitly destructure to avoid passing any extra props
+  const { 
+    attempt, 
+    totalScore, 
+    totalAnswered, 
+    timeTaken, 
+    passed, 
+    scores, 
+    categoryAnswered 
+  } = resultData;
+
+  return (
+    <ResultContent 
+      attempt={attempt}
+      totalScore={totalScore}
+      totalAnswered={totalAnswered}
+      timeTaken={timeTaken}
+      passed={passed}
+      scores={scores}
+      categoryAnswered={categoryAnswered}
+    />
+  );
 }

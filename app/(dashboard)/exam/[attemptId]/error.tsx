@@ -1,23 +1,31 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useParams } from 'next/navigation'; // ✅ Import useParams
+import { useParams, useRouter } from 'next/navigation';
 import { ErrorState } from '@/components/shared/error-state';
 import { ExamNotFound, AttemptNotFound } from '@/components/shared/not-found-state';
 
 interface ExamErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
-  // ❌ HAPUS params dari props
 }
 
 export default function ExamError({ error, reset }: ExamErrorProps) {
-  const params = useParams(); // ✅ Gunakan useParams hook
+  const params = useParams();
+  const router = useRouter();
   const attemptId = params?.attemptId as string;
 
   useEffect(() => {
     console.error('Exam Error:', error, 'Attempt ID:', attemptId);
-  }, [error, attemptId]); // ✅ Ganti params.attemptId dengan attemptId
+  }, [error, attemptId]);
+
+  const handleBackToPackages = () => {
+    router.push('/packages');
+  };
+
+  const handleBackToHistory = () => {
+    router.push('/history');
+  };
 
   const getErrorInfo = () => {
     const message = error.message.toLowerCase();
@@ -25,7 +33,7 @@ export default function ExamError({ error, reset }: ExamErrorProps) {
     // Not found errors
     if (message.includes('not found') || message.includes('tidak ditemukan')) {
       return {
-        component: <ExamNotFound onBack={() => window.location.href = '/packages'} />,
+        component: <ExamNotFound onBack={handleBackToPackages} />,
         shouldRender: true
       };
     }
@@ -39,7 +47,7 @@ export default function ExamError({ error, reset }: ExamErrorProps) {
             message="Anda tidak memiliki izin untuk mengakses ujian ini."
             action={{
               label: "Kembali ke Paket",
-              onClick: () => window.location.href = '/packages',
+              onClick: handleBackToPackages,
               variant: 'default' as const
             }}
           />
@@ -51,7 +59,7 @@ export default function ExamError({ error, reset }: ExamErrorProps) {
     // Attempt not found
     if (message.includes('attempt') && message.includes('not found')) {
       return {
-        component: <AttemptNotFound onBack={() => window.location.href = '/history'} />,
+        component: <AttemptNotFound onBack={handleBackToHistory} />,
         shouldRender: true
       };
     }
@@ -81,7 +89,7 @@ export default function ExamError({ error, reset }: ExamErrorProps) {
           onRetry={reset}
           action={{
             label: "Kembali ke Paket",
-            onClick: () => window.location.href = '/packages',
+            onClick: handleBackToPackages,
             variant: 'outline' as const
           }}
         />
