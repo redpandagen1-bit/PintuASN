@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { Calendar, TrendingUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 async function DashboardContent() {
@@ -23,7 +23,7 @@ async function DashboardContent() {
     getUserAttempts(userId),
   ]);
 
-  // Calculate stats
+  // Calculate stats - hitung SEMUA attempts (tidak filter by status)
   const totalAttempts = attempts.length;
   const completedAttempts = attempts.filter(a => a.status === 'completed');
   const scores = completedAttempts
@@ -31,7 +31,7 @@ async function DashboardContent() {
     .map(a => a.final_score!);
   
   const averageScore = scores.length > 0 
-    ? scores.reduce((sum, score) => sum + score, 0) / scores.length 
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
     : 0;
   
   const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
@@ -40,7 +40,7 @@ async function DashboardContent() {
   const displayedPackages = packages.slice(0, 6);
   const hasMorePackages = packages.length > 6;
 
-  // Check for active attempts
+  // Check for active attempts per package
   const packageIdsWithAttempts = new Set(
     attempts
       .filter(a => a.status === 'in_progress')
@@ -81,19 +81,35 @@ async function DashboardContent() {
           )}
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {displayedPackages.map((pkg) => (
-            <PackageCardUser 
-              key={pkg.id}
-              packageData={pkg}
-              hasActiveAttempt={packageIdsWithAttempts.has(pkg.id)}
-            />
-          ))}
-        </div>
+        {displayedPackages.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {displayedPackages.map((pkg) => (
+              <PackageCardUser 
+                key={pkg.id}
+                packageData={pkg}
+                hasActiveAttempt={packageIdsWithAttempts.has(pkg.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                <TrendingUp className="h-8 w-8 text-slate-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                Belum Ada Paket Tryout
+              </h3>
+              <p className="text-slate-600 mb-4">
+                Paket tryout akan segera tersedia. Cek kembali nanti!
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </section>
 
-      {/* Recent Attempts */}
-      {attempts.length > 0 && (
+      {/* Recent Attempts - HANYA tampilkan yang completed dan abandoned */}
+      {attempts.filter(a => a.status !== 'in_progress').length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-slate-900">
@@ -107,60 +123,55 @@ async function DashboardContent() {
           </div>
           
           <div className="grid gap-4 md:grid-cols-3">
-            {attempts.slice(0, 3).map((attempt) => (
-              <Card key={attempt.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
-                      {attempt.package_id}
-                    </CardTitle>
-                    <Badge variant={
-                      attempt.status === 'completed' ? 'default' : 'secondary'
-                    }>
-                      {attempt.status === 'completed' ? 'Selesai' : 
-                       attempt.status === 'in_progress' ? 'Berlangsung' : 'Dibatalkan'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
+            {attempts
+              .filter(a => a.status !== 'in_progress')
+              .slice(0, 3)
+              .map((attempt) => (
+                <Card key={attempt.id}>
+                  <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-600">Tanggal:</span>
-                      <span>
-                        {new Date(attempt.started_at).toLocaleDateString('id-ID')}
-                      </span>
+                      <CardTitle className="text-base truncate">
+                        {attempt.packages?.title || 'Paket Tryout'}
+                      </CardTitle>
+                      <Badge 
+                        variant={attempt.status === 'completed' ? 'default' : 'secondary'}
+                        className="ml-2 flex-shrink-0"
+                      >
+                        {attempt.status === 'completed' ? 'Selesai' : 'Dibatalkan'}
+                      </Badge>
                     </div>
-                    {attempt.final_score !== null && (
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-600">Skor:</span>
-                        <span className="font-semibold">
-                          {attempt.final_score}
+                        <span className="text-slate-600">Tanggal:</span>
+                        <span>
+                          {new Date(attempt.started_at).toLocaleDateString('id-ID')}
                         </span>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      {attempt.status === 'completed' && attempt.final_score !== null && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-600">Skor:</span>
+                          <span className="font-semibold">
+                            {attempt.final_score}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                  {attempt.status === 'completed' && (
+                    <CardFooter className="pt-0">
+                      <Link href={`/exam/${attempt.id}/result`} className="w-full">
+                        <Button variant="outline" size="sm" className="w-full">
+                          Lihat Hasil
+                        </Button>
+                      </Link>
+                    </CardFooter>
+                  )}
+                </Card>
+              ))}
           </div>
         </section>
-      )}
-
-      {/* Empty State for Packages */}
-      {packages.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <TrendingUp className="h-8 w-8 text-slate-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
-              Belum Ada Paket Tryout
-            </h3>
-            <p className="text-slate-600 mb-4">
-              Paket tryout akan segera tersedia. Cek kembali nanti!
-            </p>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

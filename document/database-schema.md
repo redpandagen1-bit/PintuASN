@@ -77,6 +77,9 @@ CREATE TABLE public.profiles (
   avatar_url text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  subscription_tier text DEFAULT 'free'::text,
+  is_deleted boolean DEFAULT false,
+  deleted_at timestamp with time zone,
   CONSTRAINT profiles_pkey PRIMARY KEY (user_id)
 );
 CREATE TABLE public.questions (

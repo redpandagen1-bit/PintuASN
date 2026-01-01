@@ -1,162 +1,171 @@
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
-import { calculateAttemptScore } from '@/lib/scoring/engine';
+import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
+  console.log('🚀 POST /api/exam/submit - START');
+  
   try {
+    // ✅ STEP 1: Auth check
+    console.log('🔐 Checking authentication...');
     const { userId } = await auth();
+    
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const { attemptId, answers } = body;
-
-    // Validate required fields
-    if (!attemptId) {
+      console.error('❌ No userId from auth');
       return NextResponse.json(
-        { error: 'Missing required field: attemptId' },
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    console.log('✅ User authenticated:', userId);
+
+    // ✅ STEP 2: Parse request body
+    console.log('📦 Parsing request body...');
+    let body;
+    try {
+      body = await req.json();
+      console.log('✅ Body parsed:', body);
+    } catch (parseError) {
+      console.error('❌ Failed to parse body:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid request body' },
         { status: 400 }
       );
     }
 
-    const supabase = await createClient();
+    const { attemptId } = body;
 
-    // Start transaction - get attempt and lock it
-    const { data: attempt, error: fetchError } = await supabase
+    if (!attemptId) {
+      console.error('❌ No attemptId in body');
+      return NextResponse.json(
+        { error: 'Attempt ID is required' },
+        { status: 400 }
+      );
+    }
+    console.log('✅ attemptId:', attemptId);
+
+    // ✅ STEP 3: Create Supabase client
+    console.log('🔌 Creating Supabase admin client...');
+    const supabase = await createAdminClient();
+    console.log('✅ Supabase client created');
+
+    // ✅ STEP 4: Verify attempt ownership
+    console.log('🔍 Verifying attempt ownership...');
+    const { data: attempt, error: verifyError } = await supabase
       .from('attempts')
-      .select('id, user_id, status')
+      .select('id, user_id, status, package_id')
       .eq('id', attemptId)
+      .eq('user_id', userId)
       .single();
 
-    if (fetchError || !attempt) {
-      console.error('Error fetching attempt:', fetchError);
-      return NextResponse.json({ error: 'Attempt not found' }, { status: 404 });
+    if (verifyError) {
+      console.error('❌ Error verifying attempt:', verifyError);
+      return NextResponse.json(
+        { error: 'Attempt not found or unauthorized', details: verifyError.message },
+        { status: 404 }
+      );
     }
 
-    if (attempt.user_id !== userId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    if (!attempt) {
+      console.error('❌ Attempt not found');
+      return NextResponse.json(
+        { error: 'Attempt not found' },
+        { status: 404 }
+      );
     }
 
+    console.log('✅ Attempt verified:', {
+      id: attempt.id,
+      status: attempt.status,
+      userId: attempt.user_id
+    });
+
+    // Check if already completed
     if (attempt.status === 'completed') {
+      console.warn('⚠️ Attempt already completed');
       return NextResponse.json(
         { error: 'Attempt already completed' },
         { status: 400 }
       );
     }
 
-    if (attempt.status !== 'in_progress') {
+    // ✅ STEP 5: Calculate scores using database function
+    console.log('🧮 Calculating scores...');
+    const { data: scoreData, error: scoreError } = await supabase
+      .rpc('calculate_attempt_score', { 
+        p_attempt_id: attemptId 
+      });
+
+    if (scoreError) {
+      console.error('❌ Error calculating scores:', scoreError);
       return NextResponse.json(
-        { error: 'Attempt not in progress' },
-        { status: 400 }
-      );
-    }
-
-    // Save final answers if provided
-    if (answers && Array.isArray(answers) && answers.length > 0) {
-      // Validate answer structure
-      for (const ans of answers) {
-        if (!ans.questionId || !ans.choiceId) {
-          return NextResponse.json(
-            { error: 'Each answer must have questionId and choiceId' },
-            { status: 400 }
-          );
-        }
-      }
-
-      const answersToSave = answers.map((ans: any) => ({
-        attempt_id: attemptId,
-        question_id: ans.questionId,
-        choice_id: ans.choiceId,
-        answered_at: new Date().toISOString(),
-      }));
-
-      const { error: saveError } = await supabase
-        .from('attempt_answers')
-        .upsert(answersToSave, {
-          onConflict: 'attempt_id,question_id',
-        });
-
-      if (saveError) {
-        console.error('Error saving final answers:', saveError);
-        return NextResponse.json(
-          { error: 'Failed to save final answers' },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Calculate scores using database function
-    let scores;
-    try {
-      scores = await calculateAttemptScore(attemptId);
-    } catch (scoreError) {
-      console.error('Error calculating scores:', scoreError);
-      return NextResponse.json(
-        { error: 'Failed to calculate scores' },
+        { error: 'Failed to calculate scores', details: scoreError.message },
         { status: 500 }
       );
     }
 
-    // Update attempt status and scores in a transaction
-    const updateData: any = {
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    console.log('✅ Score calculation result:', scoreData);
 
-    // Add scores if calculated
-    if (scores) {
-      updateData.score_twk = scores.twk;
-      updateData.score_tiu = scores.tiu;
-      updateData.score_tkp = scores.tkp;
-      updateData.total_score = scores.total;
-      updateData.is_passed = scores.isPassed;
-    }
-
-    const { error: updateError } = await supabase
+    // ✅ STEP 6: Fetch final attempt state
+    console.log('📊 Fetching final attempt state...');
+    const { data: finalAttempt, error: fetchFinalError } = await supabase
       .from('attempts')
-      .update(updateData)
-      .eq('id', attemptId)
-      .eq('status', 'in_progress'); // Ensure still in_progress (transaction safety)
-
-    if (updateError) {
-      console.error('Error updating attempt:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to update attempt status' },
-        { status: 500 }
-      );
-    }
-
-    // Verify the update was successful
-    const { data: updatedAttempt, error: verifyError } = await supabase
-      .from('attempts')
-      .select('status, completed_at, total_score')
+      .select('status, completed_at, score_twk, score_tiu, score_tkp, final_score, is_passed')
       .eq('id', attemptId)
       .single();
 
-    if (verifyError || !updatedAttempt || updatedAttempt.status !== 'completed') {
-      console.error('Failed to verify attempt completion:', verifyError);
+    if (fetchFinalError || !finalAttempt) {
+      console.error('❌ Error fetching final attempt:', fetchFinalError);
+      return NextResponse.json(
+        { error: 'Failed to fetch attempt status', details: fetchFinalError?.message },
+        { status: 500 }
+      );
+    }
+
+    console.log('✅ Final attempt state:', finalAttempt);
+
+    // Verify completion
+    if (finalAttempt.status !== 'completed') {
+      console.error('❌ Attempt status not completed:', finalAttempt.status);
       return NextResponse.json(
         { error: 'Failed to complete attempt submission' },
         { status: 500 }
       );
     }
 
-    // Return success with scores
-    return NextResponse.json({
+    // ✅ STEP 7: Return success response
+    const successResponse = {
       success: true,
-      scores,
+      scores: {
+        twk: finalAttempt.score_twk || 0,
+        tiu: finalAttempt.score_tiu || 0,
+        tkp: finalAttempt.score_tkp || 0,
+        total: finalAttempt.final_score || 0,
+        isPassed: finalAttempt.is_passed || false,
+      },
       attemptId,
-      completedAt: updatedAttempt.completed_at,
-      totalScore: updatedAttempt.total_score,
-    });
+      completedAt: finalAttempt.completed_at,
+      totalScore: finalAttempt.final_score || 0,
+    };
+
+    console.log('✅ Returning success response:', successResponse);
+    console.log('🎉 POST /api/exam/submit - SUCCESS');
+
+    return NextResponse.json(successResponse);
 
   } catch (error) {
-    console.error('Submit exam error:', error);
+    console.error('💥 FATAL ERROR in submit route:', error);
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

@@ -10,9 +10,9 @@ export async function getProfile(userId: string): Promise<Profile> {
     .single();
   
   if (error) {
-  console.error('getProfile error:', error);
-  throw new Error(`Failed to fetch profile: ${error.message || 'Unknown error'}`);
-}
+    console.error('getProfile error:', error);
+    throw new Error(`Failed to fetch profile: ${error.message || 'Unknown error'}`);
+  }
   return data;
 }
 
@@ -26,12 +26,12 @@ export async function getActivePackages(): Promise<Package[]> {
     .order('created_at', { ascending: false });
   
   if (error) {
-  console.error('getActivePackages error:', error);
-  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-    throw new Error('Network error: Unable to connect to database');
+    console.error('getActivePackages error:', error);
+    if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+      throw new Error('Network error: Unable to connect to database');
+    }
+    throw new Error(`Failed to fetch packages: ${error.message || 'Unknown error'}`);
   }
-  throw new Error(`Failed to fetch packages: ${error.message || 'Unknown error'}`);
-}
   return data;
 }
 
@@ -44,15 +44,15 @@ export async function getPackageById(packageId: string): Promise<Package> {
     .single();
   
   if (error) {
-  console.error('getPackageById error:', error);
-  if (error.code === 'PGRST116') {
-    throw new Error('Package not found');
+    console.error('getPackageById error:', error);
+    if (error.code === 'PGRST116') {
+      throw new Error('Package not found');
+    }
+    if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+      throw new Error('Network error: Unable to connect to database');
+    }
+    throw new Error(`Failed to fetch package: ${error.message || 'Unknown error'}`);
   }
-  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-    throw new Error('Network error: Unable to connect to database');
-  }
-  throw new Error(`Failed to fetch package: ${error.message || 'Unknown error'}`);
-}
   return data;
 }
 
@@ -125,12 +125,12 @@ export async function createAttempt(attempt: Partial<Attempt>): Promise<Attempt>
     .single();
   
   if (error) {
-  console.error('createAttempt error:', error);
-  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-    throw new Error('Network error: Unable to connect to database');
+    console.error('createAttempt error:', error);
+    if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
+      throw new Error('Network error: Unable to connect to database');
+    }
+    throw new Error(`Failed to create attempt: ${error.message || 'Unknown error'}`);
   }
-  throw new Error(`Failed to create attempt: ${error.message || 'Unknown error'}`);
-}
   return data;
 }
 
@@ -209,6 +209,7 @@ export async function getAttemptById(attemptId: string) {
 
   return { attempt, questions };
 }
+
 export async function getAttemptWithAnswers(attemptId: string) {
   const supabase = await createClient();
   
@@ -244,22 +245,30 @@ export async function getAttemptWithAnswers(attemptId: string) {
   };
 }
 
-export async function getUserAttempts(userId: string): Promise<Attempt[]> {
+export async function getUserAttempts(userId: string) {
   const supabase = await createClient();
+  
   const { data, error } = await supabase
     .from('attempts')
-    .select('*')
+    .select(`
+      *,
+      packages (
+        id,
+        title,
+        description,
+        difficulty
+      )
+    `)
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .order('started_at', { ascending: false });
   
   if (error) {
-  console.error('getUserAttempts error:', error);
-  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-    throw new Error('Network error: Unable to connect to database');
+    console.error('❌ getUserAttempts error:', error);
+    throw new Error(`Failed to fetch attempts: ${error.message || 'Database error'}`);
   }
-  throw new Error(`Failed to fetch attempts: ${error.message || 'Unknown error'}`);
-}
-  return data;
+  
+  console.log('✅ Fetched attempts:', data?.length || 0);
+  return data || [];
 }
 
 export async function getAttemptHistory(
@@ -286,24 +295,18 @@ export async function getAttemptHistory(
     .eq('status', 'completed');
 
   // Apply filter
-  // IMPORTANT: Passed = ALL THREE categories meet minimum
-  // TWK ≥ 65 AND TIU ≥ 80 AND TKP ≥ 166
   if (filterBy === 'passed') {
     query = query
       .gte('score_twk', 65)
       .gte('score_tiu', 80)
       .gte('score_tkp', 166);
-  } else if (filterBy === 'failed') {
-    // Failed = ANY category below threshold
-    // In PostgreSQL, we need to use .or() but Supabase client doesn't support complex OR easily
-    // So we'll fetch all and filter in JavaScript (see below)
   }
 
   // Apply sorting
   if (sortBy === 'newest') {
-    query = query.order('completed_at', { ascending: false }); // ✅ GANTI
+    query = query.order('completed_at', { ascending: false });
   } else if (sortBy === 'oldest') {
-    query = query.order('completed_at', { ascending: true }); // ✅ GANTI
+    query = query.order('completed_at', { ascending: true });
   } else if (sortBy === 'highest_score') {
     query = query.order('final_score', { ascending: false });
   }
@@ -315,17 +318,14 @@ export async function getAttemptHistory(
   const { data, error, count } = await query.range(from, to);
 
   if (error) {
-  console.error('getAttemptHistory error:', error);
-  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-    throw new Error('Network error: Unable to connect to database');
+    console.error('getAttemptHistory error:', error);
+    throw new Error(`Failed to fetch attempt history: ${error.message || 'Database error'}`);
   }
-  throw new Error(`Failed to fetch attempt history: ${error.message || 'Unknown error'}`);
-}
 
-  // Post-filter for 'failed' (since Supabase client doesn't easily support complex OR)
-  let filteredData = data;
+  // Post-filter for 'failed'
+  let filteredData = data || [];
   if (filterBy === 'failed') {
-    filteredData = data.filter(attempt => 
+    filteredData = filteredData.filter(attempt => 
       attempt.score_twk < 65 || 
       attempt.score_tiu < 80 || 
       attempt.score_tkp < 166
@@ -343,24 +343,20 @@ export async function getAttemptHistory(
 export async function getUserStats(userId: string) {
   const supabase = await createClient();
   
-  // Get all attempts for the user
   const { data: attempts, error } = await supabase
     .from('attempts')
     .select('*')
     .eq('user_id', userId)
     .eq('status', 'completed')
-    .order('completed_at', { ascending: false }); // ✅ GANTI submitted_at → completed_at
+    .order('completed_at', { ascending: false });
   
   if (error) {
-  console.error('getUserStats error:', error);
-  if (error.message?.includes('fetch') || error.message?.includes('Failed to fetch')) {
-    throw new Error('Network error: Unable to connect to database');
+    console.error('getUserStats error:', error);
+    throw new Error(`Failed to fetch user stats: ${error.message || 'Database error'}`);
   }
-  throw new Error(`Failed to fetch user stats: ${error.message || 'Unknown error'}`);
-}
   
   const completedAttempts = attempts || [];
-  const totalAttempts = attempts?.length || 0;
+  const totalAttempts = completedAttempts.length;
   
   // Calculate statistics
   const scores = completedAttempts
@@ -374,7 +370,6 @@ export async function getUserStats(userId: string) {
   const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
   
   // Calculate pass rate
-  // Passing criteria: ALL THREE must meet minimum (TWK≥65, TIU≥80, TKP≥166)
   const passedAttempts = completedAttempts.filter(attempt => 
     attempt.score_twk >= 65 && 
     attempt.score_tiu >= 80 && 
@@ -487,7 +482,7 @@ export async function getReviewData(attemptId: string) {
     // Determine if answer is correct
     const isCorrect = question.category !== 'TKP' 
       ? userAnswer?.choice_id === correctChoice?.id 
-      : null; // TKP doesn't have correct/incorrect
+      : null;
     
     // Calculate score for TKP questions
     const score = question.category === 'TKP' && userChoice 

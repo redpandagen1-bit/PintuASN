@@ -59,6 +59,9 @@ export function ExamInterface({
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
 
+  // ⭐ PINDAHKAN KE ATAS - Define currentQuestion SEBELUM useEffect
+  const currentQuestion = questions[currentIndex];
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -68,6 +71,9 @@ export function ExamInterface({
         return;
       }
 
+      // ⭐ FIX: Akses question langsung dari questions array
+      const question = questions[currentIndex];
+      
       switch (event.key) {
         case 'ArrowLeft':
           if (currentIndex > 0) {
@@ -86,14 +92,16 @@ export function ExamInterface({
         case '5':
           // Select answer choices 1-5
           const choiceIndex = parseInt(event.key) - 1;
-          const choices = currentQuestion?.choices || [];
+          const choices = question?.choices || [];
           if (choiceIndex < choices.length) {
-            selectAnswer(currentQuestion.id, choices[choiceIndex].id);
+            selectAnswer(question.id, choices[choiceIndex].id);
           }
           break;
         case 'f':
           // Toggle flag
-          toggleFlag(currentQuestion.id);
+          if (question) {
+            toggleFlag(question.id);
+          }
           break;
         case '?':
           // Show keyboard help
@@ -104,7 +112,8 @@ export function ExamInterface({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, questions.length, currentQuestion, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
+  }, [currentIndex, questions, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
+  // ⭐ FIX: Hapus currentQuestion dari dependencies, pakai currentIndex & questions
 
   function formatTime(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
@@ -113,41 +122,62 @@ export function ExamInterface({
   }
 
   const handleSubmit = async () => {
-    const toastId = toast.loading('Mengirim ujian...');
-    setIsSubmitting(true);
+  const toastId = toast.loading('Mengirim ujian...');
+  setIsSubmitting(true);
 
-    try {
-      const response = await fetch('/api/exam/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          attemptId,
-          answers: Object.fromEntries(answers)
-        }),
-      });
+  try {
+    // ✅ Convert Map to Array
+    const answersArray = Array.from(answers.entries()).map(
+      ([questionId, choiceId]) => ({
+        questionId,
+        choiceId,
+      })
+    );
 
-      if (!response.ok) {
-        throw new Error('Failed to submit exam');
-      }
+    // 🔍 DEBUG: Log data yang akan dikirim
+    console.log('📤 Submitting exam:', {
+      attemptId,
+      answersCount: answersArray.length,
+      answers: answersArray
+    });
 
-      toast.success('Ujian berhasil dikirim!', { id: toastId });
-      router.push(`/exam/${attemptId}/result`);
-    } catch (error) {
-      console.error('Submit error:', error);
-      toast.error('Gagal mengirim ujian. Silakan coba lagi.', { id: toastId });
-      setIsSubmitting(false);
+    const response = await fetch('/api/exam/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        attemptId,
+        answers: answersArray
+      }),
+    });
+
+    // 🔍 DEBUG: Log response
+    console.log('📥 Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Submit error:', errorData); // Log error detail
+      throw new Error(errorData.error || 'Failed to submit exam');
     }
-  };
+
+    const result = await response.json();
+    console.log('✅ Submit success:', result);
+
+    toast.success('Ujian berhasil dikirim!', { id: toastId });
+    router.push(`/exam/${attemptId}/result`);
+  } catch (error) {
+    console.error('Submit error:', error);
+    toast.error('Gagal mengirim ujian. Silakan coba lagi.', { id: toastId });
+    setIsSubmitting(false);
+  }
+};
 
   useEffect(() => {
-  if (isExpired && !hasSubmittedRef.current) {
-    hasSubmittedRef.current = true;
-    handleSubmit();
-  }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [isExpired]);
-
-  const currentQuestion = questions[currentIndex];
+    if (isExpired && !hasSubmittedRef.current) {
+      hasSubmittedRef.current = true;
+      handleSubmit();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isExpired]);
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
@@ -253,7 +283,7 @@ export function ExamInterface({
           </section>
 
           {/* Question Navigator Sidebar */}
-          <nav>
+          <nav className="hidden lg:block">
             <QuestionNavigator
               questions={questions}
               currentIndex={currentIndex}

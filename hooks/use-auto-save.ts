@@ -25,17 +25,26 @@ export function useAutoSave(
       setIsSaving(true);
       
       try {
-        const response = await fetch('/api/exam/save', {
+        // ✅ Convert Map to Array format yang diexpect API
+        const answersArray = Array.from(currentAnswers.entries()).map(
+          ([questionId, choiceId]) => ({
+            questionId,
+            choiceId,
+          })
+        );
+
+        const response = await fetch('/api/exam/save', { // ← Fix path
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             attemptId,
-            answers: Object.fromEntries(currentAnswers),
+            answers: answersArray, // ← Now it's an array
           }),
         });
         
         if (!response.ok) {
-          throw new Error('Gagal menyimpan jawaban');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Gagal menyimpan jawaban');
         }
         
         setLastSaved(new Date());

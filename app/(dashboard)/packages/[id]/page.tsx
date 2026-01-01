@@ -25,8 +25,9 @@ function getDifficultyVariant(difficulty: string): 'default' | 'secondary' | 'de
 export default async function PackageDetailPage({ 
   params 
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }>  // ✅ BENAR
 }) {
+  const { id } = await params;  // ✅ BENAR
   const user = await currentUser();
   if (!user) redirect('/sign-in');
 

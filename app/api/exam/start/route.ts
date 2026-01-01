@@ -4,8 +4,31 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    // Get user from Clerk
-    const { userId } = await auth();
+    const { userId, getToken } = await auth();
+    
+    // ⭐ LOGGING - hapus setelah fix
+    const token = await getToken({ template: 'supabase' });
+    console.log('===== JWT DEBUG =====');
+    console.log('User ID:', userId);
+    console.log('Token exists:', !!token);
+    console.log('Token preview:', token?.substring(0, 50) + '...');
+    
+    // Decode JWT untuk lihat claims
+    if (token) {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+        console.log('JWT Payload:', JSON.stringify(payload, null, 2));
+      }
+    }
+    console.log('====================');
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ... rest of code
+
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

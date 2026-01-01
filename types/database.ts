@@ -1,5 +1,15 @@
 // HANYA type untuk tabel database
 
+export type AttemptWithPackage = Attempt & {
+  packages: {
+    id: string;
+    title: string;
+    description: string | null;
+    difficulty: string;
+    total_questions: number;
+  } | null;
+};
+
 export interface Profile {
   user_id: string;
   email: string;
