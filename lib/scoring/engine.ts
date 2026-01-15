@@ -3,7 +3,7 @@ import type { CategoryScores } from '@/types/exam';
 
 export async function calculateAttemptScore(attemptId: string): Promise<CategoryScores> {
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc('calculate_attempt_score', { p_attempt_id: attemptId });
+  const { data, error } = await supabase.rpc('calculate_attempt_score', { attempt_uuid: attemptId });
   
   if (error) throw error;
   if (!data) throw new Error('No data returned from calculate_attempt_score');

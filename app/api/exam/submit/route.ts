@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { attemptId } = body;
+    const { attemptId, answers } = body;
 
     if (!attemptId) {
       console.error('❌ No attemptId in body');
@@ -42,7 +42,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    if (!answers || !Array.isArray(answers) || answers.length === 0) {
+      console.error('❌ No answers provided');
+      return NextResponse.json(
+        { error: 'Answers are required' },
+        { status: 400 }
+      );
+    }
+
     console.log('✅ attemptId:', attemptId);
+    console.log('✅ answers count:', answers.length);
 
     // ✅ STEP 3: Create Supabase client
     console.log('🔌 Creating Supabase admin client...');
@@ -89,11 +99,51 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ STEP 5: Calculate scores using database function
+    // ✅ STEP 4.5: Save answers to database FIRST
+    console.log(`💾 Saving ${answers.length} answers...`);
+
+    const answersToSave = answers.map((ans: any) => ({
+      attempt_id: attemptId,
+      question_id: ans.questionId,
+      choice_id: ans.choiceId,
+      is_flagged: false,
+      answered_at: new Date().toISOString(),
+    }));
+
+    const { error: saveError } = await supabase
+      .from('attempt_answers')
+      .upsert(answersToSave, {
+        onConflict: 'attempt_id,question_id',
+      });
+
+    if (saveError) {
+      console.error('❌ Error saving answers:', saveError);
+      return NextResponse.json(
+        { error: 'Failed to save answers', details: saveError.message },
+        { status: 500 }
+      );
+    }
+
+    console.log('✅ Answers saved successfully');
+
+    // ✅ STEP 5: Verify answers were saved
+    const { data: savedAnswers, error: checkError } = await supabase
+      .from('attempt_answers')
+      .select('id')
+      .eq('attempt_id', attemptId);
+
+    if (checkError) {
+      console.error('❌ Error checking saved answers:', checkError);
+    } else {
+      console.log(`✅ Verified ${savedAnswers?.length || 0} answers in database`);
+    }
+
+    // ✅ STEP 6: Calculate scores using database function
     console.log('🧮 Calculating scores...');
+    
     const { data: scoreData, error: scoreError } = await supabase
       .rpc('calculate_attempt_score', { 
-        p_attempt_id: attemptId 
+        attempt_uuid: attemptId
       });
 
     if (scoreError) {
@@ -106,7 +156,43 @@ export async function POST(req: Request) {
 
     console.log('✅ Score calculation result:', scoreData);
 
-    // ✅ STEP 6: Fetch final attempt state
+    // ✅ STEP 7: Update attempt with scores and mark as completed
+    if (scoreData && scoreData.length > 0) {
+      const scores = scoreData[0];
+      
+      console.log('📝 Updating attempt with scores:', {
+        twk: scores.twk_score,
+        tiu: scores.tiu_score,
+        tkp: scores.tkp_score,
+        total: scores.total_score,
+        isPassed: scores.is_passed
+      });
+      
+      const { error: updateError } = await supabase
+        .from('attempts')
+        .update({
+          score_twk: scores.twk_score,
+          score_tiu: scores.tiu_score,
+          score_tkp: scores.tkp_score,
+          final_score: scores.total_score,
+          is_passed: scores.is_passed,
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', attemptId);
+
+      if (updateError) {
+        console.error('❌ Error updating attempt:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to update attempt', details: updateError.message },
+          { status: 500 }
+        );
+      }
+
+      console.log('✅ Attempt updated successfully');
+    }
+
+    // ✅ STEP 8: Fetch final attempt state
     console.log('📊 Fetching final attempt state...');
     const { data: finalAttempt, error: fetchFinalError } = await supabase
       .from('attempts')
@@ -133,7 +219,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ STEP 7: Return success response
+    // ✅ STEP 9: Return success response
     const successResponse = {
       success: true,
       scores: {

@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server'; // ✅ GANTI INI
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -21,8 +21,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ createClient() sudah otomatis include JWT dari Clerk
-    const supabase = await createClient();
+    // ✅ GANTI: Pakai createAdminClient() untuk bypass RLS
+    const supabase = await createAdminClient();
 
     // Check package exists and is active
     const { data: pkg, error: pkgError } = await supabase
