@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { Flag } from 'lucide-react';
 
 export interface QuestionWithChoices {
   id: string;
@@ -73,7 +72,7 @@ export function QuestionDisplay({
             aria-label={isFlagged ? "Hapus tanda soal" : "Tandai soal"}
             aria-pressed={isFlagged}
           >
-            <Flag className={cn("h-4 w-4", isFlagged && "fill-current")} />
+            {isFlagged ? 'Ditandai ★' : 'Tandai Soal'}
           </Button>
         </header>
 

@@ -18,7 +18,6 @@ import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { QuestionDisplay } from '@/components/exam/question-display';
-import { QuestionNavigator } from '@/components/exam/question-navigator';
 import { cn } from '@/lib/utils';
 import type { QuestionWithChoices } from '@/types/exam';
 
@@ -115,11 +114,76 @@ export function ExamInterface({
   }, [currentIndex, questions, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
   // ⭐ FIX: Hapus currentQuestion dari dependencies, pakai currentIndex & questions
 
+  // ⭐ Auto-save timer setiap 10 detik
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    
+    const saveInterval = setInterval(async () => {
+      try {
+        await fetch('/api/exam/save-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            attemptId,
+            timeRemaining: Math.floor(timeLeft * 1000),
+          }),
+        });
+        console.log('Timer auto-saved:', Math.floor(timeLeft));
+      } catch (error) {
+        console.error('Failed to auto-save timer:', error);
+      }
+    }, 10000);
+
+    return () => clearInterval(saveInterval);
+  }, [timeLeft, attemptId]);
+
+  // Save timer saat user keluar
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      await fetch('/api/exam/save-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          attemptId,
+          timeRemaining: Math.floor(timeLeft * 1000),
+        }),
+        keepalive: true,
+      });
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [attemptId, timeLeft]);
+
   function formatTime(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
+
+  const handleCancel = async () => {
+    if (!confirm('Apakah Anda yakin ingin membatalkan ujian? Progres akan tersimpan.')) {
+      return;
+    }
+    
+    try {
+      await fetch('/api/exam/save-progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          attemptId,
+          timeRemaining: Math.floor(timeLeft * 1000),
+        }),
+      });
+      
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Cancel error:', error);
+      toast.error('Gagal menyimpan progress');
+    }
+  };
 
   const handleSubmit = async () => {
   const toastId = toast.loading('Mengirim ujian...');
@@ -180,131 +244,167 @@ export function ExamInterface({
   }, [isExpired]);
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
-      {/* Skip to main content link for keyboard users */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Skip to main content */}
       <a 
         href="#main-content" 
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50"
       >
         Langsung ke konten utama
       </a>
-      
-      {/* Top Bar (sticky) */}
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 px-3 sm:px-4 py-2 sm:py-3">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          {/* Timer */}
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" aria-hidden="true" />
-            <div 
-              className={cn(
-                "text-base sm:text-lg font-mono font-semibold",
+
+      {/* Header - Sticky Top Bar */}
+      <header className="bg-white border-b sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Center: Title & Timer */}
+            <div className="flex items-center gap-6">
+              <h1 className="text-xl font-semibold hidden sm:block">{packageTitle}</h1>
+              <div className={cn(
+                "flex items-center gap-2 text-lg font-semibold",
                 timeLeft < 600 && "text-red-600"
-              )}
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              {formatTime(Math.floor(timeLeft))}
+              )}>
+                <Clock className="w-5 h-5" />
+                <span>{formatTime(Math.floor(timeLeft))}</span>
+              </div>
+            </div>
+
+            {/* Right: Batal & Submit */}
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={handleCancel}
+                variant="ghost"
+                className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Batal
+              </Button>
+              <Button
+                onClick={() => setShowSubmitDialog(true)}
+                disabled={isSubmitting}
+                className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Mengirim...' : 'Submit Ujian'}
+              </Button>
             </div>
           </div>
-
-          {/* Package Title */}
-          <div className="hidden md:block">
-            <h1 className="text-base sm:text-lg font-semibold text-slate-900 truncate max-w-md">
-              {packageTitle}
-            </h1>
-          </div>
-
-          {/* Submit Button */}
-          <Button 
-            onClick={() => setShowSubmitDialog(true)}
-            variant="default"
-            size="sm"
-            className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
-            aria-label="Kirim ujian"
-          >
-            Submit Ujian
-          </Button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="flex-1 flex overflow-hidden">
-        <div className="flex-1 flex flex-col lg:flex-row max-w-7xl mx-auto w-full">
-          {/* Left: Question Display */}
-          <section className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
-            <QuestionDisplay
-              question={currentQuestion}
-              currentIndex={currentIndex}
-              totalQuestions={questions.length}
-              selectedAnswer={answers.get(currentQuestion?.id)}
-              onAnswerSelect={(choiceId: string) => selectAnswer(currentQuestion.id, choiceId)}
-              isFlagged={flaggedQuestions.has(currentQuestion?.id)}
-              onToggleFlag={() => toggleFlag(currentQuestion?.id)}
-            />
-
-            {/* Bottom Navigation */}
-            <nav className="flex items-center justify-between mt-4 sm:mt-6" aria-label="Navigasi soal">
-              <Button
-                variant="outline"
-                onClick={prevQuestion}
-                disabled={currentIndex === 0}
-                size="sm"
-                className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
-                aria-label="Soal sebelumnya"
-              >
-                <ChevronLeft className="h-4 w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Sebelumnya</span>
-                <span className="sm:hidden">Prev</span>
-              </Button>
-
-              {/* Auto-save indicator */}
-              {isSaving && (
-                <div 
-                  className="text-xs sm:text-sm text-slate-600"
-                  role="status"
-                  aria-live="polite"
-                >
-                  Menyimpan...
-                </div>
+      <main id="main-content" className="max-w-4xl mx-auto px-6 py-8">
+        {/* Question Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-6">
+          {/* Question Header */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-gray-600">
+                Soal {currentIndex + 1} dari {questions.length}
+              </span>
+            </div>
+            
+            <button
+              onClick={() => toggleFlag(currentQuestion?.id)}
+              className={cn(
+                "px-4 py-2 rounded-lg border text-sm font-medium transition-colors",
+                flaggedQuestions.has(currentQuestion?.id)
+                  ? "bg-yellow-50 border-yellow-300 text-yellow-700"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               )}
+            >
+              {flaggedQuestions.has(currentQuestion?.id) ? '★ Ditandai' : 'Tandai Soal'}
+            </button>
+          </div>
 
-              <Button
-                onClick={nextQuestion}
-                disabled={currentIndex === questions.length - 1}
-                size="sm"
-                className="min-h-[44px] text-xs sm:text-sm sm:min-h-[44px]"
-                aria-label="Soal selanjutnya"
-              >
-                <span className="hidden sm:inline">Selanjutnya</span>
-                <span className="sm:hidden">Next</span>
-                <ChevronRight className="h-4 w-4 ml-1 sm:ml-2" />
-              </Button>
-            </nav>
-          </section>
+          {/* Use existing QuestionDisplay component */}
+          <QuestionDisplay
+            question={currentQuestion}
+            currentIndex={currentIndex}
+            totalQuestions={questions.length}
+            selectedAnswer={answers.get(currentQuestion?.id)}
+            onAnswerSelect={(choiceId: string) => selectAnswer(currentQuestion.id, choiceId)}
+            isFlagged={flaggedQuestions.has(currentQuestion?.id)}
+            onToggleFlag={() => toggleFlag(currentQuestion?.id)}
+          />
+        </div>
 
-          {/* Question Navigator Sidebar */}
-          <nav className="hidden lg:block">
-            <QuestionNavigator
-              questions={questions}
-              currentIndex={currentIndex}
-              answers={answers}
-              flaggedQuestions={flaggedQuestions}
-              onNavigate={goToQuestion}
-            />
-          </nav>
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="outline"
+            onClick={prevQuestion}
+            disabled={currentIndex === 0}
+            className="flex items-center gap-2 px-6 py-3"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Sebelumnya
+          </Button>
+
+          {isSaving && (
+            <div className="text-sm text-gray-600">
+              Menyimpan...
+            </div>
+          )}
+
+          <Button
+            onClick={nextQuestion}
+            disabled={currentIndex === questions.length - 1}
+            className="flex items-center gap-2 px-6 py-3 bg-black text-white hover:bg-gray-800"
+          >
+            Selanjutnya
+            <ChevronRight className="w-5 h-5" />
+          </Button>
+        </div>
+
+        {/* Question Navigation Grid - MOVED TO BOTTOM */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold mb-4">Nomor Soal</h3>
+
+          {/* Legend - Compact Version WITHOUT numbers in boxes */}
+          <div className="flex flex-wrap gap-4 mb-6 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded border-2 border-green-500 bg-green-50" />
+              <span className="text-gray-600">Soal Ini</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded bg-blue-500" />
+              <span className="text-gray-600">Dijawab</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded bg-yellow-500" />
+              <span className="text-gray-600">Ditandai</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded bg-gray-200" />
+              <span className="text-gray-600">Belum Dijawab</span>
+            </div>
+          </div>
+
+          {/* Question Grid - Smaller boxes, 10 columns on mobile, 15 on desktop */}
+          <div className="grid grid-cols-10 sm:grid-cols-15 gap-2">
+            {questions.map((q, index) => {
+              const isAnswered = answers.has(q.id);
+              const isMarked = flaggedQuestions.has(q.id);
+              const isCurrent = index === currentIndex;
+
+              return (
+                <button
+                  key={q.id}
+                  onClick={() => goToQuestion(index)}
+                  className={cn(
+                    "aspect-square rounded flex items-center justify-center text-sm font-medium transition-all",
+                    isCurrent && "border-2 border-green-500 bg-green-50 text-green-700 scale-110",
+                    !isCurrent && isMarked && "bg-yellow-500 text-white hover:bg-yellow-600",
+                    !isCurrent && !isMarked && isAnswered && "bg-blue-500 text-white hover:bg-blue-600",
+                    !isCurrent && !isMarked && !isAnswered && "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  )}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </main>
-
-      {/* Mobile Navigator Component */}
-      <div className="lg:hidden bg-white border-t border-slate-200 p-4">
-        <QuestionNavigator
-          questions={questions}
-          currentIndex={currentIndex}
-          answers={answers}
-          flaggedQuestions={flaggedQuestions}
-          onNavigate={goToQuestion}
-        />
-      </div>
 
       {/* Submit Confirmation Dialog */}
       <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
