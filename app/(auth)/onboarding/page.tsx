@@ -18,12 +18,12 @@ export default async function OnboardingPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, phone, date_of_birth, gender, profile_completed')
     .eq('user_id', user.id)
     .single();
 
-  // If profile has full_name, redirect to dashboard
-  if (profile?.full_name && profile.full_name.trim().length > 0) {
+  // If profile is completed, redirect to dashboard
+  if (profile?.profile_completed === true) {
     redirect('/dashboard');
   }
 

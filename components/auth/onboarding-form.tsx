@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -15,29 +14,32 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { createClient } from '@supabase/supabase-js';
+import { onboardingSchema } from '@/lib/validations/onboarding';
+import { OnboardingFormProps } from '@/types/onboarding';
+import { z } from 'zod';
 
-const formSchema = z.object({
-  fullName: z.string().min(3, 'Nama minimal 3 karakter').max(100),
-  phone: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-interface OnboardingFormProps {
-  userId: string;
-  defaultName?: string;
-}
+type FormValues = z.infer<typeof onboardingSchema>;
 
 export function OnboardingForm({ userId, defaultName }: OnboardingFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      fullName: defaultName || '',
+      full_name: defaultName || '',
       phone: '',
+      date_of_birth: '',
+      gender: undefined,
     },
   });
 
@@ -45,41 +47,57 @@ export function OnboardingForm({ userId, defaultName }: OnboardingFormProps) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/profile/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          fullName: values.fullName,
-          phone: values.phone || null,
-        }),
-      });
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update profile');
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: values.full_name,
+          phone: values.phone,
+          date_of_birth: values.date_of_birth,
+          gender: values.gender,
+          profile_completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId);
+
+      if (error) {
+        throw new Error(error.message || 'Gagal menyimpan profil');
       }
 
-      toast.success('Profil berhasil dilengkapi!');
       router.push('/dashboard');
       router.refresh();
     } catch (error) {
       console.error('Onboarding error:', error);
-      toast.error('Gagal menyimpan profil. Silakan coba lagi.');
+      // You can add a toast component here if you have one
+      alert(error instanceof Error ? error.message : 'Gagal menyimpan profil. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
   }
 
+  const currentYear = new Date().getFullYear();
+  const maxDate = new Date(currentYear - 13, new Date().getMonth(), new Date().getDate());
+  const minDate = new Date(currentYear - 100, 0, 1);
+
+  const genderOptions = [
+    { value: 'male', label: 'Laki-laki' },
+    { value: 'female', label: 'Perempuan' },
+  ];
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Nama Lengkap */}
         <FormField
           control={form.control}
-          name="fullName"
+          name="full_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nama Lengkap *</FormLabel>
+              <FormLabel>Nama Lengkap <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input 
                   placeholder="Masukkan nama lengkap" 
@@ -92,15 +110,16 @@ export function OnboardingForm({ userId, defaultName }: OnboardingFormProps) {
           )}
         />
 
+        {/* Nomor Telepon */}
         <FormField
           control={form.control}
           name="phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nomor Telepon (Opsional)</FormLabel>
+              <FormLabel>No. WhatsApp <span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="08xx xxxx xxxx" 
+                  placeholder="contoh: +6281234567890 atau 081234567890" 
                   type="tel"
                   {...field} 
                   disabled={isLoading}
@@ -111,8 +130,58 @@ export function OnboardingForm({ userId, defaultName }: OnboardingFormProps) {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Menyimpan...' : 'Mulai Belajar'}
+        {/* Tanggal Lahir */}
+        <FormField
+          control={form.control}
+          name="date_of_birth"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Tanggal Lahir <span className="text-red-500">*</span></FormLabel>
+              <FormControl>
+                <Input
+                  type="date"
+                  max={new Date(maxDate).toISOString().split('T')[0]}
+                  min={new Date(minDate).toISOString().split('T')[0]}
+                  className={cn(
+                    !field.value && "text-muted-foreground"
+                  )}
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Jenis Kelamin */}
+        <FormField
+          control={form.control}
+          name="gender"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Jenis Kelamin <span className="text-red-500">*</span></FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih jenis kelamin" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {genderOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={isLoading || !form.formState.isValid}>
+          {isLoading ? 'Menyimpan...' : 'Simpan & Lanjutkan'}
         </Button>
       </form>
     </Form>
