@@ -1,13 +1,13 @@
 import { Suspense } from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import { getActivePackages, getUserAttempts } from '@/lib/supabase/queries';
-import { QuickStats } from '@/components/shared/quick-stats';
 import { PackageCardUser } from '@/components/shared/package-card-user';
+import { BannerSlider, StatCard, TryoutFilterTabs, MateriTabs } from '@/components/dashboard/user';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { TrendingUp } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 async function DashboardContent() {
@@ -17,13 +17,13 @@ async function DashboardContent() {
   const userId = user.id;
   const firstName = user.firstName || 'Pengguna';
 
-  // Fetch data
+  // Fetch data - KEEP THIS EXACTLY AS IS
   const [packages, attempts] = await Promise.all([
     getActivePackages(),
     getUserAttempts(userId),
   ]);
 
-  // Calculate stats - hitung SEMUA attempts (tidak filter by status)
+  // Calculate stats - KEEP THIS EXACTLY AS IS
   const totalAttempts = attempts.length;
   const completedAttempts = attempts.filter(a => a.status === 'completed');
   const scores = completedAttempts
@@ -36,11 +36,11 @@ async function DashboardContent() {
   
   const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
 
-  // Limit packages to first 6 for display
+  // Limit packages to first 6 for display - KEEP THIS
   const displayedPackages = packages.slice(0, 6);
   const hasMorePackages = packages.length > 6;
 
-  // Check for active attempts per package
+  // Check for active attempts per package - KEEP THIS
   const packageIdsWithAttempts = new Set(
     attempts
       .filter(a => a.status === 'in_progress')
@@ -48,37 +48,70 @@ async function DashboardContent() {
   );
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-slate-900">
-          Selamat datang, {firstName}!
-        </h1>
-        <p className="text-lg text-slate-600">
-          Siap latihan hari ini?
-        </p>
-      </div>
+    <div className="space-y-6 pb-10">
+      {/* Banner Slider - AT TOP */}
+      <BannerSlider />
 
-      {/* Quick Stats */}
-      <QuickStats 
-        totalAttempts={totalAttempts}
-        averageScore={averageScore}
-        bestScore={bestScore}
-      />
+      {/* Statistik Belajar - NEW DESIGN */}
+      <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+        <div className="flex items-end justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">Statistik Belajar</h2>
+            <p className="text-slate-500 text-sm mt-1">Pantau perkembangan belajarmu.</p>
+          </div>
+          <Link href="/dashboard/history">
+            <Button variant="ghost" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex items-center gap-1">
+              Lihat Detail <ChevronRight size={16} />
+            </Button>
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <StatCard
+            label="Tryout Selesai"
+            value={completedAttempts.length}
+            iconName="CheckCircle"
+            iconColor="text-emerald-600"
+            iconBg="bg-emerald-100"
+          />
+          <StatCard
+            label="Rata-rata Skor"
+            value={averageScore}
+            iconName="BarChart2"
+            iconColor="text-blue-600"
+            iconBg="bg-blue-100"
+          />
+          <StatCard
+            label="Peringkat Nasional"
+            value="Top 5%"
+            iconName="Award"
+            iconColor="text-amber-600"
+            iconBg="bg-amber-100"
+          />
+          <StatCard
+            label="Skor Terbaik"
+            value={bestScore}
+            iconName="TrendingUp"
+            iconColor="text-purple-600"
+            iconBg="bg-purple-100"
+          />
+        </div>
+      </section>
 
-      {/* Available Packages */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-900">
-            Paket Tryout Tersedia
-          </h2>
-          {hasMorePackages && (
-            <Link href="/packages">
-              <Button variant="outline">
-                Lihat Semua Paket
-              </Button>
-            </Link>
-          )}
+      {/* Daftar Tryout */}
+      <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">
+              Daftar Tryout
+            </h2>
+            <p className="text-slate-500 text-sm mt-1">
+              Pilih paket simulasi SKD sesuai kebutuhanmu.
+            </p>
+          </div>
+          
+          {/* Filter Tabs */}
+          <TryoutFilterTabs />
         </div>
         
         {displayedPackages.length > 0 ? (
@@ -108,71 +141,19 @@ async function DashboardContent() {
         )}
       </section>
 
-      {/* Recent Attempts - HANYA tampilkan yang completed dan abandoned */}
-      {attempts.filter(a => a.status !== 'in_progress').length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-slate-900">
-              Riwayat Terakhir
-            </h2>
-            <Link href="/dashboard/history">
-              <Button variant="outline">
-                Lihat Semua Riwayat
-              </Button>
-            </Link>
-          </div>
+      {/* Materi Section */}
+      <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">
+                Materi
+              </h2>
+              <p className="text-slate-500 text-sm mt-1">
+                Pelajari materi persiapan CPNS 2026.
+              </p>
+            </div>
           
-          <div className="grid gap-4 md:grid-cols-3">
-            {attempts
-              .filter(a => a.status !== 'in_progress')
-              .slice(0, 3)
-              .map((attempt) => (
-                <Card key={attempt.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base truncate">
-                        {attempt.packages?.title || 'Paket Tryout'}
-                      </CardTitle>
-                      <Badge 
-                        variant={attempt.status === 'completed' ? 'default' : 'secondary'}
-                        className="ml-2 flex-shrink-0"
-                      >
-                        {attempt.status === 'completed' ? 'Selesai' : 'Dibatalkan'}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-600">Tanggal:</span>
-                        <span>
-                          {new Date(attempt.started_at).toLocaleDateString('id-ID')}
-                        </span>
-                      </div>
-                      {attempt.status === 'completed' && attempt.final_score !== null && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-600">Skor:</span>
-                          <span className="font-semibold">
-                            {attempt.final_score}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                  {attempt.status === 'completed' && (
-                    <CardFooter className="pt-0">
-                      <Link href={`/exam/${attempt.id}/result`} className="w-full">
-                        <Button variant="outline" size="sm" className="w-full">
-                          Lihat Hasil
-                        </Button>
-                      </Link>
-                    </CardFooter>
-                  )}
-                </Card>
-              ))}
-          </div>
+          <MateriTabs />
         </section>
-      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 export const BANNER_SLIDES = [
   {
     id: 1,
-    title: "Siap Hadapi CPNS 2025?",
+    title: "Siap Hadapi CPNS 2026?",
     subtitle: "Ikuti Tryout Akbar Nasional Batch 1 dan ukur kemampuanmu sekarang.",
     imagePath: "/images/banners/banner-1.jpg",
     buttonText: "Daftar Sekarang",
