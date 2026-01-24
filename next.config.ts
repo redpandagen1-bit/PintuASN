@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  experimental: {
+    reactCompiler: true,
+  },
 
   images: {
     remotePatterns: [
@@ -10,6 +12,7 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
+    qualities: [75, 90, 100],
   },
 };
 

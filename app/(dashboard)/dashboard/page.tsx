@@ -3,6 +3,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import { getActivePackages, getUserAttempts } from '@/lib/supabase/queries';
 import { PackageCardUser } from '@/components/shared/package-card-user';
 import { BannerSlider, StatCard, TryoutFilterTabs, MateriTabs } from '@/components/dashboard/user';
+import { FeatureGrid } from '@/components/layout/FeatureGrid';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,9 @@ async function DashboardContent() {
       {/* Banner Slider - AT TOP */}
       <BannerSlider />
 
+      {/* Feature Grid - Mobile Only */}
+      <FeatureGrid />
+
       {/* Statistik Belajar - NEW DESIGN */}
       <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
         <div className="flex items-end justify-between">
@@ -59,7 +63,7 @@ async function DashboardContent() {
             <h2 className="text-2xl font-bold text-slate-800">Statistik Belajar</h2>
             <p className="text-slate-500 text-sm mt-1">Pantau perkembangan belajarmu.</p>
           </div>
-          <Link href="/dashboard/history">
+          <Link href="/statistics">
             <Button variant="ghost" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex items-center gap-1">
               Lihat Detail <ChevronRight size={16} />
             </Button>
