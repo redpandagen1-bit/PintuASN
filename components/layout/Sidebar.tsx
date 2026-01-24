@@ -37,7 +37,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col fixed left-6 w-72 bg-white border border-slate-200 z-40 transition-all duration-300 rounded-3xl shadow-lg top-28 bottom-8">
+    <aside className="hidden lg:flex flex-col sticky top-28 w-72 h-[calc(100vh-10rem)] bg-white border border-slate-200 transition-all duration-300 rounded-3xl shadow-lg flex-shrink-0">
       
       {/* Main Menu - Scrollable Area */}
       <div className="flex-1 overflow-y-auto py-6 px-3 custom-scrollbar">
