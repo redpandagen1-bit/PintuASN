@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import { getActivePackages, getUserAttempts } from '@/lib/supabase/queries';
+import { createAdminClient } from '@/lib/supabase/server';
 import { PackageCardUser } from '@/components/shared/package-card-user';
 import { BannerSlider, StatCard, TryoutFilterTabs, MateriTabs } from '@/components/dashboard/user';
 import { FeatureGrid } from '@/components/layout/FeatureGrid';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 async function DashboardContent() {
@@ -24,6 +25,51 @@ async function DashboardContent() {
     getUserAttempts(userId),
   ]);
 
+  // Add admin client for user count and ranking
+  const supabase = await createAdminClient();
+
+  // ← ADD: Fetch completed users count for each package
+  const packageIds = packages.map(pkg => pkg.id);
+  
+  const { data: completedCounts } = await supabase
+    .from('attempts')
+    .select('package_id, user_id')
+    .in('package_id', packageIds)
+    .eq('status', 'completed');
+
+  // Count unique users per package
+  const userCountsByPackage = new Map<string, number>();
+  if (completedCounts) {
+    // Create a map to track unique users per package
+    const packageUserSets = new Map<string, Set<string>>();
+    completedCounts.forEach(({ package_id, user_id }) => {
+      if (!packageUserSets.has(package_id)) {
+        packageUserSets.set(package_id, new Set());
+      }
+      packageUserSets.get(package_id)!.add(user_id);
+    });
+    
+    // Convert sets to counts
+    packageUserSets.forEach((userSet, package_id) => {
+      userCountsByPackage.set(package_id, userSet.size);
+    });
+  }
+
+  // Add user count to each package
+  const packagesWithUserCount = packages.map(pkg => ({
+    ...pkg,
+    completedUsersCount: userCountsByPackage.get(pkg.id) || 0
+  }));
+
+  // ← ADD: Fetch national ranking
+  const { data: rankingData, error: rankingError } = await supabase
+    .rpc('get_user_national_rank', { p_user_id: userId });
+
+  // Format ranking display
+  const rankingDisplay = rankingData && rankingData.length > 0
+    ? `Peringkat ${rankingData[0].user_rank.toLocaleString('id-ID')} dari ${rankingData[0].total_users.toLocaleString('id-ID')}`
+    : 'Belum ada data';
+
   // Calculate stats - KEEP THIS EXACTLY AS IS
   const totalAttempts = attempts.length;
   const completedAttempts = attempts.filter(a => a.status === 'completed');
@@ -37,8 +83,8 @@ async function DashboardContent() {
   
   const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
 
-  // Limit packages to first 6 for display - KEEP THIS
-  const displayedPackages = packages.slice(0, 6);
+  // Use packagesWithUserCount instead of packages
+  const displayedPackages = packagesWithUserCount.slice(0, 6);
   const hasMorePackages = packages.length > 6;
 
   // Check for active attempts per package - KEEP THIS
@@ -56,15 +102,15 @@ async function DashboardContent() {
       {/* Feature Grid - Mobile Only */}
       <FeatureGrid />
 
-      {/* Statistik Belajar - NEW DESIGN */}
-      <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
+      {/* Statistik Belajar - BACKGROUND GELAP + TEXT PUTIH */}
+      <section className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-3xl p-6 md:p-8 shadow-lg border border-slate-600 space-y-6">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">Statistik Belajar</h2>
-            <p className="text-slate-500 text-sm mt-1">Pantau perkembangan belajarmu.</p>
+            <h2 className="text-2xl font-bold text-white">Statistik Belajar</h2>
+            <p className="text-slate-300 text-sm mt-1">Pantau perkembangan belajarmu.</p>
           </div>
           <Link href="/statistics">
-            <Button variant="ghost" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex items-center gap-1">
+            <Button className="bg-white text-slate-800 hover:bg-slate-100 flex items-center gap-1 px-4 py-2 font-semibold">
               Lihat Detail <ChevronRight size={16} />
             </Button>
           </Link>
@@ -75,29 +121,29 @@ async function DashboardContent() {
             label="Tryout Selesai"
             value={completedAttempts.length}
             iconName="CheckCircle"
-            iconColor="text-emerald-600"
-            iconBg="bg-emerald-100"
+            iconColor="text-emerald-400"
+            iconBg="bg-emerald-900/50"
           />
           <StatCard
             label="Rata-rata Skor"
             value={averageScore}
             iconName="BarChart2"
-            iconColor="text-blue-600"
-            iconBg="bg-blue-100"
+            iconColor="text-blue-400"
+            iconBg="bg-blue-900/50"
           />
           <StatCard
             label="Peringkat Nasional"
-            value="Top 5%"
+            value={rankingDisplay}
             iconName="Award"
-            iconColor="text-amber-600"
-            iconBg="bg-amber-100"
+            iconColor="text-amber-400"
+            iconBg="bg-amber-900/50"
           />
           <StatCard
             label="Skor Terbaik"
             value={bestScore}
             iconName="TrendingUp"
-            iconColor="text-purple-600"
-            iconBg="bg-purple-100"
+            iconColor="text-purple-400"
+            iconBg="bg-purple-900/50"
           />
         </div>
       </section>
@@ -125,6 +171,7 @@ async function DashboardContent() {
                 key={pkg.id}
                 packageData={pkg}
                 hasActiveAttempt={packageIdsWithAttempts.has(pkg.id)}
+                completedUsersCount={pkg.completedUsersCount}
               />
             ))}
           </div>
@@ -149,15 +196,15 @@ async function DashboardContent() {
       <section className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">
-                Materi
-              </h2>
-              <p className="text-slate-500 text-sm mt-1">
-                Pelajari materi persiapan CPNS 2026.
-              </p>
-            </div>
-          
-          <MateriTabs />
-        </section>
+            Materi
+          </h2>
+          <p className="text-slate-500 text-sm mt-1">
+            Pelajari materi persiapan CPNS 2026.
+          </p>
+        </div>
+        
+        <MateriTabs />
+      </section>
     </div>
   );
 }

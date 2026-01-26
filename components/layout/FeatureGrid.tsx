@@ -37,7 +37,7 @@ export function FeatureGrid() {
   return (
     <section className="lg:hidden mb-6">
       {/* Feature Grid Container */}
-      <div className="grid grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {FEATURE_GRID_ITEMS.map((item) => {
           const Icon = getIcon(item.icon);
           const isActive = pathname === item.href || 
@@ -49,22 +49,22 @@ export function FeatureGrid() {
               href={item.href}
               className={`group flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-200 ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                  ? 'bg-slate-800 text-white shadow-lg shadow-slate-600/30'
                   : 'bg-white text-slate-600 hover:bg-slate-50 hover:shadow-md border border-slate-100'
               }`}
             >
               {/* Icon Container */}
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-200 ${
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-all duration-200 ${
                 isActive
-                  ? 'bg-white/20'
-                  : 'bg-slate-100 group-hover:bg-blue-50'
+                  ? 'bg-slate-800'
+                  : 'bg-slate-800 group-hover:bg-slate-700'
               }`}>
                 <Icon 
                   size={24} 
-                  className={`transition-transform duration-200 ${
+                  className={`transition-transform duration-200 text-yellow-400 ${
                     isActive 
-                      ? 'text-white' 
-                      : 'text-blue-600 group-hover:scale-110'
+                      ? '' 
+                      : 'group-hover:scale-110'
                   }`}
                 />
               </div>

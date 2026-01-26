@@ -3,16 +3,18 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Package } from '@/types/database';
-import { Clock, FileText } from 'lucide-react';
+import { Clock, FileText, Users } from 'lucide-react';
 
 interface PackageCardUserProps {
   packageData: Package;
   hasActiveAttempt?: boolean;
+  completedUsersCount?: number;
 }
 
 export function PackageCardUser({ 
   packageData, 
-  hasActiveAttempt = false 
+  hasActiveAttempt = false,
+  completedUsersCount = 0
 }: PackageCardUserProps) {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -70,6 +72,10 @@ export function PackageCardUser({
           <div className="flex items-center space-x-1">
             <Clock className="h-4 w-4" />
             <span>100 Menit</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <Users className="h-4 w-4" />
+            <span>{completedUsersCount} Pengguna</span>
           </div>
         </div>
       </CardContent>

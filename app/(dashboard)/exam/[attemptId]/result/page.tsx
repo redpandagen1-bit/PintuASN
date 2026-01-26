@@ -1,229 +1,236 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Clock, TrendingUp } from 'lucide-react';
-import Link from 'next/link';
+import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
+import ResultHeader from '@/components/exam/result/ResultHeader';
+import ScoreSummary from '@/components/exam/result/ScoreSummary';
+import LeaderboardSection from '@/components/exam/result/LeaderboardSection';
+import RankingSection from '@/components/exam/result/RankingSection';
+import ProgressChartSection from '@/components/exam/result/ProgressChartSection';
+import AttemptsHistorySection from '@/components/exam/result/AttemptsHistorySection';
+import TimeAnalysisSection from '@/components/exam/result/TimeAnalysisSection';
+import ResultActions from '@/components/exam/result/ResultActions';
 
 interface ResultPageProps {
   params: Promise<{ attemptId: string }>;
 }
 
+interface AttemptData {
+  id: string;
+  user_id: string;
+  package_id: string;
+  status: string;
+  score_twk: number | null;
+  score_tiu: number | null;
+  score_tkp: number | null;
+  final_score: number | null;
+  is_passed: boolean | null;
+  started_at: string;
+  completed_at: string | null;
+  packages: {
+    id: string;
+    title: string | null;
+    description: string | null;
+    difficulty: string;
+  } | null;
+}
+
+interface LeaderboardItem {
+  id: string;
+  user_id: string;
+  final_score: number | null;
+  completed_at: string | null;
+  profiles: {
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  rank: number;
+}
+
+interface AttemptHistory {
+  final_score: number | null;
+  score_twk: number | null;
+  score_tiu: number | null;
+  score_tkp: number | null;
+  completed_at: string | null;
+}
+
+interface AnswerData {
+  id: string;
+  answered_at: string;
+  time_spent_seconds: number | null;
+  questions: {
+    id: string;
+    content: string | null;
+    category: string;
+  } | null;
+}
+
 async function getResultData(attemptId: string, userId: string) {
   const supabase = await createAdminClient();
 
-  // ✅ STEP 1: Fetch attempt dengan semua data yang dibutuhkan
+  // Fetch current attempt
   const { data: attempt, error: attemptError } = await supabase
     .from('attempts')
     .select(`
-      id,
-      user_id,
-      package_id,
-      status,
-      score_twk,
-      score_tiu,
-      score_tkp,
-      final_score,
-      is_passed,
-      started_at,
-      completed_at,
-      packages (
-        id,
-        title,
-        description,
-        difficulty
-      )
+      *,
+      packages (id, title, description, difficulty)
     `)
     .eq('id', attemptId)
     .eq('user_id', userId)
     .single();
 
-  if (attemptError || !attempt) {
-    console.error('Error fetching attempt:', attemptError);
+  if (!attempt || attempt.status !== 'completed') {
     redirect('/dashboard');
   }
 
-  // ✅ Redirect if not completed (FIXED SYNTAX!)
-  if (attempt.status !== 'completed') {
-    redirect(`/exam/${attemptId}`); // ← FIXED: Parentheses, not backticks!
-  }
+  // Fetch leaderboard (top 100)
+  const { data: leaderboard, error: leaderboardError } = await supabase
+    .from('attempts')
+    .select(`
+      id,
+      user_id,
+      final_score,
+      completed_at,
+      profiles (full_name, avatar_url)
+    `)
+    .eq('package_id', attempt.package_id)
+    .eq('status', 'completed')
+    .order('final_score', { ascending: false })
+    .order('completed_at', { ascending: true })
+    .limit(100);
+
+  // Calculate package rank
+  const { count: higherScoresCount, error: rankError } = await supabase
+    .from('attempts')
+    .select('*', { count: 'exact', head: true })
+    .eq('package_id', attempt.package_id)
+    .eq('status', 'completed')
+    .gt('final_score', attempt.final_score || 0);
+
+  const { count: totalParticipants, error: totalError } = await supabase
+    .from('attempts')
+    .select('user_id', { count: 'exact', head: true })
+    .eq('package_id', attempt.package_id)
+    .eq('status', 'completed');
+
+  const packageRank = (higherScoresCount || 0) + 1;
+
+  // Fetch progress chart data (all attempts for this package by user)
+  const { data: attemptHistory, error: historyError } = await supabase
+    .from('attempts')
+    .select('final_score, score_twk, score_tiu, score_tkp, completed_at')
+    .eq('user_id', userId)
+    .eq('package_id', attempt.package_id)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: true });
+
+  // Fetch last 3 attempts
+  const lastThreeAttempts = attemptHistory?.slice(-3) || [];
+
+  // Fetch time analysis data
+  const { data: answers, error: answersError } = await supabase
+    .from('attempt_answers')
+    .select(`
+      id,
+      answered_at,
+      time_spent_seconds,
+      questions (id, content, category)
+    `)
+    .eq('attempt_id', attemptId)
+    .order('answered_at', { ascending: true });
 
   return {
     attempt,
     packageInfo: attempt.packages,
+    leaderboard: leaderboard?.map((item, index) => ({
+      ...item,
+      rank: index + 1
+    })) || [],
+    packageRank,
+    totalParticipants: totalParticipants || 0,
+    attemptHistory: attemptHistory || [],
+    lastThreeAttempts,
+    answers: answers || [],
   };
 }
 
 export default async function ResultPage({ params }: ResultPageProps) {
   const { userId } = await auth();
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  if (!userId) redirect('/sign-in');
 
   const { attemptId } = await params;
-  const { attempt, packageInfo } = await getResultData(attemptId, userId);
+  const data = await getResultData(attemptId, userId);
 
   // Calculate duration
-  const duration = attempt.completed_at && attempt.started_at
-    ? Math.round((new Date(attempt.completed_at).getTime() - new Date(attempt.started_at).getTime()) / 60000)
+  const duration = data.attempt.completed_at && data.attempt.started_at
+    ? Math.round((new Date(data.attempt.completed_at).getTime() - 
+        new Date(data.attempt.started_at).getTime()) / 60000)
     : 0;
 
+  // Find user rank in leaderboard
+  const userRankInLeaderboard = data.leaderboard.find(
+    item => item.user_id === userId
+  )?.rank;
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          {attempt.is_passed ? (
-            <CheckCircle2 className="w-16 h-16 text-green-500" />
-          ) : (
-            <XCircle className="w-16 h-16 text-red-500" />
-          )}
-        </div>
-        <h1 className="text-3xl font-bold mb-2">
-          {attempt.is_passed ? 'Selamat! Anda Lulus' : 'Belum Lulus'}
-        </h1>
-        <p className="text-muted-foreground">
-          {packageInfo?.title || 'Tryout SKD'}
-        </p>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* Section 1: Header */}
+      <ResultHeader 
+        isPassed={data.attempt.is_passed}
+        packageTitle={data.packageInfo?.title}
+      />
+
+      {/* Section 2: Score Summary */}
+      <ScoreSummary 
+        finalScore={data.attempt.final_score || 0}
+        scoreTWK={data.attempt.score_twk || 0}
+        scoreTIU={data.attempt.score_tiu || 0}
+        scoreTKP={data.attempt.score_tkp || 0}
+        duration={duration}
+        difficulty={data.packageInfo?.difficulty}
+        isPassed={data.attempt.is_passed}
+      />
+
+      {/* Section 3 & 4: Grid 2 Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        {/* Left: Leaderboard */}
+        <LeaderboardSection 
+          leaderboard={data.leaderboard}
+          currentUserId={userId}
+          userRank={userRankInLeaderboard}
+          packageTitle={data.packageInfo?.title}
+        />
+
+        {/* Right: Package Ranking */}
+        <RankingSection 
+          packageRank={data.packageRank}
+          totalParticipants={data.totalParticipants}
+          userBestScore={data.attempt.final_score || 0}
+        />
       </div>
 
-      {/* Score Summary */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Ringkasan Nilai</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Total Score */}
-            <div className="text-center p-4 bg-primary/10 rounded-lg">
-              <div className="text-2xl font-bold text-primary">
-                {attempt.final_score || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">Total Nilai</div>
-            </div>
+      {/* Section 5: Progress Chart */}
+      <ProgressChartSection 
+        attemptHistory={data.attemptHistory}
+      />
 
-            {/* TWK Score */}
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {attempt.score_twk || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">TWK</div>
-            </div>
+      {/* Section 6: Last 3 Attempts */}
+      <AttemptsHistorySection 
+        attempts={data.lastThreeAttempts}
+      />
 
-            {/* TIU Score */}
-            <div className="text-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {attempt.score_tiu || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">TIU</div>
-            </div>
+      {/* Section 7: Time Analysis */}
+      <TimeAnalysisSection 
+        answers={data.answers}
+        attemptStartTime={data.attempt.started_at}
+      />
 
-            {/* TKP Score */}
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {attempt.score_tkp || 0}
-              </div>
-              <div className="text-sm text-muted-foreground">TKP</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <Clock className="w-8 h-8 text-muted-foreground" />
-              <div>
-                <div className="text-sm text-muted-foreground">Durasi</div>
-                <div className="text-xl font-semibold">{duration} menit</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-muted-foreground" />
-              <div>
-                <div className="text-sm text-muted-foreground">Status</div>
-                <Badge variant={attempt.is_passed ? 'default' : 'destructive'}>
-                  {attempt.is_passed ? 'LULUS' : 'TIDAK LULUS'}
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-                {packageInfo?.difficulty === 'mudah' ? 'M' : 
-                 packageInfo?.difficulty === 'sedang' ? 'S' : 'S'}
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Tingkat</div>
-                <div className="text-xl font-semibold capitalize">
-                  {packageInfo?.difficulty || 'Sedang'}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Pembahasan Notice */}
-      <Card className="mb-6 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950">
-        <CardContent className="pt-6">
-          <p className="text-sm text-blue-900 dark:text-blue-100">
-            💡 <strong>Pembahasan soal</strong> akan tersedia setelah Anda menyelesaikan ujian. 
-            Klik tombol "Lihat Pembahasan" di bawah untuk melihat jawaban yang benar dan penjelasan lengkap.
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button asChild variant="outline" size="lg">
-          <Link href="/dashboard">
-            Kembali ke Dashboard
-          </Link>
-        </Button>
-        
-        <Button asChild variant="default" size="lg">
-          <Link href={`/exam/${attemptId}/review`}>
-            Lihat Pembahasan
-          </Link>
-        </Button>
-
-        <Button asChild variant="secondary" size="lg">
-          <Link href="/packages">
-            Coba Tryout Lain
-          </Link>
-        </Button>
-      </div>
-
-      {/* Motivational Message */}
-      <div className="mt-8 text-center">
-        {attempt.is_passed ? (
-          <div className="text-green-600 dark:text-green-400">
-            <p className="text-lg font-medium">
-              Kerja bagus! Pertahankan performa Anda! 🎉
-            </p>
-          </div>
-        ) : (
-          <div className="text-muted-foreground">
-            <p className="text-lg font-medium">
-              Jangan menyerah! Terus berlatih untuk hasil yang lebih baik! 💪
-            </p>
-          </div>
-        )}
-      </div>
+      {/* Actions */}
+      <ResultActions 
+        attemptId={attemptId}
+        isPassed={data.attempt.is_passed}
+      />
     </div>
   );
 }

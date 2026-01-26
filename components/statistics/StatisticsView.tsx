@@ -18,6 +18,13 @@ interface StatCardProps {
   };
 }
 
+interface RankingData {
+  user_rank: number;
+  total_users: number;
+  user_average_score: number;
+  percentile: number;
+}
+
 const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, trend }) => {
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -70,9 +77,15 @@ const GapProgress: React.FC<GapProgressProps> = ({ current, threshold, label, co
 
 interface StatisticsViewProps {
   data: Attempt[];
+  ranking?: RankingData | null;
 }
 
-const StatisticsView: React.FC<StatisticsViewProps> = ({ data }) => {
+const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
+  // ← ADD: Format ranking display
+  const rankingDisplay = ranking
+    ? `Peringkat ${ranking.user_rank.toLocaleString('id-ID')} dari ${ranking.total_users.toLocaleString('id-ID')} pengguna`
+    : 'Belum ada data';
+
   const stats = useMemo(() => {
     const completedAttempts = data.filter(attempt => attempt.status === 'completed');
     
@@ -204,6 +217,17 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data }) => {
         />
       </div>
 
+      {/* ← ADD NEW CARD: National Ranking */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Peringkat Nasional</h3>
+        <p className="text-3xl font-bold text-gray-900">{rankingDisplay}</p>
+        {ranking && (
+          <p className="text-sm text-gray-500 mt-2">
+            Rata-rata skor: {Math.round(ranking.user_average_score)}
+          </p>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Tren Performa</h3>
@@ -229,7 +253,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data }) => {
               <XAxis dataKey="range" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="count" fill="#3b82f6" />
+              <Bar dataKey="count" fill="#1e293b" />
             </BarChart>
           </ResponsiveContainer>
         </div>

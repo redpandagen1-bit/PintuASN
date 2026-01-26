@@ -11,7 +11,8 @@ import {
   ShoppingCart,
   MessageCircle,
   Zap,
-  Users
+  Users,
+  Crown
 } from 'lucide-react';
 import { MAIN_MENU_ITEMS, SECONDARY_MENU_ITEMS } from '@/constants/menu-items';
 
@@ -57,21 +58,21 @@ export function Sidebar() {
                 href={item.href}
                 className={`group relative flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg transition-all duration-200 font-medium text-sm ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-slate-800 text-white shadow-sm'
+                    : 'text-slate-800 hover:bg-slate-800 hover:text-white'
                 }`}
               >
                 <Icon 
                   size={20} 
                   className={`flex-shrink-0 transition-colors duration-200 ${
-                    isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
+                    isActive ? 'text-white' : 'text-slate-600 group-hover:text-white'
                   }`}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
                 
-                {/* Optional: Chevron or Dot for active state styling enhancement */}
+                {/* Optional: Dot for active state styling enhancement */}
                 {isActive && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mr-1" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white mr-1" />
                 )}
               </Link>
             );
@@ -97,14 +98,14 @@ export function Sidebar() {
                 href={item.href}
                 className={`group relative flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg transition-all duration-200 font-medium text-sm ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-slate-800 text-white shadow-sm'
+                    : 'text-slate-800 hover:bg-slate-800 hover:text-white'
                 }`}
               >
                 <Icon 
                   size={20} 
                   className={`flex-shrink-0 transition-colors duration-200 ${
-                    isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'
+                    isActive ? 'text-white' : 'text-slate-600 group-hover:text-white'
                   }`}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
@@ -114,8 +115,33 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* Upgrade Premium Card */}
+      <div className="p-4">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-5 shadow-lg">
+          {/* Icon */}
+          <div className="w-10 h-10 bg-slate-700/50 rounded-xl flex items-center justify-center mb-3">
+            <Crown className="text-yellow-400" size={20} />
+          </div>
+          
+          {/* Text */}
+          <h3 className="text-white font-bold text-base mb-1">
+            Upgrade Premium
+          </h3>
+          <p className="text-slate-300 text-xs mb-4 leading-relaxed">
+            Akses 50+ Paket Tryout dan pembahasan video lengkap.
+          </p>
+          
+          {/* Button */}
+          <Link href="/pricing">
+            <button className="w-full bg-white text-slate-800 font-semibold py-2.5 px-4 rounded-xl hover:bg-slate-100 transition-all duration-200 text-sm shadow-md">
+              Lihat Paket
+            </button>
+          </Link>
+        </div>
+      </div>
+
       {/* Footer Area */}
-      <div className="p-4 border-t border-slate-50 text-center">
+      <div className="p-4 pt-0 text-center">
         <p className="text-[10px] text-slate-300">
           © 2026 PintuASN. v1.0.0
         </p>

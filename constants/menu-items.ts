@@ -36,14 +36,14 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
   {
     id: 'materi',
     label: 'Materi',
-    href: '/dashboard',
+    href: '/materi',
     icon: 'BookOpen',
     isActive: false
   },
   {
     id: 'daftar-tryout',
     label: 'Daftar Tryout',
-    href: '/dashboard',
+    href: '/daftar-Tryout',
     icon: 'PlayCircle',
     isActive: false
   },
@@ -57,7 +57,7 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
   {
     id: 'beli-paket',
     label: 'Beli Paket',
-    href: '/dashboard',
+    href: '/pricing',
     icon: 'ShoppingCart',
     isActive: false
   }
@@ -67,21 +67,21 @@ export const SECONDARY_MENU_ITEMS: MenuItem[] = [
   {
     id: 'konsultasi',
     label: 'Konsultasi',
-    href: '/dashboard',
+    href: '/konsultasi',
     icon: 'MessageCircle',
     isActive: false
   },
   {
     id: 'event-promo',
     label: 'Event & Promo',
-    href: '/dashboard',
+    href: '/promo',
     icon: 'Zap',
     isActive: false
   },
   {
     id: 'grup',
     label: 'Grup',
-    href: '/dashboard',
+    href: '/grup',
     icon: 'Users',
     isActive: false
   }
