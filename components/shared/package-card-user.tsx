@@ -64,18 +64,19 @@ export function PackageCardUser({
       </CardHeader>
       
       <CardContent className="pb-3">
-        <div className="flex items-center space-x-4 text-sm text-slate-500">
-          <div className="flex items-center space-x-1">
-            <FileText className="h-4 w-4" />
+        {/* ✅ FIX: Layout vertikal agar lebih rapi */}
+        <div className="flex flex-col space-y-2 text-sm text-slate-600">
+          <div className="flex items-center space-x-2">
+            <FileText className="h-4 w-4 text-slate-400" />
             <span>110 Soal</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <Clock className="h-4 w-4" />
+          <div className="flex items-center space-x-2">
+            <Clock className="h-4 w-4 text-slate-400" />
             <span>100 Menit</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <Users className="h-4 w-4" />
-            <span>{completedUsersCount} Pengguna</span>
+          <div className="flex items-center space-x-2">
+            <Users className="h-4 w-4 text-slate-400" />
+            <span>{completedUsersCount.toLocaleString('id-ID')} Peserta</span>
           </div>
         </div>
       </CardContent>

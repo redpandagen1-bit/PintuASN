@@ -65,10 +65,10 @@ async function DashboardContent() {
   const { data: rankingData, error: rankingError } = await supabase
     .rpc('get_user_national_rank', { p_user_id: userId });
 
-  // Format ranking display
+  // ✅ FIX: Format ranking display - HANYA ANGKA SAJA
   const rankingDisplay = rankingData && rankingData.length > 0
-    ? `Peringkat ${rankingData[0].user_rank.toLocaleString('id-ID')} dari ${rankingData[0].total_users.toLocaleString('id-ID')}`
-    : 'Belum ada data';
+    ? `#${rankingData[0].user_rank.toLocaleString('id-ID')}`
+    : '-';
 
   // Calculate stats - KEEP THIS EXACTLY AS IS
   const totalAttempts = attempts.length;
