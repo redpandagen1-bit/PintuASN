@@ -513,3 +513,335 @@ export async function getReviewData(attemptId: string) {
     questions
   };
 }
+
+// ============================================
+// ADMIN QUESTION MANAGEMENT FUNCTIONS
+// ============================================
+
+export async function getQuestionsAdmin(params?: {
+  category?: 'TWK' | 'TIU' | 'TKP' | 'all';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'all';
+  status?: 'draft' | 'published' | 'all';
+  search?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const supabase = await createClient();
+  
+  let query = supabase
+    .from('questions')
+    .select(`
+      *,
+      choices (*)
+    `, { count: 'exact' })
+    .eq('is_deleted', false);
+
+  // Filters
+  if (params?.category && params.category !== 'all') {
+    query = query.eq('category', params.category);
+  }
+  if (params?.difficulty && params.difficulty !== 'all') {
+    query = query.eq('difficulty', params.difficulty);
+  }
+  if (params?.status && params.status !== 'all') {
+    query = query.eq('status', params.status);
+  }
+  if (params?.search) {
+    query = query.ilike('content', `%${params.search}%`);
+  }
+
+  // Pagination
+  const page = params?.page || 1;
+  const limit = params?.limit || 50;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  query = query.order('created_at', { ascending: false }).range(from, to);
+
+  const { data, error, count } = await query;
+
+  if (error) throw error;
+
+  return {
+    questions: data || [],
+    totalCount: count || 0,
+    totalPages: Math.ceil((count || 0) / limit),
+    currentPage: page,
+  };
+}
+
+export async function getQuestionById(questionId: string) {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('questions')
+    .select(`
+      *,
+      choices (*)
+    `)
+    .eq('id', questionId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateQuestion(
+  questionId: string,
+  updates: {
+    content?: string;
+    explanation?: string;
+    topic?: string;
+    difficulty?: string;
+    image_url?: string;
+    status?: string;
+    is_published?: boolean;
+  }
+) {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('questions')
+    .update(updates)
+    .eq('id', questionId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateChoice(
+  choiceId: string,
+  updates: {
+    content?: string;
+    is_answer?: boolean;
+    score?: number;
+  }
+) {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('choices')
+    .update(updates)
+    .eq('id', choiceId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteQuestion(questionId: string) {
+  const supabase = await createClient();
+  
+  // Soft delete
+  const { error } = await supabase
+    .from('questions')
+    .update({
+      is_deleted: true,
+      is_published: false,
+      status: 'deleted'
+    })
+    .eq('id', questionId);
+
+  if (error) throw error;
+}
+
+export async function togglePublishQuestion(questionId: string, publish: boolean) {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('questions')
+    .update({
+      is_published: publish,
+      status: publish ? 'published' : 'draft'
+    })
+    .eq('id', questionId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// ============================================
+// ADMIN PACKAGE MANAGEMENT FUNCTIONS
+// ============================================
+
+export async function getPackagesAdmin(includeInactive = false) {
+  const supabase = await createClient();
+  
+  let query = supabase
+    .from('packages')
+    .select(`
+      *,
+      package_questions (count)
+    `)
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+
+  if (!includeInactive) {
+    query = query.eq('is_active', true);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  // Transform to include question count
+  return (data || []).map((pkg: any) => ({
+    ...pkg,
+    question_count: pkg.package_questions[0]?.count || 0,
+  }));
+}
+
+export async function getPublishedQuestionsByCategory(category: 'TWK' | 'TIU' | 'TKP') {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('questions')
+    .select('id, content, difficulty, topic')
+    .eq('category', category)
+    .eq('is_published', true)
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createPackage(packageData: {
+  title: string;
+  description?: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  tier: 'free' | 'premium' | 'platinum';
+  is_active: boolean;
+  questionIds: string[];
+  userId: string;
+}) {
+  const supabase = await createClient();
+
+  // Validate 110 questions
+  if (packageData.questionIds.length !== 110) {
+    throw new Error('Paket harus berisi tepat 110 soal');
+  }
+
+  // Insert package
+  const { data: pkg, error: pkgError } = await supabase
+    .from('packages')
+    .insert({
+      title: packageData.title,
+      description: packageData.description,
+      difficulty: packageData.difficulty,
+      tier: packageData.tier,
+      duration_minutes: 100,
+      is_active: packageData.is_active,
+      created_by: packageData.userId,
+    })
+    .select()
+    .single();
+
+  if (pkgError) throw pkgError;
+
+  // Insert package_questions with positions
+  const packageQuestions = packageData.questionIds.map((qid, index) => ({
+    package_id: pkg.id,
+    question_id: qid,
+    position: index + 1,
+  }));
+
+  const { error: pqError } = await supabase
+    .from('package_questions')
+    .insert(packageQuestions);
+
+  if (pqError) {
+    // Rollback - delete package
+    await supabase.from('packages').delete().eq('id', pkg.id);
+    throw pqError;
+  }
+
+  return pkg;
+}
+
+export async function updatePackageInfo(
+  packageId: string,
+  updates: {
+    title?: string;
+    description?: string;
+    difficulty?: string;
+    tier?: string;
+    is_active?: boolean;
+  }
+) {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from('packages')
+    .update(updates)
+    .eq('id', packageId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deletePackage(packageId: string) {
+  const supabase = await createClient();
+  
+  // Check if package has attempts
+  const { data: attempts } = await supabase
+    .from('attempts')
+    .select('id')
+    .eq('package_id', packageId)
+    .limit(1);
+
+  if (attempts && attempts.length > 0) {
+    throw new Error('Paket tidak bisa dihapus karena sudah ada percobaan');
+  }
+
+  // Soft delete
+  const { error } = await supabase
+    .from('packages')
+    .update({ is_deleted: true, is_active: false })
+    .eq('id', packageId);
+
+  if (error) throw error;
+}
+
+export async function getPackageWithQuestions(packageId: string) {
+  const supabase = await createClient();
+  
+  const { data: pkg, error: pkgError } = await supabase
+    .from('packages')
+    .select('*')
+    .eq('id', packageId)
+    .single();
+
+  if (pkgError) throw pkgError;
+
+  const { data: questions, error: qError } = await supabase
+    .from('package_questions')
+    .select(`
+      position,
+      questions!inner (
+        id,
+        category,
+        content,
+        difficulty,
+        topic
+      )
+    `)
+    .eq('package_id', packageId)
+    .order('position');
+
+  if (qError) throw qError;
+
+  return {
+    package: pkg,
+    questions: questions.map((pq: any) => ({
+      position: pq.position,
+      ...pq.questions,
+    })),
+  };
+}
