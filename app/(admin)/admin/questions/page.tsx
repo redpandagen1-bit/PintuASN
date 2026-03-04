@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { QuestionTable } from '@/components/admin/question-table';
 import { QuestionFilters } from '@/components/admin/question-filters';
-import { Upload, Plus } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PageProps {
@@ -34,25 +34,39 @@ export default async function QuestionsPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Kelola Soal</h1>
           <p className="text-slate-600 mt-2">
-            Total {result.totalCount} soal
+            Total {result.totalCount} soal dari semua paket
           </p>
         </div>
-        <div className="flex gap-3">
-          <Link href="/admin/questions/upload">
-            <Button variant="outline" className="gap-2">
-              <Upload className="h-4 w-4" />
-              Upload CSV
-            </Button>
-          </Link>
-        </div>
+        <Link href="/admin/packages">
+          <Button variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Ke Paket Tryout
+          </Button>
+        </Link>
       </div>
 
+      {/* Info Alert */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <p className="text-sm text-blue-900">
+            💡 <strong>Tips:</strong> Untuk menambah atau upload soal, buka menu{' '}
+            <Link href="/admin/packages" className="underline font-medium">
+              Paket Tryout
+            </Link>
+            , pilih paket, lalu klik "Tambah Soal Manual" atau "Upload CSV"
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Filters */}
       <QuestionFilters />
 
+      {/* Table */}
       <Card>
         <CardContent className="p-0">
           <Suspense fallback={<QuestionTableSkeleton />}>

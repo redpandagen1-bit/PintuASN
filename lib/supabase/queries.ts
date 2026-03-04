@@ -845,3 +845,45 @@ export async function getPackageWithQuestions(packageId: string) {
     })),
   };
 }
+
+// ============================================
+// USER PACKAGE ACCESS FUNCTIONS
+// ============================================
+
+export async function getPackagesForUser(userId: string): Promise<Package[]> {
+  const supabase = await createClient();
+
+  // Get user's subscription tier from profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('subscription_tier')
+    .eq('user_id', userId)
+    .single();
+
+  const userTier = profile?.subscription_tier || 'free';
+
+  let query = supabase
+    .from('packages')
+    .select('*')
+    .eq('is_active', true)
+    .eq('is_deleted', false);
+
+  // Filter accessible tiers based on user's subscription
+  // free    → only free packages
+  // premium → free + premium packages
+  // platinum → all packages (no filter needed)
+  if (userTier === 'free') {
+    query = query.eq('tier', 'free');
+  } else if (userTier === 'premium') {
+    query = query.in('tier', ['free', 'premium']);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('getPackagesForUser error:', error);
+    throw new Error(`Failed to fetch packages: ${error.message || 'Unknown error'}`);
+  }
+
+  return data || [];
+}
