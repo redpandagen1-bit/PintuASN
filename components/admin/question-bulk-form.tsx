@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +42,7 @@ type QuestionDraft = {
     score: number | null;
   }>;
   status: 'empty' | 'incomplete' | 'complete';
+  isExisting: boolean;
 };
 
 // Helper: Determine category from question number
@@ -54,57 +55,73 @@ function getCategoryFromNumber(num: number): 'TWK' | 'TIU' | 'TKP' {
 export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormProps) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentNumber, setCurrentNumber] = useState(1);
   const [drafts, setDrafts] = useState<Record<number, QuestionDraft>>({});
   const [imageFiles, setImageFiles] = useState<Record<string, File>>({});
+  const draftsRef = useRef<Record<number, QuestionDraft>>({}); // ADD THIS
 
   const currentCategory = getCategoryFromNumber(currentNumber);
   const isTKP = currentCategory === 'TKP';
   const isTIU = currentCategory === 'TIU';
 
-  // Initialize or get current draft
-  const getCurrentDraft = (): QuestionDraft => {
-    if (drafts[currentNumber]) {
-      return drafts[currentNumber];
+  // Load existing questions from database
+  useEffect(() => {
+    async function loadExistingQuestions() {
+      try {
+        const response = await fetch(`/api/admin/packages/${packageId}/questions`);
+        if (!response.ok) throw new Error('Failed to load questions');
+
+        const data = await response.json();
+        const existingDrafts: Record<number, QuestionDraft> = {};
+
+        console.log('📦 Raw data from API:', data);
+
+        // Map existing questions to draft format
+        data.questions.forEach((q: any) => {
+          console.log(`📝 Processing question at position ${q.position}:`, q);
+
+          const draft: QuestionDraft = {
+            number: q.position,
+            category: q.category,
+            content: q.content || '',
+            image_url: q.image_url || '',
+            explanation: q.explanation || '', // FIXED: Make sure this is loaded
+            explanation_image_url: q.explanation_image_url || '',
+            topic: q.topic || '',
+            difficulty: q.difficulty || 'medium',
+            choices: Array.isArray(q.choices) ? q.choices.map((c: any) => ({
+              label: c.label,
+              content: c.content || '',
+              image_url: c.image_url || '',
+              is_answer: c.is_answer || false,
+              score: c.score !== undefined && c.score !== null ? c.score : null,
+            })) : [],
+            status: 'complete',
+            isExisting: true,
+          };
+
+          existingDrafts[q.position] = draft;
+        });
+
+        setDrafts(existingDrafts);
+        draftsRef.current = existingDrafts; // ADD THIS LINE
+        console.log(`✅ Loaded ${Object.keys(existingDrafts).length} existing questions`);
+        console.log('📊 All drafts:', existingDrafts);
+      } catch (error) {
+        console.error('Error loading questions:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    return {
-      number: currentNumber,
-      category: currentCategory,
-      content: '',
-      image_url: '',
-      explanation: '',
-      explanation_image_url: '',
-      topic: '',
-      difficulty: 'medium',
-      choices: [
-        { label: 'A', content: '', image_url: '', is_answer: false, score: null },
-        { label: 'B', content: '', image_url: '', is_answer: false, score: null },
-        { label: 'C', content: '', image_url: '', is_answer: false, score: null },
-        { label: 'D', content: '', image_url: '', is_answer: false, score: null },
-        { label: 'E', content: '', image_url: '', is_answer: false, score: null },
-      ],
-      status: 'empty',
-    };
-  };
 
-  const [formData, setFormData] = useState<QuestionDraft>(getCurrentDraft());
-
-  // Auto-save draft when changing fields
-  useEffect(() => {
-    const status = getQuestionStatus(formData);
-    const updatedDraft = { ...formData, status };
-    setDrafts({ ...drafts, [currentNumber]: updatedDraft });
-  }, [formData.content, formData.explanation, JSON.stringify(formData.choices)]);
-
-  // Update form when changing question number
-  useEffect(() => {
-    setFormData(getCurrentDraft());
-  }, [currentNumber]);
+    loadExistingQuestions();
+  }, [packageId]);
 
   // Get question status
   const getQuestionStatus = (draft: QuestionDraft): 'empty' | 'incomplete' | 'complete' => {
     if (!draft.content.trim()) return 'empty';
-    
+
     const allChoicesFilled = draft.choices.every((c) => c.content.trim());
     if (!allChoicesFilled) return 'incomplete';
 
@@ -123,11 +140,9 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
       const hasNullScore = scores.some((s) => s === null);
       if (hasNullScore) return 'incomplete';
 
-      // Check for duplicate scores
       const uniqueScores = new Set(scores.filter((s) => s !== null));
       if (uniqueScores.size !== 5) return 'incomplete';
 
-      // Check all scores are 1-5
       const allValid = scores.every((s) => s !== null && s >= 1 && s <= 5);
       if (!allValid) return 'incomplete';
     }
@@ -135,17 +150,131 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
     return 'complete';
   };
 
-  // Calculate progress
-  const completedCount = Object.values(drafts).filter((d) => d.status === 'complete').length;
+  // Initialize or get current draft
+  const getCurrentDraft = (): QuestionDraft => {
+    // USE REF instead of state
+    const existingDraft = draftsRef.current[currentNumber];
+
+    if (existingDraft) {
+      console.log(`🔍 Loading EXISTING draft for question #${currentNumber}`);
+      console.log(`   - Explanation from draftsRef: "${existingDraft.explanation}"`);
+
+      // Deep clone to avoid reference issues
+      const cloned = {
+        ...existingDraft,
+        explanation: existingDraft.explanation || '', // Ensure never undefined
+        choices: existingDraft.choices.map(c => ({ ...c })),
+      };
+
+      console.log(`   - Cloned explanation: "${cloned.explanation}"`);
+      return cloned;
+    }
+
+    console.log(`🆕 Creating NEW draft for question #${currentNumber}`);
+
+    return {
+      number: currentNumber,
+      category: currentCategory,
+      content: '',
+      image_url: '',
+      explanation: '',
+      explanation_image_url: '',
+      topic: '',
+      difficulty: 'medium',
+      choices: [
+        { label: 'A', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'B', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'C', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'D', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'E', content: '', image_url: '', is_answer: false, score: null },
+      ],
+      status: 'empty',
+      isExisting: false,
+    };
+  };
+
+  const [formData, setFormData] = useState<QuestionDraft>(() => {
+    // Initialize with empty draft to avoid accessing drafts before load
+    return {
+      number: 1,
+      category: 'TWK',
+      content: '',
+      image_url: '',
+      explanation: '',
+      explanation_image_url: '',
+      topic: '',
+      difficulty: 'medium',
+      choices: [
+        { label: 'A', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'B', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'C', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'D', content: '', image_url: '', is_answer: false, score: null },
+        { label: 'E', content: '', image_url: '', is_answer: false, score: null },
+      ],
+      status: 'empty',
+      isExisting: false,
+    };
+  });
+
+  // Update form when changing question number OR when drafts change
+  useEffect(() => {
+    if (isLoading) return; // Don't update while loading
+
+    const draft = getCurrentDraft();
+    console.log(`✏️ Setting form data for question #${currentNumber}:`, draft);
+    console.log(`   - Content exists: ${!!draft.content}`);
+    console.log(`   - Explanation exists: ${!!draft.explanation}`);
+    console.log(`   - Explanation length: ${draft.explanation.length}`);
+
+    setFormData(draft);
+  }, [currentNumber, isLoading]); // Remove drafts dependency
+
+  // Calculate progress - USE REF
+  const allDrafts = Object.values(draftsRef.current);
+  const completedCount = allDrafts.filter((d) => d.status === 'complete').length;
+  const incompleteCount = allDrafts.filter((d) => d.status === 'incomplete').length;
+  const emptyCount = 110 - completedCount - incompleteCount;
   const progress = Math.round((completedCount / 110) * 100);
 
-  // Navigation
+  // Save current draft before switching question
+  const saveCurrentDraft = () => {
+    console.log(`💾 Saving draft for question #${currentNumber}:`, formData);
+    console.log(`   - Content exists: ${!!formData.content}`);
+    console.log(`   - Explanation exists: ${!!formData.explanation}`);
+    console.log(`   - Explanation value: "${formData.explanation.substring(0, 50)}..."`);
+
+    const status = getQuestionStatus(formData);
+
+    // Deep clone with explanation preserved
+    const updatedDraft: QuestionDraft = {
+      ...formData,
+      explanation: formData.explanation || '', // Ensure explanation is never null/undefined
+      choices: formData.choices.map(c => ({ ...c })),
+      status,
+    };
+
+    console.log(`   - Updated draft explanation: "${updatedDraft.explanation.substring(0, 50)}..."`);
+
+    setDrafts(prev => {
+      const updated = { ...prev, [currentNumber]: updatedDraft };
+      draftsRef.current = updated; // ADD THIS LINE
+      console.log(`📊 Drafts after save:`, updated[currentNumber]);
+      return updated;
+    });
+  };
+
+  // Navigation with auto-save
+  const goToQuestion = (num: number) => {
+    saveCurrentDraft();
+    setCurrentNumber(num);
+  };
+
   const goToNext = () => {
-    if (currentNumber < 110) setCurrentNumber(currentNumber + 1);
+    if (currentNumber < 110) goToQuestion(currentNumber + 1);
   };
 
   const goToPrev = () => {
-    if (currentNumber > 1) setCurrentNumber(currentNumber - 1);
+    if (currentNumber > 1) goToQuestion(currentNumber - 1);
   };
 
   // Handle image upload for question
@@ -158,7 +287,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
       }
       const key = `q${currentNumber}`;
       setImageFiles({ ...imageFiles, [key]: file });
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, image_url: reader.result as string });
@@ -177,7 +306,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
       }
       const key = `q${currentNumber}_explanation`;
       setImageFiles({ ...imageFiles, [key]: file });
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, explanation_image_url: reader.result as string });
@@ -196,7 +325,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
       }
       const key = `q${currentNumber}_${label}`;
       setImageFiles({ ...imageFiles, [key]: file });
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({
@@ -212,23 +341,25 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
 
   // Submit all drafts
   const handleSubmitAll = async () => {
-    const completed = Object.values(drafts).filter((d) => d.status === 'complete');
-    
+    saveCurrentDraft();
+
+    const allDraftsAfterSave = { ...drafts, [currentNumber]: { ...formData, status: getQuestionStatus(formData) } };
+    const completed = Object.values(allDraftsAfterSave).filter((d) => d.status === 'complete');
+
     if (completed.length === 0) {
       alert('Belum ada soal yang lengkap untuk disimpan');
       return;
     }
 
-    if (!confirm(`Simpan ${completed.length} soal ke database?`)) {
+    if (!confirm(`Simpan ${completed.length} soal lengkap ke database?`)) {
       return;
     }
 
     setIsSaving(true);
 
     try {
-      // Upload all images first
       const uploadedUrls: Record<string, string> = {};
-      
+
       for (const [key, file] of Object.entries(imageFiles)) {
         const formData = new FormData();
         formData.append('file', file);
@@ -245,11 +376,10 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
         }
       }
 
-      // Submit all questions
       for (const draft of completed) {
-        const questionImageUrl = uploadedUrls[`q${draft.number}`] || '';
-        const explanationImageUrl = uploadedUrls[`q${draft.number}_explanation`] || '';
-        
+        const questionImageUrl = uploadedUrls[`q${draft.number}`] || draft.image_url || '';
+        const explanationImageUrl = uploadedUrls[`q${draft.number}_explanation`] || draft.explanation_image_url || '';
+
         const choices = draft.choices.map((c) => ({
           label: c.label,
           content: c.content,
@@ -271,6 +401,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
             difficulty: draft.difficulty,
             choices,
             package_id: packageId,
+            position: draft.number,
           }),
         });
 
@@ -290,6 +421,15 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="ml-3 text-lg">Memuat soal...</span>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -300,7 +440,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-slate-900">Input Soal Tryout</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Edit Soal Paket</h1>
           <p className="text-slate-600 mt-1">Paket: {packageTitle}</p>
         </div>
         <Button
@@ -329,9 +469,19 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium text-slate-700">
-                  Progress: {completedCount} / 110 soal
-                </p>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="font-medium text-slate-700">
+                    Lengkap: <span className="text-blue-600">{completedCount}</span>
+                  </span>
+                  <span className="text-slate-500">•</span>
+                  <span className="font-medium text-slate-700">
+                    Belum Lengkap: <span className="text-red-600">{incompleteCount}</span>
+                  </span>
+                  <span className="text-slate-500">•</span>
+                  <span className="font-medium text-slate-700">
+                    Kosong: <span className="text-slate-600">{emptyCount}</span>
+                  </span>
+                </div>
                 <p className="text-sm font-bold text-blue-900">{progress}%</p>
               </div>
               <Progress value={progress} className="h-2" />
@@ -356,7 +506,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
               <ChevronLeft className="h-4 w-4" />
               Sebelumnya
             </Button>
-            <span className="text-sm font-medium text-slate-700">
+            <span className="text-lg font-bold text-slate-900">
               Soal #{currentNumber} - {currentCategory}
             </span>
             <Button
@@ -472,28 +622,9 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
                       )}
                     >
                       <div className="flex items-start gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 font-semibold text-xs">
-                            {index + 1}
-                          </span>
-                          
-                          {!isTKP && (
-                            <RadioGroup
-                              value={formData.choices.find((c) => c.is_answer)?.label || ''}
-                              onValueChange={(label) =>
-                                setFormData({
-                                  ...formData,
-                                  choices: formData.choices.map((c) => ({
-                                    ...c,
-                                    is_answer: c.label === label,
-                                  })),
-                                })
-                              }
-                            >
-                              <RadioGroupItem value={choice.label} />
-                            </RadioGroup>
-                          )}
-                        </div>
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 font-semibold text-xs shrink-0 mt-1">
+                          {index + 1}
+                        </span>
 
                         <div className="flex-1 space-y-2">
                           <Input
@@ -531,7 +662,23 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
                           )}
                         </div>
 
-                        {isTKP && (
+                        {/* Radio/Score on the RIGHT */}
+                        {!isTKP ? (
+                          <RadioGroup
+                            value={formData.choices.find((c) => c.is_answer)?.label || ''}
+                            onValueChange={(label) =>
+                              setFormData({
+                                ...formData,
+                                choices: formData.choices.map((c) => ({
+                                  ...c,
+                                  is_answer: c.label === label,
+                                })),
+                              })
+                            }
+                          >
+                            <RadioGroupItem value={choice.label} className="mt-1" />
+                          </RadioGroup>
+                        ) : (
                           <div className="w-20">
                             <Label className="text-xs text-slate-600">
                               Skor <span className="text-red-500">*</span>
@@ -566,7 +713,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
                   const scores = formData.choices.map((c) => c.score).filter((s) => s !== null);
                   const uniqueScores = new Set(scores);
                   const hasDuplicate = scores.length > 0 && uniqueScores.size !== scores.length;
-                  
+
                   if (hasDuplicate) {
                     return (
                       <p className="text-xs text-red-600">
@@ -643,14 +790,14 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
             <CardContent>
               <div className="grid grid-cols-6 gap-1">
                 {Array.from({ length: 110 }, (_, i) => i + 1).map((num) => {
-                  const draft = drafts[num];
+                  const draft = draftsRef.current[num]; // USE REF
                   const status = draft?.status || 'empty';
                   const isCurrent = num === currentNumber;
-                  
+
                   return (
                     <button
                       key={num}
-                      onClick={() => setCurrentNumber(num)}
+                      onClick={() => goToQuestion(num)}
                       className={cn(
                         'h-8 w-full rounded text-xs font-semibold transition-all',
                         isCurrent && 'bg-slate-800 text-white ring-2 ring-slate-400',

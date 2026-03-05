@@ -1,6 +1,6 @@
 import { requireAdmin } from '@/lib/auth/check-admin';
 import { getPackageWithQuestions } from '@/lib/supabase/queries';
-import { PackageDetailView } from '@/components/admin/package-detail-view';
+import { PackageDetailHeader } from '@/components/admin/package-detail-header';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -13,7 +13,7 @@ export default async function PackageDetailPage({ params }: PageProps) {
 
   try {
     const data = await getPackageWithQuestions(id);
-    return <PackageDetailView packageData={data.package} questions={data.questions} />;
+    return <PackageDetailHeader packageData={data.package} questions={data.questions} />;
   } catch (error) {
     notFound();
   }

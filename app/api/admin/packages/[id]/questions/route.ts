@@ -23,11 +23,14 @@ export async function GET(
           difficulty,
           topic,
           image_url,
+          explanation,
+          explanation_image_url,
           is_published,
           choices (
             id,
             label,
             content,
+            image_url,
             is_answer,
             score
           )
