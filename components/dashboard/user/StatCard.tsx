@@ -41,25 +41,14 @@ export default function StatCard({
   return (
     <button
       type="button"
-      className="
-        group w-full text-left
-        rounded-2xl border border-slate-200 bg-white
-        p-5 lg:p-6
-        transition-all duration-300
-        hover:-translate-y-1 hover:shadow-lg
-        focus:outline-none focus:ring-2 focus:ring-slate-300
-      "
+      className="group w-full text-left rounded-2xl border border-slate-200 bg-white p-5 lg:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
+      suppressHydrationWarning
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" suppressHydrationWarning>
         {/* Icon */}
         <div
-          className="
-            flex h-12 w-12 items-center justify-center
-            rounded-xl bg-slate-800
-            transition-all duration-300
-            group-hover:bg-slate-700
-            group-hover:scale-105
-          "
+          className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 transition-all duration-300 group-hover:bg-slate-700 group-hover:scale-105"
+          suppressHydrationWarning
         >
           <Icon className="h-6 w-6 text-yellow-400" />
         </div>

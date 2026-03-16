@@ -6,9 +6,8 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { ArrowLeft, Upload, Edit } from 'lucide-react';
+import { ArrowLeft, Upload, Edit, Settings } from 'lucide-react';
+import { PackageEditDialog } from '@/components/admin/package-edit-dialog';
 
 interface PackageDetailHeaderProps {
   packageData: any;
@@ -17,7 +16,7 @@ interface PackageDetailHeaderProps {
 
 export function PackageDetailHeader({ packageData, questions }: PackageDetailHeaderProps) {
   const router = useRouter();
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Calculate statistics
   const totalQuestions = 110;
@@ -28,29 +27,6 @@ export function PackageDetailHeader({ packageData, questions }: PackageDetailHea
   const twkCount = questions.filter((q) => q.category === 'TWK').length;
   const tiuCount = questions.filter((q) => q.category === 'TIU').length;
   const tkpCount = questions.filter((q) => q.category === 'TKP').length;
-
-  // Toggle active status
-  const handleToggleActive = async (checked: boolean) => {
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`/api/admin/packages/${packageData.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: checked }),
-      });
-
-      if (response.ok) {
-        router.refresh();
-      } else {
-        alert('Gagal mengubah status paket');
-      }
-    } catch (error) {
-      console.error('Toggle active error:', error);
-      alert('Terjadi kesalahan');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -85,8 +61,16 @@ export function PackageDetailHeader({ packageData, questions }: PackageDetailHea
 
       {/* Package Info */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle>Informasi Paket</CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setEditDialogOpen(true)}
+            title="Pengaturan Paket"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -130,20 +114,17 @@ export function PackageDetailHeader({ packageData, questions }: PackageDetailHea
               </p>
             </div>
             <div>
-              <Label htmlFor="is_active" className="text-sm text-slate-500 mb-2 block">
-                Status Paket
-              </Label>
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="is_active"
-                  checked={packageData.is_active}
-                  onCheckedChange={handleToggleActive}
-                  disabled={isUpdating}
-                />
-                <span className="text-sm font-medium">
-                  {packageData.is_active ? 'Aktif' : 'Nonaktif'}
-                </span>
-              </div>
+              <p className="text-sm text-slate-500">Status Paket</p>
+              <Badge
+                variant={packageData.is_active ? 'default' : 'secondary'}
+                className={
+                  packageData.is_active
+                    ? 'bg-green-100 text-green-800 border-green-300 mt-1'
+                    : 'bg-slate-100 text-slate-700 mt-1'
+                }
+              >
+                {packageData.is_active ? 'Aktif' : 'Nonaktif'}
+              </Badge>
             </div>
           </div>
         </CardContent>
@@ -175,8 +156,8 @@ export function PackageDetailHeader({ packageData, questions }: PackageDetailHea
           </div>
 
           {emptyQuestions > 0 && (
-            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-800">
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800 font-medium">
                 ⚠️ Paket ini membutuhkan {emptyQuestions} soal lagi untuk mencapai 110 soal
               </p>
             </div>
@@ -191,6 +172,14 @@ export function PackageDetailHeader({ packageData, questions }: PackageDetailHea
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <PackageEditDialog
+        packageData={packageData}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSuccess={() => router.refresh()}
+      />
     </div>
   );
 }
