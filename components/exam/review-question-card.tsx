@@ -1,29 +1,24 @@
 'use client';
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { CheckCircle, XCircle, Info } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Info, ChevronDown } from 'lucide-react';
 import type { ReviewQuestion, ReviewChoice } from '@/types/database';
 import Image from 'next/image';
 
 interface ReviewQuestionCardProps {
-  question: ReviewQuestion;
+  question: ReviewQuestion & { status?: 'benar' | 'salah' | 'kosong' };
 }
 
 export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
+  const [showDiscussion, setShowDiscussion] = useState(true);
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryBadge = (category: string) => {
     switch (category) {
-      case 'TWK':
-        return 'bg-blue-100 text-blue-800 border-blue-300';
-      case 'TIU':
-        return 'bg-green-100 text-green-800 border-green-300';
-      case 'TKP':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'TWK': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'TIU': return 'bg-green-100 text-green-700 border-green-200';
+      case 'TKP': return 'bg-purple-100 text-purple-700 border-purple-200';
+      default: return 'bg-slate-100 text-slate-600 border-slate-200';
     }
   };
 
@@ -32,189 +27,194 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
     const isCorrectAnswer = question.correctChoice?.id === choice.id;
     const isMaxScore = question.category === 'TKP' && choice.score === 5;
 
-    let baseClass = "flex items-start gap-3 p-3 sm:p-4 rounded-lg border-2 transition-all duration-200";
+    let base = 'p-4 rounded-xl border-2 flex items-start gap-4 transition-all';
 
     if (question.category === 'TKP') {
-      // For TKP questions
-      if (isUserAnswer) {
-        baseClass += " bg-yellow-50 border-yellow-300";
-      } else if (isMaxScore) {
-        baseClass += " bg-green-50 border-green-300";
-      } else {
-        baseClass += " border-slate-200 bg-white";
-      }
+      if (isUserAnswer) base += ' bg-yellow-50 border-yellow-300 shadow-sm';
+      else if (isMaxScore) base += ' bg-green-50 border-green-400 shadow-sm';
+      else base += ' border-slate-200 bg-white';
     } else {
-      // For TWK/TIU questions
-      if (isUserAnswer && isCorrectAnswer) {
-        baseClass += " bg-green-50 border-green-300";
-      } else if (isUserAnswer && !isCorrectAnswer) {
-        baseClass += " bg-red-50 border-red-300";
-      } else if (isCorrectAnswer) {
-        baseClass += " bg-green-50 border-green-300";
-      } else {
-        baseClass += " border-slate-200 bg-white";
-      }
+      if (isUserAnswer && isCorrectAnswer) base += ' bg-green-50 border-green-400 shadow-sm';
+      else if (isUserAnswer && !isCorrectAnswer) base += ' bg-red-50 border-red-300 shadow-sm';
+      else if (isCorrectAnswer) base += ' bg-green-50 border-green-400 shadow-sm';
+      else base += ' border-slate-200 bg-white';
     }
 
-    return baseClass;
+    return base;
   };
 
-  const getStatusIndicator = () => {
+  const getLabelStyling = (choice: ReviewChoice) => {
+    const isUserAnswer = question.userChoice?.id === choice.id;
+    const isCorrectAnswer = question.correctChoice?.id === choice.id;
+    const isMaxScore = question.category === 'TKP' && choice.score === 5;
+
+    let base = 'w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0';
+
+    if (question.category === 'TKP') {
+      if (isUserAnswer) base += ' bg-yellow-400 text-slate-900';
+      else if (isMaxScore) base += ' bg-green-500 text-white';
+      else base += ' bg-slate-100 text-slate-600 border border-slate-200';
+    } else {
+      if (isUserAnswer && isCorrectAnswer) base += ' bg-green-500 text-white';
+      else if (isUserAnswer && !isCorrectAnswer) base += ' bg-red-500 text-white';
+      else if (isCorrectAnswer) base += ' bg-green-500 text-white';
+      else base += ' bg-slate-100 text-slate-600 border border-slate-200';
+    }
+
+    return base;
+  };
+
+  const statusBadge = () => {
     if (question.category === 'TKP') {
       return (
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">Poin: {question.score || 0}/5</span>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center gap-2 text-sm">
-          {question.isCorrect ? (
-            <>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <span className="font-medium text-green-600">Benar</span>
-            </>
-          ) : (
-            <>
-              <XCircle className="h-4 w-4 text-red-600" />
-              <span className="font-medium text-red-600">Salah</span>
-            </>
-          )}
+        <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 text-sm font-bold">
+          <span>Poin: {question.score ?? 0}/5</span>
         </div>
       );
     }
+    if (question.isCorrect) {
+      return (
+        <div className="flex items-center gap-1.5 text-green-700 bg-green-50 px-3 py-1.5 rounded-full border border-green-200 text-sm font-bold shadow-sm">
+          <CheckCircle2 className="w-4 h-4" /> Benar
+        </div>
+      );
+    }
+    if (question.userChoice) {
+      return (
+        <div className="flex items-center gap-1.5 text-red-700 bg-red-50 px-3 py-1.5 rounded-full border border-red-200 text-sm font-bold shadow-sm">
+          <XCircle className="w-4 h-4" /> Salah
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center gap-1.5 text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 text-sm font-bold shadow-sm">
+        <AlertCircle className="w-4 h-4" /> Kosong
+      </div>
+    );
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Badge 
-              variant="secondary"
-              className={cn("text-sm font-semibold px-3 py-1", getCategoryColor(question.category))}
-            >
-              {question.category}
-            </Badge>
-            <span className="text-sm text-slate-600 font-medium">
-              Soal {question.position}
-            </span>
-            {getStatusIndicator()}
-          </div>
-          {question.isFlagged && (
-            <Badge variant="outline" className="text-orange-600 border-orange-300">
-              Ditandai
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {/* Question Content */}
-        <div className="space-y-4">
-          <div className="text-base leading-relaxed text-slate-900 font-medium">
-            {question.content}
-          </div>
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
 
-          {/* Question Image */}
-          {question.image_url && (
-            <div className="flex justify-center">
-              <Image 
-                src={question.image_url} 
-                alt="Gambar soal"
-                width={600}
-                height={300}
-                className="max-w-full h-auto rounded-lg border border-slate-200 shadow-sm"
-                style={{ maxHeight: '300px', objectFit: 'contain' }}
+      {/* Question header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <span className={cn(
+            'px-3 py-1 rounded-lg text-sm font-bold border shadow-sm',
+            getCategoryBadge(question.category)
+          )}>
+            {question.category}
+          </span>
+          <span className="text-lg font-bold text-slate-800">
+            Soal {question.position}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {question.isFlagged && (
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full border border-orange-300 text-orange-600 bg-orange-50">
+              Ditandai
+            </span>
+          )}
+          {statusBadge()}
+        </div>
+      </div>
+
+      {/* Question text */}
+      <div className="text-slate-800 text-base md:text-lg leading-relaxed mb-8 font-medium">
+        {question.content}
+      </div>
+
+      {/* Question image */}
+      {question.image_url && (
+        <div className="flex justify-center mb-6">
+          <Image
+            src={question.image_url}
+            alt="Gambar soal"
+            width={600}
+            height={300}
+            className="max-w-full h-auto rounded-xl border border-slate-200 shadow-sm"
+            style={{ maxHeight: '300px', objectFit: 'contain' }}
+          />
+        </div>
+      )}
+
+      {/* Answer choices */}
+      <div className="flex flex-col gap-3 mb-8">
+        {question.choices.map((choice) => {
+          const isUserAnswer = question.userChoice?.id === choice.id;
+          const isCorrectAnswer = question.correctChoice?.id === choice.id;
+          const isMaxScore = question.category === 'TKP' && choice.score === 5;
+
+          return (
+            <div key={choice.id} className={getChoiceStyling(choice)}>
+              <div className={getLabelStyling(choice)}>{choice.label}</div>
+              <div className="flex-1 pt-0.5">
+                <p className={cn(
+                  'text-sm md:text-base leading-relaxed',
+                  (isUserAnswer || isCorrectAnswer || isMaxScore) ? 'text-slate-800 font-semibold' : 'text-slate-600 font-medium'
+                )}>
+                  {choice.content}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1.5 items-end flex-shrink-0 pt-0.5">
+                {question.category === 'TKP' && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
+                    {choice.score ?? 1} poin
+                  </span>
+                )}
+                {isUserAnswer && (
+                  <span className={cn(
+                    'text-[10px] font-bold px-2 py-0.5 rounded-md border',
+                    isCorrectAnswer || isMaxScore
+                      ? 'text-green-700 bg-green-100 border-green-200'
+                      : 'text-yellow-700 bg-yellow-100 border-yellow-200'
+                  )}>
+                    Jawaban Anda
+                  </span>
+                )}
+                {isCorrectAnswer && !isUserAnswer && question.category !== 'TKP' && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md text-green-700 bg-green-100 border border-green-200">
+                    Kunci Jawaban
+                  </span>
+                )}
+                {isMaxScore && !isUserAnswer && question.category === 'TKP' && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md text-green-700 bg-green-100 border border-green-200">
+                    Poin Maks
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Discussion */}
+      {question.explanation && (
+        <div className="border-t border-slate-100 pt-6">
+          <button
+            onClick={() => setShowDiscussion(!showDiscussion)}
+            className="flex items-center gap-2 text-slate-700 hover:text-slate-900 font-bold mb-4 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 transition-colors w-full"
+          >
+            <Info className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+            <span className="flex-1 text-left text-sm md:text-base">Pembahasan Soal</span>
+            <ChevronDown className={cn('w-4 h-4 transition-transform text-slate-400', showDiscussion && 'rotate-180')} />
+          </button>
+
+          {showDiscussion && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-sm md:text-base text-slate-700 leading-relaxed shadow-inner">
+              {question.topic && (
+                <span className="inline-block mb-3 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-500 uppercase tracking-wide">
+                  {question.topic}
+                </span>
+              )}
+              <div
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: question.explanation.replace(/\n/g, '<br />') }}
               />
             </div>
           )}
         </div>
-
-        {/* Answer Choices */}
-        <div className="space-y-3">
-          {question.choices.map((choice) => {
-            const isUserAnswer = question.userChoice?.id === choice.id;
-            const isCorrectAnswer = question.correctChoice?.id === choice.id;
-            const isMaxScore = question.category === 'TKP' && choice.score === 5;
-
-            return (
-              <div key={choice.id} className={getChoiceStyling(choice)}>
-                <Badge 
-                  variant="outline" 
-                  className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
-                >
-                  {choice.label}
-                </Badge>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 text-slate-900 leading-relaxed">
-                      {choice.content}
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {question.category === 'TKP' && (
-                        <Badge variant="outline" className="text-xs">
-                          {choice.score || 1} poin
-                        </Badge>
-                      )}
-                      {isUserAnswer && (
-                        <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
-                          Jawaban Anda
-                        </Badge>
-                      )}
-                      {isCorrectAnswer && question.category !== 'TKP' && (
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                          Benar
-                        </Badge>
-                      )}
-                      {isMaxScore && question.category === 'TKP' && (
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                          Poin Maksimal
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Explanation Section */}
-        {question.explanation && (
-          <div className="border-t pt-4">
-            <Accordion type="single" collapsible>
-              <AccordionItem value="explanation" className="border-none">
-                <AccordionTrigger className="py-2 text-left hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4 sm:h-4 sm:w-4" />
-                    <span className="text-sm sm:text-base">Lihat Pembahasan</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-4">
-                  <div className="space-y-4">
-                    {/* Topic Tags */}
-                    {question.topic && (
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {question.topic}
-                        </Badge>
-                      </div>
-                    )}
-                    
-                    {/* Explanation Content */}
-                    <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed">
-                      <div dangerouslySetInnerHTML={{ 
-                        __html: question.explanation.replace(/\n/g, '<br />') 
-                      }} />
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }

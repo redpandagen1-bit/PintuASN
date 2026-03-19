@@ -16,15 +16,27 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  // Hide layout only on the active exam page, not result/review
-  const isExamPage = pathname
-    ? /^\/exam\/[^/]+$/.test(pathname)
-    : false
+
+  // No navbar, no sidebar — active exam page only
+  const isExamPage = pathname ? /^\/exam\/[^/]+$/.test(pathname) : false
+
+  // Navbar only, no sidebar — review/pembahasan page
+  const isReviewPage = pathname ? /^\/exam\/[^/]+\/review/.test(pathname) : false
 
   if (isExamPage) {
     return (
       <div className={`${inter.className} min-h-screen bg-slate-50`}>
         {children}
+      </div>
+    )
+  }
+
+  if (isReviewPage) {
+    return (
+      <div className={`${inter.className} min-h-screen bg-slate-50`}>
+        <main className="w-full">
+          {children}
+        </main>
       </div>
     )
   }
