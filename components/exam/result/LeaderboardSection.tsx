@@ -22,7 +22,7 @@ interface LeaderboardSectionProps {
   packageTitle?: string;
 }
 
-export default function LeaderboardSection({ 
+export default function Leader    boardSection({ 
   leaderboard, 
   currentUserId, 
   userRank,

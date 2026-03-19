@@ -14,8 +14,8 @@ export interface MenuItem {
   id: string;
   label: string;
   href: string;
-  icon: string; // Icon name as string (will be mapped in component)
-  isActive?: boolean; // Has working route
+  icon: string;
+  isActive?: boolean;
 }
 
 export const MAIN_MENU_ITEMS: MenuItem[] = [
@@ -43,9 +43,9 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
   {
     id: 'daftar-tryout',
     label: 'Daftar Tryout',
-    href: '/daftar-Tryout',
+    href: '/daftar-tryout',       // ← fix: huruf kecil semua, tanpa typo
     icon: 'PlayCircle',
-    isActive: false
+    isActive: true         // ← aktifkan karena halaman sudah ada
   },
   {
     id: 'riwayat',
