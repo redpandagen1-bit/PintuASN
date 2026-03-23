@@ -1,21 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  Calendar, 
-  Clock, 
-  Eye, 
+import {
+  Calendar,
+  Clock,
   BookOpen,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
-  Copy,
-  Check
+  Check,
+  BarChart2,
+  Share2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import type { Attempt, Package } from '@/types/database';
 
 interface AttemptHistoryCardProps {
@@ -29,163 +27,155 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', {
       day: 'numeric',
-      month: 'long',
+      month: 'short',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     });
   };
 
-  const calculateDuration = (start: string, end: string) => {
-    const startTime = new Date(start);
-    const endTime = new Date(end);
-    const durationMs = endTime.getTime() - startTime.getTime();
-    const durationMinutes = Math.round(durationMs / (1000 * 60));
-    return `${durationMinutes} menit`;
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const calculateDuration = (start: string, end: string | undefined) => {
+    if (!end) return null;
+    const durationMs = new Date(end).getTime() - new Date(start).getTime();
+    const mins = Math.round(durationMs / 60000);
+    if (mins <= 0 || mins > 200) return null;
+    return `${mins} menit`;
   };
 
   const isPassed = () => {
-    const maxPossibleScore = 175;
-    const passingScore = maxPossibleScore * 0.7;
-    return attempt.final_score !== null && attempt.final_score >= passingScore;
+    const twk = attempt.score_twk ?? 0;
+    const tiu = attempt.score_tiu ?? 0;
+    const tkp = attempt.score_tkp ?? 0;
+    return twk >= 65 && tiu >= 80 && tkp >= 166;
   };
 
+  const passed = isPassed();
+  const totalScore = attempt.total_score ?? (attempt as any).final_score ?? null;
+  // completed_at adalah field yang benar di database
+  const completedAt = (attempt as any).completed_at || attempt.started_at;
+  const duration = calculateDuration(attempt.started_at, (attempt as any).completed_at);
+
   const handleCopyLink = async () => {
-    const url = typeof window !== 'undefined' 
+    const url = typeof window !== 'undefined'
       ? `${window.location.origin}/exam/${attempt.id}/result`
       : '';
-
     try {
       await navigator.clipboard.writeText(url);
       setIsCopied(true);
       toast.success('Link hasil berhasil disalin!');
-      
       setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
+    } catch {
       toast.error('Gagal menyalin link');
     }
   };
 
-
-
-  const getScoreBadgeColor = (score: number) => {
-    const percentage = (score / 175) * 100;
-    if (percentage >= 80) return 'bg-green-100 text-green-800 border-green-300';
-    if (percentage >= 70) return 'bg-blue-100 text-blue-800 border-blue-300';
-    if (percentage >= 60) return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    return 'bg-red-100 text-red-800 border-red-300';
-  };
-
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg leading-tight">
-              {attempt.packages?.title || 'Unknown Package'}
-            </CardTitle>
-            <div className="flex items-center gap-4 text-sm text-slate-600">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                <span>{formatDate(attempt.completed_at || attempt.started_at)}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                <span>{calculateDuration(attempt.started_at, attempt.completed_at || attempt.started_at)}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-end gap-2">
-            {attempt.final_score !== null && (
-              <Badge 
-                variant="outline" 
-                className={`text-base px-3 py-1 font-semibold ${getScoreBadgeColor(attempt.final_score)}`}
-              >
-                {attempt.final_score}
-              </Badge>
-            )}
-            
-            {isPassed() ? (
-              <Badge variant="default" className="bg-green-100 text-green-800">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Lulus
-              </Badge>
-            ) : (
-              <Badge variant="destructive">
-                <XCircle className="h-3 w-3 mr-1" />
-                Tidak Lulus
-              </Badge>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Score Breakdown */}
-        {attempt.twk_score !== null || attempt.tiu_score !== null || attempt.tkp_score !== null && (
-          <div className="space-y-2">
-            <div className="text-sm font-medium text-slate-700 mb-2">Skor per Kategori:</div>
-            <div className="grid grid-cols-3 gap-2">
-              {attempt.twk_score !== null && (
-                <div className="flex items-center justify-between p-2 bg-blue-50 rounded text-sm">
-                  <span className="text-blue-700 font-medium">TWK</span>
-                  <span className="text-blue-900 font-semibold">{attempt.twk_score}</span>
-                </div>
-              )}
-              {attempt.tiu_score !== null && (
-                <div className="flex items-center justify-between p-2 bg-green-50 rounded text-sm">
-                  <span className="text-green-700 font-medium">TIU</span>
-                  <span className="text-green-900 font-semibold">{attempt.tiu_score}</span>
-                </div>
-              )}
-              {attempt.tkp_score !== null && (
-                <div className="flex items-center justify-between p-2 bg-purple-50 rounded text-sm">
-                  <span className="text-purple-700 font-medium">TKP</span>
-                  <span className="text-purple-900 font-semibold">{attempt.tkp_score}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+      <div className="flex">
+        {/* Status bar */}
+        <div className={cn(
+          'w-1 flex-shrink-0',
+          passed ? 'bg-emerald-500' : 'bg-red-400'
+        )} />
 
-        {/* Actions */}
-        <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm" className="flex-1">
-              <Link href={`/exam/${attempt.id}/result`}>
-                <Eye className="h-4 w-4 mr-2" />
-                Lihat Hasil
-              </Link>
-            </Button>
-            <Button asChild size="sm" className="flex-1">
-              <Link href={`/exam/${attempt.id}/review`}>
-                <BookOpen className="h-4 w-4 mr-2" />
-                Lihat Pembahasan
-              </Link>
-            </Button>
+        <div className="flex-1 px-5 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+
+            {/* Left: title + meta + scores */}
+            <div className="flex-1 min-w-0">
+              {/* Title + status badge */}
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <h3 className="text-base font-bold text-slate-800 truncate">
+                  {attempt.packages?.title || 'Unknown Package'}
+                </h3>
+                <span className={cn(
+                  'flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide',
+                  passed
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-red-100 text-red-600'
+                )}>
+                  {passed
+                    ? <><CheckCircle2 size={9} /> Lulus</>
+                    : <><XCircle size={9} /> Tidak Lulus</>}
+                </span>
+              </div>
+
+              {/* Date + duration */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mb-2.5">
+                <span className="flex items-center gap-1">
+                  <Calendar size={11} className="text-slate-400" />
+                  {formatDate(completedAt)} · {formatTime(completedAt)}
+                </span>
+                {duration && (
+                  <span className="flex items-center gap-1">
+                    <Clock size={11} className="text-slate-400" />
+                    {duration}
+                  </span>
+                )}
+              </div>
+
+              {/* Score per category — neutral gray pills */}
+              <div className="flex items-center gap-1.5">
+                {attempt.score_twk !== null && attempt.score_twk !== undefined && (
+                  <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                    TWK <span className="text-slate-800">{attempt.score_twk}</span>
+                  </span>
+                )}
+                {attempt.score_tiu !== null && attempt.score_tiu !== undefined && (
+                  <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                    TIU <span className="text-slate-800">{attempt.score_tiu}</span>
+                  </span>
+                )}
+                {attempt.score_tkp !== null && attempt.score_tkp !== undefined && (
+                  <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                    TKP <span className="text-slate-800">{attempt.score_tkp}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Right: total score + actions */}
+            <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-2 flex-shrink-0">
+              {/* Total score */}
+              {totalScore !== null && (
+                <div className="text-right">
+                  <div className="text-2xl font-black text-slate-800 leading-none">{totalScore}</div>
+                  <div className="text-[10px] text-slate-400 font-medium">/ 550</div>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href={`/exam/${attempt.id}/result`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <BarChart2 size={13} />
+                  Hasil
+                </Link>
+                <Link
+                  href={`/exam/${attempt.id}/review`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <BookOpen size={13} />
+                  Pembahasan
+                </Link>
+                <button
+                  onClick={handleCopyLink}
+                  title="Salin link hasil"
+                  className="flex items-center justify-center w-8 h-8 bg-slate-50 hover:bg-yellow-50 border border-slate-200 hover:border-yellow-300 text-slate-500 hover:text-yellow-600 rounded-lg transition-colors"
+                >
+                  {isCopied ? <Check size={13} className="text-emerald-600" /> : <Share2 size={13} />}
+                </button>
+              </div>
+            </div>
+
           </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopyLink}
-            className="w-full"
-          >
-            {isCopied ? (
-              <>
-                <Check className="h-4 w-4 mr-2 text-green-600" />
-                Link Tersalin!
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 mr-2" />
-                Salin Link Hasil
-              </>
-            )}
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

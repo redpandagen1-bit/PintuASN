@@ -1,12 +1,36 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import type { Package } from '@/types/database';
-import { Clock, FileText, Users } from 'lucide-react';
+import { Clock, FileText, Users, Star } from 'lucide-react';
 
 interface PackageCardUserProps {
   packageData: Package & { tier?: string };
   hasActiveAttempt?: boolean;
   completedUsersCount?: number;
+}
+
+function TierBadge({ tier }: { tier?: string }) {
+  if (tier === 'premium') {
+    return (
+      <div className="flex items-center gap-1 bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0">
+        <Star size={9} fill="currentColor" />
+        Premium
+      </div>
+    );
+  }
+  if (tier === 'platinum') {
+    return (
+      <div className="flex items-center gap-1 bg-purple-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0">
+        <Star size={9} fill="currentColor" />
+        Platinum
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-1 bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0">
+      Gratis
+    </div>
+  );
 }
 
 export function PackageCardUser({ 
@@ -32,23 +56,6 @@ export function PackageCardUser({
     }
   };
 
-  const getTierColor = (tier?: string) => {
-    switch (tier) {
-      case 'premium':  return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'platinum': return 'bg-purple-100 text-purple-700 border-purple-200';
-      default:         return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    }
-  };
-
-  const getTierLabel = (tier?: string) => {
-    switch (tier) {
-      case 'premium':  return 'Premium';
-      case 'platinum': return 'Platinum';
-      default:         return 'Gratis';
-    }
-  };
-
-  // Truncate title to max 15 chars
   const truncatedTitle = packageData.title.length > 15
     ? packageData.title.slice(0, 15) + '...'
     : packageData.title;
@@ -63,14 +70,11 @@ export function PackageCardUser({
         >
           {truncatedTitle}
         </h3>
-        <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getTierColor(packageData.tier)}`}>
-          {getTierLabel(packageData.tier)}
-        </span>
+        <TierBadge tier={packageData.tier} />
       </div>
 
-      {/* Stats — difficulty first, then soal/menit/peserta */}
+      {/* Stats */}
       <div className="px-4 pb-3 flex flex-col gap-1.5 text-xs text-slate-500">
-        {/* Difficulty — paling atas */}
         <div className="flex items-center gap-1.5">
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${getDifficultyColor(packageData.difficulty)}`}>
             {getDifficultyLabel(packageData.difficulty)}

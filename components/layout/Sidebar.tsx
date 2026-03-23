@@ -11,7 +11,8 @@ import {
   ShoppingCart,
   Zap,
   Users,
-  Crown
+  Crown,
+  MessageCircle,
 } from 'lucide-react';
 import { MAIN_MENU_ITEMS } from '@/constants/menu-items';
 
@@ -23,13 +24,14 @@ const ICON_MAP = {
   History,
   ShoppingCart,
   Zap,
-  Users
+  Users,
+  MessageCircle,
 };
 
-// Secondary menu tanpa Konsultasi
 const SECONDARY_ITEMS = [
-  { id: 'event-promo', label: 'Event & Promo', href: '/promo',  icon: 'Zap'   },
-  { id: 'grup',        label: 'Grup',          href: '/grup',   icon: 'Users' },
+  { id: 'event-promo',  label: 'Event & Promo', href: '/promo',       icon: 'Zap'           },
+  { id: 'grup',         label: 'Grup',          href: '/grup',        icon: 'Users'         },
+  { id: 'konsultasi',   label: 'Konsultasi',    href: '/konsultasi',  icon: 'MessageCircle' },
 ];
 
 export function Sidebar() {
@@ -63,19 +65,19 @@ export function Sidebar() {
                 href={item.href}
                 className={`group relative flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg transition-all duration-200 font-medium text-sm ${
                   isActive
-                    ? 'bg-slate-800 text-white shadow-sm'
+                    ? 'bg-slate-800 text-yellow-400 shadow-sm'
                     : 'text-slate-800 hover:bg-slate-800 hover:text-white'
                 }`}
               >
                 <Icon
                   size={20}
                   className={`flex-shrink-0 transition-colors duration-200 ${
-                    isActive ? 'text-white' : 'text-slate-600 group-hover:text-white'
+                    isActive ? 'text-yellow-400' : 'text-slate-600 group-hover:text-white'
                   }`}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
                 {isActive && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-white mr-1" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1" />
                 )}
               </Link>
             );
@@ -85,7 +87,7 @@ export function Sidebar() {
         {/* Separator */}
         <div className="my-4 mx-2 border-t border-slate-100" />
 
-        {/* Secondary Menu — tanpa Konsultasi */}
+        {/* Secondary Menu */}
         <div className="space-y-1">
           <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 select-none">
             Lainnya
@@ -100,14 +102,14 @@ export function Sidebar() {
                 href={item.href}
                 className={`group relative flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg transition-all duration-200 font-medium text-sm ${
                   isActive
-                    ? 'bg-slate-800 text-white shadow-sm'
+                    ? 'bg-slate-800 text-yellow-400 shadow-sm'
                     : 'text-slate-800 hover:bg-slate-800 hover:text-white'
                 }`}
               >
                 <Icon
                   size={20}
                   className={`flex-shrink-0 transition-colors duration-200 ${
-                    isActive ? 'text-white' : 'text-slate-600 group-hover:text-white'
+                    isActive ? 'text-yellow-400' : 'text-slate-600 group-hover:text-white'
                   }`}
                 />
                 <span className="flex-1 truncate">{item.label}</span>
@@ -117,7 +119,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Upgrade Premium Banner — ukuran proper */}
+      {/* Upgrade Premium Banner */}
       <div className="flex-shrink-0 p-4">
         <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-5 shadow-lg">
           <div className="w-10 h-10 bg-slate-700/50 rounded-xl flex items-center justify-center mb-3">

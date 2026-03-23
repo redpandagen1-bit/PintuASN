@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { PackageCardUser } from '@/components/shared/package-card-user';
 import TryoutFilterTabs from '@/components/dashboard/user/TryoutFilterTabs';
-import { TrendingUp, Search, X } from 'lucide-react';
+import { TrendingUp, Search, X, FileText } from 'lucide-react';
 
 type TierFilter = 'Semua' | 'Gratis' | 'Premium' | 'Platinum';
 
@@ -48,16 +48,45 @@ export function DaftarTryoutClient({ packages, packageIdsWithAttempts }: DaftarT
 
   return (
     <div className="space-y-5 pb-10">
-      {/* Header */}
+
+      {/* ── HERO BANNER ──────────────────────────────────────────────── */}
+      <div className="bg-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
+
+        <div className="relative z-10 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-4">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+            <span className="text-xs font-medium text-slate-300">Pusat Latihan SKD</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">
+            Daftar <span className="text-yellow-400">Tryout</span>
+          </h1>
+          <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+            Semua paket simulasi SKD tersedia di sini. Ada total{' '}
+            <span className="text-yellow-400 font-bold">{packages.length} paket</span>{' '}
+            yang bisa Anda kerjakan. Pilih tryout yang sesuai dengan kebutuhan belajarmu dan mulailah berlatih!
+          </p>
+        </div>
+
+        <div className="relative z-10 hidden md:flex items-center justify-center w-20 h-20 bg-slate-700/40 rounded-2xl border border-slate-600 shadow-inner rotate-3 flex-shrink-0">
+          <FileText className="w-10 h-10 text-yellow-400" />
+        </div>
+      </div>
+
+      {/* ── FILTER + SEARCH HEADER ───────────────────────────────────── */}
       <div className="bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100">
         <div className="flex flex-col gap-3">
-          {/* Title + filter */}
+          {/* Title + filter tabs */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h1 className="text-xl font-bold text-slate-800">Daftar Tryout</h1>
               <p className="text-slate-500 text-sm mt-0.5">
-                Semua paket simulasi SKD tersedia di sini.{' '}
-                <span className="font-medium text-slate-700">{packages.length} paket</span> tersedia.
+                Menampilkan{' '}
+                <span className="font-medium text-slate-700">{filtered.length}</span>{' '}
+                dari{' '}
+                <span className="font-medium text-slate-700">{packages.length}</span>{' '}
+                paket tersedia.
               </p>
             </div>
             <TryoutFilterTabs activeFilter={activeFilter} onFilterChange={setActiveFilter} />
@@ -85,7 +114,7 @@ export function DaftarTryoutClient({ packages, packageIdsWithAttempts }: DaftarT
         </div>
       </div>
 
-      {/* Grid atau empty state */}
+      {/* ── GRID / EMPTY STATE ───────────────────────────────────────── */}
       {filtered.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((pkg) => (

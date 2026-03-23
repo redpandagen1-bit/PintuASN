@@ -7,9 +7,8 @@ import { FeatureGrid } from '@/components/layout/FeatureGrid';
 import TryoutSection from '@/components/dashboard/user/TryoutSection';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { ChevronRight, TrendingUp } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 async function DashboardContent() {
@@ -37,9 +36,7 @@ async function DashboardContent() {
   if (completedCounts) {
     const packageUserSets = new Map<string, Set<string>>();
     completedCounts.forEach(({ package_id, user_id }) => {
-      if (!packageUserSets.has(package_id)) {
-        packageUserSets.set(package_id, new Set());
-      }
+      if (!packageUserSets.has(package_id)) packageUserSets.set(package_id, new Set());
       packageUserSets.get(package_id)!.add(user_id);
     });
     packageUserSets.forEach((userSet, package_id) => {
@@ -69,10 +66,18 @@ async function DashboardContent() {
     : 0;
   const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
 
-  // Package IDs yang sedang in_progress
   const packageIdsWithAttempts = attempts
     .filter(a => a.status === 'in_progress')
     .map(a => a.package_id);
+
+  // ── Fetch materi untuk MateriTabs ──────────────────────────────────────
+  const { data: materials } = await supabase
+    .from('materials')
+    .select('id, title, category, type, tier, duration_minutes, is_new')
+    .eq('is_active', true)
+    .eq('is_deleted', false)
+    .order('order_index', { ascending: true })
+    .order('created_at', { ascending: false });
 
   return (
     <div className="space-y-5 pb-10">
@@ -100,7 +105,7 @@ async function DashboardContent() {
         </div>
       </section>
 
-      {/* Daftar Tryout — pakai client component untuk filter */}
+      {/* Daftar Tryout */}
       <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-4">
         <TryoutSection
           packages={packagesWithUserCount}
@@ -108,13 +113,13 @@ async function DashboardContent() {
         />
       </section>
 
-      {/* Materi */}
+      {/* Materi — sekarang dengan data real dari database */}
       <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-5">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Materi</h2>
           <p className="text-slate-500 text-xs mt-0.5">Pelajari materi persiapan CPNS 2026.</p>
         </div>
-        <MateriTabs />
+        <MateriTabs materials={materials || []} />
       </section>
     </div>
   );
@@ -148,16 +153,9 @@ function DashboardSkeleton() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i}>
-              <CardHeader className="pb-2">
-                <Skeleton className="h-5 w-full" />
-                <Skeleton className="h-4 w-20 mt-1" />
-              </CardHeader>
-              <CardContent className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardContent>
-              <CardFooter>
-                <Skeleton className="h-9 w-full" />
-              </CardFooter>
+              <CardHeader><Skeleton className="h-5 w-full" /></CardHeader>
+              <CardContent><Skeleton className="h-4 w-24" /></CardContent>
+              <CardFooter><Skeleton className="h-9 w-full" /></CardFooter>
             </Card>
           ))}
         </div>

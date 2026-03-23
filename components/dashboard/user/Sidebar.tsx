@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
 import {
   LayoutDashboard,
   BarChart2,
@@ -10,94 +9,133 @@ import {
   PlayCircle,
   History,
   ShoppingCart,
+  Zap,
+  Users,
   Crown,
+  MessageCircle,
 } from 'lucide-react';
 import { MAIN_MENU_ITEMS } from '@/constants/menu-items';
 
-const ICON_MAP: Record<string, React.ElementType> = {
+const ICON_MAP = {
   LayoutDashboard,
   BarChart2,
   BookOpen,
   PlayCircle,
   History,
   ShoppingCart,
+  Zap,
+  Users,
+  MessageCircle,
 };
 
-export default function Sidebar() {
+const SECONDARY_ITEMS = [
+  { id: 'event-promo',  label: 'Event & Promo', href: '/promo',       icon: 'Zap'           },
+  { id: 'grup',         label: 'Grup',          href: '/grup',        icon: 'Users'         },
+  { id: 'konsultasi',   label: 'Konsultasi',    href: '/konsultasi',  icon: 'MessageCircle' },
+];
+
+export function Sidebar() {
   const pathname = usePathname();
 
-  return (
-    <aside className="w-64 min-h-screen bg-white border-r border-slate-100 flex flex-col sticky top-0 h-screen">
-      {/* Logo */}
-      <div className="px-6 py-5 border-b border-slate-100">
-        <Link href="/dashboard">
-          <Image
-            src="/images/Logo.svg"
-            alt="PintuASN"
-            width={120}
-            height={36}
-            priority
-          />
-        </Link>
-      </div>
+  const getIcon = (iconName: string) => {
+    const Icon = ICON_MAP[iconName as keyof typeof ICON_MAP];
+    return Icon || LayoutDashboard;
+  };
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
-          Menu Utama
-        </p>
-        <ul className="space-y-0.5">
+  return (
+    <aside className="hidden lg:flex flex-col sticky top-6 w-72 max-h-[calc(100vh-3rem)] bg-white border border-slate-200 transition-all duration-300 rounded-3xl shadow-lg flex-shrink-0 self-start">
+
+      {/* Scrollable menu area */}
+      <div className="flex-1 overflow-y-auto py-6 px-3 custom-scrollbar">
+
+        {/* Main Menu */}
+        <div className="space-y-1 mb-2">
+          <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 select-none">
+            Menu Utama
+          </p>
           {MAIN_MENU_ITEMS.map((item) => {
-            const Icon = ICON_MAP[item.icon];
+            const Icon = getIcon(item.icon);
             const isActive =
-              item.href === '/dashboard'
-                ? pathname === '/dashboard'
-                : pathname.startsWith(item.href);
+              pathname === item.href ||
+              (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
             return (
-              <li key={item.id}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
-                    isActive
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`group relative flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg transition-all duration-200 font-medium text-sm ${
+                  isActive
+                    ? 'bg-slate-800 text-yellow-400 shadow-sm'
+                    : 'text-slate-800 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                <Icon
+                  size={20}
+                  className={`flex-shrink-0 transition-colors duration-200 ${
+                    isActive ? 'text-yellow-400' : 'text-slate-600 group-hover:text-white'
                   }`}
-                >
-                  {Icon && (
-                    <Icon
-                      size={18}
-                      className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}
-                    />
-                  )}
-                  <span>{item.label}</span>
-                  {isActive && (
-                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white opacity-80" />
-                  )}
-                </Link>
-              </li>
+                />
+                <span className="flex-1 truncate">{item.label}</span>
+                {isActive && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1" />
+                )}
+              </Link>
             );
           })}
-        </ul>
-      </nav>
+        </div>
 
-      {/* Upgrade Banner */}
-      <div className="p-3">
-        <div className="bg-slate-800 rounded-2xl p-4 text-white">
-          <div className="flex items-center gap-2 mb-2">
-            <Crown size={16} className="text-amber-400" />
-            <span className="text-sm font-bold">Upgrade Premium</span>
+        {/* Separator */}
+        <div className="my-4 mx-2 border-t border-slate-100" />
+
+        {/* Secondary Menu */}
+        <div className="space-y-1">
+          <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 select-none">
+            Lainnya
+          </p>
+          {SECONDARY_ITEMS.map((item) => {
+            const Icon = getIcon(item.icon);
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`group relative flex items-center gap-3 px-3 py-2.5 mx-1 rounded-lg transition-all duration-200 font-medium text-sm ${
+                  isActive
+                    ? 'bg-slate-800 text-yellow-400 shadow-sm'
+                    : 'text-slate-800 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                <Icon
+                  size={20}
+                  className={`flex-shrink-0 transition-colors duration-200 ${
+                    isActive ? 'text-yellow-400' : 'text-slate-600 group-hover:text-white'
+                  }`}
+                />
+                <span className="flex-1 truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Upgrade Premium Banner */}
+      <div className="flex-shrink-0 p-4">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-5 shadow-lg">
+          <div className="w-10 h-10 bg-slate-700/50 rounded-xl flex items-center justify-center mb-3">
+            <Crown className="text-yellow-400" size={20} />
           </div>
-          <p className="text-xs text-slate-300 leading-relaxed mb-3">
-            Akses 50+ Paket Tryout dan pembahasan video lengkap.
+          <h3 className="text-white font-bold text-base mb-1">Upgrade Premium</h3>
+          <p className="text-slate-300 text-xs mb-4 leading-relaxed">
+            Akses Paket Tryout Premium dan Materi video lengkap.
           </p>
           <Link href="/pricing">
-            <button className="w-full bg-white text-slate-800 text-xs font-semibold py-2 rounded-lg hover:bg-slate-100 transition-colors">
+            <button className="w-full bg-white text-slate-800 font-semibold py-2.5 px-4 rounded-xl hover:bg-slate-100 transition-all duration-200 text-sm shadow-md">
               Lihat Paket
             </button>
           </Link>
         </div>
-        <p className="text-center text-[10px] text-slate-400 mt-3">
+        <p className="text-center text-[10px] text-slate-300 mt-3">
           © 2026 PintuASN. v1.0.0
         </p>
       </div>

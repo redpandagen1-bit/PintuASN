@@ -1,0 +1,72 @@
+.next/types/app/(dashboard)/history/page.ts(34,29): error TS2344: Type '{ searchParams: { sort?: string | undefined; filter?: string | undefined; page?: string | undefined; }; }' does not satisfy the constraint 'PageProps'.
+  Types of property 'searchParams' are incompatible.
+    Type '{ sort?: string | undefined; filter?: string | undefined; page?: string | undefined; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+app/(admin)/test-admin-debug/page.tsx(27,31): error TS2322: Type '{}' is not assignable to type 'ReactNode'.
+app/(admin)/test-admin-debug/page.tsx(47,33): error TS2322: Type '{}' is not assignable to type 'ReactNode'.
+app/(auth)/sign-in/[[...sign-in]]/page.tsx(34,9): error TS2322: Type '{ appearance: { elements: { rootBox: string; card: string; formButtonPrimary: string; footerActionLink: string; footer: string; footerAction: string; headerTitle: string; headerSubtitle: string; }; layout: { ...; }; }; localization: { ...; }; }' is not assignable to type 'IntrinsicAttributes & Without<WithClerkProp<SignInProps & FallbackProp>, "clerk">'.
+  Property 'localization' does not exist on type 'IntrinsicAttributes & Without<WithClerkProp<SignInProps & FallbackProp>, "clerk">'.
+app/(auth)/sign-up/[[...sign-up]]/page.tsx(34,9): error TS2322: Type '{ appearance: { elements: { rootBox: string; card: string; formButtonPrimary: string; footerActionLink: string; footer: string; footerAction: string; headerTitle: string; headerSubtitle: string; }; layout: { ...; }; }; localization: { ...; }; }' is not assignable to type 'IntrinsicAttributes & Without<WithClerkProp<SignUpProps & FallbackProp>, "clerk">'.
+  Property 'localization' does not exist on type 'IntrinsicAttributes & Without<WithClerkProp<SignUpProps & FallbackProp>, "clerk">'.
+app/(dashboard)/dashboard/page.tsx(96,105): error TS2322: Type '{ label: string; value: number; iconName: "CheckCircle"; iconColor: string; iconBg: string; }' is not assignable to type 'IntrinsicAttributes & StatCardProps'.
+  Property 'iconColor' does not exist on type 'IntrinsicAttributes & StatCardProps'.
+app/(dashboard)/dashboard/page.tsx(97,105): error TS2322: Type '{ label: string; value: number; iconName: "BarChart2"; iconColor: string; iconBg: string; }' is not assignable to type 'IntrinsicAttributes & StatCardProps'.
+  Property 'iconColor' does not exist on type 'IntrinsicAttributes & StatCardProps'.
+app/(dashboard)/dashboard/page.tsx(98,105): error TS2322: Type '{ label: string; value: string; iconName: "Award"; iconColor: string; iconBg: string; }' is not assignable to type 'IntrinsicAttributes & StatCardProps'.
+  Property 'iconColor' does not exist on type 'IntrinsicAttributes & StatCardProps'.
+app/(dashboard)/dashboard/page.tsx(99,105): error TS2322: Type '{ label: string; value: number; iconName: "TrendingUp"; iconColor: string; iconBg: string; }' is not assignable to type 'IntrinsicAttributes & StatCardProps'.
+  Property 'iconColor' does not exist on type 'IntrinsicAttributes & StatCardProps'.
+app/(dashboard)/exam/[attemptId]/page.tsx(77,7): error TS2322: Type 'any[][]' is not assignable to type 'QuestionWithChoices[]'.
+  Type 'any[]' is missing the following properties from type 'QuestionWithChoices': choices, id, category, question_text, and 5 more.
+app/(dashboard)/exam/[attemptId]/result/_result-client.tsx(499,23): error TS2322: Type '(value: number, name: string) => [number, string]' is not assignable to type 'Formatter<number, string>'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+app/(dashboard)/exam/[attemptId]/result/page.tsx(94,7): error TS2322: Type '{ rank: number; id: any; user_id: any; final_score: any; completed_at: any; profiles: { full_name: any; avatar_url: any; }[]; }[]' is not assignable to type 'LeaderboardItem[]'.
+  Type '{ rank: number; id: any; user_id: any; final_score: any; completed_at: any; profiles: { full_name: any; avatar_url: any; }[]; }' is not assignable to type 'LeaderboardItem'.
+    Types of property 'profiles' are incompatible.
+      Type '{ full_name: any; avatar_url: any; }[]' is missing the following properties from type '{ full_name: string | null; avatar_url: string | null; }': full_name, avatar_url
+app/(dashboard)/exam/[attemptId]/result/page.tsx(99,7): error TS2322: Type '{ id: any; answered_at: any; time_spent_seconds: any; questions: { id: any; content: any; category: any; }[]; }[]' is not assignable to type 'AnswerData[]'.
+  Type '{ id: any; answered_at: any; time_spent_seconds: any; questions: { id: any; content: any; category: any; }[]; }' is not assignable to type 'AnswerData'.
+    Types of property 'questions' are incompatible.
+      Type '{ id: any; content: any; category: any; }[]' is missing the following properties from type '{ id: string; content: string | null; category: string; }': id, content, category
+app/(dashboard)/packages/[id]/page.tsx(34,51): error TS2339: Property 'id' does not exist on type 'Promise<{ id: string; }>'.
+app/(dashboard)/packages/[id]/page.tsx(39,34): error TS2339: Property 'id' does not exist on type 'Promise<{ id: string; }>'.
+app/(dashboard)/packages/[id]/page.tsx(162,56): error TS2339: Property 'id' does not exist on type 'Promise<{ id: string; }>'.
+app/api/admin/upload/csv/route.ts(27,17): error TS7006: Parameter 'error' implicitly has an 'any' type.
+app/api/profile/route.ts(47,54): error TS2339: Property 'errors' does not exist on type 'ZodError<unknown>'.
+components/exam/exam-instructions-modal.tsx(49,16): error TS2345: Argument of type 'string' is not assignable to parameter of type 'SetStateAction<null>'.
+components/exam/exam-interface.tsx(272,33): error TS2339: Property 'content' does not exist on type 'QuestionWithChoices'.
+components/exam/exam-interface.tsx(276,31): error TS2339: Property 'image_url' does not exist on type 'QuestionWithChoices'.
+components/exam/exam-interface.tsx(279,40): error TS2339: Property 'image_url' does not exist on type 'QuestionWithChoices'.
+components/exam/exam-interface.tsx(314,31): error TS2339: Property 'content' does not exist on type 'Choice'.
+components/exam/result-content.tsx(69,80): error TS2339: Property 'completed_at' does not exist on type 'Attempt & { packages: Package; }'.
+components/exam/result/TimeAnalysisSection.tsx(106,17): error TS2322: Type '(value: number) => [string, "Waktu"]' is not assignable to type 'Formatter<number, "Waktu">'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+components/shared/user-stats-card.tsx(151,28): error TS2339: Property 'final_score' does not exist on type 'Attempt'.
+components/shared/user-stats-card.tsx(154,61): error TS2339: Property 'final_score' does not exist on type 'Attempt'.
+components/shared/user-stats-card.tsx(156,32): error TS2339: Property 'final_score' does not exist on type 'Attempt'.
+lib/supabase/queries.ts(476,85): error TS2339: Property 'id' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(479,36): error TS2339: Property 'choices' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(479,50): error TS7006: Parameter 'choice' implicitly has an 'any' type.
+lib/supabase/queries.ts(480,33): error TS2339: Property 'choices' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(480,47): error TS7006: Parameter 'choice' implicitly has an 'any' type.
+lib/supabase/queries.ts(483,32): error TS2339: Property 'category' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(488,28): error TS2339: Property 'category' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(494,20): error TS2339: Property 'id' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(495,26): error TS2339: Property 'category' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(496,25): error TS2339: Property 'content' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(497,27): error TS2339: Property 'image_url' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(498,29): error TS2339: Property 'explanation' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(499,23): error TS2339: Property 'topic' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(500,28): error TS2339: Property 'difficulty' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/supabase/queries.ts(501,25): error TS2339: Property 'choices' does not exist on type '{ id: any; category: any; content: any; image_url: any; explanation: any; topic: any; difficulty: any; choices: { id: any; label: any; content: any; is_answer: any; score: any; }[]; }[]'.
+lib/validations/onboarding.ts(24,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: readonly ["male", "female"], params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Object literal may only specify known properties, and 'errorMap' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(entries: Readonly<Record<string, EnumValue>>, params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Argument of type 'string[]' is not assignable to parameter of type 'Readonly<Record<string, EnumValue>>'.
+      Index signature for type 'string' is missing in type 'string[]'.
+lib/validations/question-schema.ts(61,23): error TS2339: Property 'errors' does not exist on type 'ZodError<unknown>'.
+lib/validations/question-schema.ts(61,34): error TS7006: Parameter 'e' implicitly has an 'any' type.

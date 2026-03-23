@@ -11,7 +11,8 @@ import {
   Activity, 
   CheckCircle2,
   XCircle,
-  Target
+  Target,
+  BarChart2
 } from 'lucide-react';
 
 // ===== TYPES =====
@@ -154,7 +155,6 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
 
     const bestScore = Math.max(...completedAttempts.map(attempt => attempt.final_score));
 
-    // Tren data - ambil 10 terakhir untuk grafik
     const trendData = completedAttempts
       .slice()
       .reverse()
@@ -169,7 +169,6 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
         tkp: attempt.score_tkp
       }));
 
-    // Score distribution untuk kurva normal
     const scoreDistribution = [];
     const step = 50;
     for (let i = 300; i <= 550; i += step) {
@@ -225,7 +224,6 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
     );
   }
 
-  // Calculate percentile display
   const percentileText = ranking 
     ? `Anda lebih unggul dari ${Math.round((1 - (ranking.user_rank / ranking.total_users)) * 100)}% peserta lain.`
     : 'Belum ada data peringkat';
@@ -234,11 +232,29 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20">
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Header Section */}
-        <div className="flex flex-col mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Statistik Performa</h1>
-          <p className="text-slate-500 mt-1">Analisis mendalam hasil simulasi SKD Anda.</p>
+
+        {/* ── HERO BANNER ──────────────────────────────────────────────── */}
+        <div className="bg-slate-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          {/* Decorative blobs */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+          <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
+
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-4">
+              <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+              <span className="text-xs font-medium text-slate-300">Overview Performa</span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">
+              Statistik <span className="text-yellow-400">Performa</span>
+            </h1>
+            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+              Analisis mendalam hasil simulasi SKD Anda. Pantau terus perkembangan nilai, identifikasi kelemahan, dan tingkatkan peluang lulus dengan data yang akurat.
+            </p>
+          </div>
+
+          <div className="relative z-10 hidden md:flex items-center justify-center w-20 h-20 bg-slate-700/40 rounded-2xl border border-slate-600 shadow-inner rotate-3 flex-shrink-0">
+            <BarChart2 className="w-10 h-10 text-yellow-400" />
+          </div>
         </div>
 
         {/* 1. Summary Cards Grid */}
@@ -271,7 +287,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           
-          {/* 2. Main Chart: Performance Trend (Takes up 2 cols) */}
+          {/* 2. Main Chart: Performance Trend */}
           <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
             <div className="flex justify-between items-center mb-6">
               <SectionHeader 
@@ -334,7 +350,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
             </div>
           </div>
 
-          {/* 3. National Rank Card (Compact) - SESUAI SCREENSHOT */}
+          {/* 3. National Rank Card */}
           <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-slate-700 rounded-full opacity-50 blur-2xl"></div>
             
@@ -437,7 +453,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
             </div>
           </div>
 
-          {/* Score Distribution Simulation */}
+          {/* Score Distribution */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
             <SectionHeader 
               title="Distribusi Skor Peserta" 
@@ -508,7 +524,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {stats.recentAttempts.map((row, idx) => (
+                {stats.recentAttempts.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900">
                       {new Date(row.completed_at).toLocaleDateString('id-ID', {
