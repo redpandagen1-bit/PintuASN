@@ -57,7 +57,7 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
   {
     id: 'beli-paket',
     label: 'Beli Paket',
-    href: '/pricing',
+    href: '/beli-paket',
     icon: 'ShoppingCart',
     isActive: false
   }
