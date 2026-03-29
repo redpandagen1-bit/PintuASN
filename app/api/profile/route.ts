@@ -1,104 +1,84 @@
-import { NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { createClient } from '@/lib/supabase/server';
-import { z } from 'zod';
-
-const updateProfileSchema = z.object({
-  full_name: z.string().min(1, 'Nama lengkap harus diisi').max(100, 'Nama lengkap maksimal 100 karakter'),
-  phone: z.string().optional(),
-});
-
-export async function PATCH(request: Request) {
-  try {
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { full_name, phone } = updateProfileSchema.parse(body);
-
-    const supabase = await createClient();
-
-    // Update profile in database
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert({
-        user_id: user.id,
-        email: user.emailAddresses[0]?.emailAddress || '',
-        full_name,
-        phone: phone || null,
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating profile:', error);
-      return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
-    }
-
-    return NextResponse.json({ profile: data });
-  } catch (error) {
-    console.error('Profile update error:', error);
-    
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
 
 export async function GET() {
   try {
-    const user = await currentUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = await createClient();
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) throw error;
+    return NextResponse.json({ profile });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const body = await req.json();
+
+    const allowedFields = [
+      'full_name',
+      'phone',
+      'gender',
+      'birth_date',
+      'address',
+      'province',
+      'city',
+      'district',
+      'postal_code',
+      'target_institution',
+    ];
+
+    const updates: Record<string, unknown> = {};
+    for (const field of allowedFields) {
+      if (field in body) {
+        updates[field] = body[field] ?? null;
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'Tidak ada field yang diupdate' }, { status: 400 });
+    }
+
+    // Validasi full_name
+    if (updates.full_name !== undefined && updates.full_name !== null) {
+      if (typeof updates.full_name !== 'string' || (updates.full_name as string).trim().length === 0) {
+        return NextResponse.json({ error: 'Nama lengkap tidak boleh kosong' }, { status: 400 });
+      }
+      if ((updates.full_name as string).length > 100) {
+        return NextResponse.json({ error: 'Nama lengkap maksimal 100 karakter' }, { status: 400 });
+      }
+      updates.full_name = (updates.full_name as string).trim();
+    }
+
+    // Validasi gender
+    if (updates.gender && !['Pria', 'Wanita'].includes(updates.gender as string)) {
+      return NextResponse.json({ error: 'Gender tidak valid' }, { status: 400 });
     }
 
     const supabase = await createClient();
-
-    // Get profile from database
-    const { data, error } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
-      .select('*')
-      .eq('user_id', user.id)
+      .update(updates)
+      .eq('user_id', userId)
+      .select()
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
-      console.error('Error fetching profile:', error);
-      return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
-    }
-
-    // If profile doesn't exist, create a basic one
-    if (!data) {
-      const { data: newProfile, error: createError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: user.id,
-          email: user.emailAddresses[0]?.emailAddress || '',
-          full_name: user.firstName && user.lastName 
-            ? `${user.firstName} ${user.lastName}` 
-            : user.firstName || user.username || 'User',
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('Error creating profile:', createError);
-        return NextResponse.json({ error: 'Failed to create profile' }, { status: 500 });
-      }
-
-      return NextResponse.json({ profile: newProfile });
-    }
-
-    return NextResponse.json({ profile: data });
-  } catch (error) {
-    console.error('Profile fetch error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    if (error) throw error;
+    return NextResponse.json({ profile });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

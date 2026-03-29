@@ -42,12 +42,12 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className={`${inter.className} bg-slate-50`}>
+    <div className={`${inter.className} bg-slate-50 min-h-screen`}>
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-6 lg:gap-8 items-start">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+        <div className="flex gap-6 lg:gap-8 items-start min-h-[calc(100vh-3.5rem)]">
           <Sidebar />
-          <main className="flex-1 min-w-0 py-6 lg:py-8">
+          <main className="flex-1 min-w-0 pt-2 pb-6 lg:pb-8">
             {children}
           </main>
         </div>

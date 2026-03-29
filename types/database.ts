@@ -17,6 +17,15 @@ export interface Profile {
   phone?: string;
   role: 'user' | 'admin';
   avatar_url?: string;
+  gender?: 'Pria' | 'Wanita';
+  birth_date?: string;
+  address?: string;
+  province?: string;
+  city?: string;
+  district?: string;
+  postal_code?: string;
+  target_institution?: string;
+  subscription_tier?: 'free' | 'premium' | 'platinum';
   created_at: string;
   updated_at: string;
 }
@@ -90,7 +99,6 @@ export interface PackageQuestion {
   created_at: string;
 }
 
-// Types for Review functionality
 export interface ReviewChoice {
   id: string;
   label: string;
@@ -117,8 +125,8 @@ export interface ReviewQuestion {
     is_flagged: boolean;
     answered_at: string;
   } | null;
-  isCorrect: boolean | null; // null for TKP questions
-  score: number | null; // only for TKP questions
+  isCorrect: boolean | null;
+  score: number | null;
   userChoice: ReviewChoice | null;
   correctChoice: ReviewChoice | null;
   isFlagged: boolean;

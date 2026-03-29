@@ -43,10 +43,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col sticky top-6 w-72 max-h-[calc(100vh-3rem)] bg-white border border-slate-200 transition-all duration-300 rounded-3xl shadow-lg flex-shrink-0 self-start">
-
+    <aside className="hidden lg:flex flex-col sticky top-[4rem] w-72 max-h-[calc(100vh-4.75rem)] bg-white border border-slate-200 transition-all duration-300 rounded-3xl shadow-lg flex-shrink-0 self-start">
       {/* Scrollable menu area */}
-      <div className="flex-1 overflow-y-auto py-6 px-3 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto min-h-0 py-4 px-3 custom-scrollbar">
 
         {/* Main Menu */}
         <div className="space-y-1 mb-2">
@@ -119,23 +118,23 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Upgrade Premium Banner */}
-      <div className="flex-shrink-0 p-4">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-5 shadow-lg">
-          <div className="w-10 h-10 bg-slate-700/50 rounded-xl flex items-center justify-center mb-3">
-            <Crown className="text-yellow-400" size={20} />
+      {/* Upgrade Premium Banner — compact */}
+      <div className="flex-shrink-0 px-3 pb-3 pt-2">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-4 shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Crown className="text-yellow-400 flex-shrink-0" size={16} />
+            <h3 className="text-white font-bold text-sm">Upgrade Premium</h3>
           </div>
-          <h3 className="text-white font-bold text-base mb-1">Upgrade Premium</h3>
-          <p className="text-slate-300 text-xs mb-4 leading-relaxed">
+          <p className="text-slate-300 text-xs mb-3 leading-relaxed">
             Akses Paket Tryout Premium dan Materi video lengkap.
           </p>
           <Link href="/pricing">
-            <button className="w-full bg-white text-slate-800 font-semibold py-2.5 px-4 rounded-xl hover:bg-slate-100 transition-all duration-200 text-sm shadow-md">
+            <button className="w-full bg-white text-slate-800 font-semibold py-2 px-4 rounded-xl hover:bg-slate-100 transition-all duration-200 text-xs shadow-md">
               Lihat Paket
             </button>
           </Link>
         </div>
-        <p className="text-center text-[10px] text-slate-300 mt-3">
+        <p className="text-center text-[10px] text-slate-400 mt-2">
           © 2026 PintuASN. v1.0.0
         </p>
       </div>

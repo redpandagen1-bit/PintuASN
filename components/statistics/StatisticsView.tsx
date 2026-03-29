@@ -214,8 +214,8 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
 
   if (stats.totalAttempts === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center py-12">
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
           <div className="text-slate-400 text-6xl mb-4">📊</div>
           <h3 className="text-lg font-medium text-slate-900 mb-2">Belum ada data statistik</h3>
           <p className="text-slate-500">Selesaikan tryout untuk melihat statistik performa Anda</p>
@@ -229,12 +229,10 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
     : 'Belum ada data peringkat';
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20">
+    <div className="pb-10">
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-        {/* ── HERO BANNER ──────────────────────────────────────────────── */}
-        <div className="bg-slate-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      {/* ── HERO BANNER ──────────────────────────────────────────────── */}
+      <div className="bg-slate-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           {/* Decorative blobs */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
           <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
@@ -560,7 +558,6 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
           </div>
         </div>
 
-      </main>
     </div>
   );
 };
