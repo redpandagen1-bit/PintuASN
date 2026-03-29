@@ -43,7 +43,7 @@ export function Navbar() {
 
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center group flex-shrink-0">
-            <Image src="/images/Logo-navbar.svg" alt="PintuASN" width={100} height={32}
+            <Image src="/images/logo-navbar.svg" alt="PintuASN" width={100} height={32}
               className="transition-transform duration-300 group-hover:scale-105" unoptimized priority />
           </Link>
 
