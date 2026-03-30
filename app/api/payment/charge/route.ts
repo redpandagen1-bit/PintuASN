@@ -1,84 +1,47 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
-// Harga paket (dalam Rupiah)
 const PACKAGE_PRICES: Record<string, { name: string; price: number }> = {
-  premium: { name: 'PintuASN Premium - Hingga November 2026', price: 149000 },
+  premium:  { name: 'PintuASN Premium - Hingga November 2026',  price: 149000 },
   platinum: { name: 'PintuASN Platinum - Hingga November 2026', price: 249000 },
 };
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { package_id } = await req.json();
-
     const pkg = PACKAGE_PRICES[package_id];
-    if (!pkg) {
-      return NextResponse.json({ error: 'Paket tidak ditemukan' }, { status: 400 });
-    }
+    if (!pkg) return NextResponse.json({ error: 'Paket tidak ditemukan' }, { status: 400 });
 
-    const orderId = `PINTUASN-${userId.slice(-6)}-${Date.now()}`;
+    const orderId = `PINTUASN-${userId.slice(-6).toUpperCase()}-${Date.now()}`;
+    const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 jam
 
-    const midtransPayload = {
-      transaction_details: {
-        order_id: orderId,
-        gross_amount: pkg.price,
-      },
-      item_details: [
-        {
-          id: package_id,
-          price: pkg.price,
-          quantity: 1,
-          name: pkg.name,
-        },
-      ],
-      customer_details: {
-        user_id: userId,
-      },
-      enabled_payments: [
-        'credit_card',
-        'bca_va',
-        'bni_va',
-        'bri_va',
-        'mandiri_va',
-        'gopay',
-        'shopeepay',
-        'qris',
-      ],
-      expiry: {
-        duration: 24,
-        unit: 'hours',
-      },
-    };
-
-    const serverKey = process.env.MIDTRANS_SERVER_KEY!;
-    const encodedKey = Buffer.from(`${serverKey}:`).toString('base64');
-
-    const response = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${encodedKey}`,
-      },
-      body: JSON.stringify(midtransPayload),
+    // Simpan order ke Supabase
+    const supabase = await createClient();
+    const { error: dbError } = await supabase.from('payment_orders').insert({
+      order_id: orderId,
+      user_id: userId,
+      package_id,
+      package_name: pkg.name,
+      base_price: pkg.price,
+      admin_fee: 0,
+      total: pkg.price,
+      status: 'pending',
+      expired_at: expiredAt,
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Midtrans error:', data);
-      return NextResponse.json({ error: 'Gagal membuat transaksi' }, { status: 500 });
+    if (dbError) {
+      console.error('DB error:', dbError);
+      return NextResponse.json({ error: 'Gagal menyimpan order' }, { status: 500 });
     }
 
-    return NextResponse.json({ snap_token: data.token, redirect_url: data.redirect_url });
+    return NextResponse.json({ orderId, redirectUrl: `/pembayaran/${orderId}` });
 
   } catch (error) {
-    console.error('Payment charge error:', error);
+    console.error('Charge error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
