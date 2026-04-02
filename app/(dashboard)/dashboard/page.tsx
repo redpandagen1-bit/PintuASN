@@ -1,15 +1,25 @@
-import { Suspense } from 'react';
-import { currentUser } from '@clerk/nextjs/server';
-import { getActivePackages, getUserAttempts } from '@/lib/supabase/queries';
+// ============================================================
+// app/(dashboard)/dashboard/page.tsx
+// ============================================================
+
+import { Suspense }      from 'react';
+import { currentUser }  from '@clerk/nextjs/server';
+import {
+  getActivePackages,
+  getUserAttempts,
+  getUserTier,
+} from '@/lib/supabase/queries';
 import { createAdminClient } from '@/lib/supabase/server';
 import { BannerSlider, StatCard, MateriTabs } from '@/components/dashboard/user';
-import { FeatureGrid } from '@/components/layout/FeatureGrid';
-import TryoutSection from '@/components/dashboard/user/TryoutSection';
-import { Button } from '@/components/ui/button';
+import { FeatureGrid }   from '@/components/layout/FeatureGrid';
+import TryoutSection     from '@/components/dashboard/user/TryoutSection';
+import { Button }        from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
-import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import Link              from 'next/link';
+import { ChevronRight }  from 'lucide-react';
+import { Skeleton }      from '@/components/ui/skeleton';
+
+// ─────────────────────────────────────────────────────────────
 
 async function DashboardContent() {
   const user = await currentUser();
@@ -17,21 +27,41 @@ async function DashboardContent() {
 
   const userId = user.id;
 
-  const [packages, attempts] = await Promise.all([
+  // OPTIMASI: semua fetch paralel sekaligus
+  const [packages, attempts, userTier] = await Promise.all([
     getActivePackages(),
     getUserAttempts(userId),
+    getUserTier(userId),
   ]);
 
-  const supabase = await createAdminClient();
+  const supabase    = await createAdminClient();
+  const packageIds  = packages.map(pkg => pkg.id);
 
-  // Hitung unique users per package
-  const packageIds = packages.map(pkg => pkg.id);
-  const { data: completedCounts } = await supabase
-    .from('attempts')
-    .select('package_id, user_id')
-    .in('package_id', packageIds)
-    .eq('status', 'completed');
+  // Hitung unique users per package + fetch materi + ranking — paralel
+  const [
+    { data: completedCounts },
+    { data: rankingData },
+    { data: materials },
+  ] = await Promise.all([
+    supabase
+      .from('attempts')
+      .select('package_id, user_id')
+      .in('package_id', packageIds)
+      .eq('status', 'completed'),
 
+    supabase.rpc('get_user_national_rank', { p_user_id: userId }),
+
+    // 3 materi terbaru per kategori difilter di client — fetch semua dulu
+    supabase
+      .from('materials')
+      .select('id, title, category, type, tier, duration_minutes, is_new, content_url')
+      .eq('is_active', true)
+      .eq('is_deleted', false)
+      .order('order_index', { ascending: true })
+      .order('created_at',  { ascending: false }),
+  ]);
+
+  // Hitung completed users per package
   const userCountsByPackage = new Map<string, number>();
   if (completedCounts) {
     const packageUserSets = new Map<string, Set<string>>();
@@ -39,20 +69,16 @@ async function DashboardContent() {
       if (!packageUserSets.has(package_id)) packageUserSets.set(package_id, new Set());
       packageUserSets.get(package_id)!.add(user_id);
     });
-    packageUserSets.forEach((userSet, package_id) => {
-      userCountsByPackage.set(package_id, userSet.size);
-    });
+    packageUserSets.forEach((set, id) => userCountsByPackage.set(id, set.size));
   }
 
   const packagesWithUserCount = packages.map(pkg => ({
     ...pkg,
-    completedUsersCount: userCountsByPackage.get(pkg.id) || 0,
+    completedUsersCount: userCountsByPackage.get(pkg.id) ?? 0,
   }));
 
   // Ranking
-  const { data: rankingData } = await supabase
-    .rpc('get_user_national_rank', { p_user_id: userId });
-  const rankingDisplay = rankingData && rankingData.length > 0
+  const rankingDisplay = rankingData?.length
     ? `#${rankingData[0].user_rank.toLocaleString('id-ID')}`
     : '-';
 
@@ -61,23 +87,14 @@ async function DashboardContent() {
   const scores = completedAttempts
     .filter(a => a.final_score !== null)
     .map(a => a.final_score!);
-  const averageScore = scores.length > 0
-    ? Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length)
+  const averageScore = scores.length
+    ? Math.round(scores.reduce((s, v) => s + v, 0) / scores.length)
     : 0;
-  const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
+  const bestScore = scores.length ? Math.max(...scores) : 0;
 
   const packageIdsWithAttempts = attempts
     .filter(a => a.status === 'in_progress')
     .map(a => a.package_id);
-
-  // ── Fetch materi untuk MateriTabs ──────────────────────────────────────
-  const { data: materials } = await supabase
-    .from('materials')
-    .select('id, title, category, type, tier, duration_minutes, is_new')
-    .eq('is_active', true)
-    .eq('is_deleted', false)
-    .order('order_index', { ascending: true })
-    .order('created_at', { ascending: false });
 
   return (
     <div className="space-y-5 pb-10">
@@ -98,32 +115,38 @@ async function DashboardContent() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Tryout Selesai"      value={completedAttempts.length} iconName="CheckCircle" iconColor="text-emerald-400" iconBg="bg-emerald-900/50" />
-          <StatCard label="Rata-rata Skor"      value={averageScore}             iconName="BarChart2"   iconColor="text-blue-400"    iconBg="bg-blue-900/50"    />
-          <StatCard label="Peringkat Nasional"  value={rankingDisplay}           iconName="Award"       iconColor="text-amber-400"   iconBg="bg-amber-900/50"   />
-          <StatCard label="Skor Terbaik"        value={bestScore}                iconName="TrendingUp"  iconColor="text-purple-400"  iconBg="bg-purple-900/50"  />
+          <StatCard label="Tryout Selesai"     value={completedAttempts.length} iconName="CheckCircle" iconColor="text-emerald-400" iconBg="bg-emerald-900/50" />
+          <StatCard label="Rata-rata Skor"     value={averageScore}             iconName="BarChart2"   iconColor="text-blue-400"    iconBg="bg-blue-900/50"    />
+          <StatCard label="Peringkat Nasional" value={rankingDisplay}           iconName="Award"       iconColor="text-amber-400"   iconBg="bg-amber-900/50"   />
+          <StatCard label="Skor Terbaik"       value={bestScore}                iconName="TrendingUp"  iconColor="text-purple-400"  iconBg="bg-purple-900/50"  />
         </div>
       </section>
 
-      {/* Daftar Tryout */}
+      {/* Daftar Tryout — 6 terbaru, dengan cek tier */}
       <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-4">
         <TryoutSection
           packages={packagesWithUserCount}
           packageIdsWithAttempts={packageIdsWithAttempts}
+          userTier={userTier}
         />
       </section>
 
-      {/* Materi — sekarang dengan data real dari database */}
+      {/* Materi — 3 terbaru per tab, dengan cek tier */}
       <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-5">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Materi</h2>
           <p className="text-slate-500 text-xs mt-0.5">Pelajari materi persiapan CPNS 2026.</p>
         </div>
-        <MateriTabs materials={materials || []} />
+        <MateriTabs
+          materials={materials ?? []}
+          userTier={userTier}
+        />
       </section>
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   return (
@@ -137,7 +160,7 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <Card key={i}>
             <CardContent className="p-5">
               <div className="space-y-2">
@@ -151,7 +174,7 @@ function DashboardSkeleton() {
       <div className="space-y-4">
         <Skeleton className="h-7 w-40" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map(i => (
             <Card key={i}>
               <CardHeader><Skeleton className="h-5 w-full" /></CardHeader>
               <CardContent><Skeleton className="h-4 w-24" /></CardContent>
