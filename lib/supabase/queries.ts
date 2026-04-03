@@ -86,7 +86,7 @@ export async function getPackageQuestions(packageId: string) {
       position,
       questions!inner (
         id, category, content, image_url, explanation, topic, difficulty,
-        choices ( id, label, content, is_answer, score )
+        choices ( id, label, content, image_url, is_answer, score )
       )
     `)
     .eq('package_id', packageId)
@@ -143,7 +143,7 @@ export async function getAttemptById(attemptId: string) {
 
   const { data: packageQuestions, error: questionsError } = await supabase
     .from('package_questions')
-    .select('position, questions ( *, choices ( id, label, content, is_answer, score ) )')
+    .select('position, questions ( *, choices ( id, label, content, image_url, is_answer, score ) )')
     .eq('package_id', attempt.package_id)
     .order('position');
 
@@ -276,7 +276,7 @@ export async function getReviewData(attemptId: string) {
         position,
         questions!inner (
           id, category, content, image_url, explanation, topic, difficulty,
-          choices ( id, label, content, is_answer, score )
+          choices ( id, label, content, image_url, is_answer, score )
         )
       `)
       .eq('package_id', attempt.package_id)
@@ -288,8 +288,8 @@ export async function getReviewData(attemptId: string) {
   if (answersError)   throw new Error(`Failed to fetch answers: ${answersError.message}`);
 
   const questions = (packageQuestions ?? []).map((pq: any, index: number) => {
-    const question    = pq.questions;
-    const userAnswer  = (userAnswers ?? []).find((a: any) => a.question_id === question.id);
+    const question      = pq.questions;
+    const userAnswer    = (userAnswers ?? []).find((a: any) => a.question_id === question.id);
     const correctChoice = question.choices.find((c: any) => c.is_answer);
     const userChoice    = question.choices.find((c: any) => c.id === userAnswer?.choice_id);
     const isCorrect     = question.category !== 'TKP'

@@ -215,12 +215,9 @@ export function ExamInterface({
       {/* ── TOP BAR ─────────────────────────────────────────────────── */}
       <header className="flex-shrink-0 bg-slate-800 border-b border-slate-700 z-10">
         <div className="flex items-center justify-between px-6 py-3.5">
-          {/* Title */}
           <h1 className="text-sm font-semibold text-slate-100 truncate max-w-xs">
             {packageTitle}
           </h1>
-
-          {/* Timer */}
           <div className={cn(
             'flex items-center gap-2 px-4 py-1.5 rounded-lg font-mono font-bold text-base',
             isTimeWarning
@@ -233,8 +230,6 @@ export function ExamInterface({
               <span className="text-xs font-semibold text-red-300 animate-pulse ml-1">Segera Habis!</span>
             )}
           </div>
-
-          {/* Saving indicator placeholder to keep layout balanced */}
           <div className="w-32 flex justify-end">
             {isSaving && (
               <div className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -267,10 +262,12 @@ export function ExamInterface({
               </span>
             </div>
 
-            {/* Question text — clean, no card */}
-            <p className="text-lg leading-8 text-slate-900 font-medium mb-8">
-              {currentQuestion?.content}
-            </p>
+            {/* Question text */}
+            {currentQuestion?.content && (
+              <p className="text-lg leading-8 text-slate-900 font-medium mb-8">
+                {currentQuestion.content}
+              </p>
+            )}
 
             {/* Question image */}
             {currentQuestion?.image_url && (
@@ -288,6 +285,11 @@ export function ExamInterface({
             <div className="space-y-3">
               {currentQuestion?.choices.map((choice, idx) => {
                 const isSelected = selectedAnswer === choice.id;
+                // @ts-ignore — image_url ada di data tapi mungkin belum di type
+                const choiceImageUrl = (choice as any).image_url as string | undefined;
+                const hasText = !!choice.content;
+                const hasImage = !!choiceImageUrl;
+
                 return (
                   <button
                     key={choice.id}
@@ -299,6 +301,7 @@ export function ExamInterface({
                         : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/40 shadow-sm'
                     )}
                   >
+                    {/* Label badge */}
                     <span className={cn(
                       'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all mt-0.5',
                       isSelected
@@ -307,12 +310,26 @@ export function ExamInterface({
                     )}>
                       {ANSWER_LABELS[idx]}
                     </span>
-                    <span className={cn(
-                      'text-base leading-relaxed transition-colors',
-                      isSelected ? 'text-blue-900 font-medium' : 'text-slate-700'
-                    )}>
-                      {choice.content}
-                    </span>
+
+                    {/* Choice content: image dan/atau text */}
+                    <div className="flex flex-col gap-2 flex-1">
+                      {hasImage && (
+                        <img
+                          src={choiceImageUrl}
+                          alt={`Pilihan ${ANSWER_LABELS[idx]}`}
+                          className="max-w-full h-auto rounded-lg border border-slate-200"
+                          style={{ maxHeight: '160px', objectFit: 'contain' }}
+                        />
+                      )}
+                      {hasText && (
+                        <span className={cn(
+                          'text-base leading-relaxed transition-colors',
+                          isSelected ? 'text-blue-900 font-medium' : 'text-slate-700'
+                        )}>
+                          {choice.content}
+                        </span>
+                      )}
+                    </div>
                   </button>
                 );
               })}
@@ -360,7 +377,6 @@ export function ExamInterface({
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Aksi
               </p>
-              {/* Icon buttons row: prev, next, flag, cancel */}
               <div className="grid grid-cols-4 gap-1.5 mb-2">
                 <button
                   onClick={prevQuestion}
@@ -375,7 +391,6 @@ export function ExamInterface({
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-
                 <button
                   onClick={nextQuestion}
                   disabled={currentIndex === questions.length - 1}
@@ -389,7 +404,6 @@ export function ExamInterface({
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
-
                 <button
                   onClick={() => toggleFlag(currentQuestion?.id)}
                   title={isFlagged ? 'Hapus Tandai (F)' : 'Tandai Soal (F)'}
@@ -402,7 +416,6 @@ export function ExamInterface({
                 >
                   {isFlagged ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
                 </button>
-
                 <button
                   onClick={handleCancel}
                   title="Batal Ujian"
@@ -411,8 +424,6 @@ export function ExamInterface({
                   <X className="w-4 h-4" />
                 </button>
               </div>
-
-              {/* Submit — full width text-only button */}
               <button
                 onClick={() => setShowSubmitDialog(true)}
                 disabled={isSubmitting}
@@ -424,7 +435,6 @@ export function ExamInterface({
 
             <div className="border-t border-slate-100" />
 
-            {/* Keterangan — popup button */}
             <button
               onClick={() => setShowLegendDialog(true)}
               className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
@@ -472,7 +482,6 @@ export function ExamInterface({
 
           </div>
 
-          {/* Keyboard help */}
           <div className="flex-shrink-0 border-t border-slate-100 px-4 py-3">
             <button
               onClick={() => setShowKeyboardHelp(true)}
@@ -483,10 +492,9 @@ export function ExamInterface({
             </button>
           </div>
         </aside>
-
       </div>
 
-      {/* ── LEGEND DIALOG ───────────────────────────────────────────── */}
+      {/* ── LEGEND DIALOG ── */}
       <Dialog open={showLegendDialog} onOpenChange={setShowLegendDialog}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
@@ -512,63 +520,38 @@ export function ExamInterface({
         </DialogContent>
       </Dialog>
 
-      {/* ── SUBMIT DIALOG ───────────────────────────────────────────── */}
+      {/* ── SUBMIT DIALOG ── */}
       <Dialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Selesaikan Ujian?</DialogTitle>
-            <DialogDescription>
-              Pastikan Anda telah menjawab semua soal sebelum mengirim.
-            </DialogDescription>
+            <DialogDescription>Pastikan Anda telah menjawab semua soal sebelum mengirim.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-slate-500">Total Soal</span>
-                <p className="font-semibold text-slate-900">{questions.length}</p>
-              </div>
-              <div>
-                <span className="text-slate-500">Terjawab</span>
-                <p className="font-semibold text-slate-900">{answers.size}</p>
-              </div>
-              <div>
-                <span className="text-slate-500">Belum Dijawab</span>
-                <p className="font-semibold text-red-500">{questions.length - answers.size}</p>
-              </div>
-              <div>
-                <span className="text-slate-500">Ditandai</span>
-                <p className="font-semibold text-yellow-600">{flaggedQuestions.size}</p>
-              </div>
+              <div><span className="text-slate-500">Total Soal</span><p className="font-semibold text-slate-900">{questions.length}</p></div>
+              <div><span className="text-slate-500">Terjawab</span><p className="font-semibold text-slate-900">{answers.size}</p></div>
+              <div><span className="text-slate-500">Belum Dijawab</span><p className="font-semibold text-red-500">{questions.length - answers.size}</p></div>
+              <div><span className="text-slate-500">Ditandai</span><p className="font-semibold text-yellow-600">{flaggedQuestions.size}</p></div>
             </div>
             {answers.size < questions.length && (
-              <Alert>
-                <AlertDescription>
-                  Masih ada {questions.length - answers.size} soal yang belum dijawab.
-                </AlertDescription>
-              </Alert>
+              <Alert><AlertDescription>Masih ada {questions.length - answers.size} soal yang belum dijawab.</AlertDescription></Alert>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSubmitDialog(false)} disabled={isSubmitting}>
-              Batal
-            </Button>
+            <Button variant="outline" onClick={() => setShowSubmitDialog(false)} disabled={isSubmitting}>Batal</Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Mengirim...</>
-              ) : 'Submit Ujian'}
+              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Mengirim...</> : 'Submit Ujian'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ── KEYBOARD HELP DIALOG ────────────────────────────────────── */}
+      {/* ── KEYBOARD HELP DIALOG ── */}
       <Dialog open={showKeyboardHelp} onOpenChange={setShowKeyboardHelp}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <HelpCircle className="h-4 w-4" />
-              Pintasan Keyboard
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><HelpCircle className="h-4 w-4" />Pintasan Keyboard</DialogTitle>
             <DialogDescription>Navigasi cepat tanpa mouse</DialogDescription>
           </DialogHeader>
           <div className="space-y-2.5">
@@ -580,9 +563,7 @@ export function ExamInterface({
               { key: '?', desc: 'Tampilkan bantuan ini' },
             ].map(({ key, desc }) => (
               <div key={key} className="flex items-center gap-3 text-sm">
-                <kbd className="px-2.5 py-1 font-mono text-xs bg-slate-100 border border-slate-300 rounded-md min-w-[44px] text-center">
-                  {key}
-                </kbd>
+                <kbd className="px-2.5 py-1 font-mono text-xs bg-slate-100 border border-slate-300 rounded-md min-w-[44px] text-center">{key}</kbd>
                 <span className="text-slate-600">{desc}</span>
               </div>
             ))}
