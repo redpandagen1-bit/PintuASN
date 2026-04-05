@@ -65,10 +65,17 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
     }
     setIsLoading(true);
     try {
+      const genderMap: Record<string, string> = { Pria: 'male', Wanita: 'female' };
+      const payload = {
+        ...form,
+        gender: genderMap[form.gender] ?? form.gender ?? null,
+        onboarding_completed: true,
+      };
+
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, onboarding_completed: true }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const { error } = await res.json();

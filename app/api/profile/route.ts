@@ -64,8 +64,8 @@ export async function PATCH(req: NextRequest) {
       updates.full_name = (updates.full_name as string).trim();
     }
 
-    // Validasi gender
-    if (updates.gender && !['Pria', 'Wanita'].includes(updates.gender as string)) {
+    // Validasi gender — terima nilai DB (male/female/other)
+    if (updates.gender && !['male', 'female', 'other'].includes(updates.gender as string)) {
       return NextResponse.json({ error: 'Gender tidak valid' }, { status: 400 });
     }
 
