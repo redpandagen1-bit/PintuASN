@@ -3,6 +3,16 @@ import { requireAdmin } from '@/lib/auth/check-admin';
 import { createClient } from '@/lib/supabase/server';
 import Papa from 'papaparse';
 
+const VALID_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+const VALID_CATEGORIES = ['TWK', 'TIU', 'TKP'] as const;
+const VALID_ANSWERS = ['A', 'B', 'C', 'D', 'E'] as const;
+
+function getExpectedCategory(position: number): 'TWK' | 'TIU' | 'TKP' {
+  if (position <= 30) return 'TWK';
+  if (position <= 65) return 'TIU';
+  return 'TKP';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAdmin();
@@ -28,17 +38,62 @@ export async function POST(request: NextRequest) {
       });
     });
 
+    // Ambil posisi yang sudah terisi di package ini
+    const supabase = await createClient();
+    const { data: existingPositions } = await supabase
+      .from('package_questions')
+      .select('position')
+      .eq('package_id', packageId);
+
+    const occupiedPositions = new Set(
+      (existingPositions ?? []).map((p: any) => p.position)
+    );
+
     const validRows: any[] = [];
     const invalidRows: any[] = [];
+    const skippedRows: any[] = [];
 
-    // Validate each row
     parseResult.data.forEach((row: any, index: number) => {
+      const rowNumber = index + 2; // +2: index 0-based + 1 baris header
       const errors: string[] = [];
 
-      // Check required fields
-      if (!row.category || !['TWK', 'TIU', 'TKP'].includes(row.category)) {
-        errors.push('Category harus TWK, TIU, atau TKP');
+      // ── Validasi kolom position ──────────────────────────────────────
+      const position = Number(row.position);
+      if (!row.position || isNaN(position) || position < 1 || position > 110) {
+        errors.push('position wajib diisi dan harus angka 1–110');
+        invalidRows.push({ row: rowNumber, position: row.position, data: row, errors });
+        return;
       }
+
+      // ── Cek apakah posisi sudah terisi ──────────────────────────────
+      if (occupiedPositions.has(position)) {
+        skippedRows.push({ row: rowNumber, position, reason: 'Posisi sudah terisi' });
+        return;
+      }
+
+      // ── Validasi category ────────────────────────────────────────────
+      if (!row.category || !VALID_CATEGORIES.includes(row.category)) {
+        errors.push('category harus TWK, TIU, atau TKP');
+      } else {
+        const expectedCategory = getExpectedCategory(position);
+        if (row.category !== expectedCategory) {
+          errors.push(
+            `Posisi ${position} harus category ${expectedCategory}, bukan ${row.category}`
+          );
+        }
+      }
+
+      // ── Validasi difficulty ──────────────────────────────────────────
+      if (!row.difficulty) {
+        // akan di-default ke 'medium' saat insert, tidak perlu error
+      } else if (!VALID_DIFFICULTIES.includes(row.difficulty)) {
+        errors.push(
+          `difficulty harus easy, medium, atau hard — nilai saat ini: "${String(row.difficulty).substring(0, 50)}". ` +
+          `Kemungkinan ada newline/karakter tersembunyi di kolom explanation atau topic pada baris ini.`
+        );
+      }
+
+      // ── Validasi konten soal ─────────────────────────────────────────
       if (!row.question_text) errors.push('question_text wajib diisi');
       if (!row.option_a) errors.push('option_a wajib diisi');
       if (!row.option_b) errors.push('option_b wajib diisi');
@@ -46,53 +101,50 @@ export async function POST(request: NextRequest) {
       if (!row.option_d) errors.push('option_d wajib diisi');
       if (!row.option_e) errors.push('option_e wajib diisi');
 
-      // Validate TWK/TIU
+      // ── Validasi TWK/TIU ─────────────────────────────────────────────
       if (row.category !== 'TKP') {
-        if (!row.correct_answer || !['A', 'B', 'C', 'D', 'E'].includes(row.correct_answer)) {
+        if (
+          !row.correct_answer ||
+          !VALID_ANSWERS.includes(row.correct_answer)
+        ) {
           errors.push('correct_answer harus A, B, C, D, atau E');
         }
       }
 
-      // Validate TKP
+      // ── Validasi TKP ─────────────────────────────────────────────────
       if (row.category === 'TKP') {
-        if (!row.tkp_score_a || row.tkp_score_a < 1 || row.tkp_score_a > 5) {
-          errors.push('tkp_score_a harus 1-5');
-        }
-        if (!row.tkp_score_b || row.tkp_score_b < 1 || row.tkp_score_b > 5) {
-          errors.push('tkp_score_b harus 1-5');
-        }
-        if (!row.tkp_score_c || row.tkp_score_c < 1 || row.tkp_score_c > 5) {
-          errors.push('tkp_score_c harus 1-5');
-        }
-        if (!row.tkp_score_d || row.tkp_score_d < 1 || row.tkp_score_d > 5) {
-          errors.push('tkp_score_d harus 1-5');
-        }
-        if (!row.tkp_score_e || row.tkp_score_e < 1 || row.tkp_score_e > 5) {
-          errors.push('tkp_score_e harus 1-5');
+        const scores: number[] = [];
+
+        ['a', 'b', 'c', 'd', 'e'].forEach((letter) => {
+          const raw = row[`tkp_score_${letter}`];
+          const score = Number(raw);
+
+          if (raw === null || raw === undefined || raw === '' || isNaN(score)) {
+            errors.push(`tkp_score_${letter} wajib diisi dengan angka`);
+          } else if (score < 1 || score > 5) {
+            errors.push(`tkp_score_${letter} harus 1–5, saat ini: ${score}`);
+          } else {
+            scores.push(score);
+          }
+        });
+
+        // Semua skor TKP harus unik
+        if (errors.length === 0 && new Set(scores).size !== 5) {
+          errors.push(
+            `Semua tkp_score harus berbeda (tidak boleh sama) — saat ini: [${scores.join(', ')}]`
+          );
         }
       }
 
       if (errors.length > 0) {
-        invalidRows.push({ row: index + 2, data: row, errors });
+        invalidRows.push({ row: rowNumber, position: row.position, data: row, errors });
       } else {
-        validRows.push(row);
+        validRows.push({ ...row, position });
       }
     });
 
-    // If all valid, insert to database
+    // ── Insert ke database jika semua valid ──────────────────────────────
     if (invalidRows.length === 0 && validRows.length > 0) {
-      const supabase = await createClient();
-
-      // Get current max position
-      const { data: maxPos } = await supabase
-        .from('package_questions')
-        .select('position')
-        .eq('package_id', packageId)
-        .order('position', { ascending: false })
-        .limit(1);
-
-      let currentPosition = maxPos && maxPos.length > 0 ? maxPos[0].position : 0;
-
       for (const row of validRows) {
         // Insert question
         const { data: question, error: qError } = await supabase
@@ -103,7 +155,7 @@ export async function POST(request: NextRequest) {
             image_url: row.image_url || null,
             explanation: row.explanation || null,
             topic: row.topic || null,
-            difficulty: row.difficulty || 'medium',
+            difficulty: VALID_DIFFICULTIES.includes(row.difficulty) ? row.difficulty : 'medium',
             is_published: true,
             status: 'published',
             created_by: userId,
@@ -116,53 +168,20 @@ export async function POST(request: NextRequest) {
         // Insert choices
         const isTKP = row.category === 'TKP';
         const choices = [
-          {
-            question_id: question.id,
-            label: 'A',
-            content: row.option_a,
-            is_answer: !isTKP && row.correct_answer === 'A',
-            score: isTKP ? row.tkp_score_a : null,
-          },
-          {
-            question_id: question.id,
-            label: 'B',
-            content: row.option_b,
-            is_answer: !isTKP && row.correct_answer === 'B',
-            score: isTKP ? row.tkp_score_b : null,
-          },
-          {
-            question_id: question.id,
-            label: 'C',
-            content: row.option_c,
-            is_answer: !isTKP && row.correct_answer === 'C',
-            score: isTKP ? row.tkp_score_c : null,
-          },
-          {
-            question_id: question.id,
-            label: 'D',
-            content: row.option_d,
-            is_answer: !isTKP && row.correct_answer === 'D',
-            score: isTKP ? row.tkp_score_d : null,
-          },
-          {
-            question_id: question.id,
-            label: 'E',
-            content: row.option_e,
-            is_answer: !isTKP && row.correct_answer === 'E',
-            score: isTKP ? row.tkp_score_e : null,
-          },
-        ];
+          { label: 'A', content: row.option_a, score: isTKP ? row.tkp_score_a : null, is_answer: !isTKP && row.correct_answer === 'A' },
+          { label: 'B', content: row.option_b, score: isTKP ? row.tkp_score_b : null, is_answer: !isTKP && row.correct_answer === 'B' },
+          { label: 'C', content: row.option_c, score: isTKP ? row.tkp_score_c : null, is_answer: !isTKP && row.correct_answer === 'C' },
+          { label: 'D', content: row.option_d, score: isTKP ? row.tkp_score_d : null, is_answer: !isTKP && row.correct_answer === 'D' },
+          { label: 'E', content: row.option_e, score: isTKP ? row.tkp_score_e : null, is_answer: !isTKP && row.correct_answer === 'E' },
+        ].map((c) => ({ ...c, question_id: question.id }));
 
         const { error: cError } = await supabase.from('choices').insert(choices);
         if (cError) throw cError;
 
-        // Add to package
-        currentPosition++;
-        const { error: pqError } = await supabase.from('package_questions').insert({
-          package_id: packageId,
-          question_id: question.id,
-          position: currentPosition,
-        });
+        // Insert ke package_questions di posisi yang diminta
+        const { error: pqError } = await supabase
+          .from('package_questions')
+          .insert({ package_id: packageId, question_id: question.id, position: row.position });
 
         if (pqError) throw pqError;
       }
@@ -171,7 +190,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       validRows: validRows.length,
       invalidRows,
+      skippedRows,
       totalRows: parseResult.data.length,
+      inserted: invalidRows.length === 0 ? validRows.length : 0,
     });
   } catch (error: any) {
     console.error('CSV upload error:', error);
