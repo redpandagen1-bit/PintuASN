@@ -49,10 +49,8 @@ export async function POST(req: Request) {
       .single();
 
     if (existing) {
-      return NextResponse.json(
-        { error: 'You already have an active attempt for this package' },
-        { status: 400 }
-      );
+      // Delete existing attempt so user always starts fresh (no resume)
+      await supabase.from('attempts').delete().eq('id', existing.id);
     }
 
     // Create new attempt
