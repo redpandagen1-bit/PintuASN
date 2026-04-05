@@ -68,7 +68,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, onboarding_completed: true }),
       });
       if (!res.ok) {
         const { error } = await res.json();

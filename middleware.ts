@@ -48,7 +48,7 @@ export default clerkMiddleware(async (auth, req) => {
       const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/profiles?user_id=eq.${userId}&select=full_name`,
+        `${supabaseUrl}/rest/v1/profiles?user_id=eq.${userId}&select=onboarding_completed`,
         {
           headers: {
             apikey: serviceKey,
@@ -59,9 +59,9 @@ export default clerkMiddleware(async (auth, req) => {
       );
 
       if (res.ok) {
-        const rows: { full_name: string | null }[] = await res.json();
-        const fullName = rows?.[0]?.full_name;
-        if (!fullName || fullName.trim() === '') {
+        const rows: { onboarding_completed: boolean }[] = await res.json();
+        const done = rows?.[0]?.onboarding_completed;
+        if (!done) {
           return NextResponse.redirect(new URL('/onboarding', req.url));
         }
       }

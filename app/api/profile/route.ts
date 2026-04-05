@@ -39,6 +39,7 @@ export async function PATCH(req: NextRequest) {
       'district',
       'postal_code',
       'target_institution',
+      'onboarding_completed',
     ];
 
     const updates: Record<string, unknown> = {};

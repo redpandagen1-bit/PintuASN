@@ -12,14 +12,14 @@ export default async function OnboardingPage() {
   const email = user.emailAddresses?.[0]?.emailAddress || '';
   const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
 
-  // If profile already has full_name, skip onboarding
+  // If user already completed onboarding, skip to dashboard
   const { data: existing } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('onboarding_completed')
     .eq('user_id', user.id)
     .single();
 
-  if (existing?.full_name?.trim()) redirect('/dashboard');
+  if (existing?.onboarding_completed === true) redirect('/dashboard');
 
   // Upsert profile so the row always exists before the form tries to PATCH
   await supabase.from('profiles').upsert(
