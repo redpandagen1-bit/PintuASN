@@ -12,7 +12,8 @@ export default function SignUpPage() {
         </p>
       </div>
       
-      <SignUp 
+      <SignUp
+        forceRedirectUrl="/onboarding"
         appearance={{
           elements: {
             rootBox: 'w-full',
