@@ -41,8 +41,20 @@ export default function SignInPage() {
           footerActionLink__signUp: 'Daftar',
           socialButtonsBlockButton__google: 'Lanjutkan dengan Google',
           socialButtonsBlockButton__github: 'Lanjutkan dengan GitHub',
+          unstable__errors: {
+            externalAccountNotFound: 'Akun Google ini belum terdaftar. Silakan daftar terlebih dahulu.',
+            identifierNotFound: 'Email ini belum terdaftar. Silakan daftar terlebih dahulu.',
+            couldNotLocateUser: 'Akun tidak ditemukan. Periksa kembali email Anda.',
+          },
         }}
       />
+
+      <p className="text-center text-sm text-slate-500">
+        Belum punya akun?{' '}
+        <a href="/sign-up" className="text-blue-600 hover:text-blue-500 font-medium">
+          Daftar sekarang
+        </a>
+      </p>
     </div>
   );
 }
