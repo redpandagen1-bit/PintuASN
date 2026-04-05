@@ -12,7 +12,10 @@ export default function SignInPage() {
         </p>
       </div>
       
-      <SignIn 
+      <SignIn
+        routing="hash"
+        signUpUrl="/sign-up"
+        transferable={false}
         appearance={{
           elements: {
             rootBox: 'w-full',
