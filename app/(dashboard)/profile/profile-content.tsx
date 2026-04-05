@@ -79,10 +79,13 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
   const [isLoading, setIsLoading] = useState(false);
 
   // Form state
+  const dbToUiGender: Record<string, string> = { male: 'Pria', female: 'Wanita' };
+  const uiToDbGender: Record<string, string> = { Pria: 'male', Wanita: 'female' };
+
   const [form, setForm] = useState({
     full_name: profile.full_name || '',
     phone: profile.phone || '',
-    gender: profile.gender || '',
+    gender: dbToUiGender[profile.gender || ''] || '',
     birth_date: profile.birth_date || '',
     address: profile.address || '',
     province: profile.province || '',
@@ -104,10 +107,14 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
     }
     setIsLoading(true);
     try {
+      const payload = {
+        ...form,
+        gender: uiToDbGender[form.gender] ?? form.gender ?? null,
+      };
       const res = await fetch('/api/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Gagal menyimpan');
       const { profile: updated } = await res.json();
