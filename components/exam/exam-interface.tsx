@@ -21,12 +21,11 @@ import {
   Bookmark,
   BookmarkCheck,
   X,
-  Loader2,
+  Loader2, // used in submit dialog
   Info,
 } from 'lucide-react';
 import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
-import { useAutoSave } from '@/hooks/use-auto-save';
 import { cn } from '@/lib/utils';
 import type { QuestionWithChoices } from '@/types/exam';
 
@@ -59,12 +58,12 @@ export function ExamInterface({
   } = useExamState(questions, initialAnswers);
 
   const { timeLeft, isExpired } = useExamTimer(timeRemaining);
-  const { isSaving } = useAutoSave(attemptId, answers);
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showLegendDialog, setShowLegendDialog] = useState(false);
+  const [textSize, setTextSize] = useState<'sm' | 'md' | 'lg'>('md');
 
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
@@ -105,36 +104,20 @@ export function ExamInterface({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, questions, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
 
-  // Auto-save timer every 10s
+  // Abandon on unload (no resume allowed)
   useEffect(() => {
-    if (timeLeft <= 0) return;
-    const saveInterval = setInterval(async () => {
-      try {
-        await fetch('/api/exam/save-progress', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
-        });
-      } catch (error) {
-        console.error('Failed to auto-save timer:', error);
-      }
-    }, 10000);
-    return () => clearInterval(saveInterval);
-  }, [timeLeft, attemptId]);
-
-  // Save on unload
-  useEffect(() => {
-    const handleBeforeUnload = async () => {
-      await fetch('/api/exam/save-progress', {
+    const handleBeforeUnload = () => {
+      if (hasSubmittedRef.current) return;
+      fetch('/api/exam/abandon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
+        body: JSON.stringify({ attemptId }),
         keepalive: true,
       });
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [attemptId, timeLeft]);
+  }, [attemptId]);
 
   function formatTime(seconds: number): string {
     const h = Math.floor(seconds / 3600);
@@ -144,21 +127,23 @@ export function ExamInterface({
   }
 
   const handleCancel = async () => {
-    if (!confirm('Apakah Anda yakin ingin membatalkan ujian? Progres akan tersimpan.')) return;
+    if (!confirm('Apakah Anda yakin ingin membatalkan ujian? Sesi ini tidak dapat dilanjutkan dan tidak akan muncul di riwayat.')) return;
     try {
-      await fetch('/api/exam/save-progress', {
+      hasSubmittedRef.current = true; // prevent beforeunload from firing abandon again
+      await fetch('/api/exam/abandon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
+        body: JSON.stringify({ attemptId }),
       });
       router.push('/dashboard');
     } catch (error) {
       console.error('Cancel error:', error);
-      toast.error('Gagal menyimpan progress');
+      router.push('/dashboard');
     }
   };
 
   const handleSubmit = async () => {
+    hasSubmittedRef.current = true; // prevent abandon on unload after submit
     const toastId = toast.loading('Mengirim ujian...');
     setIsSubmitting(true);
     try {
@@ -210,7 +195,7 @@ export function ExamInterface({
   }[currentQuestion?.category] || 'bg-slate-100 text-slate-700 border-slate-200';
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-white overflow-hidden">
 
       {/* ── TOP BAR ─────────────────────────────────────────────────── */}
       <header className="flex-shrink-0 bg-slate-800 border-b border-slate-700 z-10">
@@ -230,14 +215,7 @@ export function ExamInterface({
               <span className="text-xs font-semibold text-red-300 animate-pulse ml-1">Segera Habis!</span>
             )}
           </div>
-          <div className="w-32 flex justify-end">
-            {isSaving && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                <span>Menyimpan...</span>
-              </div>
-            )}
-          </div>
+          <div className="w-32" />
         </div>
       </header>
 
@@ -245,8 +223,8 @@ export function ExamInterface({
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── LEFT: QUESTION AREA ─────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto py-10 px-8">
+        <main className="flex-1 overflow-y-auto bg-white">
+          <div className="max-w-3xl mx-auto py-6 px-8">
 
             {/* Question meta */}
             <div className="flex items-center gap-3 mb-6">
@@ -264,7 +242,12 @@ export function ExamInterface({
 
             {/* Question text */}
             {currentQuestion?.content && (
-              <p className="text-lg leading-8 text-slate-900 font-medium mb-8">
+              <p className={cn(
+                'text-slate-900 font-medium mb-6',
+                textSize === 'sm' && 'text-sm leading-7',
+                textSize === 'md' && 'text-base leading-7',
+                textSize === 'lg' && 'text-lg leading-8',
+              )}>
                 {currentQuestion.content}
               </p>
             )}
@@ -281,8 +264,8 @@ export function ExamInterface({
               </div>
             )}
 
-            {/* Answer choices */}
-            <div className="space-y-3">
+            {/* Answer choices — display only, select via sidebar buttons */}
+            <div className="space-y-2">
               {currentQuestion?.choices.map((choice, idx) => {
                 const isSelected = selectedAnswer === choice.id;
                 // @ts-ignore — image_url ada di data tapi mungkin belum di type
@@ -291,22 +274,21 @@ export function ExamInterface({
                 const hasImage = !!choiceImageUrl;
 
                 return (
-                  <button
+                  <div
                     key={choice.id}
-                    onClick={() => handleAnswerSelect(choice.id)}
                     className={cn(
-                      'w-full flex items-start gap-4 px-5 py-4 rounded-xl border-2 text-left transition-all duration-150 group',
+                      'w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-150',
                       isSelected
                         ? 'border-blue-500 bg-blue-50 shadow-sm'
-                        : 'border-slate-200 bg-white hover:border-blue-200 hover:bg-blue-50/40 shadow-sm'
+                        : 'border-slate-200 bg-white shadow-sm'
                     )}
                   >
                     {/* Label badge */}
                     <span className={cn(
-                      'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all mt-0.5',
+                      'flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 mt-0.5',
                       isSelected
                         ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-slate-50 text-slate-500 border-slate-200 group-hover:border-blue-300 group-hover:text-blue-500'
+                        : 'bg-slate-50 text-slate-500 border-slate-200'
                     )}>
                       {ANSWER_LABELS[idx]}
                     </span>
@@ -323,14 +305,17 @@ export function ExamInterface({
                       )}
                       {hasText && (
                         <span className={cn(
-                          'text-base leading-relaxed transition-colors',
-                          isSelected ? 'text-blue-900 font-medium' : 'text-slate-700'
+                          'leading-relaxed',
+                          textSize === 'sm' && 'text-xs',
+                          textSize === 'md' && 'text-sm',
+                          textSize === 'lg' && 'text-base',
+                          isSelected ? 'text-blue-900 font-medium' : 'text-slate-900'
                         )}>
                           {choice.content}
                         </span>
                       )}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -340,11 +325,13 @@ export function ExamInterface({
 
         {/* ── RIGHT: NAVIGATION PANEL ────────────────────────────── */}
         <aside className="flex-shrink-0 w-60 bg-white border-l border-slate-200 flex flex-col overflow-hidden shadow-sm">
-          <div className="flex-1 overflow-y-auto p-4 space-y-5">
+
+          {/* Fixed top controls */}
+          <div className="flex-shrink-0 p-4 space-y-3">
 
             {/* Answer buttons A–E */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
                 Pilih Jawaban
               </p>
               <div className="grid grid-cols-5 gap-1.5">
@@ -374,10 +361,10 @@ export function ExamInterface({
 
             {/* Action buttons */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
                 Aksi
               </p>
-              <div className="grid grid-cols-4 gap-1.5 mb-2">
+              <div className="grid grid-cols-4 gap-1.5 mb-1.5">
                 <button
                   onClick={prevQuestion}
                   disabled={currentIndex === 0}
@@ -437,7 +424,7 @@ export function ExamInterface({
 
             <button
               onClick={() => setShowLegendDialog(true)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
             >
               <span className="font-semibold">Keterangan Warna</span>
               <Info className="w-3.5 h-3.5" />
@@ -445,44 +432,70 @@ export function ExamInterface({
 
             <div className="border-t border-slate-100" />
 
-            {/* Question grid */}
+            {/* Text size selector */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Navigasi Soal
-                </p>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {answers.size}/{questions.length}
-                </span>
-              </div>
-              <div className="grid grid-cols-6 gap-1">
-                {questions.map((q, index) => {
-                  const isAnswered = answers.has(q.id);
-                  const isMarked = flaggedQuestions.has(q.id);
-                  const isCurrent = index === currentIndex;
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() => goToQuestion(index)}
-                      aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
-                      className={cn(
-                        'aspect-square rounded text-[11px] font-semibold transition-all',
-                        isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
-                        !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
-                        !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white hover:bg-blue-600',
-                        !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      )}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                })}
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                Ukuran Teks
+              </p>
+              <div className="grid grid-cols-3 gap-1">
+                {(['sm', 'md', 'lg'] as const).map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setTextSize(size)}
+                    className={cn(
+                      'py-1 rounded-lg text-xs font-semibold border-2 transition-all',
+                      textSize === size
+                        ? 'bg-slate-800 text-white border-slate-800'
+                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400'
+                    )}
+                  >
+                    {size === 'sm' ? 'Kecil' : size === 'md' ? 'Sedang' : 'Besar'}
+                  </button>
+                ))}
               </div>
             </div>
 
+            <div className="border-t border-slate-100" />
+
+            {/* Navigation header */}
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Navigasi Soal
+              </p>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {answers.size}/{questions.length}
+              </span>
+            </div>
           </div>
 
-          <div className="flex-shrink-0 border-t border-slate-100 px-4 py-3">
+          {/* Scrollable question grid */}
+          <div className="flex-1 overflow-y-auto px-4 pb-3">
+            <div className="grid grid-cols-6 gap-1">
+              {questions.map((q, index) => {
+                const isAnswered = answers.has(q.id);
+                const isMarked = flaggedQuestions.has(q.id);
+                const isCurrent = index === currentIndex;
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => goToQuestion(index)}
+                    aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
+                    className={cn(
+                      'aspect-square rounded text-[11px] font-semibold transition-all',
+                      isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
+                      !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
+                      !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white hover:bg-blue-600',
+                      !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    )}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex-shrink-0 border-t border-slate-100 px-4 py-2">
             <button
               onClick={() => setShowKeyboardHelp(true)}
               className="w-full flex items-center justify-center gap-1.5 text-[11px] text-slate-400 hover:text-slate-600 transition-colors py-1 rounded hover:bg-slate-50"
