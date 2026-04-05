@@ -4,22 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  User, Mail, Phone, Building, Calendar, ChevronDown, MapPin, Save,
+  User, Mail, Phone, Calendar, Save,
 } from 'lucide-react';
+import SearchableDropdown from './searchable-dropdown';
+import { INSTANSI } from '@/constants/instansi';
+import { PROVINSI, KABUPATEN } from '@/constants/wilayah';
 
-const PROVINCES = [
-  'Aceh', 'Sumatera Utara', 'Sumatera Barat', 'Riau', 'Jambi',
-  'Sumatera Selatan', 'Bengkulu', 'Lampung', 'Kepulauan Bangka Belitung',
-  'Kepulauan Riau', 'DKI Jakarta', 'Jawa Barat', 'Jawa Tengah',
-  'DI Yogyakarta', 'Jawa Timur', 'Banten', 'Bali',
-  'Nusa Tenggara Barat', 'Nusa Tenggara Timur', 'Kalimantan Barat',
-  'Kalimantan Tengah', 'Kalimantan Selatan', 'Kalimantan Timur',
-  'Kalimantan Utara', 'Sulawesi Utara', 'Sulawesi Tengah',
-  'Sulawesi Selatan', 'Sulawesi Tenggara', 'Gorontalo',
-  'Sulawesi Barat', 'Maluku', 'Maluku Utara', 'Papua Barat', 'Papua',
-];
-
-const inputClass = "w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400";
 const iconInputClass = "w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400";
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
@@ -58,11 +48,36 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
   const set = (field: keyof typeof form, value: string) =>
     setForm(prev => ({ ...prev, [field]: value }));
 
+  const handleProvinceChange = (value: string) => {
+    setForm(prev => ({ ...prev, province: value, city: '' }));
+  };
+
   const handleSubmit = async () => {
     if (!form.full_name.trim()) {
       toast.error('Nama lengkap wajib diisi');
       return;
     }
+
+    // Validasi nomor telepon
+    if (!form.phone.trim()) {
+      toast.error('Nomor WhatsApp wajib diisi');
+      return;
+    }
+    if (!/^[0-9+]+$/.test(form.phone)) {
+      toast.error('Nomor WhatsApp hanya boleh berisi angka dan tanda +');
+      return;
+    }
+    if (form.phone.length < 9 || form.phone.length > 13) {
+      toast.error('Nomor WhatsApp harus 9–13 karakter');
+      return;
+    }
+
+    // Validasi tanggal lahir
+    if (!form.birth_date) {
+      toast.error('Tanggal lahir wajib diisi');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const genderMap: Record<string, string> = { Pria: 'male', Wanita: 'female' };
@@ -122,31 +137,31 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
         </Field>
 
         {/* No HP */}
-        <Field label="Nomor WhatsApp">
+        <Field label="Nomor WhatsApp" required>
           <div className="relative">
             <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="tel"
               value={form.phone}
-              onChange={e => set('phone', e.target.value)}
+              onChange={e => {
+                const val = e.target.value.replace(/[^0-9+]/g, '');
+                set('phone', val);
+              }}
               placeholder="08xx-xxxx-xxxx"
+              maxLength={13}
               className={iconInputClass}
             />
           </div>
         </Field>
 
-        {/* Instansi */}
+        {/* Instansi Tujuan */}
         <Field label="Instansi Tujuan">
-          <div className="relative">
-            <Building size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={form.target_institution}
-              onChange={e => set('target_institution', e.target.value)}
-              placeholder="Contoh: Kementerian Keuangan"
-              className={iconInputClass}
-            />
-          </div>
+          <SearchableDropdown
+            value={form.target_institution}
+            onChange={v => set('target_institution', v)}
+            options={INSTANSI}
+            placeholder="Cari instansi tujuan..."
+          />
         </Field>
 
         {/* Jenis Kelamin */}
@@ -172,13 +187,15 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
         </div>
 
         {/* Tanggal Lahir */}
-        <Field label="Tanggal Lahir">
+        <Field label="Tanggal Lahir" required>
           <div className="relative">
             <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="date"
               value={form.birth_date}
               onChange={e => set('birth_date', e.target.value)}
+              max="2009-12-31"
+              defaultValue="2009-01-01"
               className={iconInputClass}
             />
           </div>
@@ -191,7 +208,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
             value={form.postal_code}
             onChange={e => set('postal_code', e.target.value)}
             placeholder="Kode pos..."
-            className={inputClass}
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400"
           />
         </Field>
 
@@ -209,44 +226,35 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
 
         {/* Provinsi */}
         <Field label="Provinsi">
-          <div className="relative">
-            <select
-              value={form.province}
-              onChange={e => set('province', e.target.value)}
-              className={`${inputClass} appearance-none`}
-            >
-              <option value="">Pilih Provinsi</option>
-              {PROVINCES.map(p => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          </div>
+          <SearchableDropdown
+            value={form.province}
+            onChange={handleProvinceChange}
+            options={PROVINSI}
+            placeholder="Cari provinsi..."
+          />
         </Field>
 
         {/* Kabupaten/Kota */}
         <Field label="Kabupaten/Kota">
-          <input
-            type="text"
+          <SearchableDropdown
             value={form.city}
-            onChange={e => set('city', e.target.value)}
-            placeholder="Nama kabupaten/kota..."
-            className={inputClass}
+            onChange={v => set('city', v)}
+            options={form.province ? (KABUPATEN[form.province] ?? []) : []}
+            placeholder="Cari kabupaten/kota..."
+            disabled={!form.province}
+            disabledPlaceholder="Pilih provinsi terlebih dahulu"
           />
         </Field>
 
         {/* Kecamatan */}
         <Field label="Kecamatan">
-          <div className="relative">
-            <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={form.district}
-              onChange={e => set('district', e.target.value)}
-              placeholder="Nama kecamatan..."
-              className={iconInputClass}
-            />
-          </div>
+          <input
+            type="text"
+            value={form.district}
+            onChange={e => set('district', e.target.value)}
+            placeholder="Nama kecamatan..."
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400"
+          />
         </Field>
 
       </div>
