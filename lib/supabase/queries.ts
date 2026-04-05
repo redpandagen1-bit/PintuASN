@@ -14,11 +14,14 @@ export { canAccess }              from '@/lib/subscription-utils';
 // PROFILE
 // ─────────────────────────────────────────────────────────────
 
-export async function getProfile(userId: string): Promise<Profile> {
+export async function getProfile(userId: string): Promise<Profile | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('profiles').select('*').eq('user_id', userId).single();
-  if (error) throw new Error(`Failed to fetch profile: ${error.message}`);
+  if (error) {
+    if (error.code === 'PGRST116') return null; // row not found — new user
+    throw new Error(`Failed to fetch profile: ${error.message}`);
+  }
   return data;
 }
 

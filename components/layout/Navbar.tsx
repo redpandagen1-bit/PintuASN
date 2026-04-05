@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useUser, useClerk } from '@clerk/nextjs';
@@ -21,16 +21,32 @@ const NOTIFICATIONS = [
   { id: '3', title: 'Materi Baru Ditambahkan', message: 'Materi TWK: Pancasila dan UUD 1945 telah ditambahkan.', time: '1 hari lalu', isRead: true, link: '/materi' },
 ];
 
+function getTierLabel(tier: string) {
+  if (tier === 'platinum') return 'Platinum Member';
+  if (tier === 'premium') return 'Premium Member';
+  return 'Member Gratis';
+}
+
 export function Navbar() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const router = useRouter();
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<string>('free');
 
   const firstName = user?.firstName || 'Pengguna';
   const userInitials = user?.firstName ? user.firstName.slice(0, 2).toUpperCase() : 'U';
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  useEffect(() => {
+    fetch('/api/profile')
+      .then(r => r.json())
+      .then(({ profile }) => {
+        if (profile?.subscription_tier) setSubscriptionTier(profile.subscription_tier);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSignOut = async () => { await signOut(); router.push('/sign-in'); };
   const markAsRead = (id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
@@ -133,7 +149,7 @@ export function Navbar() {
                   </div>
                   <div className="hidden lg:flex flex-col items-start">
                     <span className="text-xs font-bold text-slate-700 leading-tight">{firstName}</span>
-                    <span className="text-[10px] text-slate-400">Premium Member</span>
+                    <span className="text-[10px] text-slate-400">{getTierLabel(subscriptionTier)}</span>
                   </div>
                   <ChevronDown size={14} className="text-slate-400 hidden lg:block" />
                 </button>
