@@ -21,11 +21,12 @@ import {
   Bookmark,
   BookmarkCheck,
   X,
-  Loader2, // used in submit dialog
+  Loader2,
   Info,
 } from 'lucide-react';
 import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import { cn } from '@/lib/utils';
 import type { QuestionWithChoices } from '@/types/exam';
 
@@ -58,18 +59,19 @@ export function ExamInterface({
   } = useExamState(questions, initialAnswers);
 
   const { timeLeft, isExpired } = useExamTimer(timeRemaining);
+  const { isSaving } = useAutoSave(attemptId, answers);
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showLegendDialog, setShowLegendDialog] = useState(false);
-  const [textSize, setTextSize] = useState<'sm' | 'md' | 'lg'>('md');
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
   const currentQuestion = questions[currentIndex];
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
@@ -104,20 +106,36 @@ export function ExamInterface({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, questions, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
 
-  // Abandon on unload (no resume allowed)
+  // Auto-save timer setiap 10s
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+    const saveInterval = setInterval(async () => {
+      try {
+        await fetch('/api/exam/save-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
+        });
+      } catch (error) {
+        console.error('Failed to auto-save timer:', error);
+      }
+    }, 10000);
+    return () => clearInterval(saveInterval);
+  }, [timeLeft, attemptId]);
+
+  // RESTORED: beforeunload → save progress (bukan cancel)
+  // Refresh / close tab = progress tersimpan dan bisa dilanjutkan
+  // Cancel permanen hanya via tombol X (manual)
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (hasSubmittedRef.current) return;
-      fetch('/api/exam/abandon', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attemptId }),
-        keepalive: true,
-      });
+      navigator.sendBeacon(
+        '/api/exam/save-progress',
+        JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
+      );
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [attemptId]);
+  }, [attemptId, timeLeft]);
 
   function formatTime(seconds: number): string {
     const h = Math.floor(seconds / 3600);
@@ -126,24 +144,28 @@ export function ExamInterface({
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  const handleCancel = async () => {
-    if (!confirm('Apakah Anda yakin ingin membatalkan ujian? Sesi ini tidak dapat dilanjutkan dan tidak akan muncul di riwayat.')) return;
+  // Tombol X → dialog konfirmasi → cancel permanen (tidak bisa dilanjutkan)
+  const handleCancel = () => setShowCancelDialog(true);
+
+  const confirmCancel = async () => {
+    setIsCancelling(true);
     try {
-      hasSubmittedRef.current = true; // prevent beforeunload from firing abandon again
-      await fetch('/api/exam/abandon', {
+      const response = await fetch('/api/exam/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ attemptId }),
       });
+      if (!response.ok) throw new Error('Gagal membatalkan ujian');
       router.push('/dashboard');
     } catch (error) {
       console.error('Cancel error:', error);
-      router.push('/dashboard');
+      toast.error('Gagal membatalkan ujian. Silakan coba lagi.');
+      setIsCancelling(false);
+      setShowCancelDialog(false);
     }
   };
 
   const handleSubmit = async () => {
-    hasSubmittedRef.current = true; // prevent abandon on unload after submit
     const toastId = toast.loading('Mengirim ujian...');
     setIsSubmitting(true);
     try {
@@ -169,6 +191,7 @@ export function ExamInterface({
     }
   };
 
+  // Jawaban hanya bisa dipilih dari tombol A-E di sidebar
   const handleAnswerSelect = (choiceId: string) => {
     selectAnswer(currentQuestion.id, choiceId);
     if (currentIndex < questions.length - 1) {
@@ -195,7 +218,7 @@ export function ExamInterface({
   }[currentQuestion?.category] || 'bg-slate-100 text-slate-700 border-slate-200';
 
   return (
-    <div className="flex flex-col h-screen bg-white overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-100 overflow-hidden">
 
       {/* ── TOP BAR ─────────────────────────────────────────────────── */}
       <header className="flex-shrink-0 bg-slate-800 border-b border-slate-700 z-10">
@@ -215,7 +238,14 @@ export function ExamInterface({
               <span className="text-xs font-semibold text-red-300 animate-pulse ml-1">Segera Habis!</span>
             )}
           </div>
-          <div className="w-32" />
+          <div className="w-32 flex justify-end">
+            {isSaving && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>Menyimpan...</span>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -223,11 +253,11 @@ export function ExamInterface({
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── LEFT: QUESTION AREA ─────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto bg-white">
-          <div className="max-w-3xl mx-auto py-6 px-8">
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto py-6 px-6">
 
             {/* Question meta */}
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-4">
               <span className={cn(
                 'text-xs font-bold px-3 py-1 rounded-full border tracking-wide',
                 categoryColor
@@ -242,19 +272,14 @@ export function ExamInterface({
 
             {/* Question text */}
             {currentQuestion?.content && (
-              <p className={cn(
-                'text-slate-900 font-medium mb-6',
-                textSize === 'sm' && 'text-sm leading-7',
-                textSize === 'md' && 'text-base leading-7',
-                textSize === 'lg' && 'text-lg leading-8',
-              )}>
+              <p className="text-sm leading-6 text-slate-800 font-normal mb-5">
                 {currentQuestion.content}
               </p>
             )}
 
             {/* Question image */}
             {currentQuestion?.image_url && (
-              <div className="mb-8">
+              <div className="mb-5">
                 <img
                   src={currentQuestion.image_url}
                   alt="Gambar soal"
@@ -264,11 +289,10 @@ export function ExamInterface({
               </div>
             )}
 
-            {/* Answer choices — display only, select via sidebar buttons */}
+            {/* Answer choices — display only, tidak bisa diklik */}
             <div className="space-y-2">
               {currentQuestion?.choices.map((choice, idx) => {
                 const isSelected = selectedAnswer === choice.id;
-                // @ts-ignore — image_url ada di data tapi mungkin belum di type
                 const choiceImageUrl = (choice as any).image_url as string | undefined;
                 const hasText = !!choice.content;
                 const hasImage = !!choiceImageUrl;
@@ -277,24 +301,21 @@ export function ExamInterface({
                   <div
                     key={choice.id}
                     className={cn(
-                      'w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-150',
+                      'w-full flex items-center gap-3 px-4 py-3 min-h-[52px] rounded-xl border-2 select-none pointer-events-none',
                       isSelected
                         ? 'border-blue-500 bg-blue-50 shadow-sm'
                         : 'border-slate-200 bg-white shadow-sm'
                     )}
                   >
-                    {/* Label badge */}
                     <span className={cn(
-                      'flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 mt-0.5',
+                      'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2',
                       isSelected
                         ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-slate-50 text-slate-500 border-slate-200'
+                        : 'bg-slate-50 text-slate-400 border-slate-200'
                     )}>
                       {ANSWER_LABELS[idx]}
                     </span>
-
-                    {/* Choice content: image dan/atau text */}
-                    <div className="flex flex-col gap-2 flex-1">
+                    <div className="flex flex-col gap-1 flex-1">
                       {hasImage && (
                         <img
                           src={choiceImageUrl}
@@ -305,11 +326,8 @@ export function ExamInterface({
                       )}
                       {hasText && (
                         <span className={cn(
-                          'leading-relaxed',
-                          textSize === 'sm' && 'text-xs',
-                          textSize === 'md' && 'text-sm',
-                          textSize === 'lg' && 'text-base',
-                          isSelected ? 'text-blue-900 font-medium' : 'text-slate-900'
+                          'text-sm leading-snug font-normal',
+                          isSelected ? 'text-blue-900' : 'text-slate-600'
                         )}>
                           {choice.content}
                         </span>
@@ -325,13 +343,11 @@ export function ExamInterface({
 
         {/* ── RIGHT: NAVIGATION PANEL ────────────────────────────── */}
         <aside className="flex-shrink-0 w-60 bg-white border-l border-slate-200 flex flex-col overflow-hidden shadow-sm">
-
-          {/* Fixed top controls */}
-          <div className="flex-shrink-0 p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4 space-y-5">
 
             {/* Answer buttons A–E */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Pilih Jawaban
               </p>
               <div className="grid grid-cols-5 gap-1.5">
@@ -361,10 +377,10 @@ export function ExamInterface({
 
             {/* Action buttons */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Aksi
               </p>
-              <div className="grid grid-cols-4 gap-1.5 mb-1.5">
+              <div className="grid grid-cols-4 gap-1.5 mb-2">
                 <button
                   onClick={prevQuestion}
                   disabled={currentIndex === 0}
@@ -405,7 +421,7 @@ export function ExamInterface({
                 </button>
                 <button
                   onClick={handleCancel}
-                  title="Batal Ujian"
+                  title="Batalkan Ujian"
                   className="aspect-square rounded-lg flex items-center justify-center border-2 border-slate-200 text-slate-500 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-all"
                 >
                   <X className="w-4 h-4" />
@@ -424,7 +440,7 @@ export function ExamInterface({
 
             <button
               onClick={() => setShowLegendDialog(true)}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
             >
               <span className="font-semibold">Keterangan Warna</span>
               <Info className="w-3.5 h-3.5" />
@@ -432,70 +448,44 @@ export function ExamInterface({
 
             <div className="border-t border-slate-100" />
 
-            {/* Text size selector */}
+            {/* Question grid */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                Ukuran Teks
-              </p>
-              <div className="grid grid-cols-3 gap-1">
-                {(['sm', 'md', 'lg'] as const).map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setTextSize(size)}
-                    className={cn(
-                      'py-1 rounded-lg text-xs font-semibold border-2 transition-all',
-                      textSize === size
-                        ? 'bg-slate-800 text-white border-slate-800'
-                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400'
-                    )}
-                  >
-                    {size === 'sm' ? 'Kecil' : size === 'md' ? 'Sedang' : 'Besar'}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Navigasi Soal
+                </p>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {answers.size}/{questions.length}
+                </span>
+              </div>
+              <div className="grid grid-cols-6 gap-1">
+                {questions.map((q, index) => {
+                  const isAnswered = answers.has(q.id);
+                  const isMarked = flaggedQuestions.has(q.id);
+                  const isCurrent = index === currentIndex;
+                  return (
+                    <button
+                      key={q.id}
+                      onClick={() => goToQuestion(index)}
+                      aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
+                      className={cn(
+                        'aspect-square rounded text-[11px] font-semibold transition-all',
+                        isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
+                        !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
+                        !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white hover:bg-blue-600',
+                        !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      )}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="border-t border-slate-100" />
-
-            {/* Navigation header */}
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Navigasi Soal
-              </p>
-              <span className="text-[10px] text-slate-400 font-medium">
-                {answers.size}/{questions.length}
-              </span>
-            </div>
           </div>
 
-          {/* Scrollable question grid */}
-          <div className="flex-1 overflow-y-auto px-4 pb-3">
-            <div className="grid grid-cols-6 gap-1">
-              {questions.map((q, index) => {
-                const isAnswered = answers.has(q.id);
-                const isMarked = flaggedQuestions.has(q.id);
-                const isCurrent = index === currentIndex;
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => goToQuestion(index)}
-                    aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
-                    className={cn(
-                      'aspect-square rounded text-[11px] font-semibold transition-all',
-                      isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
-                      !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
-                      !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white hover:bg-blue-600',
-                      !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                    )}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex-shrink-0 border-t border-slate-100 px-4 py-2">
+          <div className="flex-shrink-0 border-t border-slate-100 px-4 py-3">
             <button
               onClick={() => setShowKeyboardHelp(true)}
               className="w-full flex items-center justify-center gap-1.5 text-[11px] text-slate-400 hover:text-slate-600 transition-colors py-1 rounded hover:bg-slate-50"
@@ -506,6 +496,37 @@ export function ExamInterface({
           </div>
         </aside>
       </div>
+
+      {/* ── CANCEL DIALOG ── */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Batalkan Ujian?</DialogTitle>
+            <DialogDescription>
+              Ujian akan dibatalkan dan <strong>tidak bisa dilanjutkan</strong>.
+              Jika ingin mencoba lagi, Anda harus memulai dari awal.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelDialog(false)}
+              disabled={isCancelling}
+            >
+              Lanjutkan Ujian
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmCancel}
+              disabled={isCancelling}
+            >
+              {isCancelling
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Membatalkan...</>
+                : 'Ya, Batalkan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── LEGEND DIALOG ── */}
       <Dialog open={showLegendDialog} onOpenChange={setShowLegendDialog}>

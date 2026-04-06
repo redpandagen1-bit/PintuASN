@@ -11,16 +11,34 @@ import { INSTANSI } from '@/constants/instansi';
 import { PROVINSI, KABUPATEN } from '@/constants/wilayah';
 
 const iconInputClass = "w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400";
+const plainInputClass = "w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400";
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-semibold text-slate-700">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} <span className="text-red-500">*</span>
       </label>
       {children}
     </div>
   );
+}
+
+function toFriendlyError(raw: string): string {
+  const msg = raw?.toLowerCase() ?? '';
+  if (msg.includes('coerce') || msg.includes('single json') || msg.includes('multiple'))
+    return 'Terjadi kesalahan saat menyimpan profil. Silakan coba lagi.';
+  if (msg.includes('duplicate') || msg.includes('unique'))
+    return 'Data sudah terdaftar. Silakan periksa kembali isian Anda.';
+  if (msg.includes('foreign key') || msg.includes('violates'))
+    return 'Data tidak valid. Silakan periksa kembali isian Anda.';
+  if (msg.includes('network') || msg.includes('fetch'))
+    return 'Koneksi bermasalah. Periksa internet Anda lalu coba lagi.';
+  if (msg.includes('unauthorized') || msg.includes('401'))
+    return 'Sesi Anda telah berakhir. Silakan masuk ulang.';
+  if (msg.includes('timeout'))
+    return 'Waktu permintaan habis. Silakan coba lagi.';
+  return raw || 'Gagal menyimpan profil. Silakan coba lagi.';
 }
 
 interface Props {
@@ -53,12 +71,17 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
   };
 
   const handleSubmit = async () => {
+    // ── Validasi per field — urutan sesuai tampilan form ────────────────
+
     if (!form.full_name.trim()) {
       toast.error('Nama lengkap wajib diisi');
       return;
     }
+    if (form.full_name.trim().length < 3) {
+      toast.error('Nama lengkap minimal 3 karakter');
+      return;
+    }
 
-    // Validasi nomor telepon
     if (!form.phone.trim()) {
       toast.error('Nomor WhatsApp wajib diisi');
       return;
@@ -72,11 +95,60 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
       return;
     }
 
-    // Validasi tanggal lahir
+    if (!form.target_institution) {
+      toast.error('Instansi tujuan wajib dipilih');
+      return;
+    }
+
+    if (!form.gender) {
+      toast.error('Jenis kelamin wajib dipilih');
+      return;
+    }
+
     if (!form.birth_date) {
       toast.error('Tanggal lahir wajib diisi');
       return;
     }
+    const birthYear = new Date(form.birth_date).getFullYear();
+    if (birthYear > 2009) {
+      toast.error('Usia minimal 16 tahun untuk mendaftar');
+      return;
+    }
+
+    if (!form.postal_code.trim()) {
+      toast.error('Kode pos wajib diisi');
+      return;
+    }
+    if (!/^\d{5}$/.test(form.postal_code.trim())) {
+      toast.error('Kode pos harus terdiri dari 5 angka');
+      return;
+    }
+
+    if (!form.address.trim()) {
+      toast.error('Alamat wajib diisi');
+      return;
+    }
+    if (form.address.trim().length < 10) {
+      toast.error('Alamat terlalu singkat, mohon isi dengan lengkap');
+      return;
+    }
+
+    if (!form.province) {
+      toast.error('Provinsi wajib dipilih');
+      return;
+    }
+
+    if (!form.city) {
+      toast.error('Kabupaten/Kota wajib dipilih');
+      return;
+    }
+
+    if (!form.district.trim()) {
+      toast.error('Kecamatan wajib diisi');
+      return;
+    }
+
+    // ────────────────────────────────────────────────────────────────────
 
     setIsLoading(true);
     try {
@@ -92,14 +164,22 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) {
-        const { error } = await res.json();
-        throw new Error(error || 'Gagal menyimpan profil');
+        let errorMsg = 'Gagal menyimpan profil. Silakan coba lagi.';
+        try {
+          const json = await res.json();
+          errorMsg = toFriendlyError(json?.error ?? json?.message ?? errorMsg);
+        } catch {
+          // response bukan JSON — pakai pesan generik
+        }
+        throw new Error(errorMsg);
       }
+
       toast.success('Profil berhasil disimpan!');
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.message);
+      toast.error(toFriendlyError(err.message));
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +190,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         {/* Nama Lengkap */}
-        <Field label="Nama Lengkap" required>
+        <Field label="Nama Lengkap">
           <div className="relative">
             <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -123,8 +203,9 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
           </div>
         </Field>
 
-        {/* Email — readonly */}
-        <Field label="Email">
+        {/* Email — readonly, tidak wajib karena dari akun */}
+        <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-slate-700">Email</label>
           <div className="relative">
             <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -134,10 +215,10 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
               className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500 cursor-not-allowed"
             />
           </div>
-        </Field>
+        </div>
 
         {/* No HP */}
-        <Field label="Nomor WhatsApp" required>
+        <Field label="Nomor WhatsApp">
           <div className="relative">
             <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -161,12 +242,15 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
             onChange={v => set('target_institution', v)}
             options={INSTANSI}
             placeholder="Cari instansi tujuan..."
+            pinnedOption="Belum Ditentukan"
           />
         </Field>
 
         {/* Jenis Kelamin */}
         <div className="space-y-1.5 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700">Jenis Kelamin</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Jenis Kelamin <span className="text-red-500">*</span>
+          </label>
           <div className="grid grid-cols-2 gap-3">
             {(['Pria', 'Wanita'] as const).map(g => (
               <button
@@ -187,7 +271,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
         </div>
 
         {/* Tanggal Lahir */}
-        <Field label="Tanggal Lahir" required>
+        <Field label="Tanggal Lahir">
           <div className="relative">
             <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -195,7 +279,6 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
               value={form.birth_date}
               onChange={e => set('birth_date', e.target.value)}
               max="2009-12-31"
-              defaultValue="2009-01-01"
               className={iconInputClass}
             />
           </div>
@@ -206,19 +289,25 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
           <input
             type="text"
             value={form.postal_code}
-            onChange={e => set('postal_code', e.target.value)}
-            placeholder="Kode pos..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400"
+            onChange={e => {
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              set('postal_code', val);
+            }}
+            placeholder="Contoh: 57311"
+            maxLength={5}
+            className={plainInputClass}
           />
         </Field>
 
         {/* Alamat */}
         <div className="space-y-1.5 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700">Alamat</label>
+          <label className="text-sm font-semibold text-slate-700">
+            Alamat <span className="text-red-500">*</span>
+          </label>
           <textarea
             value={form.address}
             onChange={e => set('address', e.target.value)}
-            placeholder="Alamat lengkap..."
+            placeholder="Alamat lengkap (nama jalan, nomor rumah, RT/RW)..."
             rows={3}
             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400 resize-none"
           />
@@ -253,7 +342,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
             value={form.district}
             onChange={e => set('district', e.target.value)}
             placeholder="Nama kecamatan..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400"
+            className={plainInputClass}
           />
         </Field>
 

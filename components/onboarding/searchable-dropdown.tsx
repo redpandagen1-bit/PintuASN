@@ -10,6 +10,8 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   disabledPlaceholder?: string;
+  /** Opsi yang selalu muncul di paling atas list, terpisah dari hasil pencarian */
+  pinnedOption?: string;
 }
 
 export default function SearchableDropdown({
@@ -19,6 +21,7 @@ export default function SearchableDropdown({
   placeholder = 'Cari...',
   disabled = false,
   disabledPlaceholder,
+  pinnedOption,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -33,7 +36,6 @@ export default function SearchableDropdown({
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
-        // If user typed but didn't select, reset query to current value
         setQuery('');
       }
     }
@@ -98,10 +100,26 @@ export default function SearchableDropdown({
 
       {open && !disabled && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
-          <ul
-            className="overflow-y-auto"
-            style={{ maxHeight: '200px' }}
-          >
+          <ul className="overflow-y-auto" style={{ maxHeight: '200px' }}>
+
+            {/* Pinned option — selalu muncul di atas, tidak terfilter search */}
+            {pinnedOption && (
+              <>
+                <li
+                  onMouseDown={() => handleSelect(pinnedOption)}
+                  className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center gap-2 ${
+                    pinnedOption === value
+                      ? 'bg-slate-800 text-white'
+                      : 'text-slate-400 italic hover:bg-slate-50'
+                  }`}
+                >
+                  {pinnedOption}
+                </li>
+                {/* Divider */}
+                <li className="border-t border-slate-100 mx-3" aria-hidden />
+              </>
+            )}
+
             {filtered.length === 0 ? (
               <li className="px-4 py-3 text-sm text-slate-400">Tidak ditemukan</li>
             ) : (
