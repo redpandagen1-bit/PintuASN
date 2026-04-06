@@ -36,6 +36,7 @@ interface ExamInterfaceProps {
   questions: QuestionWithChoices[];
   initialAnswers: Record<string, string>;
   timeRemaining: number;
+  startedAt?: string;
 }
 
 const ANSWER_LABELS = ['A', 'B', 'C', 'D', 'E'];
@@ -56,9 +57,14 @@ export function ExamInterface({
     prevQuestion,
     selectAnswer,
     toggleFlag,
-  } = useExamState(questions, initialAnswers);
+    clearSavedPosition, // ← untuk cleanup localStorage saat selesai
+  } = useExamState(questions, initialAnswers, attemptId); // ← pass attemptId
 
   const { timeLeft, isExpired } = useExamTimer(timeRemaining);
+
+  // useAutoSave sekarang handle:
+  // 1. Per-answer debounce save (1.5 detik setelah jawaban berubah)
+  // 2. beforeunload sendBeacon (safety net saat refresh/close)
   const { isSaving } = useAutoSave(attemptId, answers);
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -72,6 +78,7 @@ export function ExamInterface({
   const hasSubmittedRef = useRef(false);
   const currentQuestion = questions[currentIndex];
 
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
@@ -106,7 +113,8 @@ export function ExamInterface({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, questions, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
 
-  // Auto-save timer setiap 10s
+  // Auto-save timer (hanya timeRemaining) setiap 10 detik
+  // Jawaban sudah dihandle oleh useAutoSave — ini hanya untuk sync timer
   useEffect(() => {
     if (timeLeft <= 0) return;
     const saveInterval = setInterval(async () => {
@@ -123,14 +131,17 @@ export function ExamInterface({
     return () => clearInterval(saveInterval);
   }, [timeLeft, attemptId]);
 
-  // RESTORED: beforeunload → save progress (bukan cancel)
-  // Refresh / close tab = progress tersimpan dan bisa dilanjutkan
-  // Cancel permanen hanya via tombol X (manual)
+  // CATATAN: beforeunload untuk JAWABAN sudah dihandle di useAutoSave
+  // via sendBeacon ke /api/exam/save
+  // Di sini hanya perlu save timeRemaining terakhir
   useEffect(() => {
     const handleBeforeUnload = () => {
       navigator.sendBeacon(
         '/api/exam/save-progress',
-        JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
+        new Blob(
+          [JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) })],
+          { type: 'application/json' }
+        )
       );
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -144,18 +155,19 @@ export function ExamInterface({
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  // Tombol X → dialog konfirmasi → cancel permanen (tidak bisa dilanjutkan)
   const handleCancel = () => setShowCancelDialog(true);
 
   const confirmCancel = async () => {
     setIsCancelling(true);
     try {
-      const response = await fetch('/api/exam/cancel', {
+      // FIX: pakai /api/exam/abandon, bukan /api/exam/cancel yang tidak ada
+      const response = await fetch('/api/exam/abandon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ attemptId }),
       });
       if (!response.ok) throw new Error('Gagal membatalkan ujian');
+      clearSavedPosition(); // ← bersihkan posisi soal dari localStorage
       router.push('/dashboard');
     } catch (error) {
       console.error('Cancel error:', error);
@@ -183,6 +195,7 @@ export function ExamInterface({
         throw new Error(errorData.error || 'Failed to submit exam');
       }
       toast.success('Ujian berhasil dikirim!', { id: toastId });
+      clearSavedPosition(); // ← bersihkan posisi soal dari localStorage
       router.push(`/exam/${attemptId}/result`);
     } catch (error) {
       console.error('Submit error:', error);
@@ -191,7 +204,6 @@ export function ExamInterface({
     }
   };
 
-  // Jawaban hanya bisa dipilih dari tombol A-E di sidebar
   const handleAnswerSelect = (choiceId: string) => {
     selectAnswer(currentQuestion.id, choiceId);
     if (currentIndex < questions.length - 1) {
