@@ -57,14 +57,11 @@ export function ExamInterface({
     prevQuestion,
     selectAnswer,
     toggleFlag,
-    clearSavedPosition, // ← untuk cleanup localStorage saat selesai
-  } = useExamState(questions, initialAnswers, attemptId); // ← pass attemptId
+    clearSavedPosition,
+  } = useExamState(questions, initialAnswers, attemptId);
 
   const { timeLeft, isExpired } = useExamTimer(timeRemaining);
 
-  // useAutoSave sekarang handle:
-  // 1. Per-answer debounce save (1.5 detik setelah jawaban berubah)
-  // 2. beforeunload sendBeacon (safety net saat refresh/close)
   const { isSaving } = useAutoSave(attemptId, answers);
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -73,6 +70,7 @@ export function ExamInterface({
   const [showLegendDialog, setShowLegendDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [textSize, setTextSize] = useState<'sm' | 'md' | 'lg'>('md');
 
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
@@ -114,7 +112,6 @@ export function ExamInterface({
   }, [currentIndex, questions, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
 
   // Auto-save timer (hanya timeRemaining) setiap 10 detik
-  // Jawaban sudah dihandle oleh useAutoSave — ini hanya untuk sync timer
   useEffect(() => {
     if (timeLeft <= 0) return;
     const saveInterval = setInterval(async () => {
@@ -131,9 +128,7 @@ export function ExamInterface({
     return () => clearInterval(saveInterval);
   }, [timeLeft, attemptId]);
 
-  // CATATAN: beforeunload untuk JAWABAN sudah dihandle di useAutoSave
-  // via sendBeacon ke /api/exam/save
-  // Di sini hanya perlu save timeRemaining terakhir
+  // beforeunload: save timeRemaining via sendBeacon
   useEffect(() => {
     const handleBeforeUnload = () => {
       navigator.sendBeacon(
@@ -160,14 +155,13 @@ export function ExamInterface({
   const confirmCancel = async () => {
     setIsCancelling(true);
     try {
-      // FIX: pakai /api/exam/abandon, bukan /api/exam/cancel yang tidak ada
       const response = await fetch('/api/exam/abandon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ attemptId }),
       });
       if (!response.ok) throw new Error('Gagal membatalkan ujian');
-      clearSavedPosition(); // ← bersihkan posisi soal dari localStorage
+      clearSavedPosition();
       router.push('/dashboard');
     } catch (error) {
       console.error('Cancel error:', error);
@@ -195,7 +189,7 @@ export function ExamInterface({
         throw new Error(errorData.error || 'Failed to submit exam');
       }
       toast.success('Ujian berhasil dikirim!', { id: toastId });
-      clearSavedPosition(); // ← bersihkan posisi soal dari localStorage
+      clearSavedPosition();
       router.push(`/exam/${attemptId}/result`);
     } catch (error) {
       console.error('Submit error:', error);
@@ -230,7 +224,7 @@ export function ExamInterface({
   }[currentQuestion?.category] || 'bg-slate-100 text-slate-700 border-slate-200';
 
   return (
-    <div className="flex flex-col h-screen bg-slate-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-white overflow-hidden">
 
       {/* ── TOP BAR ─────────────────────────────────────────────────── */}
       <header className="flex-shrink-0 bg-slate-800 border-b border-slate-700 z-10">
@@ -265,7 +259,7 @@ export function ExamInterface({
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── LEFT: QUESTION AREA ─────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-white">
           <div className="max-w-3xl mx-auto py-6 px-6">
 
             {/* Question meta */}
@@ -284,7 +278,12 @@ export function ExamInterface({
 
             {/* Question text */}
             {currentQuestion?.content && (
-              <p className="text-sm leading-6 text-slate-800 font-normal mb-5">
+              <p className={cn(
+                'text-slate-800 font-normal mb-5',
+                textSize === 'sm' && 'text-sm leading-6',
+                textSize === 'md' && 'text-base leading-7',
+                textSize === 'lg' && 'text-lg leading-8',
+              )}>
                 {currentQuestion.content}
               </p>
             )}
@@ -338,8 +337,11 @@ export function ExamInterface({
                       )}
                       {hasText && (
                         <span className={cn(
-                          'text-sm leading-snug font-normal',
-                          isSelected ? 'text-blue-900' : 'text-slate-600'
+                          'leading-snug font-normal',
+                          textSize === 'sm' && 'text-xs',
+                          textSize === 'md' && 'text-sm',
+                          textSize === 'lg' && 'text-base',
+                          isSelected ? 'text-blue-900' : 'text-slate-900'
                         )}>
                           {choice.content}
                         </span>
@@ -355,11 +357,13 @@ export function ExamInterface({
 
         {/* ── RIGHT: NAVIGATION PANEL ────────────────────────────── */}
         <aside className="flex-shrink-0 w-60 bg-white border-l border-slate-200 flex flex-col overflow-hidden shadow-sm">
-          <div className="flex-1 overflow-y-auto p-4 space-y-5">
+
+          {/* Fixed top controls — tidak ikut scroll */}
+          <div className="flex-shrink-0 p-4 space-y-3">
 
             {/* Answer buttons A–E */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
                 Pilih Jawaban
               </p>
               <div className="grid grid-cols-5 gap-1.5">
@@ -389,10 +393,10 @@ export function ExamInterface({
 
             {/* Action buttons */}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
                 Aksi
               </p>
-              <div className="grid grid-cols-4 gap-1.5 mb-2">
+              <div className="grid grid-cols-4 gap-1.5 mb-1.5">
                 <button
                   onClick={prevQuestion}
                   disabled={currentIndex === 0}
@@ -452,7 +456,7 @@ export function ExamInterface({
 
             <button
               onClick={() => setShowLegendDialog(true)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
             >
               <span className="font-semibold">Keterangan Warna</span>
               <Info className="w-3.5 h-3.5" />
@@ -460,44 +464,70 @@ export function ExamInterface({
 
             <div className="border-t border-slate-100" />
 
-            {/* Question grid */}
+            {/* Text size selector */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Navigasi Soal
-                </p>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {answers.size}/{questions.length}
-                </span>
-              </div>
-              <div className="grid grid-cols-6 gap-1">
-                {questions.map((q, index) => {
-                  const isAnswered = answers.has(q.id);
-                  const isMarked = flaggedQuestions.has(q.id);
-                  const isCurrent = index === currentIndex;
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() => goToQuestion(index)}
-                      aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
-                      className={cn(
-                        'aspect-square rounded text-[11px] font-semibold transition-all',
-                        isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
-                        !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
-                        !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white hover:bg-blue-600',
-                        !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                      )}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                })}
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                Ukuran Teks
+              </p>
+              <div className="grid grid-cols-3 gap-1">
+                {(['sm', 'md', 'lg'] as const).map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setTextSize(size)}
+                    className={cn(
+                      'py-1 rounded-lg text-xs font-semibold border-2 transition-all',
+                      textSize === size
+                        ? 'bg-slate-800 text-white border-slate-800'
+                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-400'
+                    )}
+                  >
+                    {size === 'sm' ? 'Kecil' : size === 'md' ? 'Sedang' : 'Besar'}
+                  </button>
+                ))}
               </div>
             </div>
 
+            <div className="border-t border-slate-100" />
+
+            {/* Navigation header — fixed, tidak ikut scroll */}
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Navigasi Soal
+              </p>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {answers.size}/{questions.length}
+              </span>
+            </div>
           </div>
 
-          <div className="flex-shrink-0 border-t border-slate-100 px-4 py-3">
+          {/* Scrollable question grid — HANYA grid nomor soal yang scroll */}
+          <div className="flex-1 overflow-y-auto px-4 pb-3">
+            <div className="grid grid-cols-6 gap-1">
+              {questions.map((q, index) => {
+                const isAnswered = answers.has(q.id);
+                const isMarked = flaggedQuestions.has(q.id);
+                const isCurrent = index === currentIndex;
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => goToQuestion(index)}
+                    aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
+                    className={cn(
+                      'aspect-square rounded text-[11px] font-semibold transition-all',
+                      isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
+                      !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
+                      !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white hover:bg-blue-600',
+                      !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    )}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex-shrink-0 border-t border-slate-100 px-4 py-2">
             <button
               onClick={() => setShowKeyboardHelp(true)}
               className="w-full flex items-center justify-center gap-1.5 text-[11px] text-slate-400 hover:text-slate-600 transition-colors py-1 rounded hover:bg-slate-50"
