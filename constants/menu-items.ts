@@ -7,7 +7,8 @@ import {
   ShoppingCart,
   MessageCircle,
   Zap,
-  Users
+  Users,
+  Map
 } from 'lucide-react';
 
 export interface MenuItem {
@@ -27,6 +28,13 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     isActive: true
   },
   {
+    id: 'roadmap',
+    label: 'Roadmap',
+    href: '/roadmap',
+    icon: 'Map',
+    isActive: true
+  },
+  {
     id: 'statistik',
     label: 'Statistik',
     href: '/statistics',
@@ -43,9 +51,9 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
   {
     id: 'daftar-tryout',
     label: 'Daftar Tryout',
-    href: '/daftar-tryout',       // ← fix: huruf kecil semua, tanpa typo
+    href: '/daftar-tryout',
     icon: 'PlayCircle',
-    isActive: true         // ← aktifkan karena halaman sudah ada
+    isActive: true
   },
   {
     id: 'riwayat',

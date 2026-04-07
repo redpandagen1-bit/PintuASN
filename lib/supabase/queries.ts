@@ -255,6 +255,46 @@ export type AttemptHistoryData = {
 };
 
 // ─────────────────────────────────────────────────────────────
+// ROADMAP STATS
+// ─────────────────────────────────────────────────────────────
+
+export async function getRoadmapStats(userId: string) {
+  const supabase = await createClient();
+  const { data: attempts, error } = await supabase
+    .from('attempts')
+    .select('score_twk, score_tiu, score_tkp, final_score, completed_at')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false });
+
+  if (error) throw new Error(`Failed to fetch roadmap stats: ${error.message}`);
+
+  const completed = attempts ?? [];
+  if (completed.length === 0) {
+    return {
+      avgTwk: 0, avgTiu: 0, avgTkp: 0,
+      totalCompleted: 0,
+      bestFinalScore: 0,
+      lastAttemptDate: null as string | null,
+    };
+  }
+
+  const avgTwk = Math.round(completed.reduce((s, a) => s + (a.score_twk ?? 0), 0) / completed.length);
+  const avgTiu = Math.round(completed.reduce((s, a) => s + (a.score_tiu ?? 0), 0) / completed.length);
+  const avgTkp = Math.round(completed.reduce((s, a) => s + (a.score_tkp ?? 0), 0) / completed.length);
+  const bestFinalScore = Math.max(...completed.map(a => a.final_score ?? 0));
+
+  return {
+    avgTwk, avgTiu, avgTkp,
+    totalCompleted: completed.length,
+    bestFinalScore,
+    lastAttemptDate: completed[0]?.completed_at ?? null,
+  };
+}
+
+export type RoadmapStats = Awaited<ReturnType<typeof getRoadmapStats>>;
+
+// ─────────────────────────────────────────────────────────────
 // REVIEW
 // ─────────────────────────────────────────────────────────────
 
@@ -295,9 +335,10 @@ export async function getReviewData(attemptId: string) {
     const userAnswer    = (userAnswers ?? []).find((a: any) => a.question_id === question.id);
     const correctChoice = question.choices.find((c: any) => c.is_answer);
     const userChoice    = question.choices.find((c: any) => c.id === userAnswer?.choice_id);
-    const isCorrect     = question.category !== 'TKP'
-      ? (userAnswer?.choice_id === correctChoice?.id) ?? false : null;
-    const score = question.category === 'TKP' && userChoice ? userChoice.score ?? 1 : null;
+    const isCorrect = question.category !== 'TKP'
+  ? (userAnswer?.choice_id === correctChoice?.id) : null;
+const score = question.category === 'TKP' && userChoice 
+  ? (userChoice.score ?? 1) : null;
 
     return {
       position: index + 1, id: question.id, category: question.category,

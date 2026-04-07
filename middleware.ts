@@ -17,6 +17,7 @@ const isProtectedRoute = createRouteMatcher([
   '/history(.*)',
   '/statistics(.*)',
   '/packages(.*)',
+  '/roadmap(.*)',   // ← ditambahkan: roadmap butuh login
 ]);
 
 const isOnboarding = createRouteMatcher(['/onboarding(.*)']);

@@ -115,16 +115,21 @@ export function ExamInterface({
   useEffect(() => {
     if (timeLeft <= 0) return;
     const saveInterval = setInterval(async () => {
-      try {
-        await fetch('/api/exam/save-progress', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
-        });
-      } catch (error) {
-        console.error('Failed to auto-save timer:', error);
-      }
-    }, 10000);
+  try {
+    const res = await fetch('/api/exam/save-progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
+    });
+    // 401 = token expired karena jaringan putus, silent fail saja
+    // jangan throw agar tidak spam console error
+    if (!res.ok && res.status !== 401) {
+      console.warn('Save-progress failed:', res.status);
+    }
+  } catch {
+    // network error (offline), silent fail
+  }
+}, 10000);
     return () => clearInterval(saveInterval);
   }, [timeLeft, attemptId]);
 
