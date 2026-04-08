@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface PaymentMethod {
   id: string;
   name: string;
@@ -27,12 +29,15 @@ interface OrderData {
   total: number;
   finalPrice: number;
   expiredAt: string;
+  createdAt: string;
   status: string;
   paymentMethod?: string;
   vaNumber?: string;
   qrisUrl?: string;
   ewalletUrl?: string;
 }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const PAYMENT_METHODS: PaymentMethod[] = [
   { id: 'bri_va',     name: 'BRI Virtual Account',     type: 'va',      bank: 'bri',     adminFee: 4000 },
@@ -60,13 +65,6 @@ const EWALLET_LOGOS: Record<string, string> = {
 
 const QRIS_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg';
 
-function getMethodLogo(method: PaymentMethod): string | null {
-  if (method.bank && BANK_LOGOS[method.bank]) return BANK_LOGOS[method.bank];
-  if (method.type === 'ewallet' && EWALLET_LOGOS[method.id]) return EWALLET_LOGOS[method.id];
-  if (method.type === 'qris') return QRIS_LOGO;
-  return null;
-}
-
 const VA_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
   bri: [
     { title: 'ATM BRI', steps: ['Pilih menu utama → Transaksi Lain', 'Pilih Pembayaran → Lainnya → BRIVA', 'Masukkan nomor BRIVA dan pilih Benar', 'Konfirmasi jumlah dan merchant, pilih Ya', 'Pembayaran selesai, simpan bukti.'] },
@@ -85,12 +83,33 @@ const VA_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
   ],
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getMethodLogo(method: PaymentMethod): string | null {
+  if (method.bank && BANK_LOGOS[method.bank]) return BANK_LOGOS[method.bank];
+  if (method.type === 'ewallet' && EWALLET_LOGOS[method.id]) return EWALLET_LOGOS[method.id];
+  if (method.type === 'qris') return QRIS_LOGO;
+  return null;
+}
+
 function formatRupiah(n: number) {
   return 'Rp ' + n.toLocaleString('id-ID');
 }
 
-function useCountdown(expiredAt: string) {
+function formatTanggal(iso: string) {
+  return new Date(iso).toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+// ─── Countdown Hook ───────────────────────────────────────────────────────────
+// Menggunakan expiredAt dari server — TIDAK bergantung pada durasi lokal
+// sehingga tetap akurat meski user keluar/masuk halaman.
+
+function useCountdown(expiredAt: string | null) {
   const calc = useCallback(() => {
+    if (!expiredAt) return { h: 0, m: 0, s: 0, expired: true };
     const diff = new Date(expiredAt).getTime() - Date.now();
     if (diff <= 0) return { h: 0, m: 0, s: 0, expired: true };
     const h = Math.floor(diff / 3600000);
@@ -100,12 +119,58 @@ function useCountdown(expiredAt: string) {
   }, [expiredAt]);
 
   const [time, setTime] = useState(calc);
+
   useEffect(() => {
+    // Recalculate langsung saat expiredAt berubah
+    setTime(calc());
     const t = setInterval(() => setTime(calc()), 1000);
     return () => clearInterval(t);
   }, [calc]);
+
   return time;
 }
+
+// ─── Status Badge ─────────────────────────────────────────────────────────────
+
+function StatusBadge({ status }: { status: string }) {
+  const s = status.toLowerCase();
+
+  if (s === 'pending') {
+    return (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-white uppercase tracking-wide">
+        Menunggu Pembayaran
+      </span>
+    );
+  }
+  if (s === 'settlement' || s === 'capture' || s === 'success') {
+    return (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white uppercase tracking-wide">
+        Berhasil
+      </span>
+    );
+  }
+  if (s === 'expired' || s === 'expire') {
+    return (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-400 text-white uppercase tracking-wide">
+        Dibatalkan
+      </span>
+    );
+  }
+  if (s === 'cancel' || s === 'cancelled') {
+    return (
+      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-400 text-white uppercase tracking-wide">
+        Dibatalkan
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600 uppercase tracking-wide">
+      {status}
+    </span>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 type Step = 1 | 2;
 
@@ -113,26 +178,27 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
   const router = useRouter();
   const { orderId } = use(params);
 
-  const [order, setOrder] = useState<OrderData | null>(null);
+  const [order, setOrder]               = useState<OrderData | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
-  const [step, setStep] = useState<Step>(1);
+  const [step, setStep]                 = useState<Step>(1);
   const [loadingMethod, setLoadingMethod] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [openInstruction, setOpenInstruction] = useState<number | null>(0);
-  const [copied, setCopied] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [copied, setCopied]             = useState(false);
+  const [pageLoading, setPageLoading]   = useState(true);
   const [cancelLoading, setCancelLoading] = useState(false);
 
-  const [referralInput, setReferralInput] = useState('');
+  const [referralInput, setReferralInput]   = useState('');
   const [referralLoading, setReferralLoading] = useState(false);
-  const [referralError, setReferralError] = useState('');
+  const [referralError, setReferralError]   = useState('');
   const [referralApplied, setReferralApplied] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
 
+  // ── Fetch order ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/payment/order/${orderId}`);
+        const res  = await fetch(`/api/payment/order/${orderId}`);
         const data = await res.json();
         if (data.order) {
           setOrder(data.order);
@@ -156,39 +222,51 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     fetchOrder();
   }, [orderId]);
 
+  // ── Poll status (tiap 5 detik, hanya kalau pending) ──────────────────────────
   useEffect(() => {
     if (!order || order.status !== 'pending') return;
-    const t = setInterval(async () => {
+
+    const poll = async () => {
       try {
-        const res = await fetch(`/api/payment/status/${orderId}`);
+        const res  = await fetch(`/api/payment/status/${orderId}`);
         const data = await res.json();
         if (data.status === 'settlement' || data.status === 'capture') {
           router.push('/dashboard?payment=success');
-        } else if (data.status === 'expire' || data.status === 'cancel') {
+        } else if (data.status === 'expire' || data.status === 'cancel' || data.status === 'deny') {
           setOrder(prev => prev ? { ...prev, status: 'expired' } : prev);
         }
-      } catch (e) { console.error(e); }
-    }, 5000);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    const t = setInterval(poll, 5000);
     return () => clearInterval(t);
-  }, [order, orderId, router]);
+  }, [order?.status, orderId, router]);
 
-  const countdown = useCountdown(order?.expiredAt ?? new Date(Date.now() + 86400000).toISOString());
+  // ── Auto-expire di client saat countdown habis ────────────────────────────────
+  // Ini hanya mengupdate UI, DB sudah diupdate di server saat fetch
+  const countdown = useCountdown(order?.expiredAt ?? null);
 
+  useEffect(() => {
+    if (countdown.expired && order?.status === 'pending') {
+      setOrder(prev => prev ? { ...prev, status: 'expired' } : prev);
+    }
+  }, [countdown.expired, order?.status]);
+
+  // ── Referral ──────────────────────────────────────────────────────────────────
   const handleApplyReferral = async () => {
     if (!order || !referralInput.trim()) return;
     setReferralLoading(true);
     setReferralError('');
     try {
-      const res = await fetch('/api/payment/referral', {
+      const res  = await fetch('/api/payment/referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: referralInput.trim(), basePrice: order.basePrice }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setReferralError(data.error || 'Kode tidak valid');
-        return;
-      }
+      if (!res.ok) { setReferralError(data.error || 'Kode tidak valid'); return; }
       setDiscountAmount(data.discountAmount);
       setReferralApplied(true);
       setOrder(prev => prev ? {
@@ -197,7 +275,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         finalPrice: data.finalPrice,
         referralCode: referralInput.trim().toUpperCase(),
       } : prev);
-    } catch (e) {
+    } catch {
       setReferralError('Gagal memvalidasi kode');
     } finally {
       setReferralLoading(false);
@@ -209,19 +287,15 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     setReferralInput('');
     setDiscountAmount(0);
     setReferralError('');
-    setOrder(prev => prev ? {
-      ...prev,
-      discountAmount: 0,
-      finalPrice: prev.basePrice,
-      referralCode: null,
-    } : prev);
+    setOrder(prev => prev ? { ...prev, discountAmount: 0, finalPrice: prev.basePrice, referralCode: null } : prev);
   };
 
+  // ── Select method & bayar ─────────────────────────────────────────────────────
   const handleLanjutkan = async () => {
     if (!selectedMethod || !order) return;
     setLoadingMethod(true);
     try {
-      const res = await fetch('/api/payment/select-method', {
+      const res  = await fetch('/api/payment/select-method', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -236,11 +310,11 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         setOrder(prev => prev ? {
           ...prev,
           paymentMethod: selectedMethod.id,
-          vaNumber: data.vaNumber,
-          qrisUrl: data.qrisUrl,
+          vaNumber:  data.vaNumber,
+          qrisUrl:   data.qrisUrl,
           ewalletUrl: data.ewalletUrl,
-          adminFee: selectedMethod.adminFee,
-          total: data.total,
+          adminFee:  selectedMethod.adminFee,
+          total:     data.total,
           finalPrice: data.total,
         } : prev);
         setStep(2);
@@ -261,15 +335,20 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
   const handleCheckStatus = async () => {
     setLoadingStatus(true);
     try {
-      const res = await fetch(`/api/payment/status/${orderId}`);
+      const res  = await fetch(`/api/payment/status/${orderId}`);
       const data = await res.json();
       if (data.status === 'settlement' || data.status === 'capture') {
         router.push('/dashboard?payment=success');
+      } else if (data.status === 'expire' || data.status === 'cancel') {
+        setOrder(prev => prev ? { ...prev, status: 'expired' } : prev);
       } else {
         alert('Pembayaran belum diterima. Silakan tunggu beberapa saat.');
       }
-    } catch (e) { console.error(e); }
-    finally { setLoadingStatus(false); }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingStatus(false);
+    }
   };
 
   const handleCancel = async () => {
@@ -277,6 +356,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     setCancelLoading(true);
     try {
       await fetch(`/api/payment/order/${orderId}`, { method: 'DELETE' });
+      setOrder(prev => prev ? { ...prev, status: 'cancel' } : prev);
     } catch (e) {
       console.error(e);
     } finally {
@@ -285,18 +365,13 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     }
   };
 
-  const basePrice = order?.basePrice ?? 0;
-  const adminFee = selectedMethod?.adminFee ?? order?.adminFee ?? 0;
-  const discount = order?.discountAmount ?? discountAmount;
+  // ── Derived values ────────────────────────────────────────────────────────────
+  const basePrice    = order?.basePrice ?? 0;
+  const adminFee     = selectedMethod?.adminFee ?? order?.adminFee ?? 0;
+  const discount     = order?.discountAmount ?? discountAmount;
   const totalDisplay = Math.max(basePrice - discount, 0) + adminFee;
 
-  const formatTanggal = (iso: string) => {
-    return new Date(iso).toLocaleDateString('id-ID', {
-      day: 'numeric', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
-  };
-
+  // ── Loading & error states ────────────────────────────────────────────────────
   if (pageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -323,20 +398,25 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         <CheckCircle2 size={56} className="text-green-500" />
         <h2 className="text-xl font-bold text-slate-800">Pembayaran Berhasil!</h2>
         <p className="text-slate-500 text-sm">Paket kamu sudah aktif. Selamat belajar!</p>
-        <button onClick={() => router.push('/dashboard')}
-          className="mt-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition">
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="mt-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition"
+        >
           Ke Dashboard
         </button>
       </div>
     );
   }
 
-  const instructions = selectedMethod?.bank ? VA_INSTRUCTIONS[selectedMethod.bank] : null;
-  const activeMethod = PAYMENT_METHODS.find(m => m.id === order.paymentMethod);
-  const activeLogo = activeMethod ? getMethodLogo(activeMethod) : null;
+  const isExpiredOrCancelled =
+    order.status === 'expired' || order.status === 'expire' ||
+    order.status === 'cancel'  || order.status === 'cancelled';
+
+  const instructions  = selectedMethod?.bank ? VA_INSTRUCTIONS[selectedMethod.bank] : null;
+  const activeMethod  = PAYMENT_METHODS.find(m => m.id === order.paymentMethod);
+  const activeLogo    = activeMethod ? getMethodLogo(activeMethod) : null;
 
   return (
-    // ✅ PERUBAHAN: max-w-lg → max-w-2xl (container diperlebar)
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-4">
 
@@ -353,15 +433,19 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
           </span>
         </div>
 
-        {/* ✅ PERUBAHAN: Countdown — background putih, text hitam, timer merah, posisi kanan */}
-        {!countdown.expired ? (
+        {/* ── Countdown / Expired Banner ─────────────────────────────────────── */}
+        {isExpiredOrCancelled ? (
+          <div className="bg-slate-100 border border-slate-300 rounded-xl px-4 py-3 flex items-center gap-3">
+            <XCircle size={18} className="text-slate-500" />
+            <p className="text-slate-600 text-sm font-semibold">Pesanan ini telah dibatalkan</p>
+          </div>
+        ) : !countdown.expired ? (
           <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 flex items-center gap-3 shadow-sm">
             <Clock size={20} className="text-slate-500 flex-shrink-0" />
             <div className="flex-1">
               <p className="text-slate-800 text-sm font-semibold">Sisa Waktu Pembayaran</p>
               <p className="text-slate-500 text-xs">Selesaikan sebelum waktu habis</p>
             </div>
-            {/* ✅ Timer diperbesar & berwarna merah, rata kanan */}
             <div className="font-mono font-bold text-red-600 text-2xl tracking-widest">
               {String(countdown.h).padStart(2,'0')}:{String(countdown.m).padStart(2,'0')}:{String(countdown.s).padStart(2,'0')}
             </div>
@@ -373,9 +457,10 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
           </div>
         )}
 
-        {/* ── STEP 1 ─────────────────────────────────────────────────── */}
-        {step === 1 && (
+        {/* ── STEP 1 ──────────────────────────────────────────────────────────── */}
+        {step === 1 && !isExpiredOrCancelled && (
           <>
+            {/* Ringkasan */}
             <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
               <h2 className="font-bold text-slate-800 text-sm">Ringkasan Pesanan</h2>
               <div className="space-y-2 text-sm">
@@ -453,7 +538,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
               )}
             </div>
 
-            {/* Pilih Metode Pembayaran */}
+            {/* Pilih Metode */}
             <div className="bg-white rounded-xl border border-slate-200 p-4">
               <h2 className="font-bold text-slate-800 text-sm mb-3">Pilih Metode Pembayaran</h2>
               <div className="grid grid-cols-2 gap-2">
@@ -466,17 +551,13 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
                       className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all
                         ${selectedMethod?.id === method.id
                           ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
-                          : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'}
-                      `}
+                          : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'}`}
                     >
                       <div className="w-10 h-10 flex-shrink-0 bg-white border border-slate-100 rounded-lg flex items-center justify-center overflow-hidden shadow-sm">
-                        {logo ? (
-                          <Image src={logo} alt={method.name} width={36} height={36} className="object-contain p-1" unoptimized />
-                        ) : (
-                          <span className="text-[10px] font-bold text-slate-600">
-                            {method.name.slice(0, 3).toUpperCase()}
-                          </span>
-                        )}
+                        {logo
+                          ? <Image src={logo} alt={method.name} width={36} height={36} className="object-contain p-1" unoptimized />
+                          : <span className="text-[10px] font-bold text-slate-600">{method.name.slice(0,3).toUpperCase()}</span>
+                        }
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-slate-800 leading-tight truncate">{method.name}</p>
@@ -504,14 +585,13 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
           </>
         )}
 
-        {/* ── STEP 2 ─────────────────────────────────────────────────── */}
+        {/* ── STEP 2 ──────────────────────────────────────────────────────────── */}
         {step === 2 && (
           <>
-            {/* Info transaksi */}
+            {/* Info transaksi — mirip desain screenshot */}
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="px-5 pt-5 pb-4 border-b border-slate-100">
                 <p className="font-bold text-slate-800 text-base">{order.packageName}</p>
-                {/* ✅ PERUBAHAN: kode order warna abu-abu */}
                 <button
                   onClick={() => handleCopy(orderId)}
                   className="mt-1 flex items-center gap-1.5 text-slate-400 text-xs font-medium hover:text-slate-600 transition"
@@ -522,34 +602,40 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
               </div>
 
               <div className="px-5 py-4 grid grid-cols-3 gap-4">
-                <div className="col-span-1">
+                {/* Metode Pembayaran */}
+                <div>
                   <p className="text-xs text-slate-400 mb-2">Metode Pembayaran</p>
-                  {activeLogo ? (
-                    <Image src={activeLogo} alt={activeMethod?.name ?? ''} width={48} height={48} className="object-contain mb-1" unoptimized />
-                  ) : null}
+                  {activeLogo && (
+                    <div className="mb-1.5">
+                      <Image
+                        src={activeLogo}
+                        alt={activeMethod?.name ?? ''}
+                        width={52} height={28}
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  )}
                   <p className="text-sm font-bold text-slate-800 leading-tight">{activeMethod?.name}</p>
                   {order.vaNumber && (
-                    <p className="text-slate-800 font-bold text-sm mt-1 tracking-wide">
+                    <p className="text-slate-700 font-semibold text-sm mt-1 tracking-wide font-mono">
                       {order.vaNumber.replace(/(.{4})/g, '$1 ').trim()}
                     </p>
                   )}
                 </div>
 
-                <div className="col-span-1">
+                {/* Waktu Transaksi — pakai createdAt */}
+                <div>
                   <p className="text-xs text-slate-400 mb-2">Waktu Transaksi</p>
                   <p className="text-sm font-semibold text-slate-800">
-                    {formatTanggal(order.expiredAt
-                      ? new Date(new Date(order.expiredAt).getTime() - 24 * 60 * 60 * 1000).toISOString()
-                      : new Date().toISOString()
-                    )}
+                    {order.createdAt ? formatTanggal(order.createdAt) : '-'}
                   </p>
                 </div>
 
-                <div className="col-span-1 flex flex-col items-start">
+                {/* Status */}
+                <div>
                   <p className="text-xs text-slate-400 mb-2">Status</p>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-400 text-white uppercase tracking-wide">
-                    {order.status === 'pending' ? 'PENDING' : order.status.toUpperCase()}
-                  </span>
+                  <StatusBadge status={order.status} />
                 </div>
               </div>
             </div>
@@ -586,8 +672,8 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
               </div>
             </div>
 
-            {/* ✅ VA Number — hitam, rapi, satu baris, tanpa "Atas nama PT. PintuASN" */}
-            {order.vaNumber && (
+            {/* VA Number */}
+            {order.vaNumber && !isExpiredOrCancelled && (
               <div className="bg-white rounded-xl border border-slate-200 p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="font-bold text-slate-800 text-sm">Nomor Virtual Account</h2>
@@ -596,7 +682,6 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
                   </span>
                 </div>
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                  {/* ✅ font-mono + whitespace-nowrap + overflow-hidden memastikan satu baris */}
                   <span className="font-mono font-bold text-slate-900 text-xl flex-1 tracking-widest whitespace-nowrap overflow-hidden">
                     {order.vaNumber}
                   </span>
@@ -608,7 +693,6 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
                     {copied ? 'Disalin!' : 'Salin'}
                   </button>
                 </div>
-                {/* ✅ Keterangan transfer nominal saja, tanpa atas nama */}
                 <p className="text-xs text-slate-400 mt-2 text-center">
                   Transfer tepat {formatRupiah(order.total)}
                 </p>
@@ -616,7 +700,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
             )}
 
             {/* QRIS */}
-            {order.qrisUrl && (
+            {order.qrisUrl && !isExpiredOrCancelled && (
               <div className="bg-white rounded-xl border border-slate-200 p-5 text-center">
                 <h2 className="font-bold text-slate-800 text-sm mb-3">Scan QR Code</h2>
                 <div className="inline-block p-3 bg-white border border-slate-200 rounded-xl">
@@ -627,13 +711,17 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
             )}
 
             {/* eWallet */}
-            {order.ewalletUrl && (
+            {order.ewalletUrl && !isExpiredOrCancelled && (
               <div className="bg-white rounded-xl border border-slate-200 p-5">
                 <h2 className="font-bold text-slate-800 text-sm mb-3">
                   Bayar dengan {activeMethod?.name}
                 </h2>
-                <a href={order.ewalletUrl} target="_blank" rel="noopener noreferrer"
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition">
+                <a
+                  href={order.ewalletUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition"
+                >
                   Buka Aplikasi & Bayar
                 </a>
                 <p className="text-xs text-slate-400 text-center mt-2">Kamu akan diarahkan ke aplikasi e-wallet</p>
@@ -641,7 +729,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
             )}
 
             {/* Instructions */}
-            {instructions && (
+            {instructions && !isExpiredOrCancelled && (
               <div className="bg-white rounded-xl border border-slate-200 p-5">
                 <h2 className="font-bold text-slate-800 text-sm mb-3">Cara Pembayaran</h2>
                 <div className="space-y-2">
@@ -672,27 +760,42 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
               </div>
             )}
 
-            <button
-              onClick={handleCheckStatus}
-              disabled={loadingStatus}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
-            >
-              {loadingStatus ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-              Cek Status Pembayaran
-            </button>
+            {/* Action buttons — hanya tampil kalau masih pending */}
+            {!isExpiredOrCancelled && order.status === 'pending' && (
+              <>
+                <button
+                  onClick={handleCheckStatus}
+                  disabled={loadingStatus}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
+                >
+                  {loadingStatus ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                  Cek Status Pembayaran
+                </button>
 
-            <button
-              onClick={handleCancel}
-              disabled={cancelLoading}
-              className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 hover:border-red-300 hover:bg-red-50 py-3 rounded-xl transition disabled:opacity-50"
-            >
-              {cancelLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
-              Batalkan Pesanan
-            </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={cancelLoading}
+                  className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 hover:border-red-300 hover:bg-red-50 py-3 rounded-xl transition disabled:opacity-50"
+                >
+                  {cancelLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                  Batalkan Pesanan
+                </button>
 
-            <button onClick={() => setStep(1)} className="w-full text-sm text-slate-400 hover:text-slate-600 transition py-1">
-              ← Ganti metode pembayaran
-            </button>
+                <button onClick={() => setStep(1)} className="w-full text-sm text-slate-400 hover:text-slate-600 transition py-1">
+                  ← Ganti metode pembayaran
+                </button>
+              </>
+            )}
+
+            {/* Jika expired/cancel — tombol kembali */}
+            {isExpiredOrCancelled && (
+              <button
+                onClick={() => router.push('/beli-paket')}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition"
+              >
+                Kembali ke Halaman Paket
+              </button>
+            )}
           </>
         )}
 
