@@ -17,7 +17,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-semibold text-slate-700">
-        {label} <span className="text-red-500">*</span>
+        {label}
       </label>
       {children}
     </div>
@@ -61,6 +61,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
     district: '',
     postal_code: '',
     target_institution: '',
+    referral_source: '',
   });
 
   const set = (field: keyof typeof form, value: string) =>
@@ -71,8 +72,6 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
   };
 
   const handleSubmit = async () => {
-    // ── Validasi per field — urutan sesuai tampilan form ────────────────
-
     if (!form.full_name.trim()) {
       toast.error('Nama lengkap wajib diisi');
       return;
@@ -148,14 +147,13 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
       return;
     }
 
-    // ────────────────────────────────────────────────────────────────────
-
     setIsLoading(true);
     try {
       const genderMap: Record<string, string> = { Pria: 'male', Wanita: 'female' };
       const payload = {
         ...form,
         gender: genderMap[form.gender] ?? form.gender ?? null,
+        referral_source: form.referral_source || null,
         onboarding_completed: true,
       };
 
@@ -203,7 +201,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
           </div>
         </Field>
 
-        {/* Email — readonly, tidak wajib karena dari akun */}
+        {/* Email — readonly */}
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-700">Email</label>
           <div className="relative">
@@ -248,9 +246,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
 
         {/* Jenis Kelamin */}
         <div className="space-y-1.5 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700">
-            Jenis Kelamin <span className="text-red-500">*</span>
-          </label>
+          <label className="text-sm font-semibold text-slate-700">Jenis Kelamin</label>
           <div className="grid grid-cols-2 gap-3">
             {(['Pria', 'Wanita'] as const).map(g => (
               <button
@@ -301,9 +297,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
 
         {/* Alamat */}
         <div className="space-y-1.5 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700">
-            Alamat <span className="text-red-500">*</span>
-          </label>
+          <label className="text-sm font-semibold text-slate-700">Alamat</label>
           <textarea
             value={form.address}
             onChange={e => set('address', e.target.value)}
@@ -344,6 +338,22 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
             placeholder="Nama kecamatan..."
             className={plainInputClass}
           />
+        </Field>
+
+        {/* Dari mana tahu PintuAsn */}
+        <Field label="Dari mana tahu PintuAsn?">
+          <select
+            value={form.referral_source}
+            onChange={e => set('referral_source', e.target.value)}
+            className={plainInputClass}
+          >
+            <option value="">-- Pilih sumber --</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Google">Google</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Youtube">Youtube</option>
+            <option value="Facebook">Facebook</option>
+          </select>
         </Field>
 
       </div>

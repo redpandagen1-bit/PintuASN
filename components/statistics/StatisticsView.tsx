@@ -212,17 +212,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
     };
   }, [data]);
 
-  if (stats.totalAttempts === 0) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <div className="text-slate-400 text-6xl mb-4">📊</div>
-          <h3 className="text-lg font-medium text-slate-900 mb-2">Belum ada data statistik</h3>
-          <p className="text-slate-500">Selesaikan tryout untuk melihat statistik performa Anda</p>
-        </div>
-      </div>
-    );
-  }
+  
 
   const percentileText = ranking 
     ? `Anda lebih unggul dari ${Math.round((1 - (ranking.user_rank / ranking.total_users)) * 100)}% peserta lain.`

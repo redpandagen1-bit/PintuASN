@@ -45,15 +45,26 @@ export interface Package {
 export interface Question {
   id: string;
   category: 'TWK' | 'TIU' | 'TKP';
-  question_text: string;
-  question_image_url?: string;
-  explanation?: string;
-  explanation_image_url?: string;
+  content: string;                // ← sesuai queries.ts & exam-interface
+  image_url?: string | null;      // ← sesuai queries.ts & exam-interface
+  explanation?: string | null;
+  topic?: string | null;          // ← dipakai di queries.ts
   difficulty: 'easy' | 'medium' | 'hard';
   is_active: boolean;
   is_deleted: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface Choice {
+  id: string;
+  question_id: string;
+  label: string;                  // ← sesuai ReviewChoice
+  content: string;                // ← sesuai ReviewChoice & exam-interface
+  image_url?: string | null;      // ← dipakai di exam-interface
+  is_answer: boolean;             // ← sesuai ReviewChoice & queries.ts
+  score?: number | null;          // ← sesuai ReviewChoice & queries.ts
+  created_at: string;
 }
 
 export interface Choice {

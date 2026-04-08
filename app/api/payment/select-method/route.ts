@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
     }
 
     const adminFee = ['bri_va', 'bca_va', 'mandiri_va', 'other_bank'].includes(methodId) ? 4000 : 0;
-    const total = order.base_price + adminFee;
+    const baseAfterDiscount = order.final_price ?? order.base_price;
+const total = baseAfterDiscount + adminFee;
 
     // Kalau order_id sudah pernah di-charge Midtrans dengan metode berbeda,
     // buat order_id baru dengan suffix metode agar tidak konflik
@@ -151,6 +152,7 @@ export async function POST(req: NextRequest) {
         payment_method: methodId,
         admin_fee: adminFee,
         total,
+        final_price: total,
         va_number: vaNumber,
         midtrans_transaction_id: data.transaction_id,
       })

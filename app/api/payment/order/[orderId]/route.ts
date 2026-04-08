@@ -24,11 +24,16 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
         packageName: order.package_name,
         basePrice: order.base_price,
         adminFee: order.admin_fee,
+        discountAmount: order.discount_amount ?? 0,
+        referralCode: order.referral_code ?? null,
         total: order.total,
+        finalPrice: order.final_price ?? order.total,
         expiredAt: order.expired_at,
         status: order.status,
         paymentMethod: order.payment_method,
         vaNumber: order.va_number,
+        qrisUrl: order.qris_url ?? null,
+        ewalletUrl: order.ewallet_url ?? null,
       },
     });
   } catch (e) {

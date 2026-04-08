@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       base_price: pkg.price,
       admin_fee: 0,
       total: pkg.price,
+      final_price: pkg.price,
       status: 'pending',
       expired_at: expiredAt,
     });

@@ -12,24 +12,15 @@ import {
 } from 'lucide-react';
 import { UpgradeModal }           from '@/components/shared/upgrade-modal';
 
-// ✅ Import dari subscription-utils — AMAN untuk Client Component
 import { canAccess }              from '@/lib/subscription-utils';
 import type { SubscriptionTier }  from '@/lib/subscription-utils';
 
 import type { Material }          from './page';
 
-// ─────────────────────────────────────────────────────────────
-// TIPE
-// ─────────────────────────────────────────────────────────────
-
 interface MateriPageClientProps {
   materials: Material[];
   userTier:  SubscriptionTier;
 }
-
-// ─────────────────────────────────────────────────────────────
-// TABS
-// ─────────────────────────────────────────────────────────────
 
 const TABS = [
   { id: 'INFORMASI', label: 'Informasi CPNS', icon: FileText,
@@ -41,10 +32,6 @@ const TABS = [
   { id: 'TKP', label: 'TKP', icon: BookMarked,
     description: 'Materi TKP: pelayanan publik, sosial budaya, teknologi, dan profesionalisme.' },
 ] as const;
-
-// ─────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────
 
 function getYoutubeId(url: string): string | null {
   try {
@@ -66,10 +53,6 @@ function getGoogleDriveEmbedUrl(url: string): string | null {
   } catch { return null; }
 }
 
-// ─────────────────────────────────────────────────────────────
-// TIER BADGE
-// ─────────────────────────────────────────────────────────────
-
 function TierBadge({ tier }: { tier: Material['tier'] }) {
   if (tier === 'premium')  return (
     <div className="flex items-center gap-1 bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
@@ -83,10 +66,6 @@ function TierBadge({ tier }: { tier: Material['tier'] }) {
   );
   return null;
 }
-
-// ─────────────────────────────────────────────────────────────
-// CONTENT MODAL
-// ─────────────────────────────────────────────────────────────
 
 function ContentModal({ material, onClose }: { material: Material; onClose: () => void }) {
   const ytId         = getYoutubeId(material.content_url);
@@ -103,8 +82,6 @@ function ContentModal({ material, onClose }: { material: Material; onClose: () =
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
       <div className={`bg-slate-900 rounded-2xl w-full shadow-2xl overflow-hidden ${isPdf ? 'max-w-4xl' : 'max-w-3xl'}`}
         onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-700">
           <div className="min-w-0 flex items-center gap-2">
             {isPdf
@@ -136,7 +113,6 @@ function ContentModal({ material, onClose }: { material: Material; onClose: () =
           </div>
         </div>
 
-        {/* Content */}
         {material.type === 'video' && ytId ? (
           <div className="aspect-video bg-black">
             <iframe src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
@@ -177,10 +153,6 @@ function ContentModal({ material, onClose }: { material: Material; onClose: () =
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// MATERI CARD
-// ─────────────────────────────────────────────────────────────
-
 function MateriCard({
   material, userTier, onPlay, onLocked,
 }: {
@@ -200,8 +172,6 @@ function MateriCard({
 
   return (
     <div className="relative bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-200 flex flex-col group">
-
-      {/* Badges */}
       <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1">
         <TierBadge tier={material.tier} />
         {material.is_new && (
@@ -209,7 +179,6 @@ function MateriCard({
         )}
       </div>
 
-      {/* Thumbnail video */}
       {material.type === 'video' && ytId && (
         <div className="relative rounded-t-2xl overflow-hidden cursor-pointer" onClick={handleClick}>
           <img
@@ -236,7 +205,6 @@ function MateriCard({
         </div>
       )}
 
-      {/* Thumbnail PDF */}
       {material.type === 'pdf' && (
         <div
           className={`rounded-t-2xl overflow-hidden border-b cursor-pointer ${
@@ -266,25 +234,20 @@ function MateriCard({
         </div>
       )}
 
-      {/* Body */}
       <div className="p-5 flex-1 flex flex-col">
         <h4 className={`text-sm font-bold mb-1.5 leading-snug pr-16 ${accessible ? 'text-slate-800' : 'text-slate-500'}`}>
           {material.title}
         </h4>
-
         {material.description && (
           <p className="text-xs text-slate-500 leading-relaxed mb-4 line-clamp-2 flex-1">
             {material.description}
           </p>
         )}
-
         {material.duration_minutes && (
           <div className="flex items-center gap-1 text-[11px] text-slate-400 mb-4">
             <Clock size={11} /> <span>{material.duration_minutes} menit</span>
           </div>
         )}
-
-        {/* CTA */}
         {accessible ? (
           <button onClick={handleClick}
             className="w-full py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-800 hover:text-white transition-all duration-200 flex items-center justify-center gap-1.5">
@@ -305,10 +268,6 @@ function MateriCard({
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// EMPTY STATE
-// ─────────────────────────────────────────────────────────────
-
 function EmptyState({ category }: { category: string }) {
   return (
     <div className="col-span-full bg-white rounded-2xl border border-slate-100 p-16 flex flex-col items-center text-center">
@@ -322,10 +281,6 @@ function EmptyState({ category }: { category: string }) {
     </div>
   );
 }
-
-// ─────────────────────────────────────────────────────────────
-// MAIN
-// ─────────────────────────────────────────────────────────────
 
 export default function MateriPageClient({ materials, userTier }: MateriPageClientProps) {
   const [activeTab,      setActiveTab]      = useState<string>('INFORMASI');
@@ -403,29 +358,31 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
           </div>
         </div>
 
-        {/* TABS */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-          <div className="relative">
+        {/* TABS + HEADER GABUNGAN — A & B dijadikan satu */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+
+          {/* Tab buttons — A: lebih kecil */}
+          <div className="relative px-2 pt-2">
             {showLeftArrow && (
               <button onClick={() => scroll('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-1.5 border border-slate-200 hover:bg-slate-50">
-                <ChevronLeft size={16} className="text-slate-600" />
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-1 border border-slate-200 hover:bg-slate-50">
+                <ChevronLeft size={13} className="text-slate-600" />
               </button>
             )}
             <div ref={scrollRef} onScroll={checkScroll}
-              className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-smooth px-6">
+              className="flex gap-1.5 overflow-x-auto scrollbar-hide scroll-smooth px-5">
               {TABS.map(tab => {
                 const Icon    = tab.icon;
                 const isActive = tab.id === activeTab;
                 const count   = materials.filter(m => m.category === tab.id).length;
                 return (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
                       isActive
                         ? 'bg-slate-800 text-yellow-400 shadow-sm'
                         : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-800 hover:text-white'
                     }`}>
-                    <Icon size={16} />
+                    <Icon size={13} />
                     {tab.label}
                     {count > 0 && (
                       <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
@@ -438,27 +395,23 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
             </div>
             {showRightArrow && (
               <button onClick={() => scroll('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-1.5 border border-slate-200 hover:bg-slate-50">
-                <ChevronRight size={16} className="text-slate-600" />
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white shadow-md rounded-full p-1 border border-slate-200 hover:bg-slate-50">
+                <ChevronRight size={13} className="text-slate-600" />
               </button>
             )}
           </div>
-        </div>
 
-        {/* TAB HEADER */}
-        <div className="bg-slate-800 rounded-2xl px-6 py-5 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-yellow-400/10 rounded-xl flex items-center justify-center flex-shrink-0">
-              <activeTabConfig.icon size={20} className="text-yellow-400" />
+          {/* Tab info — B: gabung di bawah tab, tanpa card terpisah */}
+          <div className="flex items-center justify-between px-4 py-2 border-t border-slate-100 mt-2">
+            <div className="flex items-center gap-2">
+              <activeTabConfig.icon size={13} className="text-slate-400 flex-shrink-0" />
+              <p className="text-[11px] text-slate-400 leading-snug">{activeTabConfig.description}</p>
             </div>
-            <div>
-              <h2 className="text-white font-bold text-base">{activeTabConfig.label}</h2>
-              <p className="text-slate-400 text-xs mt-0.5">{activeTabConfig.description}</p>
-            </div>
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100 flex-shrink-0 ml-3">
+              <PlayCircle size={10} /> {tabMaterials.length} Materi
+            </span>
           </div>
-          <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20 flex-shrink-0">
-            <PlayCircle size={12} /> {tabMaterials.length} Materi
-          </span>
+
         </div>
 
         {/* GRID */}
