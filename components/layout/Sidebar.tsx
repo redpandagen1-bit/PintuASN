@@ -29,7 +29,7 @@ const ICON_MAP = {
 // C: Roadmap dihapus dari sini
 // D: Konsultasi dihapus dari sini
 const SECONDARY_ITEMS = [
-  { id: 'event-promo', label: 'Event & Promo', href: '/promo', icon: 'Zap'   },
+  { id: 'event-promo', label: 'Event & Promo', href: '/events-promo', icon: 'Zap'   },
   { id: 'grup',        label: 'Grup',          href: '/grup',  icon: 'Users' },
 ];
 

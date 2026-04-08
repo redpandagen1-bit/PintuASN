@@ -29,7 +29,7 @@ const ICON_MAP = {
 };
 
 const SECONDARY_ITEMS = [
-  { id: 'event-promo',  label: 'Event & Promo', href: '/promo',       icon: 'Zap'           },
+  { id: 'event-promo',  label: 'Event & Promo', href: '/events-promo',       icon: 'Zap'           },
   { id: 'grup',         label: 'Grup',          href: '/grup',        icon: 'Users'         },
   { id: 'konsultasi',   label: 'Konsultasi',    href: '/konsultasi',  icon: 'MessageCircle' },
 ];

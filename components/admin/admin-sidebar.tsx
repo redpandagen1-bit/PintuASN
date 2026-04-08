@@ -21,7 +21,8 @@ const menuItems = [
   { href: '/admin/packages', label: 'Paket Tryout', icon: Package },
   { href: '/admin/materials', label: 'Materi', icon: BookOpen },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/user-info', label: 'Pengaturan Platform', icon: Settings }
+  { href: '/admin/user-info', label: 'User info', icon: Settings },
+  { href: '/admin/events', label: 'Events', icon: Settings }
 ];
 
 // ✅ PINDAHKAN SidebarContent KELUAR dari component utama

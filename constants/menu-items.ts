@@ -68,7 +68,7 @@ export const SECONDARY_MENU_ITEMS: MenuItem[] = [
   {
     id: 'event-promo',
     label: 'Event & Promo',
-    href: '/promo',
+    href: '/events-promo',
     icon: 'Zap',
     isActive: false
   },
