@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'SKD CPNS Tryout Platform',
   description: 'Platform latihan SKD CPNS online terpercaya',
+  verification: {
+    google: 'ZhzlrinPB9UdAt8_s6QlU19A8GcbDNcToDC6eBLramI',
+  },
 };
 
 export default function RootLayout({
