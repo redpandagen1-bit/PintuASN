@@ -1,8 +1,14 @@
 // ============================================================
-// constants/roadmap-data.ts
+// constants/roadmap-data.ts  (replace seluruh file lama)
 // ============================================================
 
-import type { RoadmapPhase, Milestone, RoadmapPageData, CategoryScore } from '@/types/roadmap';
+import type {
+  RoadmapPhase,
+  RoadmapPageData,
+  CategoryScore,
+  Milestone,
+  PhaseId,
+} from '@/types/roadmap';
 
 // ─────────────────────────────────────────────────────────────
 // PASSING GRADES (resmi BKN)
@@ -14,123 +20,189 @@ export const PASSING_GRADES = {
 } as const;
 
 // ─────────────────────────────────────────────────────────────
-// FASE PERSIAPAN
-// Urutan: Kenali → Kuasai → Latihan → Simulasi → Evaluasi → Siap
+// THRESHOLD per STEP
 // ─────────────────────────────────────────────────────────────
-export const ROADMAP_PHASES: Omit<RoadmapPhase, 'status'>[] = [
+export const THRESHOLDS = {
+  INFORMASI_VIEW:       1,    // step 1
+  MATERI_AWAL_VIEW:     4,    // step 2
+  SIMULASI_AWAL:        2,    // step 3
+  MATERI_LANJUT_VIEW:   8,    // step 4
+  SIMULASI_INTENSIF:    6,    // step 5
+  // step 6: allPassed (avg >= passing grade)
+  EVALUASI_TRYOUT:      20,   // step 7
+  SILVER_SCORE:         475,  // step 8
+  GOLD_SCORE:           500,  // step 9
+} as const;
+
+// ─────────────────────────────────────────────────────────────
+// DEFINISI 9 FASE (statis — tanpa status)
+// ─────────────────────────────────────────────────────────────
+const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
   {
-    id: 1,
+    id: 'kenali_ujian',
+    step: 1,
     title: 'Kenali Ujian',
-    description: 'Pahami format, aturan, dan struktur SKD',
+    description: 'Pahami format, struktur, dan aturan SKD CPNS 2026',
+    detail:
+      'Sebelum berlatih, pastikan Anda memahami secara menyeluruh mekanisme Seleksi Kompetensi Dasar (SKD): komposisi soal (TWK, TIU, TKP), sistem penilaian CAT BKN, passing grade masing-masing kategori, serta tata cara pelaksanaan ujian di lokasi. Pemahaman ini adalah fondasi agar setiap sesi latihan berjalan terarah.',
+    requirement: 'Buka minimal 1 materi "Format & Informasi Ujian" di halaman Materi.',
     icon: '🔍',
-    detail: 'Pelajari struktur soal TWK, TIU, TKP, durasi ujian 100 menit, dan sistem penilaian CAT BKN.',
+    ctaLabel: 'Buka Materi',
+    ctaHref: '/materi',
   },
   {
-    id: 2,
-    title: 'Kuasai Materi',
-    description: 'Pelajari materi inti tiap kategori',
+    id: 'kuasai_materi_awal',
+    step: 2,
+    title: 'Penguatan Materi Awal',
+    description: 'Bangun pemahaman dasar pada tiga kategori SKD',
+    detail:
+      'Tahap ini berfokus pada pembangunan fondasi pengetahuan. Pelajari konsep-konsep inti pada kategori TWK (Wawasan Kebangsaan), TIU (Intelegensi Umum), dan TKP (Karakteristik Pribadi). Manfaatkan materi dalam format video maupun PDF yang tersedia untuk memperluas wawasan sebelum mulai mengerjakan soal latihan.',
+    requirement:
+      'Akses minimal 4 materi dari kategori TWK, TIU, atau TKP (video atau PDF).',
+    icon: '📖',
+    ctaLabel: 'Buka Materi',
+    ctaHref: '/materi',
+  },
+  {
+    id: 'simulasi_awal',
+    step: 3,
+    title: 'Simulasi Awal',
+    description: 'Ukur kemampuan awal dengan mengerjakan tryout perdana',
+    detail:
+      'Setelah memiliki pemahaman dasar, saatnya mengukur posisi Anda secara objektif. Kerjakan tryout untuk mengetahui distribusi skor awal pada setiap kategori. Hasil ini akan menjadi baseline yang memandu fokus belajar Anda ke depan. Jangan khawatir dengan skor — tujuan utama tahap ini adalah pemetaan, bukan pencapaian.',
+    requirement: 'Selesaikan minimal 2 paket tryout hingga tuntas.',
+    icon: '📝',
+    ctaLabel: 'Mulai Tryout',
+    ctaHref: '/daftar-tryout',
+  },
+  {
+    id: 'kuasai_materi_lanjut',
+    step: 4,
+    title: 'Pendalaman Materi',
+    description: 'Perdalam pemahaman berdasarkan hasil evaluasi awal',
+    detail:
+      'Berbekal data dari simulasi awal, identifikasi kategori dengan skor paling lemah dan prioritaskan pendalaman pada area tersebut. Eksplorasi lebih banyak materi — termasuk topik-topik spesifik dalam TWK, TIU, dan TKP — untuk menutup celah pengetahuan yang ditemukan. Kualitas pemahaman pada tahap ini akan sangat menentukan laju peningkatan skor.',
+    requirement:
+      'Akses minimal 8 materi dari kategori TWK, TIU, atau TKP (video atau PDF).',
     icon: '📚',
-    detail: 'TWK: Pancasila, UUD, NKRI, Bhineka Tunggal Ika. TIU: verbal, numerik, figural. TKP: pelayanan publik, sosial budaya.',
+    ctaLabel: 'Buka Materi',
+    ctaHref: '/materi',
   },
   {
-    id: 3,
-    title: 'Latihan Soal',
-    description: 'Kerjakan tryout untuk mengukur kemampuan',
-    icon: '✏️',
-    detail: 'Targetkan minimal 10 tryout selesai. Fokus pada akurasi, bukan kecepatan dulu.',
+    id: 'simulasi_intensif',
+    step: 5,
+    title: 'Latihan Intensif',
+    description: 'Tingkatkan stamina dan konsistensi melalui latihan berulang',
+    detail:
+      'Tahap ini dirancang untuk membangun konsistensi dan kecepatan menjawab. Kerjakan tryout secara rutin untuk melatih kemampuan manajemen waktu, ketepatan analisis soal, dan ketahanan konsentrasi selama 100 menit penuh. Semakin banyak variasi soal yang Anda temui, semakin tajam intuisi Anda dalam menghadapi pola soal yang beragam.',
+    requirement: 'Selesaikan minimal 6 paket tryout tambahan (total kumulatif).',
+    icon: '💪',
+    ctaLabel: 'Mulai Tryout',
+    ctaHref: '/daftar-tryout',
   },
   {
-    id: 4,
-    title: 'Simulasi CAT',
-    description: 'Simulasi kondisi ujian sesungguhnya',
-    icon: '🖥️',
-    detail: 'Kerjakan tryout dengan timer penuh 100 menit tanpa jeda. Latih manajemen waktu dan mental.',
+    id: 'capai_passing_grade',
+    step: 6,
+    title: 'Capai Passing Grade',
+    description: 'Pastikan rata-rata skor melampaui ambang batas kelulusan',
+    detail:
+      'Ini adalah tonggak kritis dalam perjalanan persiapan Anda. Target tahap ini adalah memastikan rata-rata skor pada seluruh kategori secara konsisten berada di atas passing grade yang ditetapkan BKN: TWK ≥ 65, TIU ≥ 80, dan TKP ≥ 166. Jika salah satu kategori masih di bawah threshold, fokuskan latihan pada kategori tersebut sebelum melanjutkan.',
+    requirement:
+      'Rata-rata skor TWK ≥ 65, TIU ≥ 80, dan TKP ≥ 166 dari seluruh tryout yang dikerjakan.',
+    icon: '🎯',
+    ctaLabel: 'Lihat Statistik',
+    ctaHref: '/statistics',
   },
   {
-    id: 5,
-    title: 'Evaluasi',
-    description: 'Analisis kelemahan dan perbaiki',
-    icon: '📊',
-    detail: 'Review riwayat tryout. Identifikasi kategori dengan skor di bawah passing grade dan fokus perbaikan di sana.',
+    id: 'evaluasi_mendalam',
+    step: 7,
+    title: 'Evaluasi & Optimasi',
+    description: 'Analisis pola kelemahan dan optimalkan strategi menjawab',
+    detail:
+      'Dengan volume latihan yang cukup, saatnya melakukan analisis mendalam terhadap pola kesalahan Anda. Perhatikan topik-topik soal yang sering keliru, evaluasi strategi pengerjaan per kategori, dan identifikasi apakah kelemahan bersifat konseptual atau teknis (mis. kehabisan waktu). Optimasi strategi pada tahap ini adalah yang paling berdampak terhadap peningkatan skor akhir.',
+    requirement: 'Selesaikan minimal 20 paket tryout secara kumulatif.',
+    icon: '🔬',
+    ctaLabel: 'Lihat Riwayat',
+    ctaHref: '/history',
   },
   {
-    id: 6,
-    title: 'Siap Ujian',
-    description: 'Semua skor sudah di atas passing grade',
-    icon: '🏆',
-    detail: 'TWK ≥ 65, TIU ≥ 80, TKP ≥ 166. Jaga konsistensi dan tetap percaya diri.',
+    id: 'silver',
+    step: 8,
+    title: 'Prestasi Silver',
+    description: 'Capai skor final di atas 475 poin',
+    detail:
+      'Meraih skor di atas 475 menandakan Anda telah berada pada level kompetitif yang kuat. Pada level ini, kemampuan Anda sudah secara signifikan melampaui passing grade dan memasuki zona persaingan nyata di antara peserta seleksi. Pertahankan konsistensi dan terus asah kecepatan serta akurasi untuk mencapai level berikutnya.',
+    requirement: 'Raih skor final tertinggi lebih dari 475 poin pada satu paket tryout.',
+    icon: '🥈',
+    ctaLabel: 'Lihat Skor Terbaik',
+    ctaHref: '/statistics',
+  },
+  {
+    id: 'gold',
+    step: 9,
+    title: 'Prestasi Gold',
+    description: 'Capai skor final di atas 500 poin — level tertinggi',
+    detail:
+      'Skor di atas 500 menempatkan Anda di antara peserta dengan performa terbaik. Pencapaian ini mencerminkan penguasaan materi yang komprehensif, strategi menjawab yang efisien, dan ketahanan mental yang terlatih. Anda telah melampaui level latihan biasa dan siap bersaing di posisi terdepan dalam seleksi CPNS.',
+    requirement: 'Raih skor final tertinggi lebih dari 500 poin pada satu paket tryout.',
+    icon: '🥇',
+    ctaLabel: 'Lihat Skor Terbaik',
+    ctaHref: '/statistics',
   },
 ];
 
 // ─────────────────────────────────────────────────────────────
-// MILESTONES
-// ─────────────────────────────────────────────────────────────
-export const getMilestones = (totalCompleted: number, bestScore: number): Milestone[] => [
-  {
-    id: 'first_tryout',
-    label: 'Tryout Pertama',
-    achieved: totalCompleted >= 1,
-    description: 'Selesaikan tryout pertamamu',
-  },
-  {
-    id: 'tryout_5',
-    label: '5 Tryout Selesai',
-    achieved: totalCompleted >= 5,
-    description: 'Konsistensi adalah kunci',
-  },
-  {
-    id: 'tryout_10',
-    label: '10 Tryout Selesai',
-    achieved: totalCompleted >= 10,
-    description: 'Latihan intensif terbukti',
-  },
-  {
-    id: 'tryout_25',
-    label: '25 Tryout Selesai',
-    achieved: totalCompleted >= 25,
-    description: 'Dedikasi tinggi',
-  },
-  {
-    id: 'score_200',
-    label: 'Skor 200+',
-    achieved: bestScore >= 200,
-    description: 'Capai skor final di atas 200',
-  },
-  {
-    id: 'score_300',
-    label: 'Skor 300+',
-    achieved: bestScore >= 300,
-    description: 'Performa sangat baik',
-  },
-];
-
-// ─────────────────────────────────────────────────────────────
-// DERIVE PHASE STATUS dari data user
+// DERIVE PHASE STATUS
+// Setiap fase "completed" jika syaratnya terpenuhi,
+// "active" jika fase sebelumnya completed tapi fase ini belum,
+// "locked" jika fase sebelumnya belum completed.
 // ─────────────────────────────────────────────────────────────
 export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
-  const { totalCompleted, avgTwk, avgTiu, avgTkp } = data;
+  const {
+    informasiViewCount,
+    materiViewCount,
+    totalCompleted,
+    avgTwk,
+    avgTiu,
+    avgTkp,
+    bestFinalScore,
+  } = data;
+
   const allPassed =
     avgTwk >= PASSING_GRADES.TWK &&
     avgTiu >= PASSING_GRADES.TIU &&
     avgTkp >= PASSING_GRADES.TKP;
 
-  // Tentukan phase aktif berdasarkan progress
-  let activePhase = 1;
-  if (totalCompleted >= 1)  activePhase = 2;
-  if (totalCompleted >= 3)  activePhase = 3;
-  if (totalCompleted >= 10) activePhase = 4;
-  if (totalCompleted >= 20) activePhase = 5;
-  if (allPassed)            activePhase = 6;
+  // Evaluasi tiap fase apakah syaratnya terpenuhi
+  const completionChecks: Record<PhaseId, boolean> = {
+    kenali_ujian:         informasiViewCount >= THRESHOLDS.INFORMASI_VIEW,
+    kuasai_materi_awal:   materiViewCount    >= THRESHOLDS.MATERI_AWAL_VIEW,
+    simulasi_awal:        totalCompleted     >= THRESHOLDS.SIMULASI_AWAL,
+    kuasai_materi_lanjut: materiViewCount    >= THRESHOLDS.MATERI_LANJUT_VIEW,
+    simulasi_intensif:    totalCompleted     >= THRESHOLDS.SIMULASI_INTENSIF,
+    capai_passing_grade:  allPassed,
+    evaluasi_mendalam:    totalCompleted     >= THRESHOLDS.EVALUASI_TRYOUT,
+    silver:               bestFinalScore     >  THRESHOLDS.SILVER_SCORE,
+    gold:                 bestFinalScore     >  THRESHOLDS.GOLD_SCORE,
+  };
 
-  return ROADMAP_PHASES.map((phase) => ({
-    ...phase,
-    status:
-      phase.id < activePhase
-        ? 'completed'
-        : phase.id === activePhase
-        ? 'active'
-        : 'locked',
-  }));
+  // Cari fase aktif pertama yang belum selesai (secara berurutan)
+  let foundActive = false;
+
+  return PHASE_DEFINITIONS.map((phase) => {
+    const isDone = completionChecks[phase.id];
+
+    if (isDone) {
+      return { ...phase, status: 'completed' as const };
+    }
+
+    if (!foundActive) {
+      foundActive = true;
+      return { ...phase, status: 'active' as const };
+    }
+
+    return { ...phase, status: 'locked' as const };
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -139,74 +211,153 @@ export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
 export function deriveCategoryScores(data: RoadmapPageData): CategoryScore[] {
   return [
     {
-      category: 'TWK',
-      avg: data.avgTwk,
+      category:     'TWK',
+      avg:          data.avgTwk,
       passingGrade: PASSING_GRADES.TWK,
-      label: 'Tes Wawasan Kebangsaan',
-      isPassed: data.avgTwk >= PASSING_GRADES.TWK,
-      gap: data.avgTwk - PASSING_GRADES.TWK,
+      label:        'Tes Wawasan Kebangsaan',
+      isPassed:     data.avgTwk >= PASSING_GRADES.TWK,
+      gap:          data.avgTwk - PASSING_GRADES.TWK,
     },
     {
-      category: 'TIU',
-      avg: data.avgTiu,
+      category:     'TIU',
+      avg:          data.avgTiu,
       passingGrade: PASSING_GRADES.TIU,
-      label: 'Tes Intelegensi Umum',
-      isPassed: data.avgTiu >= PASSING_GRADES.TIU,
-      gap: data.avgTiu - PASSING_GRADES.TIU,
+      label:        'Tes Intelegensi Umum',
+      isPassed:     data.avgTiu >= PASSING_GRADES.TIU,
+      gap:          data.avgTiu - PASSING_GRADES.TIU,
     },
     {
-      category: 'TKP',
-      avg: data.avgTkp,
+      category:     'TKP',
+      avg:          data.avgTkp,
       passingGrade: PASSING_GRADES.TKP,
-      label: 'Tes Karakteristik Pribadi',
-      isPassed: data.avgTkp >= PASSING_GRADES.TKP,
-      gap: data.avgTkp - PASSING_GRADES.TKP,
+      label:        'Tes Karakteristik Pribadi',
+      isPassed:     data.avgTkp >= PASSING_GRADES.TKP,
+      gap:          data.avgTkp - PASSING_GRADES.TKP,
     },
   ];
 }
 
 // ─────────────────────────────────────────────────────────────
-// REKOMENDASI TEXT
+// MILESTONES (subset dari fase — highlight pencapaian utama)
+// ─────────────────────────────────────────────────────────────
+export function getMilestones(data: RoadmapPageData): Milestone[] {
+  const phases = derivePhases(data);
+  const isCompleted = (id: PhaseId) =>
+    phases.find((p) => p.id === id)?.status === 'completed';
+
+  return [
+    {
+      id:          'kenali_ujian',
+      label:       'Kenali Ujian',
+      achieved:    isCompleted('kenali_ujian'),
+      description: 'Membuka materi format ujian',
+    },
+    {
+      id:          'simulasi_awal',
+      label:       'Simulasi Perdana',
+      achieved:    isCompleted('simulasi_awal'),
+      description: '2 tryout pertama selesai',
+    },
+    {
+      id:          'capai_passing_grade',
+      label:       'Passing Grade',
+      achieved:    isCompleted('capai_passing_grade'),
+      description: 'Semua kategori melampaui ambang batas',
+    },
+    {
+      id:          'evaluasi_mendalam',
+      label:       'Evaluasi Mendalam',
+      achieved:    isCompleted('evaluasi_mendalam'),
+      description: '20 tryout kumulatif selesai',
+    },
+    {
+      id:          'silver',
+      label:       'Silver',
+      achieved:    isCompleted('silver'),
+      description: 'Skor terbaik > 475',
+    },
+    {
+      id:          'gold',
+      label:       'Gold',
+      achieved:    isCompleted('gold'),
+      description: 'Skor terbaik > 500',
+    },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// REKOMENDASI
 // ─────────────────────────────────────────────────────────────
 export function getRekomendasi(data: RoadmapPageData): {
   priority: 'TWK' | 'TIU' | 'TKP' | null;
   message: string;
   action: string;
+  href: string;
 } {
-  const { totalCompleted, avgTwk, avgTiu, avgTkp } = data;
+  const phases = derivePhases(data);
+  const activePhase = phases.find((p) => p.status === 'active');
 
-  if (totalCompleted === 0) {
+  // Jika semua fase selesai
+  if (!activePhase) {
     return {
       priority: null,
-      message: 'Belum ada data tryout. Mulai dengan mengerjakan tryout pertamamu!',
+      message:
+        'Luar biasa! Anda telah menyelesaikan seluruh tahap persiapan. Pertahankan konsistensi latihan menjelang hari ujian.',
+      action:  'Lihat Statistik',
+      href:    '/statistics',
+    };
+  }
+
+  // Jika step berkaitan dengan materi
+  if (
+    activePhase.id === 'kenali_ujian' ||
+    activePhase.id === 'kuasai_materi_awal' ||
+    activePhase.id === 'kuasai_materi_lanjut'
+  ) {
+    return {
+      priority: null,
+      message:  `Langkah berikutnya: ${activePhase.title}. ${activePhase.requirement}`,
+      action:   'Buka Materi',
+      href:     '/materi',
+    };
+  }
+
+  // Jika step berkaitan dengan tryout
+  if (activePhase.id === 'simulasi_awal' || activePhase.id === 'simulasi_intensif') {
+    return {
+      priority: null,
+      message:  `Langkah berikutnya: ${activePhase.title}. ${activePhase.requirement}`,
+      action:   'Mulai Tryout',
+      href:     '/daftar-tryout',
+    };
+  }
+
+  // Jika step 6: cari kategori yang paling perlu diperbaiki
+  if (activePhase.id === 'capai_passing_grade') {
+    const failing = [
+      { cat: 'TWK' as const, gap: PASSING_GRADES.TWK - data.avgTwk },
+      { cat: 'TIU' as const, gap: PASSING_GRADES.TIU - data.avgTiu },
+      { cat: 'TKP' as const, gap: PASSING_GRADES.TKP - data.avgTkp },
+    ]
+      .filter((x) => x.gap > 0)
+      .sort((a, b) => b.gap - a.gap);
+
+    const worst = failing[0];
+    return {
+      priority: worst?.cat ?? null,
+      message:  worst
+        ? `Fokuskan latihan pada ${worst.cat} — masih kurang ${worst.gap} poin dari passing grade.`
+        : 'Rata-rata skor Anda sudah mendekati passing grade. Terus konsisten!',
       action: 'Mulai Tryout',
+      href:   '/daftar-tryout',
     };
   }
 
-  const failing: { category: 'TWK' | 'TIU' | 'TKP'; gap: number }[] = [];
-  if (avgTwk < PASSING_GRADES.TWK) failing.push({ category: 'TWK', gap: PASSING_GRADES.TWK - avgTwk });
-  if (avgTiu < PASSING_GRADES.TIU) failing.push({ category: 'TIU', gap: PASSING_GRADES.TIU - avgTiu });
-  if (avgTkp < PASSING_GRADES.TKP) failing.push({ category: 'TKP', gap: PASSING_GRADES.TKP - avgTkp });
-
-  if (failing.length === 0) {
-    return {
-      priority: null,
-      message: 'Rata-rata skormu sudah melewati semua passing grade! Jaga konsistensi dan terus latihan.',
-      action: 'Lihat Statistik',
-    };
-  }
-
-  // Prioritaskan yang gap-nya paling besar
-  const worst = failing.sort((a, b) => b.gap - a.gap)[0];
-  const categoryLabel: Record<string, string> = {
-    TWK: 'Tes Wawasan Kebangsaan (TWK)',
-    TIU: 'Tes Intelegensi Umum (TIU)',
-    TKP: 'Tes Karakteristik Pribadi (TKP)',
-  };
-
+  // Evaluasi, Silver, Gold
   return {
-    priority: worst.category,
-    message: `Fokus ke ${categoryLabel[worst.category]}. Rata-ratamu masih kurang ${worst.gap} poin dari passing grade.`,
-    action: 'Lihat Materi',
+    priority: null,
+    message:  `Langkah berikutnya: ${activePhase.title}. ${activePhase.requirement}`,
+    action:   activePhase.ctaLabel ?? 'Lihat Detail',
+    href:     activePhase.ctaHref  ?? '/statistics',
   };
 }

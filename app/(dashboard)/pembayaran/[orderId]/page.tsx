@@ -5,7 +5,8 @@ import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Clock, Copy, Check, ChevronDown, ChevronUp,
-  Loader2, CheckCircle2, XCircle, RefreshCw, Tag, ChevronRight, X
+  Loader2, CheckCircle2, XCircle, RefreshCw, Tag, ChevronRight, X,
+  CreditCard,
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -14,9 +15,10 @@ import Image from 'next/image';
 interface PaymentMethod {
   id: string;
   name: string;
-  type: 'va' | 'qris' | 'ewallet';
+  type: 'va' | 'qris' | 'ewallet' | 'cstore';
   bank?: string;
   adminFee: number;
+  group: string;
 }
 
 interface OrderData {
@@ -29,41 +31,43 @@ interface OrderData {
   total: number;
   finalPrice: number;
   expiredAt: string;
-  createdAt: string;
   status: string;
   paymentMethod?: string;
   vaNumber?: string;
   qrisUrl?: string;
   ewalletUrl?: string;
+  paymentCode?: string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'bri_va',     name: 'BRI Virtual Account',     type: 'va',      bank: 'bri',     adminFee: 4000 },
-  { id: 'bca_va',     name: 'BCA Virtual Account',     type: 'va',      bank: 'bca',     adminFee: 4000 },
-  { id: 'mandiri_va', name: 'Mandiri Virtual Account', type: 'va',      bank: 'mandiri', adminFee: 4000 },
-  { id: 'qris',       name: 'QRIS',                    type: 'qris',                     adminFee: 0    },
-  { id: 'gopay',      name: 'GoPay',                   type: 'ewallet',                  adminFee: 0    },
-  { id: 'dana',       name: 'DANA',                    type: 'ewallet',                  adminFee: 0    },
-  { id: 'shopeepay',  name: 'ShopeePay',               type: 'ewallet',                  adminFee: 0    },
-  { id: 'other_bank', name: 'SeaBank & Bank Lain',     type: 'va',      bank: 'permata', adminFee: 4000 },
+  { id: 'bri_va',     name: 'BRI',        type: 'va',      bank: 'bri',     adminFee: 4000, group: 'Bank Transfer' },
+  { id: 'bca_va',     name: 'BCA',        type: 'va',      bank: 'bca',     adminFee: 4000, group: 'Bank Transfer' },
+  { id: 'mandiri_va', name: 'Mandiri',    type: 'va',      bank: 'mandiri', adminFee: 4000, group: 'Bank Transfer' },
+  { id: 'bni_va',     name: 'BNI',        type: 'va',      bank: 'bni',     adminFee: 4000, group: 'Bank Transfer' },
+  { id: 'qris',       name: 'QRIS',       type: 'qris',                     adminFee: 0,    group: 'QRIS' },
+  { id: 'gopay',      name: 'GoPay',      type: 'ewallet',                  adminFee: 0,    group: 'E-Wallet' },
+  { id: 'shopeepay',  name: 'ShopeePay',  type: 'ewallet',                  adminFee: 0,    group: 'E-Wallet' },
+  { id: 'dana',       name: 'DANA',       type: 'ewallet',                  adminFee: 0,    group: 'E-Wallet' },
+  { id: 'alfamart',   name: 'Alfamart',   type: 'cstore',                   adminFee: 2500, group: 'Convenience Store' },
+  { id: 'indomaret',  name: 'Indomaret',  type: 'cstore',                   adminFee: 2500, group: 'Convenience Store' },
 ];
 
-const BANK_LOGOS: Record<string, string> = {
-  bri:     'https://upload.wikimedia.org/wikipedia/commons/6/68/BANK_BRI_logo.svg',
-  bca:     'https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg',
-  mandiri: 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg',
-  permata: 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Logo_Permata_Bank.svg',
-};
+const METHOD_GROUPS = ['QRIS', 'Bank Transfer', 'E-Wallet', 'Convenience Store'];
 
-const EWALLET_LOGOS: Record<string, string> = {
+const METHOD_LOGOS: Record<string, string> = {
+  bri_va:    'https://upload.wikimedia.org/wikipedia/commons/6/68/BANK_BRI_logo.svg',
+  bca_va:    'https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg',
+  mandiri_va:'https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg',
+  bni_va:    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/BNI_logo.svg/320px-BNI_logo.svg.png',
+  qris:      'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg',
   gopay:     'https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg',
+  shopeepay: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Logo_ShopeePay.png/320px-Logo_ShopeePay.png',
   dana:      'https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg',
-  shopeepay: 'https://upload.wikimedia.org/wikipedia/commons/f/f6/ShopeePay_Logo.svg',
+  alfamart:  'https://upload.wikimedia.org/wikipedia/commons/d/d6/Alfamart_logo.svg',
+  indomaret: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Indomaret_logo2022.svg/320px-Indomaret_logo2022.svg.png',
 };
-
-const QRIS_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg';
 
 const VA_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
   bri: [
@@ -78,19 +82,22 @@ const VA_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
     { title: 'Livin by Mandiri', steps: ['Login Livin → Bayar → Multipayment', 'Cari "Midtrans" sebagai penyedia', 'Masukkan kode pembayaran (VA number)', 'Konfirmasi dan masukkan PIN', 'Pembayaran selesai.'] },
     { title: 'ATM Mandiri', steps: ['Pilih Bayar/Beli → Lainnya → Lainnya → Multipayment', 'Masukkan kode perusahaan: 88608, lanjut masukkan VA number', 'Konfirmasi dan selesai.'] },
   ],
-  permata: [
-    { title: 'SeaBank / Bank Lain (Transfer)', steps: ['Buka aplikasi bank Anda', 'Pilih Transfer → Virtual Account / Rekening Lain', 'Masukkan nomor VA yang tertera', 'Konfirmasi nominal dan transfer', 'Pembayaran selesai.'] },
+  bni: [
+    { title: 'BNI Mobile Banking', steps: ['Login BNI Mobile → Transfer → Virtual Account Billing', 'Masukkan nomor Virtual Account', 'Konfirmasi dan masukkan PIN', 'Pembayaran berhasil.'] },
+    { title: 'ATM BNI', steps: ['Pilih Menu Lain → Transfer → Rekening Tabungan', 'Masukkan nomor Virtual Account', 'Konfirmasi jumlah dan proses.'] },
+  ],
+};
+
+const CSTORE_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
+  alfamart: [
+    { title: 'Alfamart', steps: ['Kunjungi gerai Alfamart terdekat', 'Tunjukkan kode pembayaran ke kasir', 'Kasir akan proses pembayaran', 'Simpan struk sebagai bukti pembayaran.'] },
+  ],
+  indomaret: [
+    { title: 'Indomaret', steps: ['Kunjungi gerai Indomaret terdekat', 'Informasikan kode pembayaran ke kasir', 'Kasir akan memproses transaksi', 'Simpan struk sebagai bukti.'] },
   ],
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getMethodLogo(method: PaymentMethod): string | null {
-  if (method.bank && BANK_LOGOS[method.bank]) return BANK_LOGOS[method.bank];
-  if (method.type === 'ewallet' && EWALLET_LOGOS[method.id]) return EWALLET_LOGOS[method.id];
-  if (method.type === 'qris') return QRIS_LOGO;
-  return null;
-}
 
 function formatRupiah(n: number) {
   return 'Rp ' + n.toLocaleString('id-ID');
@@ -103,13 +110,8 @@ function formatTanggal(iso: string) {
   });
 }
 
-// ─── Countdown Hook ───────────────────────────────────────────────────────────
-// Menggunakan expiredAt dari server — TIDAK bergantung pada durasi lokal
-// sehingga tetap akurat meski user keluar/masuk halaman.
-
-function useCountdown(expiredAt: string | null) {
+function useCountdown(expiredAt: string, active: boolean) {
   const calc = useCallback(() => {
-    if (!expiredAt) return { h: 0, m: 0, s: 0, expired: true };
     const diff = new Date(expiredAt).getTime() - Date.now();
     if (diff <= 0) return { h: 0, m: 0, s: 0, expired: true };
     const h = Math.floor(diff / 3600000);
@@ -119,54 +121,94 @@ function useCountdown(expiredAt: string | null) {
   }, [expiredAt]);
 
   const [time, setTime] = useState(calc);
-
   useEffect(() => {
-    // Recalculate langsung saat expiredAt berubah
-    setTime(calc());
+    if (!active) return;
     const t = setInterval(() => setTime(calc()), 1000);
     return () => clearInterval(t);
-  }, [calc]);
-
+  }, [calc, active]);
   return time;
 }
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+// ─── Payment Method Picker Modal ──────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: string }) {
-  const s = status.toLowerCase();
-
-  if (s === 'pending') {
-    return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-white uppercase tracking-wide">
-        Menunggu Pembayaran
-      </span>
-    );
-  }
-  if (s === 'settlement' || s === 'capture' || s === 'success') {
-    return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white uppercase tracking-wide">
-        Berhasil
-      </span>
-    );
-  }
-  if (s === 'expired' || s === 'expire') {
-    return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-400 text-white uppercase tracking-wide">
-        Dibatalkan
-      </span>
-    );
-  }
-  if (s === 'cancel' || s === 'cancelled') {
-    return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-400 text-white uppercase tracking-wide">
-        Dibatalkan
-      </span>
-    );
-  }
+function PaymentMethodModal({
+  selected,
+  onSelect,
+  onClose,
+}: {
+  selected: PaymentMethod | null;
+  onSelect: (m: PaymentMethod) => void;
+  onClose: () => void;
+}) {
   return (
-    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-600 uppercase tracking-wide">
-      {status}
-    </span>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Sheet */}
+      <div className="relative bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between z-10">
+          <h2 className="font-bold text-slate-900 text-base">Pilih Metode Pembayaran</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 transition"
+          >
+            <X size={16} className="text-slate-600" />
+          </button>
+        </div>
+
+        {/* Groups */}
+        <div className="p-4 space-y-5 pb-8">
+          {METHOD_GROUPS.map((group) => {
+            const methods = PAYMENT_METHODS.filter(m => m.group === group);
+            if (!methods.length) return null;
+            return (
+              <div key={group}>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 px-1">{group}</p>
+                <div className="space-y-2">
+                  {methods.map((method) => {
+                    const logo = METHOD_LOGOS[method.id];
+                    const isSelected = selected?.id === method.id;
+                    return (
+                      <button
+                        key={method.id}
+                        onClick={() => { onSelect(method); onClose(); }}
+                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all text-left
+                          ${isSelected
+                            ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
+                            : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'}
+                        `}
+                      >
+                        <div className="w-10 h-10 flex-shrink-0 bg-white border border-slate-100 rounded-lg flex items-center justify-center overflow-hidden shadow-sm">
+                          {logo ? (
+                            <Image src={logo} alt={method.name} width={36} height={36} className="object-contain p-1" unoptimized />
+                          ) : (
+                            <span className="text-[10px] font-bold text-slate-600">{method.name.slice(0, 3).toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-800">{method.name}</p>
+                          {method.adminFee > 0
+                            ? <p className="text-xs text-slate-400">+{formatRupiah(method.adminFee)} biaya admin</p>
+                            : <p className="text-xs text-emerald-500">Gratis biaya admin</p>
+                          }
+                        </div>
+                        {/* Radio */}
+                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all
+                          ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'}`}>
+                          {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -178,31 +220,33 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
   const router = useRouter();
   const { orderId } = use(params);
 
-  const [order, setOrder]               = useState<OrderData | null>(null);
+  const [order, setOrder] = useState<OrderData | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
-  const [step, setStep]                 = useState<Step>(1);
+  const [step, setStep] = useState<Step>(1);
   const [loadingMethod, setLoadingMethod] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [openInstruction, setOpenInstruction] = useState<number | null>(0);
-  const [copied, setCopied]             = useState(false);
-  const [pageLoading, setPageLoading]   = useState(true);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [pageLoading, setPageLoading] = useState(true);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [showMethodModal, setShowMethodModal] = useState(false);
 
-  const [referralInput, setReferralInput]   = useState('');
+  const [referralInput, setReferralInput] = useState('');
   const [referralLoading, setReferralLoading] = useState(false);
-  const [referralError, setReferralError]   = useState('');
+  const [referralError, setReferralError] = useState('');
   const [referralApplied, setReferralApplied] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountPercent, setDiscountPercent] = useState<number | null>(null);
 
-  // ── Fetch order ──────────────────────────────────────────────────────────────
+  // Fetch order
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res  = await fetch(`/api/payment/order/${orderId}`);
+        const res = await fetch(`/api/payment/order/${orderId}`);
         const data = await res.json();
         if (data.order) {
           setOrder(data.order);
-          if (data.order.vaNumber || data.order.qrisUrl || data.order.ewalletUrl) {
+          if (data.order.vaNumber || data.order.qrisUrl || data.order.ewalletUrl || data.order.paymentCode) {
             const method = PAYMENT_METHODS.find(m => m.id === data.order.paymentMethod);
             if (method) setSelectedMethod(method);
             setStep(2);
@@ -222,45 +266,35 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     fetchOrder();
   }, [orderId]);
 
-  // ── Poll status (tiap 5 detik, hanya kalau pending) ──────────────────────────
+  // Auto-poll status (only when on step 2)
   useEffect(() => {
-    if (!order || order.status !== 'pending') return;
-
-    const poll = async () => {
+    if (!order || order.status !== 'pending' || step !== 2) return;
+    const t = setInterval(async () => {
       try {
-        const res  = await fetch(`/api/payment/status/${orderId}`);
+        const res = await fetch(`/api/payment/status/${orderId}`);
         const data = await res.json();
         if (data.status === 'settlement' || data.status === 'capture') {
           router.push('/dashboard?payment=success');
-        } else if (data.status === 'expire' || data.status === 'cancel' || data.status === 'deny') {
-          setOrder(prev => prev ? { ...prev, status: 'expired' } : prev);
+        } else if (data.status === 'expire' || data.status === 'cancel') {
+          setOrder(prev => prev ? { ...prev, status: data.status } : prev);
         }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    const t = setInterval(poll, 5000);
+      } catch (e) { console.error(e); }
+    }, 5000);
     return () => clearInterval(t);
-  }, [order?.status, orderId, router]);
+  }, [order, orderId, router, step]);
 
-  // ── Auto-expire di client saat countdown habis ────────────────────────────────
-  // Ini hanya mengupdate UI, DB sudah diupdate di server saat fetch
-  const countdown = useCountdown(order?.expiredAt ?? null);
+  const countdown = useCountdown(
+    order?.expiredAt ?? new Date(Date.now() + 86400000).toISOString(),
+    step === 2
+  );
 
-  useEffect(() => {
-    if (countdown.expired && order?.status === 'pending') {
-      setOrder(prev => prev ? { ...prev, status: 'expired' } : prev);
-    }
-  }, [countdown.expired, order?.status]);
-
-  // ── Referral ──────────────────────────────────────────────────────────────────
+  // Referral apply
   const handleApplyReferral = async () => {
     if (!order || !referralInput.trim()) return;
     setReferralLoading(true);
     setReferralError('');
     try {
-      const res  = await fetch('/api/payment/referral', {
+      const res = await fetch('/api/payment/referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: referralInput.trim(), basePrice: order.basePrice }),
@@ -269,6 +303,12 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
       if (!res.ok) { setReferralError(data.error || 'Kode tidak valid'); return; }
       setDiscountAmount(data.discountAmount);
       setReferralApplied(true);
+      // Simpan persentase jika ada
+      if (data.discountType === 'percent') {
+        setDiscountPercent(data.discountValue);
+      } else {
+        setDiscountPercent(null);
+      }
       setOrder(prev => prev ? {
         ...prev,
         discountAmount: data.discountAmount,
@@ -286,16 +326,17 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     setReferralApplied(false);
     setReferralInput('');
     setDiscountAmount(0);
+    setDiscountPercent(null);
     setReferralError('');
     setOrder(prev => prev ? { ...prev, discountAmount: 0, finalPrice: prev.basePrice, referralCode: null } : prev);
   };
 
-  // ── Select method & bayar ─────────────────────────────────────────────────────
+  // Lanjutkan ke step 2
   const handleLanjutkan = async () => {
     if (!selectedMethod || !order) return;
     setLoadingMethod(true);
     try {
-      const res  = await fetch('/api/payment/select-method', {
+      const res = await fetch('/api/payment/select-method', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -306,21 +347,21 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         }),
       });
       const data = await res.json();
-      if (data.vaNumber || data.qrisUrl || data.ewalletUrl) {
-        setOrder(prev => prev ? {
-          ...prev,
-          paymentMethod: selectedMethod.id,
-          vaNumber:  data.vaNumber,
-          qrisUrl:   data.qrisUrl,
-          ewalletUrl: data.ewalletUrl,
-          adminFee:  selectedMethod.adminFee,
-          total:     data.total,
-          finalPrice: data.total,
-        } : prev);
-        setStep(2);
-      }
-    } catch (e) {
-      console.error(e);
+      if (!res.ok) throw new Error(data.error || 'Gagal memproses');
+      setOrder(prev => prev ? {
+        ...prev,
+        paymentMethod: selectedMethod.id,
+        vaNumber: data.vaNumber,
+        qrisUrl: data.qrisUrl,
+        ewalletUrl: data.ewalletUrl,
+        paymentCode: data.paymentCode,
+        adminFee: selectedMethod.adminFee,
+        total: data.total,
+        finalPrice: data.total,
+      } : prev);
+      setStep(2);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
       setLoadingMethod(false);
     }
@@ -328,27 +369,22 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopied(text);
+    setTimeout(() => setCopied(null), 2000);
   };
 
   const handleCheckStatus = async () => {
     setLoadingStatus(true);
     try {
-      const res  = await fetch(`/api/payment/status/${orderId}`);
+      const res = await fetch(`/api/payment/status/${orderId}`);
       const data = await res.json();
       if (data.status === 'settlement' || data.status === 'capture') {
         router.push('/dashboard?payment=success');
-      } else if (data.status === 'expire' || data.status === 'cancel') {
-        setOrder(prev => prev ? { ...prev, status: 'expired' } : prev);
       } else {
         alert('Pembayaran belum diterima. Silakan tunggu beberapa saat.');
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingStatus(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoadingStatus(false); }
   };
 
   const handleCancel = async () => {
@@ -356,22 +392,26 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     setCancelLoading(true);
     try {
       await fetch(`/api/payment/order/${orderId}`, { method: 'DELETE' });
-      setOrder(prev => prev ? { ...prev, status: 'cancel' } : prev);
-    } catch (e) {
-      console.error(e);
-    } finally {
+    } catch (e) { console.error(e); }
+    finally {
       setCancelLoading(false);
       router.push('/beli-paket');
     }
   };
 
-  // ── Derived values ────────────────────────────────────────────────────────────
+  // Derived
   const basePrice    = order?.basePrice ?? 0;
   const adminFee     = selectedMethod?.adminFee ?? order?.adminFee ?? 0;
   const discount     = order?.discountAmount ?? discountAmount;
   const totalDisplay = Math.max(basePrice - discount, 0) + adminFee;
 
-  // ── Loading & error states ────────────────────────────────────────────────────
+  const activeMethod = PAYMENT_METHODS.find(m => m.id === order?.paymentMethod);
+  const instructions =
+    activeMethod?.bank ? VA_INSTRUCTIONS[activeMethod.bank] ?? null
+    : activeMethod?.type === 'cstore' ? CSTORE_INSTRUCTIONS[activeMethod.id] ?? null
+    : null;
+
+  // ─── Loading ────────────────────────────────────────────────────────────────
   if (pageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -392,417 +432,452 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     );
   }
 
+  // Tampilkan "sudah lunas" hanya jika benar-benar settlement
   if (order.status === 'settlement' || order.status === 'capture') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
         <CheckCircle2 size={56} className="text-green-500" />
         <h2 className="text-xl font-bold text-slate-800">Pembayaran Berhasil!</h2>
         <p className="text-slate-500 text-sm">Paket kamu sudah aktif. Selamat belajar!</p>
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="mt-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition"
-        >
+        <button onClick={() => router.push('/dashboard')}
+          className="mt-2 bg-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition">
           Ke Dashboard
         </button>
       </div>
     );
   }
 
-  const isExpiredOrCancelled =
-    order.status === 'expired' || order.status === 'expire' ||
-    order.status === 'cancel'  || order.status === 'cancelled';
-
-  const instructions  = selectedMethod?.bank ? VA_INSTRUCTIONS[selectedMethod.bank] : null;
-  const activeMethod  = PAYMENT_METHODS.find(m => m.id === order.paymentMethod);
-  const activeLogo    = activeMethod ? getMethodLogo(activeMethod) : null;
+  // JANGAN block render untuk cancel/expire — biarkan user lihat info lalu redirect manual
+  // hanya tampilkan banner peringatan
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-4">
+    <>
+      {/* Payment Method Modal */}
+      {showMethodModal && (
+        <PaymentMethodModal
+          selected={selectedMethod}
+          onSelect={setSelectedMethod}
+          onClose={() => setShowMethodModal(false)}
+        />
+      )}
 
-        {/* Step indicator */}
-        <div className="flex items-center justify-center gap-2 text-sm">
-          <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium transition-all
-            ${step === 1 ? 'bg-blue-600 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
-            {step > 1 ? <CheckCircle2 size={14} /> : '1'} Pilih Metode
-          </span>
-          <ChevronRight size={16} className="text-slate-400" />
-          <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium transition-all
-            ${step === 2 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
-            2 Bayar
-          </span>
-        </div>
+      <div className="min-h-screen bg-slate-50 py-8 px-4">
+        <div className="max-w-2xl mx-auto space-y-4">
 
-        {/* ── Countdown / Expired Banner ─────────────────────────────────────── */}
-        {isExpiredOrCancelled ? (
-          <div className="bg-slate-100 border border-slate-300 rounded-xl px-4 py-3 flex items-center gap-3">
-            <XCircle size={18} className="text-slate-500" />
-            <p className="text-slate-600 text-sm font-semibold">Pesanan ini telah dibatalkan</p>
+          {/* Step indicator */}
+          <div className="flex items-center justify-center gap-2 text-sm">
+            <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium transition-all
+              ${step === 1 ? 'bg-blue-600 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
+              {step > 1 ? <CheckCircle2 size={14} /> : '1'} Pilih Metode
+            </span>
+            <ChevronRight size={16} className="text-slate-400" />
+            <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-medium transition-all
+              ${step === 2 ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+              2 Bayar
+            </span>
           </div>
-        ) : !countdown.expired ? (
-          <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 flex items-center gap-3 shadow-sm">
-            <Clock size={20} className="text-slate-500 flex-shrink-0" />
-            <div className="flex-1">
-              <p className="text-slate-800 text-sm font-semibold">Sisa Waktu Pembayaran</p>
-              <p className="text-slate-500 text-xs">Selesaikan sebelum waktu habis</p>
-            </div>
-            <div className="font-mono font-bold text-red-600 text-2xl tracking-widest">
-              {String(countdown.h).padStart(2,'0')}:{String(countdown.m).padStart(2,'0')}:{String(countdown.s).padStart(2,'0')}
-            </div>
-          </div>
-        ) : (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <XCircle size={18} className="text-red-500" />
-            <p className="text-red-700 text-sm font-semibold">Waktu pembayaran telah habis</p>
-          </div>
-        )}
 
-        {/* ── STEP 1 ──────────────────────────────────────────────────────────── */}
-        {step === 1 && !isExpiredOrCancelled && (
-          <>
-            {/* Ringkasan */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-              <h2 className="font-bold text-slate-800 text-sm">Ringkasan Pesanan</h2>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Paket</span>
-                  <span className="font-semibold text-slate-800 text-right max-w-[320px]">{order.packageName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Harga</span>
-                  <span className="text-slate-800">{formatRupiah(basePrice)}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-emerald-600">
-                    <span>Diskon Referral</span>
-                    <span>- {formatRupiah(discount)}</span>
-                  </div>
-                )}
-                {adminFee > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Biaya Admin</span>
-                    <span className="text-slate-800">{formatRupiah(adminFee)}</span>
-                  </div>
-                )}
-                <div className="h-px bg-slate-100" />
-                <div className="flex justify-between font-bold">
-                  <span className="text-slate-800">Total</span>
-                  <span className="text-blue-600 text-base">{formatRupiah(totalDisplay)}</span>
-                </div>
+          {/* ── Banner cancel/expire ─────────────────────────────────────────── */}
+          {(order.status === 'cancel' || order.status === 'expired' || order.status === 'expire') && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+              <XCircle size={18} className="text-red-500 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-red-700 text-sm font-semibold">Pesanan ini telah dibatalkan atau kadaluarsa</p>
+                <p className="text-red-500 text-xs mt-0.5">Silakan buat pesanan baru untuk melanjutkan pembelian.</p>
               </div>
-            </div>
-
-            {/* Kode Referral */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Tag size={16} className="text-slate-500" />
-                <h2 className="font-bold text-slate-800 text-sm">Kode Referral</h2>
-                <span className="text-xs text-slate-400">(opsional)</span>
-              </div>
-              {referralApplied ? (
-                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-emerald-600" />
-                    <div>
-                      <p className="text-sm font-semibold text-emerald-700">{referralInput.toUpperCase()}</p>
-                      <p className="text-xs text-emerald-600">Hemat {formatRupiah(discount)}</p>
-                    </div>
-                  </div>
-                  <button onClick={handleRemoveReferral} className="text-xs text-slate-400 hover:text-red-500 transition">
-                    Hapus
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={referralInput}
-                    onChange={e => { setReferralInput(e.target.value); setReferralError(''); }}
-                    onKeyDown={e => e.key === 'Enter' && handleApplyReferral()}
-                    placeholder="Masukkan kode referral"
-                    className="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition"
-                  />
-                  <button
-                    onClick={handleApplyReferral}
-                    disabled={referralLoading || !referralInput.trim()}
-                    className="px-4 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 disabled:opacity-50 transition flex items-center gap-1.5"
-                  >
-                    {referralLoading ? <Loader2 size={14} className="animate-spin" /> : 'Pakai'}
-                  </button>
-                </div>
-              )}
-              {referralError && (
-                <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
-                  <XCircle size={12} /> {referralError}
-                </p>
-              )}
-            </div>
-
-            {/* Pilih Metode */}
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
-              <h2 className="font-bold text-slate-800 text-sm mb-3">Pilih Metode Pembayaran</h2>
-              <div className="grid grid-cols-2 gap-2">
-                {PAYMENT_METHODS.map(method => {
-                  const logo = getMethodLogo(method);
-                  return (
-                    <button
-                      key={method.id}
-                      onClick={() => setSelectedMethod(method)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all
-                        ${selectedMethod?.id === method.id
-                          ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
-                          : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50/50'}`}
-                    >
-                      <div className="w-10 h-10 flex-shrink-0 bg-white border border-slate-100 rounded-lg flex items-center justify-center overflow-hidden shadow-sm">
-                        {logo
-                          ? <Image src={logo} alt={method.name} width={36} height={36} className="object-contain p-1" unoptimized />
-                          : <span className="text-[10px] font-bold text-slate-600">{method.name.slice(0,3).toUpperCase()}</span>
-                        }
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold text-slate-800 leading-tight truncate">{method.name}</p>
-                        {method.adminFee > 0
-                          ? <p className="text-[10px] text-slate-400">+{formatRupiah(method.adminFee)}</p>
-                          : <p className="text-[10px] text-emerald-500">Gratis admin</p>
-                        }
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              onClick={handleLanjutkan}
-              disabled={!selectedMethod || loadingMethod}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loadingMethod
-                ? <><Loader2 size={16} className="animate-spin" /> Memproses...</>
-                : <><ChevronRight size={16} /> Lanjutkan Pembayaran</>
-              }
-            </button>
-          </>
-        )}
-
-        {/* ── STEP 2 ──────────────────────────────────────────────────────────── */}
-        {step === 2 && (
-          <>
-            {/* Info transaksi — mirip desain screenshot */}
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-              <div className="px-5 pt-5 pb-4 border-b border-slate-100">
-                <p className="font-bold text-slate-800 text-base">{order.packageName}</p>
-                <button
-                  onClick={() => handleCopy(orderId)}
-                  className="mt-1 flex items-center gap-1.5 text-slate-400 text-xs font-medium hover:text-slate-600 transition"
-                >
-                  {copied ? <Check size={13} /> : <Copy size={13} />}
-                  #{orderId}
-                </button>
-              </div>
-
-              <div className="px-5 py-4 grid grid-cols-3 gap-4">
-                {/* Metode Pembayaran */}
-                <div>
-                  <p className="text-xs text-slate-400 mb-2">Metode Pembayaran</p>
-                  {activeLogo && (
-                    <div className="mb-1.5">
-                      <Image
-                        src={activeLogo}
-                        alt={activeMethod?.name ?? ''}
-                        width={52} height={28}
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  )}
-                  <p className="text-sm font-bold text-slate-800 leading-tight">{activeMethod?.name}</p>
-                  {order.vaNumber && (
-                    <p className="text-slate-700 font-semibold text-sm mt-1 tracking-wide font-mono">
-                      {order.vaNumber.replace(/(.{4})/g, '$1 ').trim()}
-                    </p>
-                  )}
-                </div>
-
-                {/* Waktu Transaksi — pakai createdAt */}
-                <div>
-                  <p className="text-xs text-slate-400 mb-2">Waktu Transaksi</p>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {order.createdAt ? formatTanggal(order.createdAt) : '-'}
-                  </p>
-                </div>
-
-                {/* Status */}
-                <div>
-                  <p className="text-xs text-slate-400 mb-2">Status</p>
-                  <StatusBadge status={order.status} />
-                </div>
-              </div>
-            </div>
-
-            {/* Detail Transaksi */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-              <h2 className="font-bold text-slate-800 text-sm">Detail Transaksi</h2>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Paket</span>
-                  <span className="font-semibold text-slate-800 text-right max-w-[320px]">{order.packageName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Harga Paket</span>
-                  <span className="text-slate-800">{formatRupiah(basePrice)}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-emerald-600">
-                    <span className="flex items-center gap-1"><Tag size={12} /> {order.referralCode}</span>
-                    <span>- {formatRupiah(discount)}</span>
-                  </div>
-                )}
-                {order.adminFee > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Biaya Admin</span>
-                    <span className="text-slate-800">{formatRupiah(order.adminFee)}</span>
-                  </div>
-                )}
-                <div className="h-px bg-slate-100" />
-                <div className="flex justify-between font-bold">
-                  <span className="text-slate-800">Total Pembayaran</span>
-                  <span className="text-blue-600 text-base">{formatRupiah(order.total)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* VA Number */}
-            {order.vaNumber && !isExpiredOrCancelled && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="font-bold text-slate-800 text-sm">Nomor Virtual Account</h2>
-                  <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                    {activeMethod?.name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                  <span className="font-mono font-bold text-slate-900 text-xl flex-1 tracking-widest whitespace-nowrap overflow-hidden">
-                    {order.vaNumber}
-                  </span>
-                  <button
-                    onClick={() => handleCopy(order.vaNumber!)}
-                    className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"
-                  >
-                    {copied ? <Check size={13} /> : <Copy size={13} />}
-                    {copied ? 'Disalin!' : 'Salin'}
-                  </button>
-                </div>
-                <p className="text-xs text-slate-400 mt-2 text-center">
-                  Transfer tepat {formatRupiah(order.total)}
-                </p>
-              </div>
-            )}
-
-            {/* QRIS */}
-            {order.qrisUrl && !isExpiredOrCancelled && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5 text-center">
-                <h2 className="font-bold text-slate-800 text-sm mb-3">Scan QR Code</h2>
-                <div className="inline-block p-3 bg-white border border-slate-200 rounded-xl">
-                  <Image src={order.qrisUrl} alt="QRIS" width={200} height={200} unoptimized />
-                </div>
-                <p className="text-xs text-slate-400 mt-2">Scan menggunakan aplikasi apapun yang mendukung QRIS</p>
-              </div>
-            )}
-
-            {/* eWallet */}
-            {order.ewalletUrl && !isExpiredOrCancelled && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5">
-                <h2 className="font-bold text-slate-800 text-sm mb-3">
-                  Bayar dengan {activeMethod?.name}
-                </h2>
-                <a
-                  href={order.ewalletUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition"
-                >
-                  Buka Aplikasi & Bayar
-                </a>
-                <p className="text-xs text-slate-400 text-center mt-2">Kamu akan diarahkan ke aplikasi e-wallet</p>
-              </div>
-            )}
-
-            {/* Instructions */}
-            {instructions && !isExpiredOrCancelled && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5">
-                <h2 className="font-bold text-slate-800 text-sm mb-3">Cara Pembayaran</h2>
-                <div className="space-y-2">
-                  {instructions.map((inst, i) => (
-                    <div key={i} className="border border-slate-100 rounded-xl overflow-hidden">
-                      <button
-                        onClick={() => setOpenInstruction(openInstruction === i ? null : i)}
-                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition"
-                      >
-                        <span className="text-sm font-semibold text-slate-700">{inst.title}</span>
-                        {openInstruction === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                      </button>
-                      {openInstruction === i && (
-                        <div className="px-4 pb-4 space-y-2">
-                          {inst.steps.map((s, j) => (
-                            <div key={j} className="flex gap-3 text-sm">
-                              <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                                {j + 1}
-                              </span>
-                              <span className="text-slate-600">{s}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Action buttons — hanya tampil kalau masih pending */}
-            {!isExpiredOrCancelled && order.status === 'pending' && (
-              <>
-                <button
-                  onClick={handleCheckStatus}
-                  disabled={loadingStatus}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
-                >
-                  {loadingStatus ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-                  Cek Status Pembayaran
-                </button>
-
-                <button
-                  onClick={handleCancel}
-                  disabled={cancelLoading}
-                  className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 hover:border-red-300 hover:bg-red-50 py-3 rounded-xl transition disabled:opacity-50"
-                >
-                  {cancelLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
-                  Batalkan Pesanan
-                </button>
-
-                <button onClick={() => setStep(1)} className="w-full text-sm text-slate-400 hover:text-slate-600 transition py-1">
-                  ← Ganti metode pembayaran
-                </button>
-              </>
-            )}
-
-            {/* Jika expired/cancel — tombol kembali */}
-            {isExpiredOrCancelled && (
               <button
                 onClick={() => router.push('/beli-paket')}
-                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition"
+                className="text-xs font-semibold text-red-600 border border-red-300 hover:bg-red-100 px-3 py-1.5 rounded-lg transition flex-shrink-0"
               >
-                Kembali ke Halaman Paket
+                Beli Ulang
               </button>
-            )}
-          </>
-        )}
+            </div>
+          )}
 
-        <p className="text-center text-slate-400 text-xs pb-4">
-          Butuh bantuan? Hubungi support@pintuasn.com
-        </p>
+          {/* ── Countdown — ONLY on Step 2 ──────────────────────────────────── */}
+          {step === 2 && (
+            !countdown.expired ? (
+              <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 flex items-center gap-3 shadow-sm">
+                <Clock size={20} className="text-slate-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-slate-800 text-sm font-semibold">Sisa Waktu Pembayaran</p>
+                  <p className="text-slate-500 text-xs">Selesaikan sebelum waktu habis</p>
+                </div>
+                <div className="font-mono font-bold text-red-600 text-2xl tracking-widest">
+                  {String(countdown.h).padStart(2,'0')}:{String(countdown.m).padStart(2,'0')}:{String(countdown.s).padStart(2,'0')}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <XCircle size={18} className="text-red-500" />
+                <p className="text-red-700 text-sm font-semibold">Waktu pembayaran telah habis</p>
+              </div>
+            )
+          )}
+
+          {/* ══════════════════ STEP 1 ══════════════════════════════════════════ */}
+          {step === 1 && (
+            <>
+              {/* Ringkasan */}
+              <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+                <h2 className="font-bold text-slate-800 text-sm">Ringkasan Pesanan</h2>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Paket</span>
+                    <span className="font-semibold text-slate-800 text-right max-w-[320px]">{order.packageName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Harga</span>
+                    <span className="text-slate-800">{formatRupiah(basePrice)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span className="flex items-center gap-1">
+                        <Tag size={12} />
+                        Diskon Referral
+                        {discountPercent !== null && (
+                          <span className="ml-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                            {discountPercent}%
+                          </span>
+                        )}
+                      </span>
+                      <span>- {formatRupiah(discount)}</span>
+                    </div>
+                  )}
+                  {adminFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Biaya Admin</span>
+                      <span className="text-slate-800">{formatRupiah(adminFee)}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-slate-100" />
+                  <div className="flex justify-between font-bold">
+                    <span className="text-slate-800">Total</span>
+                    <span className="text-blue-600 text-base">{formatRupiah(totalDisplay)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kode Referral */}
+              <div className="bg-white rounded-xl border border-slate-200 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Tag size={16} className="text-slate-500" />
+                  <h2 className="font-bold text-slate-800 text-sm">Kode Referral</h2>
+                  <span className="text-xs text-slate-400">(opsional)</span>
+                </div>
+                {referralApplied ? (
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-600" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-emerald-700">{referralInput.toUpperCase()}</p>
+                          {discountPercent !== null && (
+                            <span className="bg-emerald-200 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              {discountPercent}% OFF
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-emerald-600">Hemat {formatRupiah(discount)}</p>
+                      </div>
+                    </div>
+                    <button onClick={handleRemoveReferral} className="text-xs text-slate-400 hover:text-red-500 transition">
+                      Hapus
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={referralInput}
+                      onChange={e => { setReferralInput(e.target.value); setReferralError(''); }}
+                      onKeyDown={e => e.key === 'Enter' && handleApplyReferral()}
+                      placeholder="Masukkan kode referral"
+                      className="flex-1 text-sm border border-slate-200 rounded-xl px-3 py-2.5 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 transition"
+                    />
+                    <button
+                      onClick={handleApplyReferral}
+                      disabled={referralLoading || !referralInput.trim()}
+                      className="px-4 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 disabled:opacity-50 transition flex items-center gap-1.5"
+                    >
+                      {referralLoading ? <Loader2 size={14} className="animate-spin" /> : 'Pakai'}
+                    </button>
+                  </div>
+                )}
+                {referralError && (
+                  <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
+                    <XCircle size={12} /> {referralError}
+                  </p>
+                )}
+              </div>
+
+              {/* Metode Pembayaran — tombol trigger modal */}
+              <div className="bg-white rounded-xl border border-slate-200 p-4">
+                <h2 className="font-bold text-slate-800 text-sm mb-3">Metode Pembayaran</h2>
+                <button
+                  onClick={() => setShowMethodModal(true)}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all
+                    ${selectedMethod
+                      ? 'border-blue-400 bg-blue-50 hover:border-blue-500'
+                      : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'}
+                  `}
+                >
+                  {selectedMethod ? (
+                    <>
+                      <div className="w-9 h-9 flex-shrink-0 bg-white border border-slate-100 rounded-lg flex items-center justify-center overflow-hidden shadow-sm">
+                        {METHOD_LOGOS[selectedMethod.id] ? (
+                          <Image src={METHOD_LOGOS[selectedMethod.id]} alt={selectedMethod.name} width={32} height={32} className="object-contain p-1" unoptimized />
+                        ) : (
+                          <span className="text-[10px] font-bold text-slate-600">{selectedMethod.name.slice(0, 3).toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-semibold text-slate-800">{selectedMethod.name}</p>
+                        <p className="text-xs text-slate-400">
+                          {selectedMethod.adminFee > 0 ? `+${formatRupiah(selectedMethod.adminFee)} biaya admin` : 'Gratis biaya admin'}
+                        </p>
+                      </div>
+                      <span className="text-xs text-blue-600 font-medium">Ganti</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-9 h-9 flex-shrink-0 bg-slate-100 rounded-lg flex items-center justify-center">
+                        <CreditCard size={18} className="text-slate-400" />
+                      </div>
+                      <span className="flex-1 text-left text-sm text-slate-400">Pilih metode pembayaran</span>
+                      <ChevronRight size={16} className="text-slate-400" />
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <button
+                onClick={handleLanjutkan}
+                disabled={!selectedMethod || loadingMethod}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loadingMethod
+                  ? <><Loader2 size={16} className="animate-spin" /> Memproses...</>
+                  : <><ChevronRight size={16} /> Lanjutkan Pembayaran</>}
+              </button>
+            </>
+          )}
+
+          {/* ══════════════════ STEP 2 ══════════════════════════════════════════ */}
+          {step === 2 && (
+            <>
+              {/* Info transaksi */}
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div className="px-5 pt-5 pb-4 border-b border-slate-100">
+                  <p className="font-bold text-slate-800 text-base">{order.packageName}</p>
+                  <button
+                    onClick={() => handleCopy(orderId)}
+                    className="mt-1 flex items-center gap-1.5 text-slate-400 text-xs font-medium hover:text-slate-600 transition"
+                  >
+                    {copied === orderId ? <Check size={13} /> : <Copy size={13} />}
+                    #{orderId}
+                  </button>
+                </div>
+
+                <div className="px-5 py-4 grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-xs text-slate-400 mb-2">Metode Pembayaran</p>
+                    {activeMethod && METHOD_LOGOS[activeMethod.id] && (
+                      <Image src={METHOD_LOGOS[activeMethod.id]} alt={activeMethod.name} width={48} height={24} className="object-contain mb-1" unoptimized />
+                    )}
+                    <p className="text-sm font-bold text-slate-800 leading-tight">{activeMethod?.name}</p>
+                    {order.vaNumber && (
+                      <p className="text-slate-800 font-bold text-sm mt-1 tracking-wide">
+                        {order.vaNumber.replace(/(.{4})/g, '$1 ').trim()}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 mb-2">Waktu Transaksi</p>
+                    <p className="text-sm font-semibold text-slate-800">
+                      {formatTanggal(
+                        order.expiredAt
+                          ? new Date(new Date(order.expiredAt).getTime() - 24 * 60 * 60 * 1000).toISOString()
+                          : new Date().toISOString()
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400 mb-2">Status</p>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-400 text-white uppercase tracking-wide">
+                      {order.status === 'pending' ? 'PENDING' : order.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detail Transaksi */}
+              <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+                <h2 className="font-bold text-slate-800 text-sm">Detail Transaksi</h2>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Paket</span>
+                    <span className="font-semibold text-slate-800 text-right max-w-[320px]">{order.packageName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Harga Paket</span>
+                    <span className="text-slate-800">{formatRupiah(basePrice)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span className="flex items-center gap-1">
+                        <Tag size={12} /> {order.referralCode}
+                        {discountPercent !== null && (
+                          <span className="ml-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                            {discountPercent}%
+                          </span>
+                        )}
+                      </span>
+                      <span>- {formatRupiah(discount)}</span>
+                    </div>
+                  )}
+                  {order.adminFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Biaya Admin</span>
+                      <span className="text-slate-800">{formatRupiah(order.adminFee)}</span>
+                    </div>
+                  )}
+                  <div className="h-px bg-slate-100" />
+                  <div className="flex justify-between font-bold">
+                    <span className="text-slate-800">Total Pembayaran</span>
+                    <span className="text-blue-600 text-base">{formatRupiah(order.total)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* VA Number */}
+              {order.vaNumber && (
+                <div className="bg-white rounded-xl border border-slate-200 p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="font-bold text-slate-800 text-sm">Nomor Virtual Account</h2>
+                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{activeMethod?.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                    <span className="font-mono font-bold text-slate-900 text-xl flex-1 tracking-widest whitespace-nowrap overflow-hidden">
+                      {order.vaNumber}
+                    </span>
+                    <button
+                      onClick={() => handleCopy(order.vaNumber!)}
+                      className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"
+                    >
+                      {copied === order.vaNumber ? <Check size={13} /> : <Copy size={13} />}
+                      {copied === order.vaNumber ? 'Disalin!' : 'Salin'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2 text-center">Transfer tepat {formatRupiah(order.total)}</p>
+                </div>
+              )}
+
+              {/* Payment Code (Convenience Store) */}
+              {order.paymentCode && (
+                <div className="bg-white rounded-xl border border-slate-200 p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="font-bold text-slate-800 text-sm">Kode Pembayaran</h2>
+                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{activeMethod?.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                    <span className="font-mono font-bold text-slate-900 text-2xl flex-1 tracking-widest">
+                      {order.paymentCode}
+                    </span>
+                    <button
+                      onClick={() => handleCopy(order.paymentCode!)}
+                      className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition"
+                    >
+                      {copied === order.paymentCode ? <Check size={13} /> : <Copy size={13} />}
+                      {copied === order.paymentCode ? 'Disalin!' : 'Salin'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2 text-center">Tunjukkan kode ini ke kasir {activeMethod?.name}</p>
+                </div>
+              )}
+
+              {/* QRIS */}
+              {order.qrisUrl && (
+                <div className="bg-white rounded-xl border border-slate-200 p-5 text-center">
+                  <h2 className="font-bold text-slate-800 text-sm mb-3">Scan QR Code</h2>
+                  <div className="inline-block p-3 bg-white border border-slate-200 rounded-xl">
+                    <Image src={order.qrisUrl} alt="QRIS" width={200} height={200} unoptimized />
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2">Scan menggunakan aplikasi apapun yang mendukung QRIS</p>
+                </div>
+              )}
+
+              {/* eWallet */}
+              {order.ewalletUrl && (
+                <div className="bg-white rounded-xl border border-slate-200 p-5">
+                  <h2 className="font-bold text-slate-800 text-sm mb-3">Bayar dengan {activeMethod?.name}</h2>
+                  <a href={order.ewalletUrl} target="_blank" rel="noopener noreferrer"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition">
+                    Buka Aplikasi & Bayar
+                  </a>
+                  <p className="text-xs text-slate-400 text-center mt-2">Kamu akan diarahkan ke aplikasi e-wallet</p>
+                </div>
+              )}
+
+              {/* Instructions */}
+              {instructions && (
+                <div className="bg-white rounded-xl border border-slate-200 p-5">
+                  <h2 className="font-bold text-slate-800 text-sm mb-3">Cara Pembayaran</h2>
+                  <div className="space-y-2">
+                    {instructions.map((inst, i) => (
+                      <div key={i} className="border border-slate-100 rounded-xl overflow-hidden">
+                        <button
+                          onClick={() => setOpenInstruction(openInstruction === i ? null : i)}
+                          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 transition"
+                        >
+                          <span className="text-sm font-semibold text-slate-700">{inst.title}</span>
+                          {openInstruction === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
+                        {openInstruction === i && (
+                          <div className="px-4 pb-4 space-y-2">
+                            {inst.steps.map((s, j) => (
+                              <div key={j} className="flex gap-3 text-sm">
+                                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  {j + 1}
+                                </span>
+                                <span className="text-slate-600">{s}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={handleCheckStatus}
+                disabled={loadingStatus}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-60"
+              >
+                {loadingStatus ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                Cek Status Pembayaran
+              </button>
+
+              <button
+                onClick={handleCancel}
+                disabled={cancelLoading}
+                className="w-full flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 hover:border-red-300 hover:bg-red-50 py-3 rounded-xl transition disabled:opacity-50"
+              >
+                {cancelLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                Batalkan Pesanan
+              </button>
+
+              <button onClick={() => setStep(1)} className="w-full text-sm text-slate-400 hover:text-slate-600 transition py-1">
+                ← Ganti metode pembayaran
+              </button>
+            </>
+          )}
+
+          <div className="pb-4" />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,16 +1,31 @@
 // ============================================================
-// types/roadmap.ts
+// types/roadmap.ts  (replace seluruh file lama)
 // ============================================================
 
 export type PhaseStatus = 'completed' | 'active' | 'locked';
 
+export type PhaseId =
+  | 'kenali_ujian'
+  | 'kuasai_materi_awal'
+  | 'simulasi_awal'
+  | 'kuasai_materi_lanjut'
+  | 'simulasi_intensif'
+  | 'capai_passing_grade'
+  | 'evaluasi_mendalam'
+  | 'silver'
+  | 'gold';
+
 export interface RoadmapPhase {
-  id: number;
+  id: PhaseId;
+  step: number;           // 1–9
   title: string;
-  description: string;
+  description: string;    // satu kalimat ringkas
+  detail: string;         // penjelasan profesional untuk accordion
+  requirement: string;    // requirement teknis, tampil di accordion
   icon: string;
   status: PhaseStatus;
-  detail: string;
+  ctaLabel?: string;      // label tombol aksi di accordion
+  ctaHref?: string;       // href tombol aksi
 }
 
 export interface CategoryScore {
@@ -19,7 +34,7 @@ export interface CategoryScore {
   passingGrade: number;
   label: string;
   isPassed: boolean;
-  gap: number; // selisih dari passing grade (negatif = kurang)
+  gap: number;
 }
 
 export interface Milestone {
@@ -30,10 +45,14 @@ export interface Milestone {
 }
 
 export interface RoadmapPageData {
+  // dari getRoadmapStats()
   avgTwk: number;
   avgTiu: number;
   avgTkp: number;
   totalCompleted: number;
   bestFinalScore: number;
   lastAttemptDate: string | null;
+  // tambahan baru
+  informasiViewCount: number;   // jumlah materi INFORMASI yang sudah dibuka
+  materiViewCount: number;      // jumlah materi TWK/TIU/TKP yang sudah dibuka
 }

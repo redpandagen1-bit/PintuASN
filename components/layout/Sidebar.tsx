@@ -12,7 +12,6 @@ import {
   Zap,
   Users,
   Crown,
-  MessageCircle,
 } from 'lucide-react';
 import { MAIN_MENU_ITEMS } from '@/constants/menu-items';
 
@@ -25,13 +24,13 @@ const ICON_MAP = {
   ShoppingCart,
   Zap,
   Users,
-  MessageCircle,
 };
 
+// C: Roadmap dihapus dari sini
+// D: Konsultasi dihapus dari sini
 const SECONDARY_ITEMS = [
-  { id: 'event-promo',  label: 'Event & Promo', href: '/promo',       icon: 'Zap'           },
-  { id: 'grup',         label: 'Grup',          href: '/grup',        icon: 'Users'         },
-  { id: 'konsultasi',   label: 'Konsultasi',    href: '/konsultasi',  icon: 'MessageCircle' },
+  { id: 'event-promo', label: 'Event & Promo', href: '/promo', icon: 'Zap'   },
+  { id: 'grup',        label: 'Grup',          href: '/grup',  icon: 'Users' },
 ];
 
 export function Sidebar() {
@@ -45,8 +44,8 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col sticky top-[4.5rem] w-72 h-[calc(100vh-5rem)] bg-white border border-slate-200 transition-all duration-300 rounded-3xl shadow-lg flex-shrink-0">
 
-      {/* Scrollable menu area */}
-      <div className="flex-1 overflow-y-auto py-6 px-3 custom-scrollbar">
+      {/* Menu area — no scroll */}
+      <div className="flex-1 overflow-hidden py-6 px-3">
 
         {/* Main Menu */}
         <div className="space-y-1 mb-2">
@@ -125,17 +124,20 @@ export function Sidebar() {
           <div className="w-10 h-10 bg-slate-700/50 rounded-xl flex items-center justify-center mb-3">
             <Crown className="text-yellow-400" size={20} />
           </div>
-          <h3 className="text-white font-bold text-base mb-1">Upgrade Premium</h3>
+          {/* E: "Premium" berwarna kuning */}
+          <h3 className="text-white font-bold text-base mb-1">
+            Upgrade <span className="text-yellow-400">Premium</span>
+          </h3>
           <p className="text-slate-300 text-xs mb-4 leading-relaxed">
             Akses Paket Tryout Premium dan Materi video lengkap.
           </p>
-          <Link href="/pricing">
+          <Link href="/beli-paket">
             <button className="w-full bg-white text-slate-800 font-semibold py-2.5 px-4 rounded-xl hover:bg-slate-100 transition-all duration-200 text-sm shadow-md">
               Lihat Paket
             </button>
           </Link>
         </div>
-        <p className="text-center text-[10px] text-slate-300 mt-3">
+        <p className="text-center text-[10px] text-slate-400 mt-3">
           © 2026 PintuASN. v1.0.0
         </p>
       </div>

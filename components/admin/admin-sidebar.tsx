@@ -7,7 +7,8 @@ import {
   LayoutDashboard, 
   FileQuestion, 
   Package, 
-  BookOpen, 
+  BookOpen,
+  Settings, 
   BarChart3, 
   ArrowLeft 
 } from 'lucide-react';
@@ -20,6 +21,7 @@ const menuItems = [
   { href: '/admin/packages', label: 'Paket Tryout', icon: Package },
   { href: '/admin/materials', label: 'Materi', icon: BookOpen },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/user-info', label: 'Pengaturan Platform', icon: Settings }
 ];
 
 // ✅ PINDAHKAN SidebarContent KELUAR dari component utama

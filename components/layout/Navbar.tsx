@@ -57,22 +57,22 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center gap-4">
 
-          {/* Logo */}
-          <Link href="/dashboard" className="flex items-center group flex-shrink-0">
-            <Image src="/images/logo-navbar.svg" alt="PintuASN" width={100} height={32}
-              className="transition-transform duration-300 group-hover:scale-105" unoptimized priority />
-          </Link>
-
-          {/* Greeting — setelah logo */}
-          <div className="hidden md:block">
-            <p className="text-sm font-bold text-slate-800">Halo, {firstName}! 👋</p>
-            <p className="text-xs text-slate-500">Semangat Belajar!</p>
+          {/* Logo + Greeting dalam satu box — B: lebih rapi */}
+          <div className="flex items-center gap-3 border border-slate-200 rounded-2xl px-3 py-1.5 flex-shrink-0">
+            <Link href="/dashboard" className="flex items-center group">
+              <Image src="/images/logo-navbar.svg" alt="PintuASN" width={90} height={28}
+                className="transition-transform duration-300 group-hover:scale-105" unoptimized priority />
+            </Link>
+            <div className="hidden md:flex flex-col border-l border-slate-200 pl-3">
+              <p className="text-sm font-bold text-slate-800 leading-tight">Halo, {firstName}! 👋</p>
+              <p className="text-xs text-slate-500">Semangat Belajar!</p>
+            </div>
           </div>
 
-          {/* Spacer — dorong Roadmap & right actions ke kanan */}
+          {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Roadmap */}
+          {/* A: Roadmap di kanan spacer, sebelum bell & user */}
           <Link href="/roadmap" className="flex-shrink-0">
             <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-md bg-slate-800 text-white hover:bg-slate-700 transition-all text-sm font-bold shadow-sm">
               <Map size={15} className="text-yellow-400" />

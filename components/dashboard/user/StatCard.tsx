@@ -2,67 +2,38 @@
 
 import React from 'react';
 import {
-  CheckCircle,
-  BarChart2,
-  Award,
-  TrendingUp,
-  Clock,
-  Star,
-  Zap,
-  Target
+  CheckCircle, BarChart2, Award, TrendingUp,
+  Clock, Star, Zap, Target, type LucideIcon,
 } from 'lucide-react';
 
-const ICON_MAP = {
-  CheckCircle,
-  BarChart2,
-  Award,
-  TrendingUp,
-  Clock,
-  Star,
-  Zap,
-  Target,
+const ICON_MAP: Record<string, LucideIcon> = {
+  CheckCircle, BarChart2, Award, TrendingUp, Clock, Star, Zap, Target,
 };
 
-type IconName = keyof typeof ICON_MAP;
-
 interface StatCardProps {
-  label: string;
-  value: string | number;
-  iconName: IconName;
+  label:     string;
+  value:     string | number;
+  iconName:  string;
+  iconColor: string;
+  iconBg:    string;
 }
 
-export default function StatCard({
-  label,
-  value,
-  iconName,
-}: StatCardProps) {
-  const Icon = ICON_MAP[iconName];
+export default function StatCard({ label, value, iconName, iconColor, iconBg }: StatCardProps) {
+  const Icon = ICON_MAP[iconName] ?? BarChart2;
 
   return (
-    <button
-      type="button"
-      className="group w-full text-left rounded-2xl border border-slate-200 bg-white p-5 lg:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-slate-300"
-      suppressHydrationWarning
-    >
-      <div className="flex items-center gap-4" suppressHydrationWarning>
-        {/* Icon */}
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 transition-all duration-300 group-hover:bg-slate-700 group-hover:scale-105"
-          suppressHydrationWarning
-        >
-          <Icon className="h-6 w-6 text-yellow-400" />
-        </div>
-
-        {/* Text */}
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {label}
-          </span>
-          <span className="text-2xl font-bold text-slate-800 truncate">
-            {value}
-          </span>
-        </div>
+    <div className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 border border-slate-100 shadow-sm">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${iconBg}`}>
+        <Icon className={`h-4 w-4 ${iconColor}`} />
       </div>
-    </button>
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 leading-none">
+          {label}
+        </p>
+        <p className="text-lg font-bold text-slate-800 leading-tight truncate mt-0.5">
+          {value}
+        </p>
+      </div>
+    </div>
   );
 }

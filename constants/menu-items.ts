@@ -26,14 +26,7 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     href: '/dashboard',
     icon: 'LayoutDashboard',
     isActive: true
-  },
-  {
-    id: 'roadmap',
-    label: 'Roadmap',
-    href: '/roadmap',
-    icon: 'Map',
-    isActive: true
-  },
+  },  
   {
     id: 'statistik',
     label: 'Statistik',
@@ -72,13 +65,6 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
 ];
 
 export const SECONDARY_MENU_ITEMS: MenuItem[] = [
-  {
-    id: 'konsultasi',
-    label: 'Konsultasi',
-    href: '/konsultasi',
-    icon: 'MessageCircle',
-    isActive: false
-  },
   {
     id: 'event-promo',
     label: 'Event & Promo',

@@ -27,7 +27,6 @@ async function DashboardContent() {
 
   const userId = user.id;
 
-  // OPTIMASI: semua fetch paralel sekaligus
   const [packages, attempts, userTier] = await Promise.all([
     getActivePackages(),
     getUserAttempts(userId),
@@ -37,7 +36,6 @@ async function DashboardContent() {
   const supabase    = await createAdminClient();
   const packageIds  = packages.map(pkg => pkg.id);
 
-  // Hitung unique users per package + fetch materi + ranking — paralel
   const [
     { data: completedCounts },
     { data: rankingData },
@@ -51,7 +49,6 @@ async function DashboardContent() {
 
     supabase.rpc('get_user_national_rank', { p_user_id: userId }),
 
-    // 3 materi terbaru per kategori difilter di client — fetch semua dulu
     supabase
       .from('materials')
       .select('id, title, category, type, tier, duration_minutes, is_new, content_url')
@@ -61,7 +58,6 @@ async function DashboardContent() {
       .order('created_at',  { ascending: false }),
   ]);
 
-  // Hitung completed users per package
   const userCountsByPackage = new Map<string, number>();
   if (completedCounts) {
     const packageUserSets = new Map<string, Set<string>>();
@@ -77,12 +73,10 @@ async function DashboardContent() {
     completedUsersCount: userCountsByPackage.get(pkg.id) ?? 0,
   }));
 
-  // Ranking
   const rankingDisplay = rankingData?.length
     ? `#${rankingData[0].user_rank.toLocaleString('id-ID')}`
     : '-';
 
-  // Stats
   const completedAttempts = attempts.filter(a => a.status === 'completed');
   const scores = completedAttempts
     .filter(a => a.final_score !== null)
@@ -105,7 +99,9 @@ async function DashboardContent() {
       <section className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-3xl p-5 md:p-7 shadow-lg border border-slate-600 space-y-5">
         <div className="flex items-end justify-between">
           <div>
-            <h2 className="text-xl font-bold text-white">Statistik Belajar</h2>
+            <h2 className="text-xl font-bold text-white">
+              Statistik <span className="text-yellow-400">Belajar</span>
+            </h2>
             <p className="text-slate-300 text-xs mt-1">Pantau perkembangan belajarmu.</p>
           </div>
           <Link href="/statistics">
@@ -115,14 +111,14 @@ async function DashboardContent() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Tryout Selesai"     value={completedAttempts.length} iconName="CheckCircle" iconColor="text-emerald-400" iconBg="bg-emerald-900/50" />
-          <StatCard label="Rata-rata Skor"     value={averageScore}             iconName="BarChart2"   iconColor="text-blue-400"    iconBg="bg-blue-900/50"    />
-          <StatCard label="Peringkat Nasional" value={rankingDisplay}           iconName="Award"       iconColor="text-amber-400"   iconBg="bg-amber-900/50"   />
-          <StatCard label="Skor Terbaik"       value={bestScore}                iconName="TrendingUp"  iconColor="text-purple-400"  iconBg="bg-purple-900/50"  />
+          <StatCard label="Tryout Selesai"     value={completedAttempts.length} iconName="CheckCircle" iconColor="text-yellow-400" iconBg="bg-slate-800" />
+          <StatCard label="Rata-rata Skor"     value={averageScore}             iconName="BarChart2"   iconColor="text-yellow-400" iconBg="bg-slate-800" />
+          <StatCard label="Peringkat Nasional" value={rankingDisplay}           iconName="Award"       iconColor="text-yellow-400" iconBg="bg-slate-800" />
+          <StatCard label="Skor Terbaik"       value={bestScore}                iconName="TrendingUp"  iconColor="text-yellow-400" iconBg="bg-slate-800" />
         </div>
       </section>
 
-      {/* Daftar Tryout — 6 terbaru, dengan cek tier */}
+      {/* Daftar Tryout */}
       <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-4">
         <TryoutSection
           packages={packagesWithUserCount}
@@ -131,7 +127,7 @@ async function DashboardContent() {
         />
       </section>
 
-      {/* Materi — 3 terbaru per tab, dengan cek tier */}
+      {/* Materi */}
       <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-5">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Materi</h2>

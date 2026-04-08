@@ -260,39 +260,134 @@ export type AttemptHistoryData = {
 
 export async function getRoadmapStats(userId: string) {
   const supabase = await createClient();
-  const { data: attempts, error } = await supabase
-    .from('attempts')
-    .select('score_twk, score_tiu, score_tkp, final_score, completed_at')
-    .eq('user_id', userId)
-    .eq('status', 'completed')
-    .order('completed_at', { ascending: false });
 
-  if (error) throw new Error(`Failed to fetch roadmap stats: ${error.message}`);
+  // Step 1: ambil ID materi per kategori dulu (Supabase JS v2 tidak
+  // support subquery langsung di .in() — harus fetch ID terlebih dahulu)
+  const [
+    { data: informasiMaterials, error: infoMaterialError },
+    { data: skdMaterials,       error: skdMaterialError  },
+  ] = await Promise.all([
+    supabase
+      .from('materials')
+      .select('id')
+      .eq('category', 'INFORMASI')
+      .eq('is_active', true)
+      .eq('is_deleted', false),
+    supabase
+      .from('materials')
+      .select('id')
+      .in('category', ['TWK', 'TIU', 'TKP'])
+      .eq('is_active', true)
+      .eq('is_deleted', false),
+  ]);
+
+  if (infoMaterialError) throw new Error(`Failed to fetch informasi material ids: ${infoMaterialError.message}`);
+  if (skdMaterialError)  throw new Error(`Failed to fetch skd material ids: ${skdMaterialError.message}`);
+
+  const informasiIds = (informasiMaterials ?? []).map(m => m.id);
+  const skdIds       = (skdMaterials       ?? []).map(m => m.id);
+
+  // Step 2: jalankan 3 query utama secara paralel
+  const [
+    { data: attempts,        error: attemptsError  },
+    { count: informasiCount, error: infoError       },
+    { count: materiCount,    error: materiError      },
+  ] = await Promise.all([
+    // Query 1: semua completed attempts (skor per kategori)
+    supabase
+      .from('attempts')
+      .select('score_twk, score_tiu, score_tkp, final_score, completed_at')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false }),
+
+    // Query 2: jumlah materi INFORMASI yang sudah dibuka user
+    informasiIds.length > 0
+      ? supabase
+          .from('material_views')
+          .select('material_id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .in('material_id', informasiIds)
+      : Promise.resolve({ count: 0, error: null }),
+
+    // Query 3: jumlah materi TWK/TIU/TKP yang sudah dibuka user
+    skdIds.length > 0
+      ? supabase
+          .from('material_views')
+          .select('material_id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .in('material_id', skdIds)
+      : Promise.resolve({ count: 0, error: null }),
+  ]);
+
+  if (attemptsError) throw new Error(`Failed to fetch roadmap attempts: ${attemptsError.message}`);
+  if (infoError)     throw new Error(`Failed to fetch informasi views: ${infoError.message}`);
+  if (materiError)   throw new Error(`Failed to fetch materi views: ${materiError.message}`);
 
   const completed = attempts ?? [];
+
   if (completed.length === 0) {
     return {
-      avgTwk: 0, avgTiu: 0, avgTkp: 0,
-      totalCompleted: 0,
-      bestFinalScore: 0,
-      lastAttemptDate: null as string | null,
+      avgTwk:             0,
+      avgTiu:             0,
+      avgTkp:             0,
+      totalCompleted:     0,
+      bestFinalScore:     0,
+      lastAttemptDate:    null as string | null,
+      informasiViewCount: informasiCount ?? 0,
+      materiViewCount:    materiCount    ?? 0,
     };
   }
 
-  const avgTwk = Math.round(completed.reduce((s, a) => s + (a.score_twk ?? 0), 0) / completed.length);
-  const avgTiu = Math.round(completed.reduce((s, a) => s + (a.score_tiu ?? 0), 0) / completed.length);
-  const avgTkp = Math.round(completed.reduce((s, a) => s + (a.score_tkp ?? 0), 0) / completed.length);
+  const avgTwk = Math.round(
+    completed.reduce((s, a) => s + (a.score_twk ?? 0), 0) / completed.length,
+  );
+  const avgTiu = Math.round(
+    completed.reduce((s, a) => s + (a.score_tiu ?? 0), 0) / completed.length,
+  );
+  const avgTkp = Math.round(
+    completed.reduce((s, a) => s + (a.score_tkp ?? 0), 0) / completed.length,
+  );
   const bestFinalScore = Math.max(...completed.map(a => a.final_score ?? 0));
 
   return {
-    avgTwk, avgTiu, avgTkp,
-    totalCompleted: completed.length,
+    avgTwk,
+    avgTiu,
+    avgTkp,
+    totalCompleted:     completed.length,
     bestFinalScore,
-    lastAttemptDate: completed[0]?.completed_at ?? null,
+    lastAttemptDate:    completed[0]?.completed_at ?? null,
+    informasiViewCount: informasiCount ?? 0,
+    materiViewCount:    materiCount    ?? 0,
   };
 }
 
 export type RoadmapStats = Awaited<ReturnType<typeof getRoadmapStats>>;
+
+// ─────────────────────────────────────────────────────────────
+// MATERIAL VIEWS — tracking materi yang dibuka user
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Catat bahwa user sudah membuka sebuah materi.
+ * Aman dipanggil berkali-kali — tidak akan duplikat data
+ * karena menggunakan upsert dengan UNIQUE constraint.
+ * Non-fatal: error tidak di-throw agar tidak breaking halaman materi.
+ */
+export async function trackMaterialView(userId: string, materialId: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('material_views')
+    .upsert(
+      { user_id: userId, material_id: materialId },
+      { onConflict: 'user_id,material_id', ignoreDuplicates: true },
+    );
+
+  if (error) {
+    console.error('Failed to track material view:', error.message);
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 // REVIEW
@@ -335,10 +430,10 @@ export async function getReviewData(attemptId: string) {
     const userAnswer    = (userAnswers ?? []).find((a: any) => a.question_id === question.id);
     const correctChoice = question.choices.find((c: any) => c.is_answer);
     const userChoice    = question.choices.find((c: any) => c.id === userAnswer?.choice_id);
-    const isCorrect = question.category !== 'TKP'
-  ? (userAnswer?.choice_id === correctChoice?.id) : null;
-const score = question.category === 'TKP' && userChoice 
-  ? (userChoice.score ?? 1) : null;
+    const isCorrect     = question.category !== 'TKP'
+      ? (userAnswer?.choice_id === correctChoice?.id) : null;
+    const score         = question.category === 'TKP' && userChoice
+      ? (userChoice.score ?? 1) : null;
 
     return {
       position: index + 1, id: question.id, category: question.category,
