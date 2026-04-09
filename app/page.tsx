@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react'
+import Image from 'next/image';
 
 const examSVG = `<svg viewBox="0 0 420 370" width="100%" style="max-width:620px;filter:drop-shadow(0 24px 64px rgba(0,0,0,0.11));border-radius:16px;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
   <rect width="420" height="370" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
@@ -662,13 +663,13 @@ export default function Home() {
       <nav id="navbar">
         <div className="nav-inner">
           <a href="#" className="logo">
-            <img src="/images/logo-navbar.svg" width="95" height="95" style={{borderRadius:'9px'}} alt="logo" />
+            <Image src="/images/logo-navbar.svg" width={95} height={95} style={{borderRadius:'9px'}} alt="Logo PintuASN" priority />
           </a>
           <ul className="nav-links">
             <li><a href="#fitur">Fitur</a></li>
             <li><a href="#cara-kerja">Cara Kerja</a></li>
-            <li><a href="#paket">Harga</a></li>
-            <li><a href="#blog">Blog</a></li>
+            <li><a href="#paket">Paket</a></li>
+            <li><a href="/blog">Blog</a></li>
             <li><a href="#faq">FAQ</a></li>
           </ul>
           <div className="nav-btns">
@@ -700,8 +701,8 @@ export default function Home() {
           <div className="mobile-menu-links">
             <a href="#fitur" onClick={() => setMenuOpen(false)}>Fitur</a>
             <a href="#cara-kerja" onClick={() => setMenuOpen(false)}>Cara Kerja</a>
-            <a href="#paket" onClick={() => setMenuOpen(false)}>Harga</a>
-            <a href="#blog" onClick={() => setMenuOpen(false)}>Blog</a>
+            <a href="#paket" onClick={() => setMenuOpen(false)}>Paket</a>
+            <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
             <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
           </div>
           <div className="mobile-menu-btns">
