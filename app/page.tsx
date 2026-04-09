@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const examSVG = `<svg viewBox="0 0 420 340" width="100%" style="max-width:620px;filter:drop-shadow(0 24px 64px rgba(0,0,0,0.11));border-radius:16px;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
   <rect width="420" height="340" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
@@ -109,16 +109,12 @@ const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.
   <circle cx="35.5" cy="264" r="2.8" fill="none" stroke="#94a3b8" stroke-width="0.9"/>
   <path d="M 33.5,274 Q 33.5,271 37.5,271" fill="none" stroke="#94a3b8" stroke-width="0.9"/>
   <text x="42" y="270" font-family="sans-serif" font-size="10" fill="#475569">Grup</text>
-  <rect x="14" y="284" width="172" height="122" rx="14" fill="url(#upGrad)"/>
-  <rect x="22" y="294" width="28" height="28" rx="8" fill="rgba(255,255,255,0.1)"/>
-  <rect x="29" y="316" width="13" height="2.5" rx="0.5" fill="#0077B6"/>
-  <text x="56" y="308" font-family="sans-serif" font-size="9" font-weight="700" fill="rgba(255,255,255,0.6)">Member Gratis</text>
-  <text x="22" y="336" font-family="sans-serif" font-size="11" font-weight="800" fill="#ffffff">Member</text>
-  <text x="70" y="336" font-family="sans-serif" font-size="11" font-weight="800" fill="#0077B6">Premium</text>
-  <text x="22" y="350" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.55)">Akses Paket Tryout Premium</text>
-  <text x="22" y="362" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.55)">dan Materi video lengkap.</text>
-  <rect x="22" y="370" width="152" height="24" rx="8" fill="#ffffff"/>
-  <text x="98" y="385.5" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b" text-anchor="middle">Lihat Materi</text>
+  <rect x="14" y="284" width="172" height="122" rx="14" fill="#f8fafc" stroke="#e2e8f0" stroke-width="0.8"/>
+  <rect x="22" y="294" width="48" height="48" rx="12" fill="#0077B6"/>
+  <text x="46" y="326" font-family="sans-serif" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">P</text>
+  <text x="22" y="360" font-family="sans-serif" font-size="13" font-weight="800" fill="#1e293b">PintuASN</text>
+  <text x="22" y="375" font-family="sans-serif" font-size="9" fill="#94a3b8">Simulasi CAT SKD CPNS</text>
+  <text x="22" y="388" font-family="sans-serif" font-size="9" fill="#94a3b8">Terpercaya di Indonesia</text>
   <text x="102" y="422" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">© 2026 PintuASN. v1.0.0</text>
   <rect x="206" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
   <rect x="218" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
@@ -206,10 +202,18 @@ const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.
 </svg>`;
 
 export default function Home() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   useEffect(() => {
     const nav = document.getElementById('navbar');
     const handleScroll = () => nav?.classList.toggle('scrolled', window.scrollY > 40);
     window.addEventListener('scroll', handleScroll);
+
+    // Close menu on resize to desktop
+    const handleResize = () => {
+      if (window.innerWidth > 768) setMenuOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
@@ -248,10 +252,17 @@ export default function Home() {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
       observer.disconnect();
       statObs.disconnect();
     };
   }, []);
+
+  // Lock body scroll when mobile menu open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
 
   function toggleFaq(btn: HTMLElement) {
     const body = btn.nextElementSibling as HTMLElement;
@@ -292,6 +303,7 @@ export default function Home() {
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
         @keyframes scrollticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
         .hero-title{animation:fadeSlideUp .8s ease both}
         .hero-sub{animation:fadeSlideUp .8s .15s ease both}
@@ -304,7 +316,8 @@ export default function Home() {
         .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
         .reveal.visible{opacity:1;transform:translateY(0)}
 
-        nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--s100);transition:box-shadow .3s}
+        /* ── NAVBAR ── */
+        nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--s100);transition:box-shadow .3s}
         nav.scrolled{box-shadow:0 4px 24px rgba(0,0,0,0.07)}
         .nav-inner{max-width:1180px;margin:0 auto;padding:0 28px;height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}
         .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:800;font-size:21px;color:var(--s900);text-decoration:none}
@@ -318,6 +331,27 @@ export default function Home() {
         .btn-primary{padding:9px 20px;font-size:14px;font-weight:700;color:#fff;background:var(--y);border-radius:9px;text-decoration:none;transition:all .2s}
         .btn-primary:hover{background:var(--yd);transform:translateY(-1px)}
 
+        /* ── HAMBURGER ── */
+        .hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;border:none;background:transparent;z-index:300;border-radius:8px;transition:background .2s}
+        .hamburger:hover{background:var(--s100)}
+        .hamburger span{display:block;width:22px;height:2px;background:var(--s800);border-radius:2px;transition:all .3s ease}
+        .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+        .hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+        .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+        /* ── MOBILE MENU ── */
+        .mobile-menu{display:none;position:fixed;top:68px;left:0;right:0;bottom:0;background:#fff;z-index:150;flex-direction:column;padding:8px 20px 24px;overflow-y:auto;animation:slideDown .25s ease both}
+        .mobile-menu.open{display:flex}
+        .mobile-menu-links{display:flex;flex-direction:column}
+        .mobile-menu-links a{font-size:16px;font-weight:600;color:var(--s800);text-decoration:none;padding:16px 4px;border-bottom:1px solid var(--s100);display:flex;align-items:center;justify-content:space-between;transition:color .2s}
+        .mobile-menu-links a:hover{color:var(--y)}
+        .mobile-menu-links a::after{content:'›';font-size:20px;color:var(--s400)}
+        .mobile-menu-btns{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+        .mobile-menu-btns a{text-align:center;padding:13px 20px;font-size:15px;font-weight:700;border-radius:10px;text-decoration:none;transition:all .2s}
+        .mobile-menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:140;top:68px}
+        .mobile-menu-overlay.open{display:block}
+
+        /* ── HERO ── */
         .hero{min-height:100vh;display:flex;align-items:center;padding:120px 28px 80px;background:#fff;position:relative;overflow:hidden}
         .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(0,119,182,.08) 0%,transparent 70%);pointer-events:none}
         .hero-grid{max-width:1180px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1.2fr;gap:50px;align-items:center}
@@ -340,10 +374,10 @@ export default function Home() {
         .proof-text{font-size:13.5px;color:var(--s600)}
         .proof-text strong{color:var(--s900)}
         .stars{color:var(--y);letter-spacing:2px;font-size:13px}
-
         .hero-right{position:relative;display:flex;justify-content:center;align-items:center}
         .mockup-wrap{position:relative;width:100%}
 
+        /* ── TICKER ── */
         .ticker-wrap{background:var(--s50);border-top:1px solid var(--s100);border-bottom:1px solid var(--s100);padding:14px 0;overflow:hidden;position:relative}
         .ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none}
         .ticker-wrap::before{left:0;background:linear-gradient(90deg,var(--s50),transparent)}
@@ -352,6 +386,7 @@ export default function Home() {
         .ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 24px;font-size:13px;font-weight:600;color:var(--s600);white-space:nowrap;border-right:1px solid var(--s200)}
         .ticker-dot{width:20px;height:20px;border-radius:6px;background:var(--s800);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
 
+        /* ── STATS ── */
         .stats-bar{background:var(--s800);padding:40px 28px}
         .stats-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
         .stat-item{padding:8px;border-right:1px solid rgba(255,255,255,.06)}
@@ -359,6 +394,7 @@ export default function Home() {
         .stat-num{font-family:var(--font-d);font-size:38px;font-weight:800;color:var(--y);display:block;line-height:1}
         .stat-label{font-size:13px;color:rgba(255,255,255,.5);margin-top:6px;font-weight:500}
 
+        /* ── SECTIONS ── */
         section{padding:96px 28px}
         .section-inner{max-width:1180px;margin:0 auto}
         .section-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--yd);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}
@@ -367,6 +403,7 @@ export default function Home() {
         .section-sub{font-size:17px;color:var(--s600);line-height:1.7;max-width:560px}
         .section-head{margin-bottom:60px}
 
+        /* ── PAIN ── */
         .pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
         .pain-card{background:#fff;border:1px solid var(--s100);border-radius:18px;padding:36px 28px;transition:transform .3s,box-shadow .3s}
         .pain-card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(0,0,0,.07)}
@@ -374,6 +411,7 @@ export default function Home() {
         .pain-card h3{font-family:var(--font-d);font-size:17px;color:var(--s900);margin-bottom:10px}
         .pain-card p{font-size:14px;color:var(--s600);line-height:1.75}
 
+        /* ── FEATURES ── */
         .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
         .feat-card{background:var(--s50);border:1px solid var(--s100);border-radius:16px;padding:28px;transition:all .3s;cursor:default}
         .feat-card:hover{background:#fff;border-color:rgba(0,119,182,.45);box-shadow:0 8px 32px rgba(0,119,182,.1)}
@@ -382,6 +420,7 @@ export default function Home() {
         .feat-card p{font-size:13.5px;color:var(--s600);line-height:1.7}
         .feat-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--yl);color:var(--yd);border:1px solid rgba(0,119,182,.3);border-radius:50px;padding:3px 10px;margin-bottom:10px}
 
+        /* ── SHOWCASE ── */
         .showcase-bg{background:var(--s800);padding:96px 28px;position:relative;overflow:hidden}
         .showcase-bg::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(0,119,182,.05) 0%,transparent 60%);pointer-events:none}
         .showcase-header{text-align:center;margin-bottom:56px}
@@ -389,7 +428,9 @@ export default function Home() {
         .browser-bar{height:40px;background:rgba(255,255,255,.05);display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.06)}
         .browser-dot{width:10px;height:10px;border-radius:50%}
         .browser-url{flex:1;background:rgba(255,255,255,.05);border-radius:5px;height:22px;margin:0 12px;display:flex;align-items:center;padding:0 10px}
+        .browser-content{overflow-x:auto;-webkit-overflow-scrolling:touch}
 
+        /* ── STEPS ── */
         .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
         .steps-grid::after{content:'';position:absolute;top:44px;left:calc(16.67% + 24px);right:calc(16.67% + 24px);height:2px;background:repeating-linear-gradient(90deg,var(--y) 0,var(--y) 8px,transparent 8px,transparent 18px)}
         .step{text-align:center;padding:0 24px}
@@ -398,6 +439,7 @@ export default function Home() {
         .step h3{font-weight:700;font-size:17px;color:var(--s900);margin-bottom:10px}
         .step p{font-size:14px;color:var(--s600);line-height:1.7}
 
+        /* ── PRICING ── */
         .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;align-items:start}
         .price-card{border-radius:20px;padding:36px 28px;display:flex;flex-direction:column;position:relative}
         .price-icon-row{display:flex;align-items:center;gap:14px;margin-bottom:24px}
@@ -412,6 +454,7 @@ export default function Home() {
         .price-btn{display:flex;align-items:center;justify-content:center;padding:14px 20px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;transition:all .2s;gap:6px}
         .pop-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;padding:4px 16px;border-radius:50px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.1)}
 
+        /* ── FAQ ── */
         .faq-inner{max-width:720px;margin:0 auto}
         .faq-item{border-bottom:1px solid var(--s100)}
         .faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;gap:16px;font-family:var(--font-b)}
@@ -422,17 +465,18 @@ export default function Home() {
         .faq-body{overflow:hidden;transition:max-height .4s ease}
         .faq-body p{padding-bottom:20px;font-size:15px;color:var(--s600);line-height:1.78}
 
+        /* ── FINAL CTA ── */
         .final-cta{background:var(--s800);padding:100px 28px;text-align:center;position:relative;overflow:hidden}
         .final-cta::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(0,119,182,.02) 0,rgba(0,119,182,.02) 1px,transparent 1px,transparent 8px);pointer-events:none}
         .final-cta-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
         .final-cta h2{font-family:var(--font-d);font-size:clamp(28px,4vw,46px);color:#fff;font-weight:800;line-height:1.2;margin-bottom:18px;letter-spacing:-.5px}
         .final-cta p{font-size:17px;color:rgba(255,255,255,.5);margin-bottom:38px;line-height:1.7}
 
+        /* ── FOOTER ── */
         footer{background:#fff;border-top:1px solid var(--s100);padding:32px 28px 16px}
         .footer-grid{max-width:1100px;margin:0 auto 24px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px}
-        .footer-brand p{font-size:14px;color:var(--s500);line-height:1.75;margin-top:14px;max-width:280px}
         .footer-col h4{font-size:12px;font-weight:700;color:var(--s900);margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px}
-        .footer-col a{display:block;font-size:14px;color:var(--s500);text-decoration:none;margin-bottom:10px;transition:color .2s}
+        .footer-col a{display:block;font-size:14px;color:var(--s600);text-decoration:none;margin-bottom:10px;transition:color .2s}
         .footer-col a:hover{color:var(--y)}
         .footer-bottom{max-width:1100px;margin:0 auto;border-top:1px solid var(--s100);padding-top:14px;display:flex;justify-content:space-between;align-items:center}
         .footer-bottom p{font-size:13px;color:var(--s400)}
@@ -440,24 +484,162 @@ export default function Home() {
         .social-btn{width:34px;height:34px;border-radius:8px;background:var(--s100);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:background .2s}
         .social-btn:hover{background:var(--s200)}
 
-        @media(max-width:900px){
-          .hero-grid,.pain-grid,.features-grid,.steps-grid,.pricing-grid,.footer-grid{grid-template-columns:1fr}
-          .hero-grid{text-align:center;gap:40px}
-          .hero-subtext{max-width:100%}
-          .hero-cta-row,.hero-proof{justify-content:center}
-          .hero-right{order:-1}
-          .steps-grid::after{display:none}
-          .stats-inner{grid-template-columns:repeat(2,1fr)}
+        /* ════════════════════════════════
+           MOBILE RESPONSIVE — max 768px
+        ════════════════════════════════ */
+        @media(max-width:768px){
+
+          /* NAV */
           .nav-links{display:none}
+          .nav-btns{display:none}
+          .hamburger{display:flex}
+          .nav-inner{padding:0 16px}
+
+          /* HERO */
+          .hero{padding:100px 20px 60px;min-height:auto}
+          .hero::before{display:none}
+          .hero-grid{
+            grid-template-columns:1fr;
+            gap:32px;
+            text-align:center;
+          }
+          .hero-right{order:-1}
+          .hero-subtext{max-width:100%;font-size:15px;margin-bottom:28px}
+          .hero-heading{font-size:clamp(28px,7vw,40px);margin-bottom:16px}
+          .hero-cta-row{justify-content:center;gap:10px}
+          .cta-big{padding:12px 22px;font-size:15px}
+          .hero-proof{justify-content:center}
+
+          /* Floating badges di mockup — sembunyikan agar tidak overflow */
+          .mockup-float2[style*="top:'-20px'"]{display:none!important}
+          .mockup-badge-top{display:none!important}
+          .mockup-badge-bottom{display:none!important}
+
+          /* TICKER */
+          .ticker-wrap{padding:10px 0}
+          .ticker-item{font-size:12px;padding:0 16px}
+
+          /* STATS */
+          .stats-bar{padding:28px 20px}
+          .stats-inner{
+            grid-template-columns:repeat(2,1fr);
+            gap:0;
+          }
+          .stat-item{
+            padding:16px 8px;
+            border-right:none;
+            border-bottom:1px solid rgba(255,255,255,.06);
+          }
+          .stat-item:nth-child(odd){border-right:1px solid rgba(255,255,255,.06)}
+          .stat-item:nth-child(3),.stat-item:nth-child(4){border-bottom:none}
+          .stat-num{font-size:30px}
+          .stat-label{font-size:12px}
+
+          /* SECTIONS */
+          section{padding:56px 20px}
+          .section-head{margin-bottom:36px}
+          .section-title{font-size:clamp(22px,6vw,32px)}
+          .section-sub{font-size:15px}
+
+          /* PAIN */
+          .pain-grid{grid-template-columns:1fr;gap:16px}
+          .pain-card{padding:24px 20px}
+          .pain-card h3{font-size:15px}
+
+          /* SHOWCASE */
+          .showcase-bg{padding:56px 20px}
+          .showcase-header{margin-bottom:32px}
+          .browser-frame{border-radius:10px}
+          .browser-content{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+          /* FEATURES */
+          .features-grid{grid-template-columns:1fr;gap:14px}
+          .feat-card{padding:20px}
+
+          /* STEPS */
+          .steps-grid{
+            grid-template-columns:1fr;
+            gap:0;
+          }
+          .steps-grid::after{display:none}
+          .step{
+            padding:0;
+            display:grid;
+            grid-template-columns:72px 1fr;
+            gap:16px;
+            text-align:left;
+            align-items:start;
+            padding:20px 0;
+            border-bottom:1px solid var(--s100);
+          }
+          .step:last-child{border-bottom:none}
+          .step-num{
+            width:56px;
+            height:56px;
+            font-size:22px;
+            margin:0;
+          }
+          .step-content{padding-top:4px}
+          .step h3{font-size:15px;margin-bottom:6px}
+          .step p{font-size:13px}
+
+          /* PRICING */
+          .pricing-grid{
+            grid-template-columns:1fr;
+            gap:16px;
+            padding:0 4px;
+          }
+          .price-card{
+            margin:0!important; /* override negative margins */
+            padding:28px 24px;
+          }
+          .pop-badge{
+            top:-11px;
+            font-size:11px;
+          }
+          .price-amount{font-size:30px}
+
+          /* FAQ */
+          .faq-q{font-size:14px}
+          .faq-btn{padding:18px 0}
+
+          /* FINAL CTA */
+          .final-cta{padding:64px 20px}
+          .final-cta p{font-size:15px;margin-bottom:28px}
+          .cta-big.cta-yellow{font-size:15px;padding:13px 24px}
+
+          /* FOOTER */
+          footer{padding:28px 20px 16px}
+          .footer-grid{
+            grid-template-columns:1fr;
+            gap:28px;
+            margin-bottom:20px;
+          }
+          .footer-bottom{
+            flex-direction:column;
+            gap:8px;
+            text-align:center;
+          }
+          .footer-col h4{margin-bottom:10px}
+          .footer-col a{margin-bottom:8px}
+        }
+
+        /* Tablet tweaks 769–1024 */
+        @media(min-width:769px) and (max-width:1024px){
+          .hero-grid{grid-template-columns:1fr 1fr;gap:32px}
+          .pain-grid{grid-template-columns:1fr 1fr;gap:16px}
+          .features-grid{grid-template-columns:repeat(2,1fr)}
+          .pricing-grid{grid-template-columns:1fr;max-width:480px}
+          .stats-inner{grid-template-columns:repeat(2,1fr)}
+          .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
         }
       `}</style>
 
-      {/* NAVBAR */}
+      {/* ── NAVBAR ── */}
       <nav id="navbar">
         <div className="nav-inner">
           <a href="#" className="logo">
-            <img src="/images/Logo.svg" width="34" height="34" style={{borderRadius:'9px'}} alt="logo" />
-            PintuASN
+            <img src="/images/logo-navbar.svg" width="95" height="95" style={{borderRadius:'9px'}} alt="logo" />
           </a>
           <ul className="nav-links">
             <li><a href="#fitur">Fitur</a></li>
@@ -470,10 +652,43 @@ export default function Home() {
             <a href="/sign-in" className="btn-ghost">Masuk</a>
             <a href="/sign-up" className="btn-primary">Daftar Gratis</a>
           </div>
+          <button
+            className={`hamburger ${menuOpen ? 'open' : ''}`}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </nav>
 
-      {/* HERO */}
+      {/* ── MOBILE MENU OVERLAY ── */}
+      <div
+        className={`mobile-menu-overlay ${menuOpen ? 'open' : ''}`}
+        onClick={() => setMenuOpen(false)}
+      />
+
+      {/* ── MOBILE MENU ── */}
+      {menuOpen && (
+        <div className="mobile-menu open">
+          <div className="mobile-menu-links">
+            <a href="#fitur" onClick={() => setMenuOpen(false)}>Fitur</a>
+            <a href="#cara-kerja" onClick={() => setMenuOpen(false)}>Cara Kerja</a>
+            <a href="#paket" onClick={() => setMenuOpen(false)}>Harga</a>
+            <a href="#blog" onClick={() => setMenuOpen(false)}>Blog</a>
+            <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+          </div>
+          <div className="mobile-menu-btns">
+            <a href="/sign-in" className="btn-ghost" onClick={() => setMenuOpen(false)}>Masuk</a>
+            <a href="/sign-up" className="btn-primary" onClick={() => setMenuOpen(false)}>Daftar Gratis →</a>
+          </div>
+        </div>
+      )}
+
+      {/* ── HERO ── */}
       <section className="hero" id="hero">
         <div className="hero-grid">
           <div>
@@ -506,14 +721,14 @@ export default function Home() {
           <div className="hero-right hero-mockup">
             <div className="mockup-wrap">
               <div className="mockup-float" dangerouslySetInnerHTML={{__html: examSVG}} />
-              <div className="mockup-float2" style={{position:'absolute',top:'-20px',right:'-18px',background:'#fff',border:'1px solid #e2e8f0',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.08)',display:'flex',alignItems:'center',gap:'10px',zIndex:2}}>
+              <div className="mockup-badge-top mockup-float2" style={{position:'absolute',top:'-20px',right:'-18px',background:'#fff',border:'1px solid #e2e8f0',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.08)',display:'flex',alignItems:'center',gap:'10px',zIndex:2}}>
                 <div style={{width:'36px',height:'36px',background:'#1e293b',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>📊</div>
                 <div>
                   <div style={{fontSize:'11px',fontWeight:700,color:'#1e293b'}}>Skor TWK</div>
                   <div style={{fontSize:'16px',fontWeight:800,color:'#16a34a'}}>85 <span style={{fontSize:'10px',color:'#94a3b8'}}>/ 150</span></div>
                 </div>
               </div>
-              <div className="mockup-float2" style={{position:'absolute',bottom:'-10px',left:'-18px',background:'#1e293b',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.18)',display:'flex',alignItems:'center',gap:'10px',zIndex:2,animationDelay:'1.2s'}}>
+              <div className="mockup-badge-bottom mockup-float2" style={{position:'absolute',bottom:'-10px',left:'-18px',background:'#1e293b',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.18)',display:'flex',alignItems:'center',gap:'10px',zIndex:2,animationDelay:'1.2s'}}>
                 <div style={{fontSize:'20px'}}>🏆</div>
                 <div>
                   <div style={{fontSize:'10px',color:'rgba(255,255,255,0.45)',fontWeight:600}}>Peringkat Nasional</div>
@@ -525,7 +740,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TICKER */}
+      {/* ── TICKER ── */}
       <div className="ticker-wrap">
         <div className="ticker-track">
           {[
@@ -553,7 +768,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* STATS BAR */}
+      {/* ── STATS BAR ── */}
       <div className="stats-bar">
         <div className="stats-inner">
           <div className="stat-item reveal"><span className="stat-num" data-target="12186">0</span><div className="stat-label">Pengguna aktif terdaftar</div></div>
@@ -563,7 +778,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PAIN POINTS */}
+      {/* ── PAIN POINTS ── */}
       <section style={{background:'var(--s50)'}}>
         <div className="section-inner">
           <div className="section-head reveal" style={{textAlign:'center'}}>
@@ -591,7 +806,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* APP SHOWCASE */}
+      {/* ── APP SHOWCASE ── */}
       <section className="showcase-bg">
         <div className="showcase-header reveal">
           <div className="section-tag" style={{justifyContent:'center',color:'rgba(0,119,182,.8)'}}>Dashboard Performa</div>
@@ -608,12 +823,12 @@ export default function Home() {
                 <span style={{fontSize:'11px',color:'rgba(255,255,255,.3)',fontFamily:'monospace'}}>pintuasn.com/statistics</span>
               </div>
             </div>
-            <div dangerouslySetInnerHTML={{__html: dashboardSVG}} />
+            <div className="browser-content" dangerouslySetInnerHTML={{__html: dashboardSVG}} />
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
+      {/* ── FEATURES ── */}
       <section style={{background:'#fff'}} id="fitur">
         <div className="section-inner">
           <div className="section-head reveal">
@@ -657,7 +872,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      {/* ── HOW IT WORKS ── */}
       <section style={{background:'var(--s50)'}} id="cara-kerja">
         <div className="section-inner">
           <div className="section-head reveal" style={{textAlign:'center'}}>
@@ -668,24 +883,30 @@ export default function Home() {
           <div className="steps-grid">
             <div className="step reveal">
               <div className="step-num">1</div>
-              <h3>Daftar Akun Gratis</h3>
-              <p>Buat akun dalam 30 detik. Langsung akses dashboard, roadmap, dan tryout pertamamu tanpa kartu kredit.</p>
+              <div className="step-content">
+                <h3>Daftar Akun Gratis</h3>
+                <p>Buat akun dalam 30 detik. Langsung akses dashboard, roadmap, dan tryout pertamamu tanpa kartu kredit.</p>
+              </div>
             </div>
             <div className="step reveal" style={{transitionDelay:'.2s'}}>
               <div className="step-num">2</div>
-              <h3>Kerjakan Tryout</h3>
-              <p>Rasakan sensasi ujian asli dengan timer dan antarmuka identik BKN. TWK, TIU, TKP dalam satu sesi penuh.</p>
+              <div className="step-content">
+                <h3>Kerjakan Tryout</h3>
+                <p>Rasakan sensasi ujian asli dengan timer dan antarmuka identik BKN. TWK, TIU, TKP dalam satu sesi penuh.</p>
+              </div>
             </div>
             <div className="step reveal" style={{transitionDelay:'.4s'}}>
               <div className="step-num">3</div>
-              <h3>Analisis dan Tingkatkan</h3>
-              <p>Dapatkan skor, analitik mendalam, analisis waktu per soal, review pembahasan, dan posisi ranking nasional.</p>
+              <div className="step-content">
+                <h3>Analisis dan Tingkatkan</h3>
+                <p>Dapatkan skor, analitik mendalam, analisis waktu per soal, review pembahasan, dan posisi ranking nasional.</p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* PRICING */}
+      {/* ── PRICING ── */}
       <section style={{background:'#fff'}} id="paket">
         <div className="section-inner">
           <div className="section-head reveal" style={{textAlign:'center'}}>
@@ -694,7 +915,6 @@ export default function Home() {
             <p className="section-sub" style={{margin:'0 auto'}}>Investasi terbaik untuk lolos SKD CPNS 2026. Akses penuh hingga hari ujian selesai.</p>
           </div>
           <div className="pricing-grid">
-
             {/* FREE */}
             <div className="price-card reveal" style={{background:'#fff',border:'1px solid #e2e8f0'}}>
               <div className="price-icon-row">
@@ -717,7 +937,7 @@ export default function Home() {
             </div>
 
             {/* PREMIUM */}
-            <div className="price-card reveal" style={{background:'#1d4ed8',boxShadow:'0 24px 64px rgba(29,78,216,.35)',marginTop:'-12px',marginBottom:'-12px',transitionDelay:'.1s'}}>
+            <div className="price-card reveal" style={{background:'#1d4ed8',boxShadow:'0 24px 64px rgba(29,78,216,.35)',transitionDelay:'.1s'}}>
               <div className="pop-badge" style={{background:'#fff',color:'#1d4ed8'}}>⚡ Populer</div>
               <div className="price-icon-row">
                 <div className="price-icon-box" style={{background:'rgba(255,255,255,0.15)'}}>⚡</div>
@@ -768,7 +988,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* ── FAQ ── */}
       <section style={{background:'var(--s50)'}} id="faq">
         <div className="section-inner">
           <div className="section-head reveal" style={{textAlign:'center'}}>
@@ -812,7 +1032,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FINAL CTA */}
+      {/* ── FINAL CTA ── */}
       <section className="final-cta">
         <div className="final-cta-inner reveal">
           <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(0,119,182,.12)',border:'1px solid rgba(0,119,182,.25)',borderRadius:'50px',padding:'6px 16px',fontSize:'13px',fontWeight:600,color:'var(--y)',marginBottom:'24px'}}>
@@ -827,7 +1047,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
+      {/* ── FOOTER ── */}
       <footer>
         <div className="footer-grid">
           <div>
