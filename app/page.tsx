@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-const examSVG = `<svg viewBox="0 0 420 340" width="100%" style="max-width:620px;filter:drop-shadow(0 24px 64px rgba(0,0,0,0.11));border-radius:16px;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
-  <rect width="420" height="340" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+const examSVG = `<svg viewBox="0 0 420 370" width="100%" style="max-width:620px;filter:drop-shadow(0 24px 64px rgba(0,0,0,0.11));border-radius:16px;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
+  <rect width="420" height="370" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
   <rect width="420" height="44" rx="14" fill="#1e293b"/>
   <rect y="24" width="420" height="20" fill="#1e293b"/>
   <circle cx="20" cy="22" r="5" fill="#ef4444"/>
@@ -35,13 +35,16 @@ const examSVG = `<svg viewBox="0 0 420 340" width="100%" style="max-width:620px;
   <rect x="16" y="262" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
   <text x="34" y="279" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">D</text>
   <text x="48" y="279" font-family="sans-serif" font-size="10" fill="#475569">Mendahulukan hak daripada kewajiban</text>
-  <rect y="299" width="420" height="41" fill="#f8fafc"/>
-  <rect y="299" width="420" height="1" fill="#e2e8f0"/>
-  <rect x="16" y="309" width="70" height="22" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="51" y="324" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Sebelum</text>
-  <rect x="334" y="309" width="70" height="22" rx="6" fill="#1e293b"/>
-  <text x="369" y="324" font-family="sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">Berikut</text>
-  <g transform="translate(100,317)">
+  <rect x="16" y="292" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="34" y="309" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">E</text>
+  <text x="48" y="309" font-family="sans-serif" font-size="10" fill="#475569">Menghormati perbedaan suku dan budaya</text>
+  <rect y="329" width="420" height="41" fill="#f8fafc"/>
+  <rect y="329" width="420" height="1" fill="#e2e8f0"/>
+  <rect x="16" y="339" width="70" height="22" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="51" y="354" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Sebelum</text>
+  <rect x="334" y="339" width="70" height="22" rx="6" fill="#1e293b"/>
+  <text x="369" y="354" font-family="sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">Berikut</text>
+  <g transform="translate(100,347)">
     <rect x="0" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
     <rect x="11" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
     <rect x="22" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
@@ -63,11 +66,16 @@ const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.
     <clipPath id="sideClip"><rect width="200" height="430" rx="0"/></clipPath>
   </defs>
   <rect x="0" y="0" width="860" height="44" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <g transform="translate(8,5) scale(0.082)">
+    <path fill="#eea32f" d="M388.22,214.06h-14.5l-1.5,1.5v200.3h-47c.4-1.03-1-2.22-1-2.5v-198.31c-4.4-1.54-8.91-.91-13.51-1-1.52-.03-2.89.72-2.49-1.49l37.98-42.98c3.06-1.58,4.59.38,6.53,2.49,6.53,7.09,12.55,14.82,18.96,22.02,4.04,4.54,12.58,11.94,15.57,16.42.84,1.26,1.24,1.92.96,3.54Z"/>
+    <path fill="#26a1ac" d="M372.22,181.09c-1.71.42-1.99-.66-3-1.49-6.91-5.76-12.97-15.07-19.45-21.52l-3-1.01-14,17.09-7.54,6.95c-.25-6.81.3-13.71.04-20.53-1.05-27.43-5.7-52.36-24.06-73.87-34.8-40.79-93.09-53.39-139.33-23.32-5.72,3.72-10.73,10.09-17.1,11.84l-40.55-23.48c16.3-19.17,37.69-34.03,61.47-42.49,68.91-24.51,142.66,1.02,182.35,61.64,21.53,32.89,25.64,71.61,24.17,110.21Z"/>
+    <path fill="#183f65" d="M50.22,235.04c-.1-2.21-.59-10.52.94-11.55,1.76-1.17,9.8-.64,12.05.56.09-1.61-.91-2.81-1.04-4.45-1.05-14.01,2.27-28.01,1.09-42.05-.09-1.02-.44-3.45-1.55-3.45h-22c-.51,0-4.67,3.52-7.24,3.82-9.37,1.07-11.66-13.63-2.7-14.79,5.83-.75,7.3,3.45,8.89,3.63.77.09,2.54-.71,4-.7,12.1.04,25.16-.63,37.1,0,1.73.09,2.91.16,4.45,1.05v-6s-20.99-1-20.99-1V39.23l136.83,75.09.12,206.19c.65,3.85,2.48,16.48.05,18.93-16.05,9.25-32.3,18.18-48.32,27.47-19.92,11.56-41.19,22.91-61,34.97-5.53,3.37-13.15,9.33-18.4,11.95-1.51.76-9.46,3.85-10.28,3.03l1-107.89h-16.5c-.85,0-2.3,4.79-7.95,3.98-11.43-1.64-7.12-17.74,2.5-14.54,1.79.59,4.16,3.57,4.45,3.57h38.5v-6.99h-34v-13.99h13v-25.97l-20-1c.13-3.64-.17-7.35,0-10.99,3.56-.57,19.15,1.17,20.56-.94l.44-7.06h-14Z"/>
+  </g>
   <text x="42" y="26" font-family="sans-serif" font-size="11" font-weight="800" fill="#1e293b">PintuASN</text>
   <text x="210" y="20" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b">Halo, Yan!</text>
   <text x="210" y="33" font-family="sans-serif" font-size="9" fill="#94a3b8">Semangat Belajar!</text>
   <rect x="700" y="10" width="76" height="24" rx="7" fill="#1e293b"/>
-  <text x="738" y="26" font-family="sans-serif" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">Roadmap</text>
+  <text x="738" y="26" font-family="sans-serif" font-size="9" font-weight="700" fill="#f3c305" text-anchor="middle">Roadmap</text>
   <circle cx="820" cy="22" r="14" fill="#0077B6"/>
   <text x="820" y="27" font-family="sans-serif" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">YA</text>
   <text x="836" y="18" font-family="sans-serif" font-size="8" font-weight="600" fill="#1e293b">Yan</text>
@@ -80,11 +88,11 @@ const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.
   <rect x="31" y="87" width="4" height="4" rx="0.8" fill="#94a3b8"/>
   <text x="42" y="91" font-family="sans-serif" font-size="10" fill="#475569">Dashboard</text>
   <rect x="14" y="100" width="170" height="22" rx="7" fill="#1e293b"/>
-  <rect x="26" y="106" width="3" height="7" rx="0.5" fill="#0077B6"/>
-  <rect x="30" y="104" width="3" height="9" rx="0.5" fill="#0077B6"/>
-  <rect x="34" y="108" width="3" height="5" rx="0.5" fill="#0077B6"/>
-  <text x="44" y="115" font-family="sans-serif" font-size="10" font-weight="700" fill="#0077B6">Statistik</text>
-  <circle cx="178" cy="111" r="3" fill="#0077B6"/>
+  <rect x="26" y="108" width="3" height="7" rx="0.5" fill="#f3c305"/>
+  <rect x="30" y="106" width="3" height="9" rx="0.5" fill="#f3c305"/>
+  <rect x="34" y="110" width="3" height="5" rx="0.5" fill="#f3c305"/>
+  <text x="44" y="115" font-family="sans-serif" font-size="10" font-weight="700" fill="#f3c305">Statistik</text>
+  <circle cx="178" cy="111" r="3" fill="#d5b30d"/>
   <path d="M 26,128 L 26,137 Q 30.5,135 35,137 L 35,128 Z" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linejoin="round"/>
   <line x1="30.5" y1="128" x2="30.5" y2="136.5" stroke="#94a3b8" stroke-width="0.8"/>
   <text x="42" y="137" font-family="sans-serif" font-size="10" fill="#475569">Materi</text>
@@ -94,8 +102,7 @@ const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.
   <circle cx="30" cy="175" r="5.5" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
   <line x1="30" y1="170.5" x2="30" y2="175" stroke="#94a3b8" stroke-width="1.1"/>
   <line x1="30" y1="175" x2="33" y2="177" stroke="#94a3b8" stroke-width="1.1"/>
-  <text x="42" y="173" font-family="sans-serif" font-size="9" fill="#475569">Riwayat &amp;</text>
-  <text x="42" y="183" font-family="sans-serif" font-size="9" fill="#475569">Pembahasan</text>
+  <text x="42" y="179" font-family="sans-serif" font-size="10" fill="#475569">Riwayat & Pembahasan</text>
   <path d="M 24,194 L 26,194 L 28.5,201 L 36,201 L 37.5,197 L 28.5,197" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
   <circle cx="30" cy="203.5" r="1.3" fill="#94a3b8"/>
   <circle cx="35" cy="203.5" r="1.3" fill="#94a3b8"/>
@@ -120,26 +127,26 @@ const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.
   <rect x="218" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
   <text x="231" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">📄</text>
   <text x="250" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Total Tryout</text>
-  <text x="250" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">3</text>
-  <text x="250" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">Paket Selesai</text>
+  <text x="250" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">3</text>
+  <text x="250" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">Paket Selesai</text>
   <rect x="366" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
   <rect x="378" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
   <text x="391" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">🏆</text>
   <text x="412" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Skor Tertinggi</text>
-  <text x="412" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">68</text>
-  <text x="412" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">dari 550</text>
+  <text x="412" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">68</text>
+  <text x="412" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">dari 550</text>
   <rect x="526" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
   <rect x="538" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
   <text x="551" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">📈</text>
   <text x="572" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Rata-rata Skor</text>
-  <text x="572" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">23</text>
-  <text x="572" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">Stabil</text>
+  <text x="572" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">23</text>
+  <text x="572" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">Stabil</text>
   <rect x="686" y="52" width="162" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
   <rect x="698" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
   <text x="711" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">✓</text>
   <text x="732" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Tingkat Kelulusan</text>
-  <text x="732" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">0%</text>
-  <text x="732" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">Passing Grade</text>
+  <text x="732" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">0%</text>
+  <text x="732" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">Passing Grade</text>
   <rect x="206" y="138" width="472" height="196" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
   <text x="224" y="158" font-family="sans-serif" font-size="11" font-weight="700" fill="#1e293b">Tren Performa Skor</text>
   <text x="224" y="171" font-family="sans-serif" font-size="9" fill="#94a3b8">Perbandingan skor Anda vs Rata-rata</text>
@@ -276,6 +283,22 @@ export default function Home() {
 
   return (
     <>
+    <script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PintuASN",
+    "url": "https://pintuasn.com",
+    "logo": "https://pintuasn.com/images/Logo.svg",
+    "description": "Platform simulasi CAT SKD CPNS terpercaya di Indonesia",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "12186"
+    }
+  })}}
+/>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         *{margin:0;padding:0;box-sizing:border-box}
