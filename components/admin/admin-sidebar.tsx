@@ -10,7 +10,8 @@ import {
   BookOpen,
   Settings, 
   BarChart3, 
-  ArrowLeft 
+  ArrowLeft, 
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -22,7 +23,7 @@ const menuItems = [
   { href: '/admin/materials', label: 'Materi', icon: BookOpen },
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/user-info', label: 'User info', icon: Settings },
-  { href: '/admin/events', label: 'Events', icon: Settings }
+  { href: '/admin/events', label: 'Events', icon: Zap }
 ];
 
 // ✅ PINDAHKAN SidebarContent KELUAR dari component utama

@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 
 export async function DELETE(_req: NextRequest, { params }: Ctx) {
   try {
-    await checkIsAdmin();
+    await requireAdmin();
     const { id } = await params;
     const supabase = await createClient();
 
