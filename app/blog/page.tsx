@@ -68,14 +68,16 @@ function BlogCard({ post, featured = false }: { post: Post; featured?: boolean }
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams: { category?: string; page?: string }
+  searchParams: Promise<{ category?: string; page?: string }>
 }) {
-  const currentPage = Number(searchParams.page ?? 1)
+  const { category, page } = await searchParams
+
+  const currentPage = Number(page ?? 1)
   const limit = 9
   const offset = (currentPage - 1) * limit
 
   const { posts, total } = await getPublishedPosts({
-    category: searchParams.category,
+    category,
     limit,
     offset,
   })
@@ -206,7 +208,7 @@ export default async function BlogPage({
         <div className="blog-cats__inner">
           <a
             href="/blog"
-            className={`blog-cat ${!searchParams.category ? 'blog-cat--active' : ''}`}
+            className={`blog-cat ${!category ? 'blog-cat--active' : ''}`}
           >
             Semua
           </a>
@@ -214,7 +216,7 @@ export default async function BlogPage({
             <a
               key={cat}
               href={`/blog?category=${encodeURIComponent(cat)}`}
-              className={`blog-cat ${searchParams.category === cat ? 'blog-cat--active' : ''}`}
+              className={`blog-cat ${category === cat ? 'blog-cat--active' : ''}`}
             >
               {cat}
             </a>
@@ -233,7 +235,7 @@ export default async function BlogPage({
         ) : (
           <>
             {/* FEATURED */}
-            {featuredPost && currentPage === 1 && !searchParams.category && (
+            {featuredPost && currentPage === 1 && !category && (
               <div className="blog-featured">
                 <div className="blog-featured__label">Artikel Terbaru</div>
                 <BlogCard post={featuredPost} featured />
@@ -244,7 +246,7 @@ export default async function BlogPage({
             {restPosts.length > 0 && (
               <div className="blog-grid">
                 <div className="blog-grid__label">
-                  {total} Artikel{searchParams.category ? ` · ${searchParams.category}` : ''}
+                  {total} Artikel{category ? ` · ${category}` : ''}
                 </div>
                 {restPosts.map((post) => (
                   <BlogCard key={post.id} post={post} />
@@ -256,22 +258,22 @@ export default async function BlogPage({
             {totalPages > 1 && (
               <div className="blog-pagination">
                 <a
-                  href={`/blog?page=${currentPage - 1}${searchParams.category ? `&category=${searchParams.category}` : ''}`}
+                  href={`/blog?page=${currentPage - 1}${category ? `&category=${category}` : ''}`}
                   className={`blog-page-btn ${currentPage === 1 ? 'blog-page-btn--disabled' : ''}`}
                 >
                   ← Sebelumnya
                 </a>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                   <a
-                    key={page}
-                    href={`/blog?page=${page}${searchParams.category ? `&category=${searchParams.category}` : ''}`}
-                    className={`blog-page-btn ${page === currentPage ? 'blog-page-btn--active' : ''}`}
+                    key={p}
+                    href={`/blog?page=${p}${category ? `&category=${category}` : ''}`}
+                    className={`blog-page-btn ${p === currentPage ? 'blog-page-btn--active' : ''}`}
                   >
-                    {page}
+                    {p}
                   </a>
                 ))}
                 <a
-                  href={`/blog?page=${currentPage + 1}${searchParams.category ? `&category=${searchParams.category}` : ''}`}
+                  href={`/blog?page=${currentPage + 1}${category ? `&category=${category}` : ''}`}
                   className={`blog-page-btn ${currentPage === totalPages ? 'blog-page-btn--disabled' : ''}`}
                 >
                   Berikutnya →
