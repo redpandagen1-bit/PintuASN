@@ -57,7 +57,7 @@ export default function AuthLayout({
         <div className="relative z-10">
           {/* Logo Area */}
           <div className="flex items-center gap-2">
-            <Image src="/images/logo.svg" alt="PintuASN.com" width={32} height={32} />
+            <Image src="/images/Logo.svg" alt="PintuASN.com" width={32} height={32} />
             <span className="text-xl font-bold">PintuASN.com</span>
           </div>
         </div>

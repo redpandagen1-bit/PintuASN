@@ -1,1655 +1,866 @@
-"use client";
+'use client';
+import { useEffect } from 'react';
 
-import { useEffect, useRef, useState } from "react";
+const examSVG = `<svg viewBox="0 0 420 340" width="100%" style="max-width:620px;filter:drop-shadow(0 24px 64px rgba(0,0,0,0.11));border-radius:16px;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
+  <rect width="420" height="340" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  <rect width="420" height="44" rx="14" fill="#1e293b"/>
+  <rect y="24" width="420" height="20" fill="#1e293b"/>
+  <circle cx="20" cy="22" r="5" fill="#ef4444"/>
+  <circle cx="34" cy="22" r="5" fill="#f59e0b"/>
+  <circle cx="48" cy="22" r="5" fill="#22c55e"/>
+  <rect x="66" y="13" width="288" height="18" rx="5" fill="rgba(255,255,255,0.07)"/>
+  <text x="210" y="25" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.4)" text-anchor="middle">pintuasn.com/ujian/sesi-1</text>
+  <rect x="360" y="10" width="50" height="24" rx="6" fill="#0077B6"/>
+  <text x="385" y="25" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">12:47</text>
+  <rect y="44" width="420" height="36" fill="#f8fafc"/>
+  <rect y="79" width="420" height="1" fill="#e2e8f0"/>
+  <text x="20" y="67" font-family="sans-serif" font-size="11" font-weight="700" fill="#1e293b">TWK: Wawasan Kebangsaan</text>
+  <text x="320" y="67" font-family="sans-serif" font-size="11" fill="#94a3b8">Soal 15/30</text>
+  <rect x="0" y="79" width="420" height="3" fill="#f1f5f9"/>
+  <rect x="0" y="79" width="210" height="3" fill="#0077B6"/>
+  <rect x="16" y="92" width="388" height="72" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="28" y="110" font-family="sans-serif" font-size="10" font-weight="700" fill="#0077B6">Soal No. 15</text>
+  <text x="28" y="126" font-family="sans-serif" font-size="10.5" fill="#334155">Contoh penerapan nilai Pancasila sila ke-3</text>
+  <text x="28" y="141" font-family="sans-serif" font-size="10.5" fill="#334155">dalam kehidupan berbangsa adalah...</text>
+  <text x="28" y="156" font-family="sans-serif" font-size="9.5" fill="#94a3b8">Pilih jawaban yang paling tepat</text>
+  <rect x="16" y="172" width="388" height="26" rx="7" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
+  <text x="34" y="189" font-family="sans-serif" font-size="10" font-weight="700" fill="#0077B6">A</text>
+  <text x="48" y="189" font-family="sans-serif" font-size="10" fill="#ffffff">Menjaga persatuan dan kesatuan bangsa</text>
+  <rect x="16" y="202" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="34" y="219" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">B</text>
+  <text x="48" y="219" font-family="sans-serif" font-size="10" fill="#475569">Mengutamakan kepentingan pribadi</text>
+  <rect x="16" y="232" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="34" y="249" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">C</text>
+  <text x="48" y="249" font-family="sans-serif" font-size="10" fill="#475569">Bermusyawarah untuk golongan sendiri</text>
+  <rect x="16" y="262" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="34" y="279" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">D</text>
+  <text x="48" y="279" font-family="sans-serif" font-size="10" fill="#475569">Mendahulukan hak daripada kewajiban</text>
+  <rect y="299" width="420" height="41" fill="#f8fafc"/>
+  <rect y="299" width="420" height="1" fill="#e2e8f0"/>
+  <rect x="16" y="309" width="70" height="22" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="51" y="324" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Sebelum</text>
+  <rect x="334" y="309" width="70" height="22" rx="6" fill="#1e293b"/>
+  <text x="369" y="324" font-family="sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">Berikut</text>
+  <g transform="translate(100,317)">
+    <rect x="0" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
+    <rect x="11" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
+    <rect x="22" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
+    <rect x="33" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
+    <rect x="44" y="0" width="8" height="8" rx="2" fill="#0077B6"/>
+    <rect x="55" y="0" width="8" height="8" rx="2" fill="#e2e8f0"/>
+    <rect x="66" y="0" width="8" height="8" rx="2" fill="#e2e8f0"/>
+    <rect x="77" y="0" width="8" height="8" rx="2" fill="#e2e8f0"/>
+    <text x="98" y="9" font-family="sans-serif" font-size="9" fill="#94a3b8">+21</text>
+  </g>
+</svg>`;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface FeatureCardProps {
-  icon: string;
-  title: string;
-  desc: string;
-  delay?: number;
-}
+const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.w3.org/2000/svg" style="background:#f1f5f9;display:block">
+  <defs>
+    <linearGradient id="upGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <clipPath id="sideClip"><rect width="200" height="430" rx="0"/></clipPath>
+  </defs>
+  <rect x="0" y="0" width="860" height="44" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <text x="42" y="26" font-family="sans-serif" font-size="11" font-weight="800" fill="#1e293b">PintuASN</text>
+  <text x="210" y="20" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b">Halo, Yan!</text>
+  <text x="210" y="33" font-family="sans-serif" font-size="9" fill="#94a3b8">Semangat Belajar!</text>
+  <rect x="700" y="10" width="76" height="24" rx="7" fill="#1e293b"/>
+  <text x="738" y="26" font-family="sans-serif" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">Roadmap</text>
+  <circle cx="820" cy="22" r="14" fill="#0077B6"/>
+  <text x="820" y="27" font-family="sans-serif" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">YA</text>
+  <text x="836" y="18" font-family="sans-serif" font-size="8" font-weight="600" fill="#1e293b">Yan</text>
+  <text x="836" y="28" font-family="sans-serif" font-size="7" fill="#94a3b8">Member Gratis</text>
+  <rect x="8" y="52" width="188" height="372" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
+  <text x="22" y="74" font-family="sans-serif" font-size="8" font-weight="700" fill="#94a3b8" letter-spacing="1.2">MENU UTAMA</text>
+  <rect x="26" y="82" width="4" height="4" rx="0.8" fill="#94a3b8"/>
+  <rect x="31" y="82" width="4" height="4" rx="0.8" fill="#94a3b8"/>
+  <rect x="26" y="87" width="4" height="4" rx="0.8" fill="#94a3b8"/>
+  <rect x="31" y="87" width="4" height="4" rx="0.8" fill="#94a3b8"/>
+  <text x="42" y="91" font-family="sans-serif" font-size="10" fill="#475569">Dashboard</text>
+  <rect x="14" y="100" width="170" height="22" rx="7" fill="#1e293b"/>
+  <rect x="26" y="106" width="3" height="7" rx="0.5" fill="#0077B6"/>
+  <rect x="30" y="104" width="3" height="9" rx="0.5" fill="#0077B6"/>
+  <rect x="34" y="108" width="3" height="5" rx="0.5" fill="#0077B6"/>
+  <text x="44" y="115" font-family="sans-serif" font-size="10" font-weight="700" fill="#0077B6">Statistik</text>
+  <circle cx="178" cy="111" r="3" fill="#0077B6"/>
+  <path d="M 26,128 L 26,137 Q 30.5,135 35,137 L 35,128 Z" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linejoin="round"/>
+  <line x1="30.5" y1="128" x2="30.5" y2="136.5" stroke="#94a3b8" stroke-width="0.8"/>
+  <text x="42" y="137" font-family="sans-serif" font-size="10" fill="#475569">Materi</text>
+  <circle cx="30" cy="155" r="5.5" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
+  <path d="M 28.2,152.5 L 33,155 L 28.2,157.5 Z" fill="#94a3b8"/>
+  <text x="42" y="159" font-family="sans-serif" font-size="10" fill="#475569">Daftar Tryout</text>
+  <circle cx="30" cy="175" r="5.5" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
+  <line x1="30" y1="170.5" x2="30" y2="175" stroke="#94a3b8" stroke-width="1.1"/>
+  <line x1="30" y1="175" x2="33" y2="177" stroke="#94a3b8" stroke-width="1.1"/>
+  <text x="42" y="173" font-family="sans-serif" font-size="9" fill="#475569">Riwayat &amp;</text>
+  <text x="42" y="183" font-family="sans-serif" font-size="9" fill="#475569">Pembahasan</text>
+  <path d="M 24,194 L 26,194 L 28.5,201 L 36,201 L 37.5,197 L 28.5,197" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="30" cy="203.5" r="1.3" fill="#94a3b8"/>
+  <circle cx="35" cy="203.5" r="1.3" fill="#94a3b8"/>
+  <text x="42" y="202" font-family="sans-serif" font-size="10" fill="#475569">Beli Paket</text>
+  <line x1="18" y1="214" x2="186" y2="214" stroke="#f1f5f9" stroke-width="1"/>
+  <text x="22" y="228" font-family="sans-serif" font-size="8" font-weight="700" fill="#94a3b8" letter-spacing="1.2">LAINNYA</text>
+  <path d="M 34,235 L 27.5,243 L 31.5,243 L 27,251 L 37,241 L 32.5,241 Z" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
+  <text x="42" y="245" font-family="sans-serif" font-size="10" fill="#475569">Event &amp; Promo</text>
+  <circle cx="28.5" cy="264" r="3.5" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
+  <path d="M 23,274 Q 23,269 28.5,269 Q 34,269 34,274" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
+  <circle cx="35.5" cy="264" r="2.8" fill="none" stroke="#94a3b8" stroke-width="0.9"/>
+  <path d="M 33.5,274 Q 33.5,271 37.5,271" fill="none" stroke="#94a3b8" stroke-width="0.9"/>
+  <text x="42" y="270" font-family="sans-serif" font-size="10" fill="#475569">Grup</text>
+  <rect x="14" y="284" width="172" height="122" rx="14" fill="url(#upGrad)"/>
+  <rect x="22" y="294" width="28" height="28" rx="8" fill="rgba(255,255,255,0.1)"/>
+  <rect x="29" y="316" width="13" height="2.5" rx="0.5" fill="#0077B6"/>
+  <text x="56" y="308" font-family="sans-serif" font-size="9" font-weight="700" fill="rgba(255,255,255,0.6)">Member Gratis</text>
+  <text x="22" y="336" font-family="sans-serif" font-size="11" font-weight="800" fill="#ffffff">Member</text>
+  <text x="70" y="336" font-family="sans-serif" font-size="11" font-weight="800" fill="#0077B6">Premium</text>
+  <text x="22" y="350" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.55)">Akses Paket Tryout Premium</text>
+  <text x="22" y="362" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.55)">dan Materi video lengkap.</text>
+  <rect x="22" y="370" width="152" height="24" rx="8" fill="#ffffff"/>
+  <text x="98" y="385.5" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b" text-anchor="middle">Lihat Materi</text>
+  <text x="102" y="422" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">© 2026 PintuASN. v1.0.0</text>
+  <rect x="206" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
+  <rect x="218" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
+  <text x="231" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">📄</text>
+  <text x="250" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Total Tryout</text>
+  <text x="250" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">3</text>
+  <text x="250" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">Paket Selesai</text>
+  <rect x="366" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
+  <rect x="378" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
+  <text x="391" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">🏆</text>
+  <text x="412" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Skor Tertinggi</text>
+  <text x="412" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">68</text>
+  <text x="412" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">dari 550</text>
+  <rect x="526" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
+  <rect x="538" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
+  <text x="551" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">📈</text>
+  <text x="572" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Rata-rata Skor</text>
+  <text x="572" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">23</text>
+  <text x="572" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">Stabil</text>
+  <rect x="686" y="52" width="162" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
+  <rect x="698" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
+  <text x="711" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">✓</text>
+  <text x="732" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Tingkat Kelulusan</text>
+  <text x="732" y="86" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">0%</text>
+  <text x="732" y="96" font-family="sans-serif" font-size="8" fill="#94a3b8">Passing Grade</text>
+  <rect x="206" y="138" width="472" height="196" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
+  <text x="224" y="158" font-family="sans-serif" font-size="11" font-weight="700" fill="#1e293b">Tren Performa Skor</text>
+  <text x="224" y="171" font-family="sans-serif" font-size="9" fill="#94a3b8">Perbandingan skor Anda vs Rata-rata</text>
+  <circle cx="572" cy="155" r="4" fill="#1e293b"/>
+  <text x="580" y="159" font-family="sans-serif" font-size="8" fill="#475569">Skor Kamu</text>
+  <circle cx="630" cy="155" r="4" fill="#cbd5e1"/>
+  <text x="638" y="159" font-family="sans-serif" font-size="8" fill="#475569">Rata-rata</text>
+  <text x="224" y="314" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">0</text>
+  <text x="224" y="285" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">150</text>
+  <text x="224" y="254" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">300</text>
+  <text x="224" y="225" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">450</text>
+  <text x="224" y="196" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">550</text>
+  <line x1="230" y1="311" x2="662" y2="311" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="230" y1="282" x2="662" y2="282" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="230" y1="253" x2="662" y2="253" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="230" y1="224" x2="662" y2="224" stroke="#f1f5f9" stroke-width="1"/>
+  <line x1="230" y1="193" x2="662" y2="193" stroke="#f1f5f9" stroke-width="1"/>
+  <path d="M 270,305 Q 340,302 410,306 Q 480,302 550,305 Q 610,302 650,305" fill="none" stroke="#1e293b" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M 270,305 Q 340,303 410,305 Q 480,303 550,305 Q 610,303 650,305" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="270" y="323" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">TO-1</text>
+  <text x="410" y="323" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">TO-2</text>
+  <text x="550" y="323" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">TO-3</text>
+  <rect x="686" y="138" width="162" height="196" rx="10" fill="#1e293b"/>
+  <text x="704" y="160" font-family="sans-serif" font-size="10" font-weight="700" fill="rgba(255,255,255,0.85)">Peringkat Nasional</text>
+  <rect x="818" y="146" width="22" height="22" rx="6" fill="rgba(0,119,182,0.12)"/>
+  <text x="829" y="161" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">🏆</text>
+  <text x="704" y="192" font-family="sans-serif" font-size="26" font-weight="800" fill="#0077B6">#4</text>
+  <text x="738" y="192" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.45)">/ 5 user</text>
+  <text x="704" y="212" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.55)">Rata-rata Anda</text>
+  <text x="836" y="212" font-family="sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="end">23</text>
+  <rect x="704" y="218" width="132" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
+  <rect x="704" y="218" width="40" height="4" rx="2" fill="#3b82f6"/>
+  <text x="704" y="234" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.4)">Anda lebih unggul dari 20%</text>
+  <text x="704" y="244" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.4)">peserta lain.</text>
+  <line x1="704" y1="254" x2="836" y2="254" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <text x="704" y="267" font-family="sans-serif" font-size="9" font-weight="700" fill="rgba(255,255,255,0.75)">Distribusi Per Kategori</text>
+  <text x="704" y="283" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)">Wawasan</text>
+  <text x="836" y="283" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="end">0% Lulus</text>
+  <rect x="704" y="287" width="132" height="3" rx="1" fill="rgba(255,255,255,0.1)"/>
+  <text x="704" y="301" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)">Intelegensia</text>
+  <text x="836" y="301" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="end">0% Lulus</text>
+  <rect x="704" y="305" width="132" height="3" rx="1" fill="rgba(255,255,255,0.1)"/>
+  <text x="704" y="319" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)">Karakteristik</text>
+  <text x="836" y="319" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="end">0% Lulus</text>
+  <rect x="704" y="323" width="132" height="3" rx="1" fill="rgba(255,255,255,0.1)"/>
+  <rect x="206" y="344" width="310" height="78" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
+  <text x="224" y="364" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b">Gap Nilai Minimum (Passing Grade)</text>
+  <text x="224" y="376" font-family="sans-serif" font-size="8" fill="#94a3b8">Posisi skor rata-rata kamu vs Ambang Batas</text>
+  <text x="224" y="393" font-family="sans-serif" font-size="8" fill="#475569">TWK</text>
+  <rect x="248" y="386" width="90" height="6" rx="3" fill="#e2e8f0"/>
+  <rect x="248" y="386" width="18" height="6" rx="3" fill="#ef4444"/>
+  <text x="224" y="407" font-family="sans-serif" font-size="8" fill="#475569">TIU</text>
+  <rect x="248" y="400" width="90" height="6" rx="3" fill="#e2e8f0"/>
+  <rect x="248" y="400" width="12" height="6" rx="3" fill="#ef4444"/>
+  <rect x="524" y="344" width="324" height="78" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
+  <text x="542" y="364" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b">Distribusi Skor Peserta</text>
+  <text x="542" y="376" font-family="sans-serif" font-size="8" fill="#94a3b8">Posisi kamu dalam kurva peserta</text>
+  <path d="M 548,410 Q 580,395 620,388 Q 660,395 700,390 Q 730,398 760,406 Q 790,402 820,405" fill="none" stroke="#6366f1" stroke-width="1.5"/>
+  <path d="M 548,410 Q 580,395 620,388 Q 660,395 700,390 Q 730,398 760,406 Q 790,402 820,405 L 820,415 L 548,415 Z" fill="rgba(99,102,241,0.08)"/>
+</svg>`;
 
-interface PainCardProps {
-  emoji: string;
-  title: string;
-  desc: string;
-  delay?: number;
-}
-
-interface FaqItem {
-  q: string;
-  a: string;
-}
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const FEATURES: FeatureCardProps[] = [
-  {
-    icon: "💻",
-    title: "Simulasi 99% Mirip BKN",
-    desc: "Interface UI/UX, sistem timer per subtes, dan mekanisme penilaian persis dengan sistem resmi SSCASN BKN. Atasi grogi, kenali medan.",
-  },
-  {
-    icon: "📊",
-    title: "Analitik Performa Mendalam",
-    desc: "Ketahui tren skormu, gap passing grade, dan analisis kelemahan detail per subtes TWK, TIU, dan TKP berdasarkan data.",
-    delay: 100,
-  },
-  {
-    icon: "🏆",
-    title: "Peringkat Nasional (Ranking)",
-    desc: "Ukur kemampuanmu secara real-time. Ketahui posisimu bersaing dengan peserta simulasi PintuASN lainnya di seluruh Indonesia.",
-    delay: 200,
-  },
-  {
-    icon: "📖",
-    title: "Pembahasan Soal Detail",
-    desc: "Bukan cuma kunci jawaban. Review jawaban benar/salahmu dengan pembahasan terstruktur dan filter materi yang komprehensif.",
-    delay: 300,
-  },
-  {
-    icon: "🗺️",
-    title: "Roadmap Belajar Terstruktur",
-    desc: "Bingung mulai dari mana? Ikuti panduan belajar step-by-step harian untuk memastikan materi tuntas sebelum hari H.",
-    delay: 400,
-  },
-  {
-    icon: "📚",
-    title: "Materi TWK, TIU, TKP Lengkap",
-    desc: "All-in-one platform. Rangkuman materi terupdate sesuai kisi-kisi KemenpanRB terbaru, siap dibaca kapan saja.",
-    delay: 500,
-  },
-];
-
-const PAIN_POINTS: PainCardProps[] = [
-  {
-    emoji: "🤯",
-    title: "Buta Format CAT BKN",
-    desc: "Panik melihat interface ujian asli? Banyak peserta gagal fokus karena kaget dengan sistem CAT BKN dan manajemen waktu yang buruk.",
-  },
-  {
-    emoji: "📉",
-    title: "Belajar Tanpa Arah",
-    desc: "Mengerjakan ribuan soal secara acak tanpa tahu sebenarnya kelemahan terbesarmu ada di TWK, penalaran TIU, atau karakteristik TKP.",
-    delay: 150,
-  },
-  {
-    emoji: "🥶",
-    title: "Mental Breakdown",
-    desc: "Grogi, panik, dan nge-blank saat hari H karena tidak pernah melatih mental mengerjakan soal di bawah tekanan timer berjalan.",
-    delay: 300,
-  },
-];
-
-const FAQ_ITEMS: FaqItem[] = [
-  {
-    q: "Apakah sistem simulasi benar-benar mirip BKN?",
-    a: "Ya! Kami merancang UI/UX, peletakan tombol, ukuran font, hingga sistem timer persis seperti aplikasi CAT milik Badan Kepegawaian Negara (BKN). Tujuannya agar saat ujian asli, kamu sudah tidak canggung dan bisa fokus pada soal, bukan sistem.",
-  },
-  {
-    q: "Apakah soal-soalnya update sesuai kisi-kisi terbaru?",
-    a: "Tentu. Tim akademik kami terus memperbarui bank soal setiap bulan mengikuti Peraturan Menteri PANRB terbaru dan tren soal CPNS tahun-tahun sebelumnya, termasuk soal berstandar HOTS.",
-  },
-  {
-    q: "Bagaimana cara pembayaran untuk paket Premium?",
-    a: "Kami menerima berbagai metode pembayaran otomatis: QRIS, GoPay, OVO, ShopeePay, Transfer Bank (VA BCA, BNI, Mandiri, BRI), hingga Alfamart/Indomaret. Semua diproses melalui Midtrans yang aman dan terenkripsi.",
-  },
-  {
-    q: "Apakah bisa diakses melalui HP (Smartphone)?",
-    a: "Sangat bisa! Website PintuASN 100% responsif di Smartphone, Tablet, maupun Laptop. Namun untuk pengalaman simulasi CAT paling ideal, kami menyarankan menggunakan Laptop/PC.",
-  },
-  {
-    q: "Saya mendaftar gratis, apa saya wajib upgrade?",
-    a: "Tidak wajib sama sekali. Paket Gratis disediakan agar kamu bisa mencoba sistem dan kualitas soal kami tanpa komitmen apa pun. Jika merasa platform ini membantu, kamu bisa upgrade kapan saja.",
-  },
-];
-
-// ─── Hooks ────────────────────────────────────────────────────────────────────
-function useReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
+export default function Home() {
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.unobserve(el);
+    const nav = document.getElementById('navbar');
+    const handleScroll = () => nav?.classList.toggle('scrolled', window.scrollY > 40);
+    window.addEventListener('scroll', handleScroll);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    function animateCount(el: Element) {
+      const target = parseFloat((el as HTMLElement).dataset.target || '0');
+      const isDecimal = String((el as HTMLElement).dataset.target).includes('.');
+      const duration = 1800;
+      const start = performance.now();
+      const run = (t: number) => {
+        const p = Math.min((t - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        (el as HTMLElement).textContent = isDecimal
+          ? (target * eased).toFixed(1)
+          : Math.floor(target * eased).toLocaleString('id-ID');
+        if (p < 1) requestAnimationFrame(run);
+        else (el as HTMLElement).textContent = isDecimal ? target.toFixed(1) : target.toLocaleString('id-ID');
+      };
+      requestAnimationFrame(run);
+    }
+
+    const statObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('[data-target]').forEach(animateCount);
+          statObs.unobserve(e.target);
         }
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
+      });
+    }, { threshold: 0.3 });
+    const sb = document.querySelector('.stats-inner');
+    if (sb) statObs.observe(sb);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+      statObs.disconnect();
+    };
   }, []);
 
-  return { ref, visible };
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-function Reveal({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  const { ref, visible } = useReveal();
-  return (
-    <div
-      ref={ref}
-      className={className}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(28px)",
-        transition: `opacity 0.75s cubic-bezier(0.4,0,0.2,1) ${delay}ms, transform 0.75s cubic-bezier(0.4,0,0.2,1) ${delay}ms`,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function FeatureCard({ icon, title, desc, delay = 0 }: FeatureCardProps) {
-  return (
-    <Reveal delay={delay}>
-      <div
-        style={{
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          borderRadius: 16,
-          padding: "32px",
-          transition: "background 0.3s, border-color 0.3s",
-          cursor: "default",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.background =
-            "rgba(255,255,255,0.06)";
-          (e.currentTarget as HTMLDivElement).style.borderColor =
-            "rgba(245,197,24,0.35)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.background =
-            "rgba(255,255,255,0.03)";
-          (e.currentTarget as HTMLDivElement).style.borderColor =
-            "rgba(255,255,255,0.06)";
-        }}
-      >
-        <div style={{ fontSize: 32, marginBottom: 16 }}>{icon}</div>
-        <h3
-          style={{
-            fontFamily: "var(--font-heading)",
-            color: "#fff",
-            fontSize: 17,
-            marginBottom: 10,
-          }}
-        >
-          {title}
-        </h3>
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.7 }}>
-          {desc}
-        </p>
-      </div>
-    </Reveal>
-  );
-}
-
-function PainCard({ emoji, title, desc, delay = 0 }: PainCardProps) {
-  return (
-    <Reveal delay={delay}>
-      <div
-        style={{
-          background: "#fff",
-          border: "1px solid #f1f5f9",
-          borderRadius: 16,
-          padding: "36px 28px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.04)",
-          transition: "transform 0.3s",
-        }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLDivElement).style.transform =
-            "translateY(-5px)")
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLDivElement).style.transform = "translateY(0)")
-        }
-      >
-        <div
-          style={{
-            width: 60,
-            height: 60,
-            background: "rgba(239,68,68,0.08)",
-            borderRadius: 14,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 26,
-            marginBottom: 20,
-          }}
-        >
-          {emoji}
-        </div>
-        <h3
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 18,
-            marginBottom: 10,
-            color: "#0f172a",
-          }}
-        >
-          {title}
-        </h3>
-        <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.75 }}>{desc}</p>
-      </div>
-    </Reveal>
-  );
-}
-
-function FaqAccordion({ items }: { items: FaqItem[] }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  return (
-    <div style={{ maxWidth: 780, margin: "0 auto" }}>
-      {items.map((item, i) => (
-        <div
-          key={i}
-          style={{ borderBottom: "1px solid #f1f5f9" }}
-        >
-          <button
-            onClick={() => setOpenIndex(openIndex === i ? null : i)}
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "22px 0",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-heading)",
-              fontSize: 17,
-              color: openIndex === i ? "#f5c518" : "#0f172a",
-              textAlign: "left",
-              gap: 16,
-              transition: "color 0.3s",
-            }}
-          >
-            <span>{item.q}</span>
-            <span
-              style={{
-                display: "inline-block",
-                transition: "transform 0.3s",
-                transform: openIndex === i ? "rotate(180deg)" : "rotate(0deg)",
-                color: openIndex === i ? "#f5c518" : "#64748b",
-                flexShrink: 0,
-                fontSize: 14,
-              }}
-            >
-              ▼
-            </span>
-          </button>
-          <div
-            style={{
-              maxHeight: openIndex === i ? 300 : 0,
-              overflow: "hidden",
-              transition: "max-height 0.4s ease",
-            }}
-          >
-            <p
-              style={{
-                paddingBottom: 22,
-                color: "#64748b",
-                fontSize: 15,
-                lineHeight: 1.75,
-              }}
-            >
-              {item.a}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────────────────
-export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  function toggleFaq(btn: HTMLElement) {
+    const body = btn.nextElementSibling as HTMLElement;
+    const isOpen = btn.classList.contains('open');
+    document.querySelectorAll('.faq-btn.open').forEach(b => {
+      b.classList.remove('open');
+      (b.nextElementSibling as HTMLElement).style.maxHeight = '0';
+    });
+    if (!isOpen) { btn.classList.add('open'); body.style.maxHeight = body.scrollHeight + 'px'; }
+  }
 
   return (
     <>
-      {/* ── Google Fonts ── */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap');
-
-        :root {
-          --font-heading: 'Plus Jakarta Sans', sans-serif;
-          --font-body: 'Plus Jakarta Sans', sans-serif;
-          --navy: #0f172a;
-          --navy-2: #1e293b;
-          --gold: #f5c518;
-          --gold-dark: #d4a810;
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+          --white:#ffffff;
+          --s50:#f8fafc;
+          --s100:#f1f5f9;
+          --s200:#e2e8f0;
+          --s400:#94a3b8;
+          --s600:#475569;
+          --s800:#1e293b;
+          --s900:#0f172a;
+          --y:#0077B6;
+          --yl:#EFF6FF;
+          --yd:#005A8E;
+          --font-d:'Plus Jakarta Sans',sans-serif;
+          --font-b:'Plus Jakarta Sans',sans-serif;
         }
+        html{scroll-behavior:smooth}
+        body{font-family:var(--font-b);background:#fff;color:var(--s800);overflow-x:hidden}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @keyframes floatY{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(-2deg)}}
+        @keyframes floatY2{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes fadeSlideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+        @keyframes scrollticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-        body {
-          font-family: var(--font-body);
-          background: #fff;
-          color: #334155;
-          overflow-x: hidden;
-        }
+        .hero-title{animation:fadeSlideUp .8s ease both}
+        .hero-sub{animation:fadeSlideUp .8s .15s ease both}
+        .hero-cta{animation:fadeSlideUp .8s .3s ease both}
+        .hero-proof{animation:fadeSlideUp .8s .45s ease both}
+        .hero-mockup{animation:fadeIn .9s .3s ease both}
+        .mockup-float{animation:floatY 5s ease-in-out infinite}
+        .mockup-float2{animation:floatY2 4.5s ease-in-out infinite .5s}
 
-        html { scroll-behavior: smooth; }
+        .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
+        .reveal.visible{opacity:1;transform:translateY(0)}
 
-        .pricing-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 20px;
-          max-width: 1040px;
-          margin: 0 auto;
-        }
+        nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--s100);transition:box-shadow .3s}
+        nav.scrolled{box-shadow:0 4px 24px rgba(0,0,0,0.07)}
+        .nav-inner{max-width:1180px;margin:0 auto;padding:0 28px;height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+        .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:800;font-size:21px;color:var(--s900);text-decoration:none}
+        .logo-badge{width:34px;height:34px;background:var(--y);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+        .nav-links{display:flex;gap:28px;list-style:none}
+        .nav-links a{font-size:14px;font-weight:600;color:var(--s600);text-decoration:none;transition:color .2s}
+        .nav-links a:hover{color:var(--s900)}
+        .nav-btns{display:flex;gap:10px;align-items:center}
+        .btn-ghost{padding:8px 18px;font-size:14px;font-weight:600;color:var(--s800);border:1.5px solid var(--s200);border-radius:9px;text-decoration:none;transition:all .2s;background:transparent}
+        .btn-ghost:hover{border-color:var(--s800);background:var(--s50)}
+        .btn-primary{padding:9px 20px;font-size:14px;font-weight:700;color:#fff;background:var(--y);border-radius:9px;text-decoration:none;transition:all .2s}
+        .btn-primary:hover{background:var(--yd);transform:translateY(-1px)}
 
-        @media (min-width: 900px) {
-          .pricing-grid {
-            grid-template-columns: repeat(3, 1fr);
-            align-items: start;
-          }
-        }
+        .hero{min-height:100vh;display:flex;align-items:center;padding:120px 28px 80px;background:#fff;position:relative;overflow:hidden}
+        .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(0,119,182,.08) 0%,transparent 70%);pointer-events:none}
+        .hero-grid{max-width:1180px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1.2fr;gap:50px;align-items:center}
+        .hero-label{display:inline-flex;align-items:center;gap:8px;background:var(--yl);border:1px solid rgba(0,119,182,.35);border-radius:50px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--yd);margin-bottom:24px}
+        .hero-label-dot{width:7px;height:7px;border-radius:50%;background:var(--y);animation:pulse 1.8s ease infinite}
+        .hero-heading{font-family:var(--font-d);font-weight:800;font-size:clamp(34px,4.5vw,54px);line-height:1.13;color:var(--s900);margin-bottom:22px;letter-spacing:-1px}
+        .hero-heading em{font-style:normal;color:var(--y);position:relative;display:inline-block}
+        .hero-heading em::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:3px;background:var(--y);border-radius:2px;opacity:.35}
+        .hero-subtext{font-size:17px;line-height:1.75;color:var(--s600);margin-bottom:38px;max-width:480px}
+        .hero-cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px}
+        .cta-big{padding:14px 30px;font-size:16px;font-weight:700;border-radius:11px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
+        .cta-yellow{background:var(--y);color:#fff;box-shadow:0 4px 20px rgba(0,119,182,.3)}
+        .cta-yellow:hover{background:var(--yd);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,119,182,.35)}
+        .cta-outline{background:transparent;color:var(--s800);border:1.5px solid var(--s200)}
+        .cta-outline:hover{border-color:var(--s800);background:var(--s50)}
+        .hero-proof{display:flex;align-items:center;gap:14px}
+        .proof-avatars{display:flex}
+        .proof-avatar{width:33px;height:33px;border-radius:50%;border:2.5px solid #fff;margin-left:-10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+        .proof-avatar:first-child{margin-left:0}
+        .proof-text{font-size:13.5px;color:var(--s600)}
+        .proof-text strong{color:var(--s900)}
+        .stars{color:var(--y);letter-spacing:2px;font-size:13px}
 
-        .features-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 20px;
-        }
+        .hero-right{position:relative;display:flex;justify-content:center;align-items:center}
+        .mockup-wrap{position:relative;width:100%}
 
-        @media (min-width: 640px) {
-          .features-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        .ticker-wrap{background:var(--s50);border-top:1px solid var(--s100);border-bottom:1px solid var(--s100);padding:14px 0;overflow:hidden;position:relative}
+        .ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none}
+        .ticker-wrap::before{left:0;background:linear-gradient(90deg,var(--s50),transparent)}
+        .ticker-wrap::after{right:0;background:linear-gradient(270deg,var(--s50),transparent)}
+        .ticker-track{display:flex;gap:0;animation:scrollticker 28s linear infinite;width:max-content}
+        .ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 24px;font-size:13px;font-weight:600;color:var(--s600);white-space:nowrap;border-right:1px solid var(--s200)}
+        .ticker-dot{width:20px;height:20px;border-radius:6px;background:var(--s800);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
 
-        @media (min-width: 1024px) {
-          .features-grid { grid-template-columns: repeat(3, 1fr); }
-        }
+        .stats-bar{background:var(--s800);padding:40px 28px}
+        .stats-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+        .stat-item{padding:8px;border-right:1px solid rgba(255,255,255,.06)}
+        .stat-item:last-child{border-right:none}
+        .stat-num{font-family:var(--font-d);font-size:38px;font-weight:800;color:var(--y);display:block;line-height:1}
+        .stat-label{font-size:13px;color:rgba(255,255,255,.5);margin-top:6px;font-weight:500}
 
-        .pain-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 24px;
-        }
+        section{padding:96px 28px}
+        .section-inner{max-width:1180px;margin:0 auto}
+        .section-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--yd);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}
+        .section-tag::before{content:'';display:inline-block;width:18px;height:2px;background:var(--y);border-radius:2px}
+        .section-title{font-family:var(--font-d);font-size:clamp(26px,3.5vw,40px);font-weight:800;color:var(--s900);line-height:1.2;margin-bottom:16px;letter-spacing:-.5px}
+        .section-sub{font-size:17px;color:var(--s600);line-height:1.7;max-width:560px}
+        .section-head{margin-bottom:60px}
 
-        @media (min-width: 768px) {
-          .pain-grid { grid-template-columns: repeat(3, 1fr); }
-        }
+        .pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+        .pain-card{background:#fff;border:1px solid var(--s100);border-radius:18px;padding:36px 28px;transition:transform .3s,box-shadow .3s}
+        .pain-card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(0,0,0,.07)}
+        .pain-icon-wrap{width:54px;height:54px;border-radius:13px;background:var(--s800);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px}
+        .pain-card h3{font-family:var(--font-d);font-size:17px;color:var(--s900);margin-bottom:10px}
+        .pain-card p{font-size:14px;color:var(--s600);line-height:1.75}
 
-        .steps-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 40px;
-        }
+        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+        .feat-card{background:var(--s50);border:1px solid var(--s100);border-radius:16px;padding:28px;transition:all .3s;cursor:default}
+        .feat-card:hover{background:#fff;border-color:rgba(0,119,182,.45);box-shadow:0 8px 32px rgba(0,119,182,.1)}
+        .feat-icon{width:48px;height:48px;border-radius:12px;background:var(--s800);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:18px}
+        .feat-card h3{font-size:15px;font-weight:700;color:var(--s900);margin-bottom:8px}
+        .feat-card p{font-size:13.5px;color:var(--s600);line-height:1.7}
+        .feat-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--yl);color:var(--yd);border:1px solid rgba(0,119,182,.3);border-radius:50px;padding:3px 10px;margin-bottom:10px}
 
-        @media (min-width: 768px) {
-          .steps-grid { grid-template-columns: repeat(3, 1fr); }
-        }
+        .showcase-bg{background:var(--s800);padding:96px 28px;position:relative;overflow:hidden}
+        .showcase-bg::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(0,119,182,.05) 0%,transparent 60%);pointer-events:none}
+        .showcase-header{text-align:center;margin-bottom:56px}
+        .browser-frame{background:#0f172a;border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;max-width:880px;margin:0 auto;box-shadow:0 40px 100px rgba(0,0,0,.5)}
+        .browser-bar{height:40px;background:rgba(255,255,255,.05);display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+        .browser-dot{width:10px;height:10px;border-radius:50%}
+        .browser-url{flex:1;background:rgba(255,255,255,.05);border-radius:5px;height:22px;margin:0 12px;display:flex;align-items:center;padding:0 10px}
 
-        .nav-links-desktop { display: none; }
-        @media (min-width: 768px) {
-          .nav-links-desktop { display: flex; gap: 28px; }
+        .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
+        .steps-grid::after{content:'';position:absolute;top:44px;left:calc(16.67% + 24px);right:calc(16.67% + 24px);height:2px;background:repeating-linear-gradient(90deg,var(--y) 0,var(--y) 8px,transparent 8px,transparent 18px)}
+        .step{text-align:center;padding:0 24px}
+        .step-num{width:88px;height:88px;border-radius:50%;border:2px solid var(--s200);background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--s800);position:relative;z-index:1;transition:all .3s}
+        .step:hover .step-num{background:var(--s800);color:var(--y);border-color:var(--s800)}
+        .step h3{font-weight:700;font-size:17px;color:var(--s900);margin-bottom:10px}
+        .step p{font-size:14px;color:var(--s600);line-height:1.7}
+
+        .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;align-items:start}
+        .price-card{border-radius:20px;padding:36px 28px;display:flex;flex-direction:column;position:relative}
+        .price-icon-row{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+        .price-icon-box{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+        .price-name{font-family:var(--font-d);font-weight:800;font-size:20px}
+        .price-period{font-size:13px;margin-top:2px}
+        .price-amount{font-family:var(--font-d);font-weight:800;font-size:38px;margin-bottom:6px}
+        .price-desc{font-size:13px;padding-bottom:20px;margin-bottom:20px}
+        .price-features{list-style:none;margin-bottom:28px;flex:1}
+        .price-features li{display:flex;align-items:center;gap:10px;font-size:14px;margin-bottom:12px}
+        .chk{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+        .price-btn{display:flex;align-items:center;justify-content:center;padding:14px 20px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;transition:all .2s;gap:6px}
+        .pop-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;padding:4px 16px;border-radius:50px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+
+        .faq-inner{max-width:720px;margin:0 auto}
+        .faq-item{border-bottom:1px solid var(--s100)}
+        .faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;gap:16px;font-family:var(--font-b)}
+        .faq-q{font-size:16px;font-weight:600;color:var(--s900);transition:color .2s}
+        .faq-btn.open .faq-q{color:var(--yd)}
+        .faq-chev{width:22px;height:22px;border-radius:50%;background:var(--s100);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;color:var(--s600);font-size:11px}
+        .faq-btn.open .faq-chev{background:var(--y);color:#fff;transform:rotate(180deg)}
+        .faq-body{overflow:hidden;transition:max-height .4s ease}
+        .faq-body p{padding-bottom:20px;font-size:15px;color:var(--s600);line-height:1.78}
+
+        .final-cta{background:var(--s800);padding:100px 28px;text-align:center;position:relative;overflow:hidden}
+        .final-cta::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(0,119,182,.02) 0,rgba(0,119,182,.02) 1px,transparent 1px,transparent 8px);pointer-events:none}
+        .final-cta-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
+        .final-cta h2{font-family:var(--font-d);font-size:clamp(28px,4vw,46px);color:#fff;font-weight:800;line-height:1.2;margin-bottom:18px;letter-spacing:-.5px}
+        .final-cta p{font-size:17px;color:rgba(255,255,255,.5);margin-bottom:38px;line-height:1.7}
+
+        footer{background:#fff;border-top:1px solid var(--s100);padding:32px 28px 16px}
+        .footer-grid{max-width:1100px;margin:0 auto 24px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px}
+        .footer-brand p{font-size:14px;color:var(--s500);line-height:1.75;margin-top:14px;max-width:280px}
+        .footer-col h4{font-size:12px;font-weight:700;color:var(--s900);margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px}
+        .footer-col a{display:block;font-size:14px;color:var(--s500);text-decoration:none;margin-bottom:10px;transition:color .2s}
+        .footer-col a:hover{color:var(--y)}
+        .footer-bottom{max-width:1100px;margin:0 auto;border-top:1px solid var(--s100);padding-top:14px;display:flex;justify-content:space-between;align-items:center}
+        .footer-bottom p{font-size:13px;color:var(--s400)}
+        .social-row{display:flex;gap:10px}
+        .social-btn{width:34px;height:34px;border-radius:8px;background:var(--s100);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:background .2s}
+        .social-btn:hover{background:var(--s200)}
+
+        @media(max-width:900px){
+          .hero-grid,.pain-grid,.features-grid,.steps-grid,.pricing-grid,.footer-grid{grid-template-columns:1fr}
+          .hero-grid{text-align:center;gap:40px}
+          .hero-subtext{max-width:100%}
+          .hero-cta-row,.hero-proof{justify-content:center}
+          .hero-right{order:-1}
+          .steps-grid::after{display:none}
+          .stats-inner{grid-template-columns:repeat(2,1fr)}
+          .nav-links{display:none}
         }
       `}</style>
 
-      {/* ── NAVBAR ── */}
-      <header
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          zIndex: 100,
-          background: "rgba(15,23,42,0.96)",
-          backdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-          boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.2)" : "none",
-          transition: "box-shadow 0.3s",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: "0 auto",
-            padding: "0 24px",
-            height: 68,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          {/* Logo */}
-          <a
-            href="#"
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontWeight: 800,
-              fontSize: 22,
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              textDecoration: "none",
-            }}
-          >
-            <span
-              style={{
-                background: "var(--gold)",
-                color: "var(--navy)",
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 16,
-              }}
-            >
-              🎓
-            </span>
+      {/* NAVBAR */}
+      <nav id="navbar">
+        <div className="nav-inner">
+          <a href="#" className="logo">
+            <img src="/images/Logo.svg" width="34" height="34" style={{borderRadius:'9px'}} alt="logo" />
             PintuASN
           </a>
-
-          {/* Nav Links */}
-          <nav className="nav-links-desktop">
-            {["Fitur", "Cara Kerja", "Paket Belajar", "FAQ"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(" ", "-")}`}
-                style={{
-                  color: "rgba(255,255,255,0.75)",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  textDecoration: "none",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  ((e.target as HTMLAnchorElement).style.color = "#f5c518")
-                }
-                onMouseLeave={(e) =>
-                  ((e.target as HTMLAnchorElement).style.color =
-                    "rgba(255,255,255,0.75)")
-                }
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-
-          {/* Auth Buttons */}
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <a
-              href="/sign-in"
-              style={{
-                padding: "8px 18px",
-                fontSize: 14,
-                fontWeight: 600,
-                color: "rgba(255,255,255,0.85)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                borderRadius: 8,
-                textDecoration: "none",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background =
-                  "rgba(255,255,255,0.07)";
-                (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                  "rgba(255,255,255,0.4)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background =
-                  "transparent";
-                (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                  "rgba(255,255,255,0.18)";
-              }}
-            >
-              Sign In
-            </a>
-            <a
-              href="/sign-up"
-              style={{
-                padding: "8px 18px",
-                fontSize: 14,
-                fontWeight: 700,
-                color: "var(--navy)",
-                background: "var(--gold)",
-                border: "none",
-                borderRadius: 8,
-                textDecoration: "none",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background =
-                  "var(--gold-dark)";
-                (e.currentTarget as HTMLAnchorElement).style.transform =
-                  "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background =
-                  "var(--gold)";
-                (e.currentTarget as HTMLAnchorElement).style.transform =
-                  "translateY(0)";
-              }}
-            >
-              Sign Up
-            </a>
+          <ul className="nav-links">
+            <li><a href="#fitur">Fitur</a></li>
+            <li><a href="#cara-kerja">Cara Kerja</a></li>
+            <li><a href="#paket">Harga</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#faq">FAQ</a></li>
+          </ul>
+          <div className="nav-btns">
+            <a href="/sign-in" className="btn-ghost">Masuk</a>
+            <a href="/sign-up" className="btn-primary">Daftar Gratis</a>
           </div>
         </div>
-      </header>
+      </nav>
 
-      <main>
-        {/* ── HERO ── */}
-        <section
-          style={{
-            background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%)",
-            padding: "160px 24px 100px",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          {/* Decorative glow */}
-          <div
-            style={{
-              position: "absolute",
-              top: "10%",
-              right: "5%",
-              width: 600,
-              height: 600,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(245,197,24,0.06) 0%, transparent 70%)",
-              pointerEvents: "none",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              bottom: "0%",
-              left: "-5%",
-              width: 400,
-              height: 400,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 70%)",
-              pointerEvents: "none",
-            }}
-          />
-
-          <div
-            style={{
-              maxWidth: 800,
-              margin: "0 auto",
-              textAlign: "center",
-              position: "relative",
-              zIndex: 1,
-            }}
-          >
-            <Reveal>
-              <h1
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 800,
-                  fontSize: "clamp(32px, 5vw, 54px)",
-                  color: "#fff",
-                  lineHeight: 1.18,
-                  marginBottom: 24,
-                  letterSpacing: "-0.5px",
-                }}
-              >
-                Lulus CPNS 2026 Bukan Sekadar Keberuntungan.{" "}
-                <span style={{ color: "var(--gold)" }}>
-                  Persiapkan Dirimu dengan Data.
-                </span>
-              </h1>
-              <p
-                style={{
-                  color: "rgba(255,255,255,0.65)",
-                  fontSize: "clamp(16px, 2vw, 19px)",
-                  lineHeight: 1.75,
-                  marginBottom: 44,
-                  maxWidth: 620,
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                }}
-              >
-                Berhenti belajar buta arah. Rasakan pengalaman ujian
-                sesungguhnya dengan PintuASN simulasi CAT{" "}
-                <strong style={{ color: "#fff" }}>99% mirip sistem BKN</strong>{" "}
-                dengan analitik performa mendalam.
-              </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 14,
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <a
-                  href="#paket-belajar"
-                  style={{
-                    padding: "15px 34px",
-                    background: "var(--gold)",
-                    color: "var(--navy)",
-                    fontWeight: 700,
-                    fontSize: 16,
-                    borderRadius: 10,
-                    textDecoration: "none",
-                    boxShadow: "0 6px 24px rgba(245,197,24,0.3)",
-                    transition: "all 0.2s",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.transform =
-                      "translateY(-2px)";
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                      "0 10px 32px rgba(245,197,24,0.4)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.transform =
-                      "translateY(0)";
-                    (e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                      "0 6px 24px rgba(245,197,24,0.3)";
-                  }}
-                >
-                  🚀 Coba Gratis Sekarang
-                </a>
-                <a
-                  href="#fitur"
-                  style={{
-                    padding: "15px 34px",
-                    background: "transparent",
-                    color: "rgba(255,255,255,0.85)",
-                    fontWeight: 600,
-                    fontSize: 16,
-                    borderRadius: 10,
-                    border: "1.5px solid rgba(255,255,255,0.2)",
-                    textDecoration: "none",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                      "rgba(255,255,255,0.5)";
-                    (e.currentTarget as HTMLAnchorElement).style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                      "rgba(255,255,255,0.2)";
-                    (e.currentTarget as HTMLAnchorElement).style.color =
-                      "rgba(255,255,255,0.85)";
-                  }}
-                >
-                  Lihat Fitur Lengkap
-                </a>
-              </div>
-
-              {/* Social proof */}
-              <div
-                style={{
-                  marginTop: 44,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <div style={{ color: "var(--gold)", letterSpacing: 3, fontSize: 13 }}>
-                  ★★★★★
-                </div>
-                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>
-                  Bergabung bersama ribuan pejuang NIP tahun ini.
-                </p>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── PAIN POINTS ── */}
-        <section style={{ background: "#f8fafc", padding: "96px 24px" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <Reveal>
-              <div style={{ textAlign: "center", marginBottom: 60 }}>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: "clamp(26px, 4vw, 38px)",
-                    fontWeight: 800,
-                    color: "#0f172a",
-                    marginBottom: 14,
-                  }}
-                >
-                  Mengapa Banyak yang Gagal di SKD CPNS?
-                </h2>
-                <p style={{ color: "#64748b", fontSize: 17, maxWidth: 560, margin: "0 auto" }}>
-                  Bukan karena kurang pintar, tapi karena strategi persiapan
-                  yang salah sasaran.
-                </p>
-              </div>
-            </Reveal>
-
-            <div className="pain-grid">
-              {PAIN_POINTS.map((p) => (
-                <PainCard key={p.title} {...p} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── FEATURES ── */}
-        <section
-          id="fitur"
-          style={{ background: "var(--navy)", padding: "96px 24px" }}
-        >
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <Reveal>
-              <div style={{ textAlign: "center", marginBottom: 60 }}>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: "clamp(26px, 4vw, 38px)",
-                    fontWeight: 800,
-                    color: "var(--gold)",
-                    marginBottom: 14,
-                  }}
-                >
-                  Senjata Rahasiamu Menuju NIP 2026
-                </h2>
-                <p
-                  style={{
-                    color: "rgba(255,255,255,0.55)",
-                    fontSize: 17,
-                    maxWidth: 560,
-                    margin: "0 auto",
-                  }}
-                >
-                  Sistem kami dirancang khusus untuk mereplikasi ujian BKN dan
-                  menutup celah kelemahanmu.
-                </p>
-              </div>
-            </Reveal>
-
-            <div className="features-grid">
-              {FEATURES.map((f) => (
-                <FeatureCard key={f.title} {...f} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── HOW IT WORKS ── */}
-        <section
-          id="cara-kerja"
-          style={{ background: "#fff", padding: "96px 24px" }}
-        >
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <Reveal>
-              <div style={{ textAlign: "center", marginBottom: 64 }}>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: "clamp(26px, 4vw, 38px)",
-                    fontWeight: 800,
-                    color: "#0f172a",
-                    marginBottom: 14,
-                  }}
-                >
-                  3 Langkah Mudah Memulai Persiapan
-                </h2>
-                <p style={{ color: "#64748b", fontSize: 17 }}>
-                  Tidak perlu ribet, sistem kami didesain agar kamu bisa
-                  langsung fokus belajar.
-                </p>
-              </div>
-            </Reveal>
-
-            <div className="steps-grid">
-              {[
-                {
-                  n: "1",
-                  title: "Daftar Akun Gratis",
-                  desc: "Buat akun dalam 30 detik tanpa kartu kredit. Langsung akses dashboard.",
-                },
-                {
-                  n: "2",
-                  title: "Pilih & Kerjakan Tryout",
-                  desc: "Rasakan ketegangan ujian dengan timer berjalan dan soal setara HOTS BKN.",
-                  delay: 200,
-                },
-                {
-                  n: "3",
-                  title: "Analisis Hasilmu",
-                  desc: "Dapatkan skor TWK, TIU, TKP, status passing grade, dan review mendalam.",
-                  delay: 400,
-                },
-              ].map((step) => (
-                <Reveal key={step.n} delay={step.delay ?? 0}>
-                  <div style={{ textAlign: "center" }}>
-                    <div
-                      style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: "50%",
-                        border: "3px solid #f1f5f9",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        margin: "0 auto 24px",
-                        fontFamily: "var(--font-heading)",
-                        fontWeight: 800,
-                        fontSize: 30,
-                        color: "var(--gold)",
-                        boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
-                      }}
-                    >
-                      {step.n}
-                    </div>
-                    <h3
-                      style={{
-                        fontFamily: "var(--font-heading)",
-                        fontSize: 19,
-                        fontWeight: 700,
-                        color: "#0f172a",
-                        marginBottom: 10,
-                      }}
-                    >
-                      {step.title}
-                    </h3>
-                    <p style={{ color: "#64748b", fontSize: 15, lineHeight: 1.7 }}>
-                      {step.desc}
-                    </p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── PRICING ── */}
-        <section
-          id="paket-belajar"
-          style={{ background: "#f8fafc", padding: "96px 24px" }}
-        >
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <Reveal>
-              <div style={{ textAlign: "center", marginBottom: 60 }}>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: "clamp(26px, 4vw, 38px)",
-                    fontWeight: 800,
-                    color: "#0f172a",
-                    marginBottom: 14,
-                  }}
-                >
-                  Pilih Paket Belajar Kamu
-                </h2>
-                <p style={{ color: "#64748b", fontSize: 17 }}>
-                  Investasi terbaik untuk lolos SKD CPNS 2026. Akses penuh
-                  hingga ujian selesai.
-                </p>
-              </div>
-            </Reveal>
-
-            <div className="pricing-grid">
-              {/* ── GRATIS ── */}
-              <Reveal>
-                <div
-                  style={{
-                    background: "#fff",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 20,
-                    padding: "36px 28px",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}
-                  >
-                    <div
-                      style={{
-                        width: 46,
-                        height: 46,
-                        background: "#f1f5f9",
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 22,
-                      }}
-                    >
-                      🛡️
-                    </div>
-                    <div>
-                      <h3
-                        style={{
-                          fontFamily: "var(--font-heading)",
-                          fontWeight: 800,
-                          fontSize: 20,
-                          color: "#0f172a",
-                        }}
-                      >
-                        Gratis
-                      </h3>
-                      <div style={{ fontSize: 13, color: "#94a3b8" }}>Selamanya</div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 800,
-                      fontSize: 38,
-                      color: "#0f172a",
-                      marginBottom: 6,
-                    }}
-                  >
-                    Gratis
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 14,
-                      color: "#94a3b8",
-                      marginBottom: 24,
-                      paddingBottom: 24,
-                      borderBottom: "1px solid #f1f5f9",
-                    }}
-                  >
-                    Cocok untuk mencoba fitur dasar simulasi SKD
-                  </p>
-
-                  <ul style={{ listStyle: "none", marginBottom: 28, flex: 1 }}>
-                    {[
-                      { text: "10 soal latihan per hari", active: true },
-                      { text: "Akses materi dasar", active: true },
-                      { text: "Statistik terbatas", active: false },
-                      { text: "Simulasi ujian penuh", active: false },
-                      { text: "Pembahasan lengkap", active: false },
-                    ].map((item) => (
-                      <li
-                        key={item.text}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          marginBottom: 12,
-                          fontSize: 14,
-                          color: item.active ? "#334155" : "#94a3b8",
-                          textDecoration: item.active ? "none" : "line-through",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: item.active ? "#dcfce7" : "#f1f5f9",
-                            color: item.active ? "#16a34a" : "#94a3b8",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 11,
-                            flexShrink: 0,
-                          }}
-                        >
-                          {item.active ? "✓" : "✗"}
-                        </span>
-                        {item.text}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <a
-                    href="/register"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      padding: "13px 20px",
-                      border: "1.5px solid #cbd5e1",
-                      borderRadius: 10,
-                      color: "#475569",
-                      fontWeight: 600,
-                      fontSize: 15,
-                      textDecoration: "none",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.borderColor = "#334155";
-                      (e.currentTarget as HTMLAnchorElement).style.background = "#f8fafc";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.borderColor = "#cbd5e1";
-                      (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                    }}
-                  >
-                    Pakai Gratis →
-                  </a>
-                </div>
-              </Reveal>
-
-              {/* ── PREMIUM ── */}
-              <Reveal delay={100}>
-                <div
-                  style={{
-                    background: "#1d4ed8",
-                    borderRadius: 20,
-                    padding: "36px 28px",
-                    display: "flex",
-                    flexDirection: "column",
-                    boxShadow: "0 24px 64px rgba(29,78,216,0.35)",
-                    position: "relative",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: -13,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      background: "#fff",
-                      color: "#1d4ed8",
-                      padding: "4px 16px",
-                      borderRadius: 50,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      whiteSpace: "nowrap",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                    }}
-                  >
-                    ⚡ Populer
-                  </div>
-
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}
-                  >
-                    <div
-                      style={{
-                        width: 46,
-                        height: 46,
-                        background: "rgba(255,255,255,0.15)",
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 22,
-                      }}
-                    >
-                      ⚡
-                    </div>
-                    <div>
-                      <h3
-                        style={{
-                          fontFamily: "var(--font-heading)",
-                          fontWeight: 800,
-                          fontSize: 20,
-                          color: "#fff",
-                        }}
-                      >
-                        Premium
-                      </h3>
-                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
-                        Hingga November 2026
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 800,
-                      fontSize: 38,
-                      color: "#fff",
-                      marginBottom: 6,
-                    }}
-                  >
-                    Rp 149.000
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "rgba(255,255,255,0.6)",
-                      marginBottom: 24,
-                      paddingBottom: 24,
-                      borderBottom: "1px solid rgba(255,255,255,0.12)",
-                    }}
-                  >
-                    Akses penuh untuk persiapan SKD CPNS 2026
-                  </p>
-
-                  <ul style={{ listStyle: "none", marginBottom: 28, flex: 1 }}>
-                    {[
-                      "Soal latihan tidak terbatas",
-                      "Akses semua materi lengkap",
-                      "Statistik & analisis performa",
-                      "Simulasi ujian penuh SKD",
-                      "Pembahasan setiap soal",
-                      "Leaderboard & ranking",
-                    ].map((item) => (
-                      <li
-                        key={item}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          marginBottom: 12,
-                          fontSize: 14,
-                          color: "rgba(255,255,255,0.9)",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: "rgba(255,255,255,0.2)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 11,
-                            flexShrink: 0,
-                          }}
-                        >
-                          ✓
-                        </span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <a
-                    href="/register?plan=premium"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      padding: "13px 20px",
-                      background: "#fff",
-                      color: "#1d4ed8",
-                      borderRadius: 10,
-                      fontWeight: 700,
-                      fontSize: 15,
-                      textDecoration: "none",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.background =
-                        "rgba(255,255,255,0.9)";
-                      (e.currentTarget as HTMLAnchorElement).style.transform =
-                        "translateY(-1px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.background = "#fff";
-                      (e.currentTarget as HTMLAnchorElement).style.transform =
-                        "translateY(0)";
-                    }}
-                  >
-                    Mulai Premium →
-                  </a>
-                </div>
-              </Reveal>
-
-              {/* ── PLATINUM ── */}
-              <Reveal delay={200}>
-                <div
-                  style={{
-                    background: "#0f172a",
-                    borderRadius: 20,
-                    padding: "36px 28px",
-                    display: "flex",
-                    flexDirection: "column",
-                    boxShadow: "0 24px 64px rgba(15,23,42,0.25)",
-                    position: "relative",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: -13,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      background: "var(--gold)",
-                      color: "#0f172a",
-                      padding: "4px 16px",
-                      borderRadius: 50,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    👑 Terlengkap
-                  </div>
-
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}
-                  >
-                    <div
-                      style={{
-                        width: 46,
-                        height: 46,
-                        background: "var(--gold)",
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 22,
-                      }}
-                    >
-                      👑
-                    </div>
-                    <div>
-                      <h3
-                        style={{
-                          fontFamily: "var(--font-heading)",
-                          fontWeight: 800,
-                          fontSize: 20,
-                          color: "#fff",
-                        }}
-                      >
-                        Platinum
-                      </h3>
-                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
-                        Hingga November 2026
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      fontFamily: "var(--font-heading)",
-                      fontWeight: 800,
-                      fontSize: 38,
-                      color: "#fff",
-                      marginBottom: 6,
-                    }}
-                  >
-                    Rp 249.000
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "rgba(255,255,255,0.5)",
-                      marginBottom: 24,
-                      paddingBottom: 24,
-                      borderBottom: "1px solid rgba(255,255,255,0.08)",
-                    }}
-                  >
-                    Paket lengkap dengan fitur eksklusif &amp; prioritas
-                  </p>
-
-                  <ul style={{ listStyle: "none", marginBottom: 28, flex: 1 }}>
-                    {[
-                      "Semua fitur Premium",
-                      "Live class & webinar eksklusif",
-                      "Konsultasi dengan mentor",
-                      "Grup belajar khusus Platinum",
-                      "Roadmap belajar personal",
-                      "Garansi uang kembali 7 hari",
-                    ].map((item) => (
-                      <li
-                        key={item}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          marginBottom: 12,
-                          fontSize: 14,
-                          color: "rgba(255,255,255,0.85)",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: "50%",
-                            background: "var(--gold)",
-                            color: "#0f172a",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: 11,
-                            flexShrink: 0,
-                            fontWeight: 700,
-                          }}
-                        >
-                          ✓
-                        </span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <a
-                    href="/register?plan=platinum"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      padding: "13px 20px",
-                      background: "var(--gold)",
-                      color: "#0f172a",
-                      borderRadius: 10,
-                      fontWeight: 700,
-                      fontSize: 15,
-                      textDecoration: "none",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.background =
-                        "var(--gold-dark)";
-                      (e.currentTarget as HTMLAnchorElement).style.transform =
-                        "translateY(-1px)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.background =
-                        "var(--gold)";
-                      (e.currentTarget as HTMLAnchorElement).style.transform =
-                        "translateY(0)";
-                    }}
-                  >
-                    Mulai Platinum →
-                  </a>
-                </div>
-              </Reveal>
-            </div>
-
-            <Reveal>
-              <p
-                style={{
-                  textAlign: "center",
-                  marginTop: 32,
-                  color: "#94a3b8",
-                  fontSize: 13,
-                }}
-              >
-                🔒 Pembayaran aman &amp; terenkripsi. Didukung oleh Midtrans.
-                Butuh bantuan?{" "}
-                <strong style={{ color: "#475569" }}>support@pintuasn.com</strong>
-              </p>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── FAQ ── */}
-        <section id="faq" style={{ background: "#fff", padding: "96px 24px" }}>
-          <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-            <Reveal>
-              <div style={{ textAlign: "center", marginBottom: 60 }}>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-heading)",
-                    fontSize: "clamp(26px, 4vw, 38px)",
-                    fontWeight: 800,
-                    color: "#0f172a",
-                    marginBottom: 14,
-                  }}
-                >
-                  Pertanyaan yang Sering Diajukan
-                </h2>
-                <p style={{ color: "#64748b", fontSize: 17 }}>
-                  Jawaban untuk keraguanmu tentang persiapan CPNS 2026 bersama
-                  PintuASN.
-                </p>
-              </div>
-            </Reveal>
-
-            <Reveal delay={100}>
-              <FaqAccordion items={FAQ_ITEMS} />
-            </Reveal>
-          </div>
-        </section>
-
-        {/* ── FINAL CTA ── */}
-        <section
-          style={{
-            background: "var(--navy)",
-            padding: "100px 24px",
-            textAlign: "center",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              width: "100%",
-              height: 4,
-              background: "var(--gold)",
-            }}
-          />
-          <div style={{ maxWidth: 700, margin: "0 auto", position: "relative", zIndex: 1 }}>
-            <Reveal>
-              <h2
-                style={{
-                  fontFamily: "var(--font-heading)",
-                  fontWeight: 800,
-                  fontSize: "clamp(28px, 4vw, 44px)",
-                  color: "#fff",
-                  marginBottom: 20,
-                  lineHeight: 1.25,
-                }}
-              >
-                Waktu Terus Berjalan, Pesaingmu Sudah Mulai Belajar.
-              </h2>
-              <p
-                style={{
-                  color: "rgba(255,255,255,0.6)",
-                  fontSize: 17,
-                  marginBottom: 40,
-                  lineHeight: 1.75,
-                }}
-              >
-                Jangan biarkan kuota formasi impianmu diambil orang lain karena
-                kurang persiapan.
-              </p>
-              <a
-                href="/register"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "18px 44px",
-                  background: "var(--gold)",
-                  color: "var(--navy)",
-                  fontWeight: 800,
-                  fontSize: 17,
-                  borderRadius: 12,
-                  textDecoration: "none",
-                  boxShadow: "0 8px 32px rgba(245,197,24,0.35)",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform =
-                    "translateY(-2px)";
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                    "0 14px 40px rgba(245,197,24,0.45)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.transform =
-                    "translateY(0)";
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                    "0 8px 32px rgba(245,197,24,0.35)";
-                }}
-              >
-                🎯 Mulai Perjalanan ASN-mu Sekarang!
-              </a>
-            </Reveal>
-          </div>
-        </section>
-      </main>
-
-      {/* ── FOOTER ── */}
-      <footer
-        style={{
-          background: "#fff",
-          borderTop: "1px solid #f1f5f9",
-          padding: "60px 24px 28px",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1100,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 40,
-            marginBottom: 48,
-          }}
-        >
+      {/* HERO */}
+      <section className="hero" id="hero">
+        <div className="hero-grid">
           <div>
-            <div
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 800,
-                fontSize: 20,
-                color: "#0f172a",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                marginBottom: 14,
-              }}
-            >
-              <span
-                style={{
-                  background: "var(--gold)",
-                  color: "var(--navy)",
-                  width: 28,
-                  height: 28,
-                  borderRadius: 7,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                }}
-              >
-                🎓
-              </span>
-              PintuASN
-            </div>
-            <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.75, maxWidth: 280 }}>
-              Platform simulasi CAT SKD CPNS paling akurat di Indonesia. Partner
-              terpercaya menuju NIP impianmu.
+            <h1 className="hero-heading hero-title">
+              Lulus SKD CPNS Bukan Soal <em>Keberuntungan</em>
+            </h1>
+            <p className="hero-subtext hero-sub">
+              Rasakan pengalaman ujian sesungguhnya dengan simulasi CAT <strong>99% identik sistem BKN</strong>. Analitik mendalam, roadmap terstruktur, ranking nasional dalam satu platform.
             </p>
-            <div style={{ marginTop: 18, display: "flex", gap: 14, fontSize: 18, color: "#94a3b8" }}>
-              <span style={{ cursor: "pointer" }}>📸</span>
-              <span style={{ cursor: "pointer" }}>🎵</span>
-              <span style={{ cursor: "pointer" }}>▶️</span>
+            <div className="hero-cta-row hero-cta">
+              <a href="/sign-up" className="cta-big cta-yellow">Coba Gratis Sekarang</a>
+              <a href="#fitur" className="cta-big cta-outline">Lihat Fitur</a>
+            </div>
+            <div className="hero-proof hero-proof">
+              <div className="proof-avatars">
+                <div className="proof-avatar" style={{background:'#7C5C3E'}}>BU</div>
+                <div className="proof-avatar" style={{background:'#A0724A'}}>SW</div>
+                <div className="proof-avatar" style={{background:'#5E4533'}}>AR</div>
+                <div className="proof-avatar" style={{background:'#9B6B4A'}}>DN</div>
+                <div className="proof-avatar" style={{background:'#6B4226'}}>FN</div>
+              </div>
+              <div>
+                <div className="stars">★★★★★</div>
+                <p className="proof-text"><strong>12.000+</strong> pejuang NIP bergabung</p>
+              </div>
             </div>
           </div>
 
-          <div>
-            <h4
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: 15,
-                color: "#0f172a",
-                marginBottom: 16,
-              }}
-            >
-              Platform
-            </h4>
-            {["Fitur Unggulan", "Harga & Paket", "FAQ", "Simulasi Gratis"].map(
-              (item) => (
-                <a
-                  key={item}
-                  href="#"
-                  style={{
-                    display: "block",
-                    color: "#64748b",
-                    fontSize: 14,
-                    marginBottom: 10,
-                    textDecoration: "none",
-                    transition: "color 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.target as HTMLAnchorElement).style.color = "var(--gold)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.target as HTMLAnchorElement).style.color = "#64748b")
-                  }
-                >
-                  {item}
-                </a>
-              )
-            )}
+          {/* HERO MOCKUP */}
+          <div className="hero-right hero-mockup">
+            <div className="mockup-wrap">
+              <div className="mockup-float" dangerouslySetInnerHTML={{__html: examSVG}} />
+              <div className="mockup-float2" style={{position:'absolute',top:'-20px',right:'-18px',background:'#fff',border:'1px solid #e2e8f0',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.08)',display:'flex',alignItems:'center',gap:'10px',zIndex:2}}>
+                <div style={{width:'36px',height:'36px',background:'#1e293b',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>📊</div>
+                <div>
+                  <div style={{fontSize:'11px',fontWeight:700,color:'#1e293b'}}>Skor TWK</div>
+                  <div style={{fontSize:'16px',fontWeight:800,color:'#16a34a'}}>85 <span style={{fontSize:'10px',color:'#94a3b8'}}>/ 150</span></div>
+                </div>
+              </div>
+              <div className="mockup-float2" style={{position:'absolute',bottom:'-10px',left:'-18px',background:'#1e293b',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.18)',display:'flex',alignItems:'center',gap:'10px',zIndex:2,animationDelay:'1.2s'}}>
+                <div style={{fontSize:'20px'}}>🏆</div>
+                <div>
+                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.45)',fontWeight:600}}>Peringkat Nasional</div>
+                  <div style={{fontSize:'15px',fontWeight:800,color:'#0077B6'}}>#247 <span style={{fontSize:'10px',color:'rgba(255,255,255,0.35)'}}>dari 12.842</span></div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div>
-            <h4
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontWeight: 700,
-                fontSize: 15,
-                color: "#0f172a",
-                marginBottom: 16,
-              }}
-            >
-              Bantuan
-            </h4>
+      {/* TICKER */}
+      <div className="ticker-wrap">
+        <div className="ticker-track">
+          {[
+            ['✓','Simulasi 99% mirip BKN'],
+            ['⏱','Analisis waktu per soal'],
+            ['📊','Analitik performa mendalam'],
+            ['🏆','Ranking nasional real-time'],
+            ['🗺','Roadmap belajar bertahap'],
+            ['📖','Pembahasan detail setiap soal'],
+            ['📈','Progress tracking visual'],
+            ['🔒','Pembayaran aman Midtrans'],
+            ['✓','Simulasi 99% mirip BKN'],
+            ['⏱','Analisis waktu per soal'],
+            ['📊','Analitik performa mendalam'],
+            ['🏆','Ranking nasional real-time'],
+            ['🗺','Roadmap belajar bertahap'],
+            ['📖','Pembahasan detail setiap soal'],
+            ['📈','Progress tracking visual'],
+            ['🔒','Pembayaran aman Midtrans'],
+          ].map(([icon, text], i) => (
+            <div key={i} className="ticker-item">
+              <div className="ticker-dot">{icon}</div> {text}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* STATS BAR */}
+      <div className="stats-bar">
+        <div className="stats-inner">
+          <div className="stat-item reveal"><span className="stat-num" data-target="12186">0</span><div className="stat-label">Pengguna aktif terdaftar</div></div>
+          <div className="stat-item reveal" style={{transitionDelay:'.1s'}}><span className="stat-num" data-target="871">0</span><div className="stat-label">Bank soal terverifikasi</div></div>
+          <div className="stat-item reveal" style={{transitionDelay:'.2s'}}><span className="stat-num" data-target="3204">0</span><div className="stat-label">Sesi tryout diselesaikan</div></div>
+          <div className="stat-item reveal" style={{transitionDelay:'.3s'}}><span className="stat-num" data-target="4.9">0</span><div className="stat-label">Rating rata-rata pengguna</div></div>
+        </div>
+      </div>
+
+      {/* PAIN POINTS */}
+      <section style={{background:'var(--s50)'}}>
+        <div className="section-inner">
+          <div className="section-head reveal" style={{textAlign:'center'}}>
+            <div className="section-tag" style={{justifyContent:'center'}}>Masalah Nyata</div>
+            <h2 className="section-title">Mengapa Banyak yang Gagal di SKD?</h2>
+            <p className="section-sub" style={{margin:'0 auto'}}>Bukan karena kurang pintar, tapi karena strategi dan persiapan yang salah sasaran.</p>
+          </div>
+          <div className="pain-grid">
+            <div className="pain-card reveal">
+              <div className="pain-icon-wrap">🤯</div>
+              <h3>Buta Sistem CAT BKN</h3>
+              <p>Panik melihat interface ujian asli. Banyak peserta gagal fokus karena kaget dengan sistem CAT dan manajemen waktu yang buruk saat hari H.</p>
+            </div>
+            <div className="pain-card reveal" style={{transitionDelay:'.12s'}}>
+              <div className="pain-icon-wrap">📉</div>
+              <h3>Belajar Tanpa Data</h3>
+              <p>Mengerjakan ribuan soal secara acak tanpa tahu letak kelemahan sesungguhnya, apakah di TWK, penalaran TIU, atau karakteristik TKP.</p>
+            </div>
+            <div className="pain-card reveal" style={{transitionDelay:'.24s'}}>
+              <div className="pain-icon-wrap">⏱️</div>
+              <h3>Tidak Sadar Pemborosan Waktu</h3>
+              <p>Tanpa analisis waktu per soal, kamu tidak tahu soal mana yang menyedot waktu terlalu banyak sehingga soal mudah pun tidak sempat dikerjakan.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* APP SHOWCASE */}
+      <section className="showcase-bg">
+        <div className="showcase-header reveal">
+          <div className="section-tag" style={{justifyContent:'center',color:'rgba(0,119,182,.8)'}}>Dashboard Performa</div>
+          <h2 className="section-title" style={{color:'#fff',textAlign:'center'}}>Lihat Progressmu dalam Satu Layar</h2>
+          <p className="section-sub" style={{textAlign:'center',margin:'0 auto',color:'rgba(255,255,255,.5)'}}>Analitik mendalam yang mengubah data latihan menjadi keputusan belajar yang tepat.</p>
+        </div>
+        <div className="reveal" style={{transitionDelay:'.15s'}}>
+          <div className="browser-frame mockup-float2">
+            <div className="browser-bar">
+              <div className="browser-dot" style={{background:'#ef4444'}}></div>
+              <div className="browser-dot" style={{background:'#f59e0b'}}></div>
+              <div className="browser-dot" style={{background:'#22c55e'}}></div>
+              <div className="browser-url">
+                <span style={{fontSize:'11px',color:'rgba(255,255,255,.3)',fontFamily:'monospace'}}>pintuasn.com/statistics</span>
+              </div>
+            </div>
+            <div dangerouslySetInnerHTML={{__html: dashboardSVG}} />
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section style={{background:'#fff'}} id="fitur">
+        <div className="section-inner">
+          <div className="section-head reveal">
+            <div className="section-tag">Fitur Unggulan</div>
+            <h2 className="section-title">Senjata Rahasiamu<br />Menuju NIP 2026</h2>
+            <p className="section-sub">Dirancang khusus untuk mereplikasi kondisi ujian asli dan menutup setiap celah kelemahanmu.</p>
+          </div>
+          <div className="features-grid">
+            <div className="feat-card reveal">
+              <div className="feat-icon">💻</div>
+              <h3>Simulasi 99% Mirip BKN</h3>
+              <p>UI/UX, sistem timer per subtes, dan mekanisme penilaian persis sistem CAT SSCASN BKN. Atasi grogi sebelum hari H.</p>
+            </div>
+            <div className="feat-card reveal" style={{transitionDelay:'.08s'}}>
+              <div className="feat-icon">⏱️</div>
+              <div className="feat-badge">Eksklusif</div>
+              <h3>Analisis Waktu per Soal</h3>
+              <p>Ketahui berapa detik kamu habiskan tiap soal. Identifikasi soal "time waster" dan perbaiki strategi pengerjaan.</p>
+            </div>
+            <div className="feat-card reveal" style={{transitionDelay:'.16s'}}>
+              <div className="feat-icon">📊</div>
+              <h3>Analitik Performa Mendalam</h3>
+              <p>Tren skor, gap passing grade, distribusi nasional, dan analisis kelemahan detail per subtes TWK, TIU, TKP berbasis data.</p>
+            </div>
+            <div className="feat-card reveal" style={{transitionDelay:'.24s'}}>
+              <div className="feat-icon">🏆</div>
+              <h3>Peringkat Nasional</h3>
+              <p>Ukur kemampuan real-time. Ketahui posisimu vs ribuan peserta lain di seluruh Indonesia dengan leaderboard live.</p>
+            </div>
+            <div className="feat-card reveal" style={{transitionDelay:'.32s'}}>
+              <div className="feat-icon">🗺️</div>
+              <h3>Roadmap Belajar Bertahap</h3>
+              <p>Fase belajar terstruktur: setiap step ada syarat, CTA, dan indikator selesai. Tidak lagi bingung mulai dari mana.</p>
+            </div>
+            <div className="feat-card reveal" style={{transitionDelay:'.4s'}}>
+              <div className="feat-icon">📖</div>
+              <h3>Review Soal dan Pembahasan</h3>
+              <p>Bukan cuma kunci jawaban. Review detail tiap soal benar/salahmu dengan filter materi yang komprehensif dan terstruktur.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section style={{background:'var(--s50)'}} id="cara-kerja">
+        <div className="section-inner">
+          <div className="section-head reveal" style={{textAlign:'center'}}>
+            <div className="section-tag" style={{justifyContent:'center'}}>Cara Kerja</div>
+            <h2 className="section-title">3 Langkah Mulai Persiapan</h2>
+            <p className="section-sub" style={{margin:'0 auto'}}>Sistem kami dirancang agar kamu bisa langsung fokus belajar tanpa setup rumit.</p>
+          </div>
+          <div className="steps-grid">
+            <div className="step reveal">
+              <div className="step-num">1</div>
+              <h3>Daftar Akun Gratis</h3>
+              <p>Buat akun dalam 30 detik. Langsung akses dashboard, roadmap, dan tryout pertamamu tanpa kartu kredit.</p>
+            </div>
+            <div className="step reveal" style={{transitionDelay:'.2s'}}>
+              <div className="step-num">2</div>
+              <h3>Kerjakan Tryout</h3>
+              <p>Rasakan sensasi ujian asli dengan timer dan antarmuka identik BKN. TWK, TIU, TKP dalam satu sesi penuh.</p>
+            </div>
+            <div className="step reveal" style={{transitionDelay:'.4s'}}>
+              <div className="step-num">3</div>
+              <h3>Analisis dan Tingkatkan</h3>
+              <p>Dapatkan skor, analitik mendalam, analisis waktu per soal, review pembahasan, dan posisi ranking nasional.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section style={{background:'#fff'}} id="paket">
+        <div className="section-inner">
+          <div className="section-head reveal" style={{textAlign:'center'}}>
+            <div className="section-tag" style={{justifyContent:'center'}}>Paket Belajar</div>
+            <h2 className="section-title">Pilih Paketmu</h2>
+            <p className="section-sub" style={{margin:'0 auto'}}>Investasi terbaik untuk lolos SKD CPNS 2026. Akses penuh hingga hari ujian selesai.</p>
+          </div>
+          <div className="pricing-grid">
+
+            {/* FREE */}
+            <div className="price-card reveal" style={{background:'#fff',border:'1px solid #e2e8f0'}}>
+              <div className="price-icon-row">
+                <div className="price-icon-box" style={{background:'#f1f5f9'}}>🛡️</div>
+                <div>
+                  <div className="price-name" style={{color:'#0f172a'}}>Gratis</div>
+                  <div className="price-period" style={{color:'#94a3b8'}}>Selamanya</div>
+                </div>
+              </div>
+              <div className="price-amount" style={{color:'#0f172a'}}>Gratis</div>
+              <div className="price-desc" style={{color:'#94a3b8',borderBottom:'1px solid #f1f5f9'}}>Cocok untuk mencoba fitur dasar simulasi SKD</div>
+              <ul className="price-features">
+                <li><span className="chk" style={{background:'#dcfce7',color:'#16a34a'}}>✓</span><span style={{color:'#334155'}}>10 soal latihan per hari</span></li>
+                <li><span className="chk" style={{background:'#dcfce7',color:'#16a34a'}}>✓</span><span style={{color:'#334155'}}>Akses materi dasar</span></li>
+                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Statistik lanjutan</span></li>
+                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Simulasi ujian penuh</span></li>
+                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Pembahasan lengkap</span></li>
+              </ul>
+              <a href="/register" className="price-btn" style={{border:'1.5px solid #cbd5e1',color:'#475569'}}>Pakai Gratis</a>
+            </div>
+
+            {/* PREMIUM */}
+            <div className="price-card reveal" style={{background:'#1d4ed8',boxShadow:'0 24px 64px rgba(29,78,216,.35)',marginTop:'-12px',marginBottom:'-12px',transitionDelay:'.1s'}}>
+              <div className="pop-badge" style={{background:'#fff',color:'#1d4ed8'}}>⚡ Populer</div>
+              <div className="price-icon-row">
+                <div className="price-icon-box" style={{background:'rgba(255,255,255,0.15)'}}>⚡</div>
+                <div>
+                  <div className="price-name" style={{color:'#fff'}}>Premium</div>
+                  <div className="price-period" style={{color:'rgba(255,255,255,.55)'}}>Hingga November 2026</div>
+                </div>
+              </div>
+              <div className="price-amount" style={{color:'#fff'}}>Rp 149.000</div>
+              <div className="price-desc" style={{color:'rgba(255,255,255,.55)',borderBottom:'1px solid rgba(255,255,255,.12)'}}>Akses penuh untuk persiapan SKD CPNS 2026</div>
+              <ul className="price-features">
+                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Soal latihan tidak terbatas</span></li>
+                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Akses semua materi lengkap</span></li>
+                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Statistik dan analisis performa</span></li>
+                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Simulasi ujian penuh SKD</span></li>
+                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Pembahasan setiap soal</span></li>
+                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Leaderboard dan ranking</span></li>
+              </ul>
+              <a href="/register?plan=premium" className="price-btn" style={{background:'#fff',color:'#1d4ed8'}}>Mulai Premium</a>
+            </div>
+
+            {/* PLATINUM */}
+            <div className="price-card reveal" style={{background:'#0f172a',boxShadow:'0 24px 64px rgba(15,23,42,.25)',transitionDelay:'.2s'}}>
+              <div className="pop-badge" style={{background:'#0077B6',color:'#ffffff'}}>👑 Terlengkap</div>
+              <div className="price-icon-row">
+                <div className="price-icon-box" style={{background:'#0077B6'}}>👑</div>
+                <div>
+                  <div className="price-name" style={{color:'#fff'}}>Platinum</div>
+                  <div className="price-period" style={{color:'rgba(255,255,255,.45)'}}>Hingga November 2026</div>
+                </div>
+              </div>
+              <div className="price-amount" style={{color:'#fff'}}>Rp 249.000</div>
+              <div className="price-desc" style={{color:'rgba(255,255,255,.45)',borderBottom:'1px solid rgba(255,255,255,.08)'}}>Paket lengkap dengan fitur eksklusif dan prioritas</div>
+              <ul className="price-features">
+                <li><span className="chk" style={{background:'#0077B6',color:'#ffffff',fontWeight:700}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Semua fitur Premium</span></li>
+                <li><span className="chk" style={{background:'#0077B6',color:'#ffffff',fontWeight:700}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Live class dan webinar eksklusif</span></li>
+                <li><span className="chk" style={{background:'#0077B6',color:'#ffffff',fontWeight:700}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Konsultasi dengan mentor</span></li>
+                <li><span className="chk" style={{background:'#0077B6',color:'#ffffff',fontWeight:700}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Grup belajar khusus Platinum</span></li>
+                <li><span className="chk" style={{background:'#0077B6',color:'#ffffff',fontWeight:700}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Roadmap belajar personal</span></li>
+                <li><span className="chk" style={{background:'#0077B6',color:'#ffffff',fontWeight:700}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Garansi uang kembali 7 hari</span></li>
+              </ul>
+              <a href="/register?plan=platinum" className="price-btn" style={{background:'#0077B6',color:'#ffffff'}}>Mulai Platinum</a>
+            </div>
+          </div>
+          <div className="reveal" style={{textAlign:'center',marginTop:'32px',fontSize:'13px',color:'#94a3b8',transitionDelay:'.3s'}}>
+            🔒 Pembayaran aman via Midtrans · QRIS · GoPay · Transfer Bank · Alfamart/Indomaret
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{background:'var(--s50)'}} id="faq">
+        <div className="section-inner">
+          <div className="section-head reveal" style={{textAlign:'center'}}>
+            <div className="section-tag" style={{justifyContent:'center'}}>FAQ</div>
+            <h2 className="section-title">Pertanyaan yang Sering Diajukan</h2>
+          </div>
+          <div className="faq-inner">
             {[
-              "Cara Pembayaran",
-              "Syarat & Ketentuan",
-              "Kebijakan Privasi",
-              "Hubungi Admin (WA)",
-            ].map((item) => (
-              <a
-                key={item}
-                href="#"
-                style={{
-                  display: "block",
-                  color: "#64748b",
-                  fontSize: 14,
-                  marginBottom: 10,
-                  textDecoration: "none",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={(e) =>
-                  ((e.target as HTMLAnchorElement).style.color = "var(--gold)")
-                }
-                onMouseLeave={(e) =>
-                  ((e.target as HTMLAnchorElement).style.color = "#64748b")
-                }
-              >
-                {item}
-              </a>
+              {
+                q: 'Apakah simulasi benar-benar mirip sistem BKN?',
+                a: 'Ya! Kami merancang UI/UX, peletakan tombol, ukuran font, hingga sistem timer persis seperti aplikasi CAT BKN. Saat ujian asli, kamu sudah tidak canggung dan bisa fokus penuh pada soal.'
+              },
+              {
+                q: 'Apa itu fitur Analisis Waktu per Soal?',
+                a: 'Fitur eksklusif PintuASN yang merekam berapa detik kamu habiskan untuk tiap soal. Dari data ini, kamu bisa tahu soal mana yang menjadi "pemborosan waktu" dan memperbaiki strategi pengerjaan di sesi berikutnya.'
+              },
+              {
+                q: 'Apakah soal-soalnya update sesuai kisi-kisi terbaru?',
+                a: 'Tentu. Tim akademik kami terus memperbarui bank soal setiap bulan mengikuti Peraturan Menteri PANRB terbaru dan tren soal CPNS tahun-tahun sebelumnya, termasuk soal berstandar HOTS.'
+              },
+              {
+                q: 'Bagaimana cara pembayaran paket Premium/Platinum?',
+                a: 'Kami menerima QRIS, GoPay, OVO, ShopeePay, Transfer Bank (VA BCA, BNI, Mandiri, BRI), hingga Alfamart/Indomaret. Semua diproses melalui Midtrans yang aman dan terenkripsi.'
+              },
+              {
+                q: 'Saya daftar gratis, apakah wajib upgrade?',
+                a: 'Tidak wajib sama sekali. Paket Gratis agar kamu bisa mencoba sistem dan kualitas soal tanpa komitmen apapun. Upgrade bisa kapan saja ketika kamu merasa siap dan membutuhkan fitur lebih lengkap.'
+              },
+            ].map((item, i) => (
+              <div key={i} className="faq-item reveal" style={{transitionDelay:`${i * 0.05}s`}}>
+                <button className="faq-btn" onClick={(e) => toggleFaq(e.currentTarget)}>
+                  <span className="faq-q">{item.q}</span>
+                  <span className="faq-chev">▼</span>
+                </button>
+                <div className="faq-body" style={{maxHeight:'0'}}>
+                  <p>{item.a}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
+      </section>
 
-        <div
-          style={{
-            borderTop: "1px solid #f1f5f9",
-            paddingTop: 24,
-            textAlign: "center",
-            color: "#94a3b8",
-            fontSize: 13,
-          }}
-        >
-          © 2026 PintuASN. All rights reserved.
+      {/* FINAL CTA */}
+      <section className="final-cta">
+        <div className="final-cta-inner reveal">
+          <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(0,119,182,.12)',border:'1px solid rgba(0,119,182,.25)',borderRadius:'50px',padding:'6px 16px',fontSize:'13px',fontWeight:600,color:'var(--y)',marginBottom:'24px'}}>
+            ⏰ Pendaftaran CPNS 2026 semakin dekat
+          </div>
+          <h2>Pesaingmu Sudah Mulai.<br />Kamu Kapan?</h2>
+          <p>Jangan biarkan kursi ASN impianmu diambil orang lain hanya karena kurang persiapan.</p>
+          <a href="/register" className="cta-big cta-yellow" style={{fontSize:'17px',padding:'16px 38px',display:'inline-flex'}}>
+            Mulai Perjalanan ASN-mu Sekarang
+          </a>
+          <p style={{marginTop:'20px',fontSize:'13px',color:'rgba(255,255,255,.3)'}}>Gratis selamanya · Tanpa kartu kredit</p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer>
+        <div className="footer-grid">
+          <div>
+            <a href="#" className="logo" style={{textDecoration:'none'}}>
+              <div className="logo-badge">🎓</div>
+              PintuASN
+            </a>
+            <p style={{fontSize:'14px',color:'#64748b',lineHeight:'1.6',marginTop:'8px',maxWidth:'280px'}}>Platform simulasi CAT SKD CPNS paling akurat di Indonesia. Partner terpercaya menuju NIP impianmu 2026.</p>
+            <div className="social-row" style={{marginTop:'10px'}}>
+              <div className="social-btn">📸</div>
+              <div className="social-btn">🎵</div>
+              <div className="social-btn">▶️</div>
+            </div>
+          </div>
+          <div className="footer-col">
+            <h4>Platform</h4>
+            <a href="#">Fitur Unggulan</a>
+            <a href="#">Harga dan Paket</a>
+            <a href="#">Simulasi Gratis</a>
+            <a href="#">Blog</a>
+            <a href="#">FAQ</a>
+          </div>
+          <div className="footer-col">
+            <h4>Bantuan</h4>
+            <a href="#">Cara Pembayaran</a>
+            <a href="#">Syarat dan Ketentuan</a>
+            <a href="#">Kebijakan Privasi</a>
+            <a href="#">Hubungi Admin (WA)</a>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>© 2026 PintuASN. All rights reserved.</p>
+          <p>support@pintuasn.com</p>
         </div>
       </footer>
     </>
