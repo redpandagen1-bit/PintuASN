@@ -1,6 +1,5 @@
 'use client'
 // app/(admin)/admin/blog/page.tsx
-// Tambahkan route ini di admin panel
 
 import { useEffect, useState } from 'react'
 import type { Post } from '@/types/blog'
@@ -30,6 +29,8 @@ export default function AdminBlogPage() {
   const [editId, setEditId] = useState<string|null>(null)
   const [form, setForm] = useState({ ...EMPTY_FORM })
   const [tagInput, setTagInput] = useState('')
+  const [tagMode, setTagMode] = useState<'single' | 'bulk'>('single')
+  const [bulkTagInput, setBulkTagInput] = useState('')
   const [toast, setToast] = useState<{msg:string;type:'success'|'error'}|null>(null)
   const [search, setSearch] = useState('')
   const [deleteId, setDeleteId] = useState<string|null>(null)
@@ -63,13 +64,34 @@ export default function AdminBlogPage() {
     setTagInput('')
   }
 
+  // Parse bulk tags — pisahkan berdasarkan koma, titik koma, atau baris baru
+  const applyBulkTags = () => {
+    const parsed = bulkTagInput
+      .split(/[,;\n]+/)
+      .map(t => t.trim().toLowerCase().replace(/^#/, ''))
+      .filter(t => t.length > 0)
+
+    const merged = Array.from(new Set([...form.tags, ...parsed]))
+    setForm(f => ({ ...f, tags: merged }))
+    setBulkTagInput('')
+    setTagMode('single')
+    showToast(`${parsed.length} tag berhasil ditambahkan`)
+  }
+
   const removeTag = (tag: string) => {
     setForm(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }))
+  }
+
+  const clearAllTags = () => {
+    setForm(f => ({ ...f, tags: [] }))
   }
 
   const openCreate = () => {
     setForm({ ...EMPTY_FORM })
     setEditId(null)
+    setTagMode('single')
+    setBulkTagInput('')
+    setTagInput('')
     setTab('create')
   }
 
@@ -82,6 +104,9 @@ export default function AdminBlogPage() {
       meta_description: post.meta_description ?? '', reading_time: post.reading_time,
     })
     setEditId(post.id)
+    setTagMode('single')
+    setBulkTagInput('')
+    setTagInput('')
     setTab('edit')
   }
 
@@ -171,7 +196,6 @@ export default function AdminBlogPage() {
         {/* LIST TAB */}
         {tab === 'list' && (
           <div>
-            {/* STATS */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:24}}>
               {[
                 {label:'Total',val:posts.length,icon:'📄',color:'#1e293b'},
@@ -187,14 +211,12 @@ export default function AdminBlogPage() {
               ))}
             </div>
 
-            {/* SEARCH */}
             <div style={{marginBottom:16}}>
               <input value={search} onChange={e=>setSearch(e.target.value)}
                 placeholder="Cari judul atau kategori..."
                 style={{width:'100%',padding:'10px 16px',borderRadius:10,border:'1px solid #e2e8f0',fontSize:14,outline:'none',background:'#fff'}} />
             </div>
 
-            {/* TABLE */}
             <div style={{background:'#fff',borderRadius:14,border:'1px solid #e2e8f0',overflow:'hidden'}}>
               {loading ? (
                 <div style={{padding:40,textAlign:'center',color:'#94a3b8'}}>Memuat artikel...</div>
@@ -319,7 +341,6 @@ export default function AdminBlogPage() {
                     style={{width:'100%',padding:'10px 14px',borderRadius:8,border:'1px solid #e2e8f0',fontSize:14,outline:'none',resize:'vertical'}} />
                   <div style={{fontSize:11,color:form.meta_description.length>160?'#ef4444':'#94a3b8',marginTop:4}}>{form.meta_description.length}/160</div>
                 </div>
-                {/* Google Preview */}
                 <div style={{marginTop:16,padding:16,background:'#f8fafc',borderRadius:10,border:'1px solid #e2e8f0'}}>
                   <div style={{fontSize:11,fontWeight:700,color:'#94a3b8',marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}}>Preview Google</div>
                   <div style={{fontSize:14,color:'#1a0dab',fontWeight:500}}>{form.meta_title || form.title || 'Judul Artikel'}</div>
@@ -379,24 +400,101 @@ export default function AdminBlogPage() {
                 </select>
               </div>
 
-              {/* TAGS */}
+              {/* TAGS — UPDATED */}
               <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:14,padding:20}}>
-                <label style={{fontSize:12,fontWeight:700,color:'#94a3b8',textTransform:'uppercase',letterSpacing:'0.5px',display:'block',marginBottom:10}}>Tags</label>
-                <div style={{display:'flex',gap:8,marginBottom:10}}>
-                  <input value={tagInput} onChange={e=>setTagInput(e.target.value)}
-                    onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addTag()}}}
-                    placeholder="Ketik + Enter"
-                    style={{flex:1,padding:'8px 12px',borderRadius:8,border:'1px solid #e2e8f0',fontSize:13,outline:'none'}} />
-                  <button onClick={addTag} style={{padding:'8px 14px',borderRadius:8,border:'none',background:'#1e293b',color:'#fff',fontWeight:700,cursor:'pointer'}}>+</button>
+                {/* Header */}
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+                  <label style={{fontSize:12,fontWeight:700,color:'#94a3b8',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                    Tags {form.tags.length > 0 && <span style={{color:'#0077B6'}}>({form.tags.length})</span>}
+                  </label>
+                  {form.tags.length > 0 && (
+                    <button onClick={clearAllTags}
+                      style={{fontSize:11,color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontWeight:600}}>
+                      Hapus Semua
+                    </button>
+                  )}
                 </div>
-                <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                  {form.tags.map(tag=>(
-                    <span key={tag} style={{display:'flex',alignItems:'center',gap:4,padding:'4px 10px',background:'#f1f5f9',borderRadius:50,fontSize:12,fontWeight:600,color:'#475569'}}>
-                      #{tag}
-                      <button onClick={()=>removeTag(tag)} style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:14,lineHeight:1,padding:0}}>×</button>
-                    </span>
-                  ))}
+
+                {/* Mode Toggle */}
+                <div style={{display:'flex',gap:4,marginBottom:12,background:'#f1f5f9',borderRadius:8,padding:4}}>
+                  <button onClick={()=>setTagMode('single')}
+                    style={{flex:1,padding:'6px',borderRadius:6,border:'none',cursor:'pointer',fontSize:12,fontWeight:600,transition:'all .15s',
+                      background:tagMode==='single'?'#fff':'transparent',
+                      color:tagMode==='single'?'#1e293b':'#94a3b8',
+                      boxShadow:tagMode==='single'?'0 1px 3px rgba(0,0,0,0.1)':'none'}}>
+                    ✏️ Satu per satu
+                  </button>
+                  <button onClick={()=>setTagMode('bulk')}
+                    style={{flex:1,padding:'6px',borderRadius:6,border:'none',cursor:'pointer',fontSize:12,fontWeight:600,transition:'all .15s',
+                      background:tagMode==='bulk'?'#fff':'transparent',
+                      color:tagMode==='bulk'?'#1e293b':'#94a3b8',
+                      boxShadow:tagMode==='bulk'?'0 1px 3px rgba(0,0,0,0.1)':'none'}}>
+                    📋 Paste sekaligus
+                  </button>
                 </div>
+
+                {/* Single Mode */}
+                {tagMode === 'single' && (
+                  <div style={{display:'flex',gap:8,marginBottom:10}}>
+                    <input value={tagInput} onChange={e=>setTagInput(e.target.value)}
+                      onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addTag()}}}
+                      placeholder="Ketik tag lalu Enter"
+                      style={{flex:1,padding:'8px 12px',borderRadius:8,border:'1px solid #e2e8f0',fontSize:13,outline:'none'}} />
+                    <button onClick={addTag}
+                      style={{padding:'8px 14px',borderRadius:8,border:'none',background:'#1e293b',color:'#fff',fontWeight:700,cursor:'pointer'}}>
+                      +
+                    </button>
+                  </div>
+                )}
+
+                {/* Bulk Mode */}
+                {tagMode === 'bulk' && (
+                  <div style={{marginBottom:10}}>
+                    <div style={{fontSize:11,color:'#94a3b8',marginBottom:6}}>
+                      Pisahkan dengan koma, titik koma, atau enter. Tanda # otomatis dihapus.
+                    </div>
+                    <textarea
+                      value={bulkTagInput}
+                      onChange={e=>setBulkTagInput(e.target.value)}
+                      placeholder={'CPNS 2026, Info CPNS, Jadwal CPNS 2026\nFormasi CPNS 2026, BKN, SSCASN\nFresh Graduate CPNS, KemenPAN-RB'}
+                      rows={4}
+                      style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1px solid #0077B6',fontSize:12,outline:'none',resize:'vertical',lineHeight:1.6,fontFamily:'monospace',background:'#f8fafc'}}
+                      autoFocus
+                    />
+                    <div style={{display:'flex',gap:8,marginTop:8}}>
+                      <button onClick={()=>{setTagMode('single');setBulkTagInput('')}}
+                        style={{flex:1,padding:'8px',borderRadius:8,border:'1px solid #e2e8f0',background:'#fff',fontSize:12,fontWeight:600,color:'#64748b',cursor:'pointer'}}>
+                        Batal
+                      </button>
+                      <button onClick={applyBulkTags} disabled={!bulkTagInput.trim()}
+                        style={{flex:2,padding:'8px',borderRadius:8,border:'none',
+                          background:bulkTagInput.trim()?'#1e293b':'#e2e8f0',
+                          color:bulkTagInput.trim()?'#fff':'#94a3b8',
+                          fontSize:12,fontWeight:700,cursor:bulkTagInput.trim()?'pointer':'not-allowed'}}>
+                        ✓ Terapkan Tags
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tag Chips */}
+                {form.tags.length > 0 ? (
+                  <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:4}}>
+                    {form.tags.map(tag=>(
+                      <span key={tag} style={{display:'flex',alignItems:'center',gap:4,padding:'4px 10px',background:'#f1f5f9',borderRadius:50,fontSize:12,fontWeight:600,color:'#475569'}}>
+                        #{tag}
+                        <button onClick={()=>removeTag(tag)}
+                          style={{background:'none',border:'none',cursor:'pointer',color:'#94a3b8',fontSize:14,lineHeight:1,padding:0}}>
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{fontSize:12,color:'#cbd5e1',textAlign:'center',padding:'10px 0',fontStyle:'italic'}}>
+                    Belum ada tag
+                  </div>
+                )}
               </div>
 
               {/* READING TIME & AUTHOR */}
