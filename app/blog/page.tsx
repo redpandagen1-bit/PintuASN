@@ -83,8 +83,13 @@ export default async function BlogPage({
   })
 
   const totalPages = Math.ceil(total / limit)
-  const featuredPost = posts[0]
-  const restPosts = posts.slice(1)
+
+  // Featured hanya muncul di halaman pertama tanpa filter kategori.
+  // Kalau filter kategori aktif, SEMUA post masuk grid — supaya artikel
+  // tidak "hilang" karena tersembunyi di slot featured yang tidak ditampilkan.
+  const showFeatured = !category && currentPage === 1 && posts.length > 0
+  const featuredPost = showFeatured ? posts[0] : null
+  const gridPosts    = showFeatured ? posts.slice(1) : posts
 
   return (
     <>
@@ -188,16 +193,16 @@ export default async function BlogPage({
 
       {/* NAV */}
       <nav className="blog-nav">
-        <a href="/" className="blog-nav__logo">
+        <Link href="/" className="blog-nav__logo">
           <Image src="/images/logo-navbar.svg" width={80} height={80} alt="PintuASN" />
-        </a>
-        <a href="/" className="blog-nav__back">← Kembali ke Beranda</a>
+        </Link>
+        <Link href="/" className="blog-nav__back">← Kembali ke Beranda</Link>
       </nav>
 
       {/* HERO */}
       <div className="blog-hero">
         <div className="blog-hero__tag">📚 Blog PintuASN</div>
-        <h1 className="blog-hero__title">Tips & Strategi Lolos SKD CPNS</h1>
+        <h1 className="blog-hero__title">Tips &amp; Strategi Lolos SKD CPNS</h1>
         <p className="blog-hero__sub">
           Artikel terpilih dari tim PintuASN untuk bantu kamu lulus seleksi dengan strategi yang tepat.
         </p>
@@ -206,20 +211,20 @@ export default async function BlogPage({
       {/* CATEGORIES */}
       <div className="blog-cats">
         <div className="blog-cats__inner">
-          <a
+          <Link
             href="/blog"
             className={`blog-cat ${!category ? 'blog-cat--active' : ''}`}
           >
             Semua
-          </a>
+          </Link>
           {BLOG_CATEGORIES.map((cat) => (
-            <a
+            <Link
               key={cat}
               href={`/blog?category=${encodeURIComponent(cat)}`}
               className={`blog-cat ${category === cat ? 'blog-cat--active' : ''}`}
             >
               {cat}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
@@ -230,12 +235,12 @@ export default async function BlogPage({
           <div className="blog-empty">
             <div className="blog-empty__icon">📭</div>
             <h3>Belum ada artikel</h3>
-            <p>Artikel sedang disiapkan, pantau terus ya!</p>
+            <p>{category ? `Belum ada artikel di kategori "${category}".` : 'Artikel sedang disiapkan, pantau terus ya!'}</p>
           </div>
         ) : (
           <>
-            {/* FEATURED */}
-            {featuredPost && currentPage === 1 && !category && (
+            {/* FEATURED — hanya di halaman pertama tanpa filter kategori */}
+            {featuredPost && (
               <div className="blog-featured">
                 <div className="blog-featured__label">Artikel Terbaru</div>
                 <BlogCard post={featuredPost} featured />
@@ -243,12 +248,12 @@ export default async function BlogPage({
             )}
 
             {/* GRID */}
-            {restPosts.length > 0 && (
+            {gridPosts.length > 0 && (
               <div className="blog-grid">
                 <div className="blog-grid__label">
                   {total} Artikel{category ? ` · ${category}` : ''}
                 </div>
-                {restPosts.map((post) => (
+                {gridPosts.map((post) => (
                   <BlogCard key={post.id} post={post} />
                 ))}
               </div>
@@ -257,27 +262,27 @@ export default async function BlogPage({
             {/* PAGINATION */}
             {totalPages > 1 && (
               <div className="blog-pagination">
-                <a
+                <Link
                   href={`/blog?page=${currentPage - 1}${category ? `&category=${category}` : ''}`}
                   className={`blog-page-btn ${currentPage === 1 ? 'blog-page-btn--disabled' : ''}`}
                 >
                   ← Sebelumnya
-                </a>
+                </Link>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <a
+                  <Link
                     key={p}
                     href={`/blog?page=${p}${category ? `&category=${category}` : ''}`}
                     className={`blog-page-btn ${p === currentPage ? 'blog-page-btn--active' : ''}`}
                   >
                     {p}
-                  </a>
+                  </Link>
                 ))}
-                <a
+                <Link
                   href={`/blog?page=${currentPage + 1}${category ? `&category=${category}` : ''}`}
                   className={`blog-page-btn ${currentPage === totalPages ? 'blog-page-btn--disabled' : ''}`}
                 >
                   Berikutnya →
-                </a>
+                </Link>
               </div>
             )}
           </>
@@ -286,7 +291,7 @@ export default async function BlogPage({
 
       {/* FOOTER */}
       <footer className="blog-footer">
-        <p>© 2026 <a href="/">PintuASN</a> · Platform Simulasi CAT SKD CPNS Terpercaya</p>
+        <p>© 2026 <Link href="/">PintuASN</Link> · Platform Simulasi CAT SKD CPNS Terpercaya</p>
       </footer>
     </>
   )
