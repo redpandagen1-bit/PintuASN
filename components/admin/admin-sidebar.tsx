@@ -12,10 +12,12 @@ import {
   BarChart3, 
   ArrowLeft, 
   Zap,
-  ZapOff
+  ZapOff,
+  RibbonIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ZAxis } from 'recharts';
 
 const menuItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -25,7 +27,8 @@ const menuItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/user-info', label: 'User info', icon: Settings },
   { href: '/admin/events', label: 'Events', icon: Zap },
-  { href: '/admin/blog', label: 'Blog', icon: ZapOff }
+  { href: '/admin/blog', label: 'Blog', icon: ZapOff },
+  { href: '/admin/masukan', label: 'Masukan', icon: RibbonIcon }
 ];
 
 // ✅ PINDAHKAN SidebarContent KELUAR dari component utama
