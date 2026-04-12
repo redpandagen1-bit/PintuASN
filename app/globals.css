@@ -186,3 +186,8 @@
 .animate-swing {
   animation: swing 0.5s ease-in-out;
 }
+
+@keyframes shrink {
+  0%   { width: 100%; }
+  100% { width: 0%; }
+}

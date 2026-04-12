@@ -1,6 +1,4 @@
-// ============================================================
 // app/(dashboard)/dashboard/page.tsx
-// ============================================================
 
 import { Suspense }      from 'react';
 import { currentUser }  from '@clerk/nextjs/server';
@@ -18,6 +16,7 @@ import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import Link              from 'next/link';
 import { ChevronRight }  from 'lucide-react';
 import { Skeleton }      from '@/components/ui/skeleton';
+import PaymentSuccessToast from '@/components/shared/payment-success-toast';
 
 // ─────────────────────────────────────────────────────────────
 
@@ -146,9 +145,14 @@ async function DashboardContent() {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<DashboardSkeleton />}>
-      <DashboardContent />
-    </Suspense>
+    <>
+      {/* Toast muncul kalau URL mengandung ?payment=success */}
+      <PaymentSuccessToast />
+
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent />
+      </Suspense>
+    </>
   );
 }
 
