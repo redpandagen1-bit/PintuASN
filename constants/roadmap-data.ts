@@ -1,5 +1,5 @@
 // ============================================================
-// constants/roadmap-data.ts  (replace seluruh file lama)
+// constants/roadmap-data.ts
 // ============================================================
 
 import type {
@@ -69,7 +69,7 @@ const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
     title: 'Simulasi Awal',
     description: 'Ukur kemampuan awal dengan mengerjakan tryout perdana',
     detail:
-      'Setelah memiliki pemahaman dasar, saatnya mengukur posisi Anda secara objektif. Kerjakan tryout untuk mengetahui distribusi skor awal pada setiap kategori. Hasil ini akan menjadi baseline yang memandu fokus belajar Anda ke depan. Jangan khawatir dengan skor — tujuan utama tahap ini adalah pemetaan, bukan pencapaian.',
+      'Setelah memiliki pemahaman dasar, saatnya mengukur posisi Anda secara objektif. Kerjakan tryout untuk mengetahui distribusi skor awal pada setiap kategori. Hasil ini akan menjadi baseline yang memandu fokus belajar Anda ke depan. Jangan khawatir dengan skor tujuan utama tahap ini adalah pemetaan, bukan pencapaian.',
     requirement: 'Selesaikan minimal 2 paket tryout hingga tuntas.',
     icon: '📝',
     ctaLabel: 'Mulai Tryout',
@@ -152,10 +152,15 @@ const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────
-// DERIVE PHASE STATUS
-// Setiap fase "completed" jika syaratnya terpenuhi,
-// "active" jika fase sebelumnya completed tapi fase ini belum,
-// "locked" jika fase sebelumnya belum completed.
+// DERIVE PHASE STATUS — BENAR-BENAR SEQUENTIAL
+//
+// Aturan:
+//   - Step N hanya bisa 'completed' jika step N-1 juga 'completed'
+//   - Step pertama yang belum completed = 'active'
+//   - Semua step setelah active = 'locked'
+//
+// Artinya: meski syarat teknis step 5 terpenuhi (totalCompleted >= 6),
+// kalau step 2 belum selesai maka step 3,4,5,... tetap locked.
 // ─────────────────────────────────────────────────────────────
 export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
   const {
@@ -173,8 +178,8 @@ export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
     avgTiu >= PASSING_GRADES.TIU &&
     avgTkp >= PASSING_GRADES.TKP;
 
-  // Evaluasi tiap fase apakah syaratnya terpenuhi
-  const completionChecks: Record<PhaseId, boolean> = {
+  // Syarat teknis masing-masing step (tanpa mempertimbangkan urutan)
+  const technicallyDone: Record<PhaseId, boolean> = {
     kenali_ujian:         informasiViewCount >= THRESHOLDS.INFORMASI_VIEW,
     kuasai_materi_awal:   materiViewCount    >= THRESHOLDS.MATERI_AWAL_VIEW,
     simulasi_awal:        totalCompleted     >= THRESHOLDS.SIMULASI_AWAL,
@@ -186,15 +191,21 @@ export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
     gold:                 bestFinalScore     >  THRESHOLDS.GOLD_SCORE,
   };
 
-  // Cari fase aktif pertama yang belum selesai (secara berurutan)
+  // Pass sequential: step N completed hanya jika step N-1 completed DAN syarat teknis terpenuhi
+  let previousCompleted = true; // step pertama tidak punya prasyarat
   let foundActive = false;
 
   return PHASE_DEFINITIONS.map((phase) => {
-    const isDone = completionChecks[phase.id];
+    // Step ini hanya bisa completed jika step sebelumnya completed
+    const isDone = previousCompleted && technicallyDone[phase.id];
 
     if (isDone) {
+      previousCompleted = true;
       return { ...phase, status: 'completed' as const };
     }
+
+    // Step sebelumnya tidak completed → step ini dan seterusnya locked/active
+    previousCompleted = false;
 
     if (!foundActive) {
       foundActive = true;
@@ -238,7 +249,7 @@ export function deriveCategoryScores(data: RoadmapPageData): CategoryScore[] {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MILESTONES (subset dari fase — highlight pencapaian utama)
+// MILESTONES
 // ─────────────────────────────────────────────────────────────
 export function getMilestones(data: RoadmapPageData): Milestone[] {
   const phases = derivePhases(data);
@@ -297,18 +308,16 @@ export function getRekomendasi(data: RoadmapPageData): {
   const phases = derivePhases(data);
   const activePhase = phases.find((p) => p.status === 'active');
 
-  // Jika semua fase selesai
   if (!activePhase) {
     return {
       priority: null,
       message:
         'Luar biasa! Anda telah menyelesaikan seluruh tahap persiapan. Pertahankan konsistensi latihan menjelang hari ujian.',
-      action:  'Lihat Statistik',
-      href:    '/statistics',
+      action: 'Lihat Statistik',
+      href:   '/statistics',
     };
   }
 
-  // Jika step berkaitan dengan materi
   if (
     activePhase.id === 'kenali_ujian' ||
     activePhase.id === 'kuasai_materi_awal' ||
@@ -322,7 +331,6 @@ export function getRekomendasi(data: RoadmapPageData): {
     };
   }
 
-  // Jika step berkaitan dengan tryout
   if (activePhase.id === 'simulasi_awal' || activePhase.id === 'simulasi_intensif') {
     return {
       priority: null,
@@ -332,7 +340,6 @@ export function getRekomendasi(data: RoadmapPageData): {
     };
   }
 
-  // Jika step 6: cari kategori yang paling perlu diperbaiki
   if (activePhase.id === 'capai_passing_grade') {
     const failing = [
       { cat: 'TWK' as const, gap: PASSING_GRADES.TWK - data.avgTwk },
@@ -353,7 +360,6 @@ export function getRekomendasi(data: RoadmapPageData): {
     };
   }
 
-  // Evaluasi, Silver, Gold
   return {
     priority: null,
     message:  `Langkah berikutnya: ${activePhase.title}. ${activePhase.requirement}`,

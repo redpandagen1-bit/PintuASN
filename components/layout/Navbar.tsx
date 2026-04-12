@@ -55,32 +55,27 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-14 items-center gap-4">
+        <div className="flex h-14 items-center justify-between">
 
-          {/* Logo + Greeting dalam satu box — B: lebih rapi */}
-          <div className="flex items-center gap-3 border border-slate-200 rounded-2xl px-3 py-1.5 flex-shrink-0">
+          {/* KIRI: Logo + Greeting + Roadmap */}
+          <div className="flex items-center gap-16">
             <Link href="/dashboard" className="flex items-center group">
               <Image src="/images/logo-navbar.svg" alt="PintuASN" width={90} height={28}
                 className="transition-transform duration-300 group-hover:scale-105" unoptimized priority />
             </Link>
-            <div className="hidden md:flex flex-col border-l border-slate-200 pl-3">
+            <div className="hidden md:flex flex-col">
               <p className="text-sm font-bold text-slate-800 leading-tight">Halo, {firstName}! 👋</p>
               <p className="text-xs text-slate-500">Semangat Belajar!</p>
             </div>
+            <Link href="/roadmap">
+              <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-md bg-slate-800 text-white hover:bg-slate-700 transition-all text-sm font-bold shadow-sm">
+                <Map size={15} className="text-yellow-400" />
+                Roadmap
+              </button>
+            </Link>
           </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
-
-          {/* A: Roadmap di kanan spacer, sebelum bell & user */}
-          <Link href="/roadmap" className="flex-shrink-0">
-            <button className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-md bg-slate-800 text-white hover:bg-slate-700 transition-all text-sm font-bold shadow-sm">
-              <Map size={15} className="text-yellow-400" />
-              Roadmap
-            </button>
-          </Link>
-
-          {/* Right actions */}
+          {/* KANAN: Bell + User */}
           <div className="flex items-center gap-2">
 
             {/* Bell */}

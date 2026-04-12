@@ -347,7 +347,7 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
             {[
               { icon: GraduationCap, value: totalMaterials > 0 ? totalMaterials : '—', label: 'Total Materi' },
               { icon: Lightbulb,     value: categories > 0 ? categories : '—',         label: 'Kategori'     },
-              { icon: Users,         value: '500+',                                     label: 'Pelajar'      },
+              { icon: Users,         value: '1000+',                                     label: 'Pelajar'      },
             ].map(({ icon: Icon, value, label }) => (
               <div key={label} className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex-1 md:w-28 text-center">
                 <div className="text-yellow-400 mb-1 flex justify-center"><Icon size={20} /></div>
