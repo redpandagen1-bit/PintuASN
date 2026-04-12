@@ -288,32 +288,49 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     step === 2
   );
 
-  // Referral apply
+  // ─────────────────────────────────────────────────────────────────
+  // PATCH: handleApplyReferral (updated)
+  // ─────────────────────────────────────────────────────────────────
   const handleApplyReferral = async () => {
     if (!order || !referralInput.trim()) return;
     setReferralLoading(true);
     setReferralError('');
     try {
-      const res = await fetch('/api/payment/referral', {
+      // Step 1: Validasi kode (untuk preview di UI)
+      const validateRes = await fetch('/api/payment/referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: referralInput.trim(), basePrice: order.basePrice }),
       });
-      const data = await res.json();
-      if (!res.ok) { setReferralError(data.error || 'Kode tidak valid'); return; }
-      setDiscountAmount(data.discountAmount);
+      const validateData = await validateRes.json();
+      if (!validateRes.ok) {
+        setReferralError(validateData.error || 'Kode tidak valid');
+        return;
+      }
+      // Step 2: Apply ke order — simpan diskon ke database ✅
+      const applyRes = await fetch('/api/payment/referral/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: referralInput.trim(), orderId }),
+      });
+      const applyData = await applyRes.json();
+      if (!applyRes.ok) {
+        setReferralError(applyData.error || 'Gagal mengaplikasikan kode');
+        return;
+      }
+      // Update UI state dari hasil apply (sumber kebenaran = DB)
+      setDiscountAmount(applyData.discountAmount);
       setReferralApplied(true);
-      // Simpan persentase jika ada
-      if (data.discountType === 'percent') {
-        setDiscountPercent(data.discountValue);
+      if (applyData.discountType === 'percent') {
+        setDiscountPercent(applyData.discountValue);
       } else {
         setDiscountPercent(null);
       }
       setOrder(prev => prev ? {
         ...prev,
-        discountAmount: data.discountAmount,
-        finalPrice: data.finalPrice,
-        referralCode: referralInput.trim().toUpperCase(),
+        discountAmount: applyData.discountAmount,
+        finalPrice:     applyData.finalPrice,
+        referralCode:   referralInput.trim().toUpperCase(),
       } : prev);
     } catch {
       setReferralError('Gagal memvalidasi kode');
@@ -322,13 +339,32 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     }
   };
 
-  const handleRemoveReferral = () => {
+  // ─────────────────────────────────────────────────────────────────
+  // PATCH: handleRemoveReferral (updated)
+  // ─────────────────────────────────────────────────────────────────
+  const handleRemoveReferral = async () => {
+    // Hapus dari DB dulu
+    try {
+      await fetch('/api/payment/referral/apply', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+    } catch (e) {
+      console.error('Gagal menghapus referral dari DB:', e);
+    }
+    // Reset UI state
     setReferralApplied(false);
     setReferralInput('');
     setDiscountAmount(0);
     setDiscountPercent(null);
     setReferralError('');
-    setOrder(prev => prev ? { ...prev, discountAmount: 0, finalPrice: prev.basePrice, referralCode: null } : prev);
+    setOrder(prev => prev ? {
+      ...prev,
+      discountAmount: 0,
+      finalPrice:     prev.basePrice,
+      referralCode:   null,
+    } : prev);
   };
 
   // Lanjutkan ke step 2

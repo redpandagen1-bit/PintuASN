@@ -1,3 +1,8 @@
+// app/api/payment/select-method/route.ts
+// Tidak ada perubahan logika diskon di sini —
+// final_price sudah tersimpan di DB oleh /referral/apply
+// File ini hanya perlu memastikan membaca final_price dari order dengan benar.
+
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
@@ -23,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Order tidak ditemukan' }, { status: 404 });
     }
 
-    // Kalau sudah punya VA number sebelumnya, return langsung tanpa hit Midtrans lagi
+    // Kalau sudah punya VA number sebelumnya dengan metode sama, return langsung
     if (order.va_number && order.payment_method === methodId) {
       return NextResponse.json({
         vaNumber: order.va_number,
@@ -32,8 +37,11 @@ export async function POST(req: NextRequest) {
     }
 
     const adminFee = ['bri_va', 'bca_va', 'mandiri_va', 'other_bank'].includes(methodId) ? 4000 : 0;
+
+    // ✅ PERBAIKAN: final_price sudah mengandung diskon referral (disimpan oleh /referral/apply)
+    // Jangan gunakan base_price di sini
     const baseAfterDiscount = order.final_price ?? order.base_price;
-const total = baseAfterDiscount + adminFee;
+    const total = baseAfterDiscount + adminFee;
 
     // Kalau order_id sudah pernah di-charge Midtrans dengan metode berbeda,
     // buat order_id baru dengan suffix metode agar tidak konflik
@@ -84,8 +92,8 @@ const total = baseAfterDiscount + adminFee;
     } else {
       // Virtual Account
       const bankMap: Record<string, string> = {
-        bri_va: 'bri',
-        bca_va: 'bca',
+        bri_va:     'bri',
+        bca_va:     'bca',
         mandiri_va: 'mandiri',
         other_bank: 'permata',
       };
@@ -103,7 +111,7 @@ const total = baseAfterDiscount + adminFee;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${encodedKey}`,
+        Authorization: `Basic ${encodedKey}`,
       },
       body: JSON.stringify(midtransBody),
     });
@@ -114,10 +122,13 @@ const total = baseAfterDiscount + adminFee;
     // Handle error dari Midtrans
     if (!response.ok || (data.status_code && !['200', '201'].includes(data.status_code))) {
       console.error('Midtrans error:', data);
-      return NextResponse.json({
-        error: `Midtrans error: ${data.status_message || data.error_messages?.join(', ') || 'Unknown error'}`,
-        midtransResponse: data,
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: `Midtrans error: ${data.status_message || data.error_messages?.join(', ') || 'Unknown error'}`,
+          midtransResponse: data,
+        },
+        { status: 400 }
+      );
     }
 
     // Ekstrak VA / QRIS / eWallet URL
@@ -126,9 +137,6 @@ const total = baseAfterDiscount + adminFee;
     let ewalletUrl: string | undefined;
 
     if (data.payment_type === 'bank_transfer') {
-      // BRI, BCA, BNI pakai va_numbers array
-      // Mandiri pakai bill_key + biller_code
-      // Permata pakai permata_va_number
       vaNumber =
         data.va_numbers?.[0]?.va_number ||
         data.permata_va_number ||
@@ -145,15 +153,14 @@ const total = baseAfterDiscount + adminFee;
         data.actions?.find((a: { name: string; url: string }) => a.name === 'get-status')?.url;
     }
 
-    // Update order di Supabase
+    // Update order di Supabase dengan total final (setelah admin fee)
     const { error: updateError } = await supabase
       .from('payment_orders')
       .update({
-        payment_method: methodId,
-        admin_fee: adminFee,
-        total,
-        final_price: total,
-        va_number: vaNumber,
+        payment_method:          methodId,
+        admin_fee:               adminFee,
+        total,                                  // final_price + admin_fee
+        va_number:               vaNumber,
         midtrans_transaction_id: data.transaction_id,
       })
       .eq('order_id', orderId);
@@ -168,7 +175,6 @@ const total = baseAfterDiscount + adminFee;
       ewalletUrl,
       total,
     });
-
   } catch (error) {
     console.error('Select method error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
