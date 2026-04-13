@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   User, Mail, Phone, Calendar, Save,
@@ -16,9 +16,7 @@ const plainInputClass = "w-full px-4 py-2.5 bg-slate-50 border border-slate-200 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-semibold text-slate-700">
-        {label}
-      </label>
+      <label className="text-sm font-semibold text-slate-700">{label}</label>
       {children}
     </div>
   );
@@ -48,6 +46,12 @@ interface Props {
 
 export default function OnboardingFullForm({ email, defaultName }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Ambil plan dari URL — dikirim dari landing page via sign-up → onboarding
+  // Contoh: /onboarding?plan=premium  atau  /onboarding?plan=platinum
+  const plan = searchParams.get('plan'); // 'premium' | 'platinum' | null
+
   const [isLoading, setIsLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -72,80 +76,23 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (!form.full_name.trim()) {
-      toast.error('Nama lengkap wajib diisi');
-      return;
-    }
-    if (form.full_name.trim().length < 3) {
-      toast.error('Nama lengkap minimal 3 karakter');
-      return;
-    }
-
-    if (!form.phone.trim()) {
-      toast.error('Nomor WhatsApp wajib diisi');
-      return;
-    }
-    if (!/^[0-9+]+$/.test(form.phone)) {
-      toast.error('Nomor WhatsApp hanya boleh berisi angka dan tanda +');
-      return;
-    }
-    if (form.phone.length < 9 || form.phone.length > 13) {
-      toast.error('Nomor WhatsApp harus 9–13 karakter');
-      return;
-    }
-
-    if (!form.target_institution) {
-      toast.error('Instansi tujuan wajib dipilih');
-      return;
-    }
-
-    if (!form.gender) {
-      toast.error('Jenis kelamin wajib dipilih');
-      return;
-    }
-
-    if (!form.birth_date) {
-      toast.error('Tanggal lahir wajib diisi');
-      return;
-    }
-    const birthYear = new Date(form.birth_date).getFullYear();
-    if (birthYear > 2009) {
-      toast.error('Usia minimal 16 tahun untuk mendaftar');
-      return;
-    }
-
-    if (!form.postal_code.trim()) {
-      toast.error('Kode pos wajib diisi');
-      return;
-    }
-    if (!/^\d{5}$/.test(form.postal_code.trim())) {
-      toast.error('Kode pos harus terdiri dari 5 angka');
-      return;
-    }
-
-    if (!form.address.trim()) {
-      toast.error('Alamat wajib diisi');
-      return;
-    }
-    if (form.address.trim().length < 10) {
-      toast.error('Alamat terlalu singkat, mohon isi dengan lengkap');
-      return;
-    }
-
-    if (!form.province) {
-      toast.error('Provinsi wajib dipilih');
-      return;
-    }
-
-    if (!form.city) {
-      toast.error('Kabupaten/Kota wajib dipilih');
-      return;
-    }
-
-    if (!form.district.trim()) {
-      toast.error('Kecamatan wajib diisi');
-      return;
-    }
+    // ── Validasi ─────────────────────────────────────────────────────────────
+    if (!form.full_name.trim()) { toast.error('Nama lengkap wajib diisi'); return; }
+    if (form.full_name.trim().length < 3) { toast.error('Nama lengkap minimal 3 karakter'); return; }
+    if (!form.phone.trim()) { toast.error('Nomor WhatsApp wajib diisi'); return; }
+    if (!/^[0-9+]+$/.test(form.phone)) { toast.error('Nomor WhatsApp hanya boleh berisi angka dan tanda +'); return; }
+    if (form.phone.length < 9 || form.phone.length > 13) { toast.error('Nomor WhatsApp harus 9–13 karakter'); return; }
+    if (!form.target_institution) { toast.error('Instansi tujuan wajib dipilih'); return; }
+    if (!form.gender) { toast.error('Jenis kelamin wajib dipilih'); return; }
+    if (!form.birth_date) { toast.error('Tanggal lahir wajib diisi'); return; }
+    if (new Date(form.birth_date).getFullYear() > 2009) { toast.error('Usia minimal 16 tahun untuk mendaftar'); return; }
+    if (!form.postal_code.trim()) { toast.error('Kode pos wajib diisi'); return; }
+    if (!/^\d{5}$/.test(form.postal_code.trim())) { toast.error('Kode pos harus terdiri dari 5 angka'); return; }
+    if (!form.address.trim()) { toast.error('Alamat wajib diisi'); return; }
+    if (form.address.trim().length < 10) { toast.error('Alamat terlalu singkat, mohon isi dengan lengkap'); return; }
+    if (!form.province) { toast.error('Provinsi wajib dipilih'); return; }
+    if (!form.city) { toast.error('Kabupaten/Kota wajib dipilih'); return; }
+    if (!form.district.trim()) { toast.error('Kecamatan wajib diisi'); return; }
 
     setIsLoading(true);
     try {
@@ -168,14 +115,21 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
         try {
           const json = await res.json();
           errorMsg = toFriendlyError(json?.error ?? json?.message ?? errorMsg);
-        } catch {
-          // response bukan JSON — pakai pesan generik
-        }
+        } catch { /* response bukan JSON */ }
         throw new Error(errorMsg);
       }
 
       toast.success('Profil berhasil disimpan!');
-      router.push('/dashboard');
+
+      // ── Redirect logic ────────────────────────────────────────────────────
+      // Jika user datang dari landing page dengan intent beli paket tertentu,
+      // arahkan langsung ke halaman beli-paket dengan tab yang tepat.
+      // Kalau tidak ada plan, arahkan ke dashboard seperti biasa.
+      if (plan === 'premium' || plan === 'platinum') {
+        router.push(`/beli-paket?plan=${plan}`);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err: any) {
       toast.error(toFriendlyError(err.message));
     } finally {
@@ -185,6 +139,21 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Info banner kalau ada plan intent */}
+      {plan && (
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium
+          ${plan === 'platinum'
+            ? 'bg-purple-50 border-purple-200 text-purple-800'
+            : 'bg-blue-50 border-blue-200 text-blue-800'
+          }`}>
+          <span className="text-base">{plan === 'platinum' ? '👑' : '⚡'}</span>
+          <span>
+            Lengkapi profil terlebih dahulu, lalu kami akan mengarahkan Anda ke paket{' '}
+            <strong className="capitalize">{plan}</strong>.
+          </span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         {/* Nama Lengkap */}
@@ -222,10 +191,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
             <input
               type="tel"
               value={form.phone}
-              onChange={e => {
-                const val = e.target.value.replace(/[^0-9+]/g, '');
-                set('phone', val);
-              }}
+              onChange={e => { const val = e.target.value.replace(/[^0-9+]/g, ''); set('phone', val); }}
               placeholder="08xx-xxxx-xxxx"
               maxLength={13}
               className={iconInputClass}
@@ -285,10 +251,7 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
           <input
             type="text"
             value={form.postal_code}
-            onChange={e => {
-              const val = e.target.value.replace(/[^0-9]/g, '');
-              set('postal_code', val);
-            }}
+            onChange={e => { const val = e.target.value.replace(/[^0-9]/g, ''); set('postal_code', val); }}
             placeholder="Contoh: 57311"
             maxLength={5}
             className={plainInputClass}
@@ -362,10 +325,20 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
         <button
           onClick={handleSubmit}
           disabled={isLoading}
-          className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 transition-colors disabled:opacity-50"
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-50
+            ${plan === 'platinum'
+              ? 'bg-purple-700 hover:bg-purple-800 text-white'
+              : plan === 'premium'
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-slate-800 hover:bg-slate-700 text-white'
+            }`}
         >
           <Save size={15} />
-          {isLoading ? 'Menyimpan...' : 'Simpan & Mulai'}
+          {isLoading
+            ? 'Menyimpan...'
+            : plan
+            ? `Simpan & Lanjut ke Paket ${plan.charAt(0).toUpperCase() + plan.slice(1)}`
+            : 'Simpan & Mulai'}
         </button>
       </div>
     </div>

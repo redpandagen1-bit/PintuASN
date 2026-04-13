@@ -10,18 +10,23 @@ import {
   Check,
   BarChart2,
   Share2,
+  Lock,
+  Crown,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { UpgradeModal } from '@/components/shared/upgrade-modal';
 import type { Attempt, Package } from '@/types/database';
 
 interface AttemptHistoryCardProps {
   attempt: Attempt & { packages: Package };
+  isLocked?: boolean;
 }
 
-export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
+export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistoryCardProps) {
   const [isCopied, setIsCopied] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -54,11 +59,11 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
 
   const passed = isPassed();
   const totalScore = attempt.total_score ?? (attempt as any).final_score ?? null;
-  // completed_at adalah field yang benar di database
   const completedAt = (attempt as any).completed_at || attempt.started_at;
   const duration = calculateDuration(attempt.started_at, (attempt as any).completed_at);
 
   const handleCopyLink = async () => {
+    if (isLocked) return;
     const url = typeof window !== 'undefined'
       ? `${window.location.origin}/exam/${attempt.id}/result`
       : '';
@@ -72,30 +77,123 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
     }
   };
 
+  // ── LOCKED STATE ──────────────────────────────────────────────────────────
+  if (isLocked) {
+    return (
+      <>
+        <div
+          className="relative bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden cursor-pointer group"
+          onClick={() => setShowUpgradeModal(true)}
+          role="button"
+          aria-label="Buka riwayat terkunci — upgrade ke Platinum"
+        >
+          {/* Blurred content */}
+          <div className="flex select-none pointer-events-none" aria-hidden="true">
+            <div className={cn('w-1 flex-shrink-0', passed ? 'bg-emerald-500' : 'bg-red-400')} />
+            <div className="flex-1 px-5 py-4 blur-[3px] opacity-50">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2.5 mb-1.5">
+                    <h3 className="text-base font-bold text-slate-800 truncate">
+                      {attempt.packages?.title || 'Unknown Package'}
+                    </h3>
+                    <span className={cn(
+                      'flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide',
+                      passed ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                    )}>
+                      {passed ? <><CheckCircle2 size={9} /> Lulus</> : <><XCircle size={9} /> Tidak Lulus</>}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mb-2.5">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={11} className="text-slate-400" />
+                      {formatDate(completedAt)} · {formatTime(completedAt)}
+                    </span>
+                    {duration && (
+                      <span className="flex items-center gap-1">
+                        <Clock size={11} className="text-slate-400" />
+                        {duration}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {attempt.score_twk != null && (
+                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                        TWK <span className="text-slate-800">{attempt.score_twk}</span>
+                      </span>
+                    )}
+                    {attempt.score_tiu != null && (
+                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                        TIU <span className="text-slate-800">{attempt.score_tiu}</span>
+                      </span>
+                    )}
+                    {attempt.score_tkp != null && (
+                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                        TKP <span className="text-slate-800">{attempt.score_tkp}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {totalScore !== null && (
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-2xl font-black text-slate-800 leading-none">{totalScore}</div>
+                    <div className="text-[10px] text-slate-400 font-medium">/ 550</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Lock overlay */}
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex items-center justify-between px-5 rounded-xl transition-all group-hover:bg-purple-50/80">
+            {/* Left */}
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-purple-100 group-hover:bg-purple-200 border border-purple-200 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0 transition-colors">
+                <Lock className="w-4 h-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-800">Riwayat Terkunci</p>
+                <p className="text-[11px] text-slate-500">Klik untuk buka akses semua riwayat</p>
+              </div>
+            </div>
+
+            {/* Right: CTA */}
+            <div className="flex-shrink-0">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 group-hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm whitespace-nowrap">
+                <Crown size={11} />
+                Upgrade Platinum
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <UpgradeModal
+          isOpen={showUpgradeModal}
+          onClose={() => setShowUpgradeModal(false)}
+          requiredTier="platinum"
+          contentTitle="Riwayat Tryout Lengkap"
+        />
+      </>
+    );
+  }
+
+  // ── NORMAL STATE ──────────────────────────────────────────────────────────
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       <div className="flex">
-        {/* Status bar */}
-        <div className={cn(
-          'w-1 flex-shrink-0',
-          passed ? 'bg-emerald-500' : 'bg-red-400'
-        )} />
+        <div className={cn('w-1 flex-shrink-0', passed ? 'bg-emerald-500' : 'bg-red-400')} />
 
         <div className="flex-1 px-5 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 
-            {/* Left: title + meta + scores */}
             <div className="flex-1 min-w-0">
-              {/* Title + status badge */}
               <div className="flex items-center gap-2.5 mb-1.5">
                 <h3 className="text-base font-bold text-slate-800 truncate">
                   {attempt.packages?.title || 'Unknown Package'}
                 </h3>
                 <span className={cn(
                   'flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide',
-                  passed
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-red-100 text-red-600'
+                  passed ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
                 )}>
                   {passed
                     ? <><CheckCircle2 size={9} /> Lulus</>
@@ -103,7 +201,6 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
                 </span>
               </div>
 
-              {/* Date + duration */}
               <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mb-2.5">
                 <span className="flex items-center gap-1">
                   <Calendar size={11} className="text-slate-400" />
@@ -117,7 +214,6 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
                 )}
               </div>
 
-              {/* Score per category — neutral gray pills */}
               <div className="flex items-center gap-1.5">
                 {attempt.score_twk !== null && attempt.score_twk !== undefined && (
                   <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
@@ -137,17 +233,13 @@ export function AttemptHistoryCard({ attempt }: AttemptHistoryCardProps) {
               </div>
             </div>
 
-            {/* Right: total score + actions */}
             <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-2 flex-shrink-0">
-              {/* Total score */}
               {totalScore !== null && (
                 <div className="text-right">
                   <div className="text-2xl font-black text-slate-800 leading-none">{totalScore}</div>
                   <div className="text-[10px] text-slate-400 font-medium">/ 550</div>
                 </div>
               )}
-
-              {/* Action buttons */}
               <div className="flex items-center gap-1.5">
                 <Link
                   href={`/exam/${attempt.id}/result`}

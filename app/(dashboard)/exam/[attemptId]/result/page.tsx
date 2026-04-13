@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
+import { getUserSubscription } from '@/lib/subscription';
 import ResultClient from './_result-client';
 
 interface ResultPageProps {
@@ -54,19 +55,72 @@ async function getResultData(attemptId: string, userId: string) {
 
   const { data: answers } = await supabase
     .from('attempt_answers')
-    .select(`id, answered_at, time_spent_seconds, questions (id, content, category)`)
+    .select(`
+      id,
+      answered_at,
+      time_spent_seconds,
+      choice_id,
+      questions (
+        id,
+        content,
+        category,
+        choices ( id, is_answer, score )
+      )
+    `)
     .eq('attempt_id', attemptId)
     .order('answered_at', { ascending: true });
+
+  const answersWithCorrect = (answers || []).map((a: any) => {
+    const question = a.questions;
+    const isCorrect = question?.category !== 'TKP'
+      ? question?.choices?.find((c: any) => c.is_answer)?.id === a.choice_id
+      : null;
+    const userChoice = question?.choices?.find((c: any) => c.id === a.choice_id);
+    const tkpScore = question?.category === 'TKP' ? (userChoice?.score ?? 0) : null;
+
+    return {
+      id: a.id,
+      answered_at: a.answered_at,
+      time_spent_seconds: a.time_spent_seconds,
+      choice_id: a.choice_id,
+      is_correct: isCorrect,
+      tkp_score: tkpScore,
+      questions: {
+        id: question?.id,
+        content: question?.content,
+        category: question?.category,
+      },
+    };
+  });
+
+  // ✅ FIX: Supabase foreign key join mengembalikan profiles sebagai array,
+  // tapi LeaderboardItem mengharapkan object tunggal | null.
+  // Normalize di sini sebelum dikirim ke client component.
+  const normalizedLeaderboard = (leaderboard || []).map((item, index) => {
+    const profilesRaw = item.profiles;
+    const profiles = Array.isArray(profilesRaw)
+      ? (profilesRaw[0] ?? null)
+      : profilesRaw ?? null;
+
+    return {
+      id: item.id,
+      rank: index + 1,
+      user_id: item.user_id,
+      final_score: item.final_score,
+      completed_at: item.completed_at,
+      profiles: profiles as { full_name: string | null; avatar_url: string | null } | null,
+    };
+  });
 
   return {
     attempt,
     packageInfo: attempt.packages,
-    leaderboard: leaderboard?.map((item, index) => ({ ...item, rank: index + 1 })) || [],
+    leaderboard: normalizedLeaderboard,
     packageRank,
     totalParticipants: totalParticipants || 0,
     attemptHistory: attemptHistory || [],
     lastThreeAttempts: attemptHistory?.slice(-3) || [],
-    answers: answers || [],
+    answers: answersWithCorrect,
   };
 }
 
@@ -75,7 +129,14 @@ export default async function ResultPage({ params }: ResultPageProps) {
   if (!userId) redirect('/sign-in');
 
   const { attemptId } = await params;
-  const data = await getResultData(attemptId, userId);
+
+  // Fetch data & subscription tier secara paralel
+  const [data, subscription] = await Promise.all([
+    getResultData(attemptId, userId),
+    getUserSubscription(),
+  ]);
+
+  const subscriptionTier = subscription?.tier ?? 'free';
 
   const duration = data.attempt.completed_at && data.attempt.started_at
     ? Math.round((new Date(data.attempt.completed_at).getTime() -
@@ -100,6 +161,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
       duration={duration}
       userId={userId}
       userRankInLeaderboard={userRankInLeaderboard}
+      subscriptionTier={subscriptionTier}
     />
   );
 }

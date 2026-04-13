@@ -1,6 +1,14 @@
 import { SignUp } from '@clerk/nextjs';
 
-export default function SignUpPage() {
+interface Props {
+  searchParams: { plan?: string };
+}
+
+export default function SignUpPage({ searchParams }: Props) {
+  // Bawa ?plan ke onboarding agar bisa diteruskan ke beli-paket setelah selesai
+  const plan = searchParams?.plan;
+  const redirectUrl = plan ? `/onboarding?plan=${plan}` : '/onboarding';
+
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-center">
@@ -11,25 +19,23 @@ export default function SignUpPage() {
           Mulai perjalanan Anda menjadi ASN hari ini
         </p>
       </div>
-      
+
       <SignUp
-        forceRedirectUrl="/onboarding"
+        forceRedirectUrl={redirectUrl}
         appearance={{
           elements: {
             rootBox: 'w-full',
             card: 'shadow-xl border-slate-200',
             formButtonPrimary: 'bg-blue-600 hover:bg-blue-700 text-sm',
             footerActionLink: 'text-blue-600 hover:text-blue-500',
-            // Remove Clerk branding
             footer: 'hidden',
             footerAction: 'hidden',
-            // Customize header
             headerTitle: 'text-xl font-bold',
             headerSubtitle: 'text-sm text-slate-600',
           },
           layout: {
             socialButtonsPlacement: 'top',
-            logoPlacement: 'none', // Remove Clerk logo
+            logoPlacement: 'none',
           },
         }}
         localization={{
