@@ -1,11 +1,21 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Rate limit: 10 pemilihan metode per user per 10 menit
+    const rl = rateLimit(`payment-select-method:${userId}`, 10, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak permintaan. Coba lagi nanti.' },
+        { status: 429 }
+      );
+    }
 
     const { orderId, methodId, bank } = await req.json();
 
@@ -23,7 +33,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Order tidak ditemukan' }, { status: 404 });
     }
 
-    // Kalau sudah punya VA number sebelumnya, return langsung tanpa hit Midtrans lagi
+    // Kalau sudah punya VA number sebelumnya dengan metode sama, return langsung
     if (order.va_number && order.payment_method === methodId) {
       return NextResponse.json({
         vaNumber: order.va_number,
@@ -32,7 +42,10 @@ export async function POST(req: NextRequest) {
     }
 
     const adminFee = ['bri_va', 'bca_va', 'mandiri_va', 'other_bank'].includes(methodId) ? 4000 : 0;
-    const total = order.base_price + adminFee;
+
+    // final_price sudah mengandung diskon referral (disimpan oleh /referral/apply)
+    const baseAfterDiscount = order.final_price ?? order.base_price;
+    const total = baseAfterDiscount + adminFee;
 
     // Kalau order_id sudah pernah di-charge Midtrans dengan metode berbeda,
     // buat order_id baru dengan suffix metode agar tidak konflik
@@ -42,6 +55,11 @@ export async function POST(req: NextRequest) {
 
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
     const encodedKey = Buffer.from(`${serverKey}:`).toString('base64');
+
+    const isSandbox = process.env.MIDTRANS_IS_SANDBOX === 'true';
+    const baseUrl = isSandbox
+      ? 'https://api.sandbox.midtrans.com'
+      : 'https://api.midtrans.com';
 
     // Build payload berdasarkan metode
     let midtransBody: Record<string, unknown> = {
@@ -83,8 +101,8 @@ export async function POST(req: NextRequest) {
     } else {
       // Virtual Account
       const bankMap: Record<string, string> = {
-        bri_va: 'bri',
-        bca_va: 'bca',
+        bri_va:     'bri',
+        bca_va:     'bca',
         mandiri_va: 'mandiri',
         other_bank: 'permata',
       };
@@ -96,27 +114,24 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    console.log('Sending to Midtrans:', JSON.stringify(midtransBody));
-
-    const response = await fetch('https://api.sandbox.midtrans.com/v2/charge', {
+    const response = await fetch(`${baseUrl}/v2/charge`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${encodedKey}`,
+        Authorization: `Basic ${encodedKey}`,
       },
       body: JSON.stringify(midtransBody),
     });
 
     const data = await response.json();
-    console.log('Midtrans full response:', JSON.stringify(data));
 
     // Handle error dari Midtrans
     if (!response.ok || (data.status_code && !['200', '201'].includes(data.status_code))) {
-      console.error('Midtrans error:', data);
-      return NextResponse.json({
-        error: `Midtrans error: ${data.status_message || data.error_messages?.join(', ') || 'Unknown error'}`,
-        midtransResponse: data,
-      }, { status: 400 });
+      console.error('Midtrans charge error:', data.status_code, data.status_message);
+      return NextResponse.json(
+        { error: 'Gagal memproses pembayaran. Silakan coba lagi.' },
+        { status: 400 }
+      );
     }
 
     // Ekstrak VA / QRIS / eWallet URL
@@ -125,15 +140,10 @@ export async function POST(req: NextRequest) {
     let ewalletUrl: string | undefined;
 
     if (data.payment_type === 'bank_transfer') {
-      // BRI, BCA, BNI pakai va_numbers array
-      // Mandiri pakai bill_key + biller_code
-      // Permata pakai permata_va_number
       vaNumber =
         data.va_numbers?.[0]?.va_number ||
         data.permata_va_number ||
         data.bill_key;
-
-      console.log('VA extracted:', vaNumber, '| raw va_numbers:', data.va_numbers);
     } else if (data.payment_type === 'qris') {
       qrisUrl = data.actions?.find(
         (a: { name: string; url: string }) => a.name === 'generate-qr-code'
@@ -144,20 +154,20 @@ export async function POST(req: NextRequest) {
         data.actions?.find((a: { name: string; url: string }) => a.name === 'get-status')?.url;
     }
 
-    // Update order di Supabase
+    // Update order di Supabase dengan total final (setelah admin fee)
     const { error: updateError } = await supabase
       .from('payment_orders')
       .update({
-        payment_method: methodId,
-        admin_fee: adminFee,
+        payment_method:          methodId,
+        admin_fee:               adminFee,
         total,
-        va_number: vaNumber,
+        va_number:               vaNumber,
         midtrans_transaction_id: data.transaction_id,
       })
       .eq('order_id', orderId);
 
     if (updateError) {
-      console.error('Supabase update error:', updateError);
+      console.error('Supabase update error:', updateError.code);
     }
 
     return NextResponse.json({
@@ -166,9 +176,8 @@ export async function POST(req: NextRequest) {
       ewalletUrl,
       total,
     });
-
   } catch (error) {
-    console.error('Select method error:', error);
+    console.error('Select method error:', error instanceof Error ? error.message : 'unknown');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

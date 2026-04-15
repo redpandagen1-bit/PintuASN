@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit } from '@/lib/rate-limit';
 
 const PACKAGE_PRICES: Record<string, { name: string; price: number }> = {
   premium:  { name: 'PintuASN Premium - Hingga November 2026',  price: 149000 },
@@ -11,6 +12,15 @@ export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Rate limit: 5 order baru per user per 10 menit
+    const rl = rateLimit(`payment-charge:${userId}`, 5, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak permintaan. Coba lagi nanti.' },
+        { status: 429 }
+      );
+    }
 
     const { package_id } = await req.json();
     const pkg = PACKAGE_PRICES[package_id];
