@@ -13,3 +13,9 @@ export const QUESTION_COUNTS = {
 
 export const CATEGORIES = ['TWK', 'TIU', 'TKP'] as const;
 export type Category = typeof CATEGORIES[number];
+
+export const PASSING_GRADES = {
+  TWK: 65,
+  TIU: 80,
+  TKP: 166,
+} as const;

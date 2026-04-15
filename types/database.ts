@@ -17,7 +17,7 @@ export interface Profile {
   phone?: string;
   role: 'user' | 'admin';
   avatar_url?: string;
-  gender?: 'Pria' | 'Wanita';
+  gender?: 'male' | 'female';
   birth_date?: string;
   address?: string;
   province?: string;
@@ -45,10 +45,10 @@ export interface Package {
 export interface Question {
   id: string;
   category: 'TWK' | 'TIU' | 'TKP';
-  content: string;                // ← sesuai queries.ts & exam-interface
-  image_url?: string | null;      // ← sesuai queries.ts & exam-interface
-  explanation?: string | null;
-  topic?: string | null;          // ← dipakai di queries.ts
+  question_text: string;
+  question_image_url?: string;
+  explanation?: string;
+  explanation_image_url?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   is_active: boolean;
   is_deleted: boolean;
@@ -59,21 +59,11 @@ export interface Question {
 export interface Choice {
   id: string;
   question_id: string;
-  label: string;                  // ← sesuai ReviewChoice
-  content: string;                // ← sesuai ReviewChoice & exam-interface
-  image_url?: string | null;      // ← dipakai di exam-interface
-  is_answer: boolean;             // ← sesuai ReviewChoice & queries.ts
-  score?: number | null;          // ← sesuai ReviewChoice & queries.ts
-  created_at: string;
-}
-
-export interface Choice {
-  id: string;
-  question_id: string;
-  choice_text: string;
-  choice_label: 'A' | 'B' | 'C' | 'D' | 'E';
-  points: number;
-  is_correct: boolean;
+  label: 'A' | 'B' | 'C' | 'D' | 'E';
+  content: string;
+  image_url?: string | null;
+  is_answer: boolean;
+  score: number;
   created_at: string;
 }
 

@@ -1,16 +1,21 @@
-// app/api/payment/select-method/route.ts
-// Tidak ada perubahan logika diskon di sini —
-// final_price sudah tersimpan di DB oleh /referral/apply
-// File ini hanya perlu memastikan membaca final_price dari order dengan benar.
-
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Rate limit: 10 pemilihan metode per user per 10 menit
+    const rl = rateLimit(`payment-select-method:${userId}`, 10, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak permintaan. Coba lagi nanti.' },
+        { status: 429 }
+      );
+    }
 
     const { orderId, methodId, bank } = await req.json();
 
@@ -38,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const adminFee = ['bri_va', 'bca_va', 'mandiri_va', 'other_bank'].includes(methodId) ? 4000 : 0;
 
-    // ✅ final_price sudah mengandung diskon referral (disimpan oleh /referral/apply)
+    // final_price sudah mengandung diskon referral (disimpan oleh /referral/apply)
     const baseAfterDiscount = order.final_price ?? order.base_price;
     const total = baseAfterDiscount + adminFee;
 
@@ -51,7 +56,6 @@ export async function POST(req: NextRequest) {
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
     const encodedKey = Buffer.from(`${serverKey}:`).toString('base64');
 
-    // ✅ FIX: Gunakan URL dinamis berdasarkan environment, bukan hardcode sandbox
     const isSandbox = process.env.MIDTRANS_IS_SANDBOX === 'true';
     const baseUrl = isSandbox
       ? 'https://api.sandbox.midtrans.com'
@@ -110,9 +114,6 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    console.log('Midtrans environment:', isSandbox ? 'SANDBOX' : 'PRODUCTION');
-    console.log('Sending to Midtrans:', JSON.stringify(midtransBody));
-
     const response = await fetch(`${baseUrl}/v2/charge`, {
       method: 'POST',
       headers: {
@@ -123,16 +124,12 @@ export async function POST(req: NextRequest) {
     });
 
     const data = await response.json();
-    console.log('Midtrans full response:', JSON.stringify(data));
 
     // Handle error dari Midtrans
     if (!response.ok || (data.status_code && !['200', '201'].includes(data.status_code))) {
-      console.error('Midtrans error:', data);
+      console.error('Midtrans charge error:', data.status_code, data.status_message);
       return NextResponse.json(
-        {
-          error: `Midtrans error: ${data.status_message || data.error_messages?.join(', ') || 'Unknown error'}`,
-          midtransResponse: data,
-        },
+        { error: 'Gagal memproses pembayaran. Silakan coba lagi.' },
         { status: 400 }
       );
     }
@@ -147,8 +144,6 @@ export async function POST(req: NextRequest) {
         data.va_numbers?.[0]?.va_number ||
         data.permata_va_number ||
         data.bill_key;
-
-      console.log('VA extracted:', vaNumber, '| raw va_numbers:', data.va_numbers);
     } else if (data.payment_type === 'qris') {
       qrisUrl = data.actions?.find(
         (a: { name: string; url: string }) => a.name === 'generate-qr-code'
@@ -172,7 +167,7 @@ export async function POST(req: NextRequest) {
       .eq('order_id', orderId);
 
     if (updateError) {
-      console.error('Supabase update error:', updateError);
+      console.error('Supabase update error:', updateError.code);
     }
 
     return NextResponse.json({
@@ -182,7 +177,7 @@ export async function POST(req: NextRequest) {
       total,
     });
   } catch (error) {
-    console.error('Select method error:', error);
+    console.error('Select method error:', error instanceof Error ? error.message : 'unknown');
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
