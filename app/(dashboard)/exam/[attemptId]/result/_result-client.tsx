@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import { getSlowestQuestions, getWrongAnalysis, calcPercentile } from '@/lib/scoring/analysis';
 import {
   Trophy, Clock, CheckCircle2, XCircle, AlertCircle,
   RotateCcw, Eye, ArrowLeft, TrendingUp, BookOpen,
@@ -185,57 +186,23 @@ export default function ResultClient({
   const scoreTIU    = attempt.score_tiu    || 0;
   const scoreTKP    = attempt.score_tkp    || 0;
 
-  const percentile = totalParticipants > 0
-    ? Math.round(((totalParticipants - packageRank) / totalParticipants) * 100)
-    : 0;
+  const percentile = calcPercentile(packageRank, totalParticipants);
 
   /* chart data */
   const chartData = attemptHistory.map((h, i) => ({ name: `#${i + 1}`, Total: h.final_score || 0 }));
   if (chartData.length === 0) chartData.push({ name: '#1', Total: finalScore });
 
   /* time analysis */
-  const slowestQuestions = useMemo(() => {
-    const withTime = answers.map((a, i) => {
-      let t = a.time_spent_seconds || 0;
-      if (t === 0 && a.answered_at) {
-        const prev = i > 0
-          ? new Date(answers[i - 1].answered_at).getTime()
-          : new Date(attempt.started_at).getTime();
-        t = Math.round((new Date(a.answered_at).getTime() - prev) / 1000);
-      }
-      return { num: i + 1, category: a.questions?.category || '-', content: a.questions?.content || '', time: Math.min(t, 600) };
-    });
-    return [...withTime].sort((a, b) => b.time - a.time).slice(0, 5);
-  }, [answers, attempt.started_at]);
+  const slowestQuestions = useMemo(
+    () => getSlowestQuestions(answers, attempt.started_at),
+    [answers, attempt.started_at],
+  );
 
   const hasTimeData = slowestQuestions.some(q => q.time > 0);
   const timeChartData = slowestQuestions.map(q => ({ name: `S${q.num}`, detik: q.time }));
 
   /* wrong analysis */
-  const wrongAnalysis = useMemo(() => {
-    const wrongList = answers
-      .map((a, i) => ({
-        num: i + 1,
-        category: a.questions?.category || '-',
-        content: a.questions?.content || '',
-        is_correct: a.is_correct,
-        tkp_score: a.tkp_score,
-      }))
-      .filter(a => a.category === 'TKP' ? (a.tkp_score ?? 5) < 3 : a.is_correct === false);
-
-    const byCategory = {
-      TWK: wrongList.filter(a => a.category === 'TWK').length,
-      TIU: wrongList.filter(a => a.category === 'TIU').length,
-      TKP: wrongList.filter(a => a.category === 'TKP').length,
-    };
-
-    return {
-      byCategory,
-      totalWrong: wrongList.filter(a => a.category !== 'TKP').length,
-      totalLowTkp: byCategory.TKP,
-      topWrong: wrongList.slice(0, 8),
-    };
-  }, [answers]);
+  const wrongAnalysis = useMemo(() => getWrongAnalysis(answers), [answers]);
 
   const hasWrongData = answers.some(a => a.is_correct !== undefined);
 

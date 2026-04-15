@@ -5,103 +5,17 @@ import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Clock, Copy, Check, ChevronDown, ChevronUp,
-  Loader2, CheckCircle2, XCircle, RefreshCw, Tag, ChevronRight, X,
+  Loader2, CheckCircle2, XCircle, RefreshCw, Tag, ChevronRight,
   CreditCard,
 } from 'lucide-react';
-import Image from 'next/image';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface PaymentMethod {
-  id: string;
-  name: string;
-  type: 'va' | 'qris' | 'ewallet' | 'cstore';
-  bank?: string;
-  adminFee: number;
-  group: string;
-}
-
-interface OrderData {
-  orderId: string;
-  packageName: string;
-  basePrice: number;
-  adminFee: number;
-  discountAmount: number;
-  referralCode: string | null;
-  total: number;
-  finalPrice: number;
-  expiredAt: string;
-  status: string;
-  paymentMethod?: string;
-  vaNumber?: string;
-  qrisUrl?: string;
-  ewalletUrl?: string;
-  paymentCode?: string;
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const PAYMENT_METHODS: PaymentMethod[] = [
-  { id: 'bri_va',     name: 'BRI',        type: 'va',      bank: 'bri',     adminFee: 4000, group: 'Bank Transfer' },
-  { id: 'bca_va',     name: 'BCA',        type: 'va',      bank: 'bca',     adminFee: 4000, group: 'Bank Transfer' },
-  { id: 'mandiri_va', name: 'Mandiri',    type: 'va',      bank: 'mandiri', adminFee: 4000, group: 'Bank Transfer' },
-  { id: 'bni_va',     name: 'BNI',        type: 'va',      bank: 'bni',     adminFee: 4000, group: 'Bank Transfer' },
-  { id: 'qris',       name: 'QRIS',       type: 'qris',                     adminFee: 0,    group: 'QRIS' },
-  { id: 'gopay',      name: 'GoPay',      type: 'ewallet',                  adminFee: 0,    group: 'E-Wallet' },
-  { id: 'shopeepay',  name: 'ShopeePay',  type: 'ewallet',                  adminFee: 0,    group: 'E-Wallet' },
-  { id: 'dana',       name: 'DANA',       type: 'ewallet',                  adminFee: 0,    group: 'E-Wallet' },
-  { id: 'alfamart',   name: 'Alfamart',   type: 'cstore',                   adminFee: 2500, group: 'Convenience Store' },
-  { id: 'indomaret',  name: 'Indomaret',  type: 'cstore',                   adminFee: 2500, group: 'Convenience Store' },
-];
-
-const METHOD_GROUPS = ['QRIS', 'Bank Transfer', 'E-Wallet', 'Convenience Store'];
-
-const METHOD_LOGOS: Record<string, string> = {
-  bri_va:    'https://upload.wikimedia.org/wikipedia/commons/6/68/BANK_BRI_logo.svg',
-  bca_va:    'https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg',
-  mandiri_va:'https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg',
-  bni_va:    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/BNI_logo.svg/320px-BNI_logo.svg.png',
-  qris:      'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg',
-  gopay:     'https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg',
-  shopeepay: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Logo_ShopeePay.png/320px-Logo_ShopeePay.png',
-  dana:      'https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg',
-  alfamart:  'https://upload.wikimedia.org/wikipedia/commons/d/d6/Alfamart_logo.svg',
-  indomaret: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Indomaret_logo2022.svg/320px-Indomaret_logo2022.svg.png',
-};
-
-const VA_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
-  bri: [
-    { title: 'ATM BRI', steps: ['Pilih menu utama → Transaksi Lain', 'Pilih Pembayaran → Lainnya → BRIVA', 'Masukkan nomor BRIVA dan pilih Benar', 'Konfirmasi jumlah dan merchant, pilih Ya', 'Pembayaran selesai, simpan bukti.'] },
-    { title: 'BRImo (Mobile Banking)', steps: ['Login BRImo → Pembayaran → BRIVA', 'Masukkan nomor BRIVA', 'Konfirmasi detail, masukkan PIN', 'Pembayaran berhasil.'] },
-  ],
-  bca: [
-    { title: 'ATM BCA', steps: ['Pilih Transaksi Lainnya → Transfer → ke Rek BCA Virtual Account', 'Masukkan nomor VA BCA', 'Konfirmasi detail transaksi, pilih Ya', 'Pembayaran selesai.'] },
-    { title: 'myBCA / BCA Mobile', steps: ['Login myBCA → Transfer Dana → BCA Virtual Account', 'Masukkan nomor VA', 'Konfirmasi dan masukkan PIN', 'Selesai.'] },
-  ],
-  mandiri: [
-    { title: 'Livin by Mandiri', steps: ['Login Livin → Bayar → Multipayment', 'Cari "Midtrans" sebagai penyedia', 'Masukkan kode pembayaran (VA number)', 'Konfirmasi dan masukkan PIN', 'Pembayaran selesai.'] },
-    { title: 'ATM Mandiri', steps: ['Pilih Bayar/Beli → Lainnya → Lainnya → Multipayment', 'Masukkan kode perusahaan: 88608, lanjut masukkan VA number', 'Konfirmasi dan selesai.'] },
-  ],
-  bni: [
-    { title: 'BNI Mobile Banking', steps: ['Login BNI Mobile → Transfer → Virtual Account Billing', 'Masukkan nomor Virtual Account', 'Konfirmasi dan masukkan PIN', 'Pembayaran berhasil.'] },
-    { title: 'ATM BNI', steps: ['Pilih Menu Lain → Transfer → Rekening Tabungan', 'Masukkan nomor Virtual Account', 'Konfirmasi jumlah dan proses.'] },
-  ],
-};
-
-const CSTORE_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
-  alfamart: [
-    { title: 'Alfamart', steps: ['Kunjungi gerai Alfamart terdekat', 'Tunjukkan kode pembayaran ke kasir', 'Kasir akan proses pembayaran', 'Simpan struk sebagai bukti pembayaran.'] },
-  ],
-  indomaret: [
-    { title: 'Indomaret', steps: ['Kunjungi gerai Indomaret terdekat', 'Informasikan kode pembayaran ke kasir', 'Kasir akan memproses transaksi', 'Simpan struk sebagai bukti.'] },
-  ],
-};
+import {
+  PAYMENT_METHODS, METHOD_LOGOS, VA_INSTRUCTIONS, CSTORE_INSTRUCTIONS,
+  formatRupiah,
+  type PaymentMethod, type OrderData,
+} from '@/constants/payment';
+import PaymentMethodModal from '@/components/payment/PaymentMethodModal';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatRupiah(n: number) {
-  return 'Rp ' + n.toLocaleString('id-ID');
-}
 
 function formatTanggal(iso: string) {
   return new Date(iso).toLocaleDateString('id-ID', {
@@ -127,89 +41,6 @@ function useCountdown(expiredAt: string, active: boolean) {
     return () => clearInterval(t);
   }, [calc, active]);
   return time;
-}
-
-// ─── Payment Method Picker Modal ──────────────────────────────────────────────
-
-function PaymentMethodModal({
-  selected,
-  onSelect,
-  onClose,
-}: {
-  selected: PaymentMethod | null;
-  onSelect: (m: PaymentMethod) => void;
-  onClose: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Sheet */}
-      <div className="relative bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between z-10">
-          <h2 className="font-bold text-slate-900 text-base">Pilih Metode Pembayaran</h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 transition"
-          >
-            <X size={16} className="text-slate-600" />
-          </button>
-        </div>
-
-        {/* Groups */}
-        <div className="p-4 space-y-5 pb-8">
-          {METHOD_GROUPS.map((group) => {
-            const methods = PAYMENT_METHODS.filter(m => m.group === group);
-            if (!methods.length) return null;
-            return (
-              <div key={group}>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 px-1">{group}</p>
-                <div className="space-y-2">
-                  {methods.map((method) => {
-                    const logo = METHOD_LOGOS[method.id];
-                    const isSelected = selected?.id === method.id;
-                    return (
-                      <button
-                        key={method.id}
-                        onClick={() => { onSelect(method); onClose(); }}
-                        className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all text-left
-                          ${isSelected
-                            ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-200'
-                            : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'}
-                        `}
-                      >
-                        <div className="w-10 h-10 flex-shrink-0 bg-white border border-slate-100 rounded-lg flex items-center justify-center overflow-hidden shadow-sm">
-                          {logo ? (
-                            <Image src={logo} alt={method.name} width={36} height={36} className="object-contain p-1" unoptimized />
-                          ) : (
-                            <span className="text-[10px] font-bold text-slate-600">{method.name.slice(0, 3).toUpperCase()}</span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-800">{method.name}</p>
-                          {method.adminFee > 0
-                            ? <p className="text-xs text-slate-400">+{formatRupiah(method.adminFee)} biaya admin</p>
-                            : <p className="text-xs text-emerald-500">Gratis biaya admin</p>
-                          }
-                        </div>
-                        {/* Radio */}
-                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all
-                          ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'}`}>
-                          {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

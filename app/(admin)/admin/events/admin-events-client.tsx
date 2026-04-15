@@ -111,7 +111,6 @@ export default function AdminEventsClient({ initialEvents }: Props) {
       const fd = new FormData(); fd.append('file', file);
       const res  = await fetch('/api/admin/upload/promo', { method: 'POST', body: fd }); // ← diubah ke /promo
       const json = await res.json() as { url?: string; error?: string };
-      console.log('Upload response:', json); // ← tambahkan ini
       if (!res.ok) throw new Error(json.error ?? 'Upload gagal');
       patch({ banner_url: json.url ?? '' });
     } catch (e) { setError(e instanceof Error ? e.message : 'Upload gagal'); }

@@ -31,7 +31,6 @@ function normalizeOrderId(id: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log('Midtrans webhook received:', JSON.stringify(body));
 
     const {
       order_id,
@@ -56,7 +55,6 @@ export async function POST(req: NextRequest) {
 
     // ── Normalize order_id (handle suffix dari retry charge) ───────────
     const normalizedOrderId = normalizeOrderId(order_id);
-    console.log('Raw order_id:', order_id, '→ Normalized:', normalizedOrderId);
 
     // ── Cek apakah pembayaran berhasil ─────────────────────────────────
     const isSuccess =
@@ -67,8 +65,6 @@ export async function POST(req: NextRequest) {
       transaction_status === 'expire' ||
       transaction_status === 'cancel' ||
       transaction_status === 'deny';
-
-    console.log('Transaction status:', transaction_status, '| isSuccess:', isSuccess);
 
     // ── Ambil data order dari Supabase ─────────────────────────────────
     const { data: order, error: orderError } = await supabase
@@ -83,11 +79,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Order not found, acknowledged' });
     }
 
-    console.log('Order found:', order.order_id, '| current status:', order.status);
-
     // Hindari proses ulang kalau sudah settlement
     if (order.status === 'settlement' || order.status === 'capture') {
-      console.log('Order already settled, skipping.');
       return NextResponse.json({ message: 'Already settled' });
     }
 
@@ -102,9 +95,7 @@ export async function POST(req: NextRequest) {
         .eq('order_id', normalizedOrderId);
 
       if (orderUpdateError) {
-        console.error('Failed to update order status:', orderUpdateError);
-      } else {
-        console.log('✅ Order status updated to settlement:', normalizedOrderId);
+        console.error('Failed to update order status:', orderUpdateError.code);
       }
 
       // ── Update tier user di profiles ─────────────────────────────────
@@ -121,12 +112,10 @@ export async function POST(req: NextRequest) {
           .eq('user_id', order.user_id);
 
         if (profileError) {
-          console.error('Failed to update profile tier:', profileError);
-        } else {
-          console.log(`✅ User ${order.user_id} upgraded to ${newTier}`);
+          console.error('Failed to update profile tier:', profileError.code);
         }
       } else {
-        console.warn('Unknown package_id, skipping tier upgrade:', order.package_id);
+        console.error('Unknown package_id, skipping tier upgrade:', order.package_id);
       }
 
     } else if (isExpiredOrCancelled) {
@@ -139,14 +128,10 @@ export async function POST(req: NextRequest) {
         .eq('order_id', normalizedOrderId);
 
       if (cancelError) {
-        console.error('Failed to update order to cancelled/expired:', cancelError);
-      } else {
-        console.log(`Order ${normalizedOrderId} marked as ${transaction_status}`);
+        console.error('Failed to update order to cancelled/expired:', cancelError.code);
       }
-    } else {
-      // Status lain: pending, authorize, dll — tidak perlu action
-      console.log('Unhandled transaction_status:', transaction_status, '— no action taken');
     }
+    // Status lain: pending, authorize, dll — tidak perlu action
 
     // Selalu return 200 ke Midtrans
     return NextResponse.json({ message: 'OK' });

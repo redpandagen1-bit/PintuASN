@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
       position,
     } = body;
 
-    console.log('📝 Creating/Updating question:', { category, package_id, position, choicesCount: choices?.length });
 
     // Validate required fields
     if (!category || !content || !choices || choices.length !== 5) {
@@ -75,7 +74,6 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       // UPDATE existing question
-      console.log('🔄 Updating existing question at position', position);
       questionId = existing.question_id;
 
       // Prepare update data
@@ -110,7 +108,6 @@ export async function POST(request: NextRequest) {
 
     } else {
       // INSERT new question
-      console.log('✨ Creating new question at position', position);
 
       // Prepare insert data
       const insertData: any = {
@@ -178,8 +175,6 @@ export async function POST(request: NextRequest) {
       console.error('❌ Error inserting choices:', cError);
       throw cError;
     }
-
-    console.log('✅ Question saved at position', position);
 
     return NextResponse.json({ success: true, questionId }, { status: 201 });
   } catch (error: any) {
