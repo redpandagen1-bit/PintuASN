@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
-import { getUserSubscription } from '@/lib/subscription';
+import { getUserTier } from '@/lib/supabase/queries';
 import ResultClient from './_result-client';
 
 interface ResultPageProps {
@@ -131,12 +131,10 @@ export default async function ResultPage({ params }: ResultPageProps) {
   const { attemptId } = await params;
 
   // Fetch data & subscription tier secara paralel
-  const [data, subscription] = await Promise.all([
+  const [data, subscriptionTier] = await Promise.all([
     getResultData(attemptId, userId),
-    getUserSubscription(),
+    getUserTier(userId),
   ]);
-
-  const subscriptionTier = subscription?.tier ?? 'free';
 
   const duration = data.attempt.completed_at && data.attempt.started_at
     ? Math.round((new Date(data.attempt.completed_at).getTime() -
