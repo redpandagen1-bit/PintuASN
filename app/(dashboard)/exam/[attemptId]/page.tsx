@@ -1,74 +1,51 @@
 import { redirect, notFound } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs/server';
-import { 
-  getAttemptById, 
-  getPackageQuestions,
-  getAttemptWithAnswers 
+import {
+  getAttemptById,
+  getAttemptWithAnswers
 } from '@/lib/supabase/queries';
 import { ExamInterface } from '@/components/exam/exam-interface';
 
-export default async function ExamPage({ 
-  params 
-}: { 
-  params: Promise<{ attemptId: string }> 
+export default async function ExamPage({
+  params
+}: {
+  params: Promise<{ attemptId: string }>
 }) {
-  console.log('🚀 ExamPage START');
-  
   const { attemptId } = await params;
-  console.log('📍 attemptId:', attemptId);
-  
+
   const user = await currentUser();
-  console.log('👤 user:', user?.id);
-  
   if (!user) {
-    console.log('❌ No user, redirecting to sign-in');
     redirect('/sign-in');
   }
 
-  console.log('🔍 Fetching attempt...');
-  
-  // ⭐ FIX: Destructure attempt and questions from response
-  const { attempt, questions: packageQuestions } = await getAttemptById(attemptId);
-  
-  console.log('🎯 Attempt fetched:', {
-    id: attempt?.id,
-    status: attempt?.status,
-    userId: attempt?.user_id,
-    packageId: attempt?.package_id,
-    packageTitle: attempt?.packages?.title
-  });
+  // Fetch attempt+questions dan existing answers secara parallel
+  const [
+    { attempt, questions: packageQuestions },
+    { answers: existingAnswers },
+  ] = await Promise.all([
+    getAttemptById(attemptId),
+    getAttemptWithAnswers(attemptId),
+  ]);
 
   if (!attempt) {
-    console.log('❌ Attempt not found');
     notFound();
   }
 
   if (attempt.user_id !== user.id) {
-    console.log('❌ User mismatch, redirecting to dashboard');
     redirect('/dashboard');
   }
 
   if (attempt.status === 'completed') {
-    console.log('✅ Completed, redirecting to result');
     redirect(`/exam/${attemptId}/result`);
   }
 
   if (attempt.status !== 'in_progress') {
-    console.log('❌ Status not in_progress, redirecting to dashboard');
     redirect('/dashboard');
   }
-
-  console.log('✅ All checks passed, rendering ExamInterface');
-  console.log('📦 Package questions count:', packageQuestions?.length || 0);
-
-  // Get existing answers
-  const { answers: existingAnswers } = await getAttemptWithAnswers(attemptId);
 
   const initialAnswers = new Map(
     existingAnswers.map(ans => [ans.question_id, ans.choice_id])
   );
-
-  console.log('📝 Existing answers count:', existingAnswers.length);
 
   return (
     <ExamInterface

@@ -4,6 +4,7 @@
 
 import { createClient } from './server';
 import type { Profile, Package, Attempt } from '@/types/database';
+import { PASSING_GRADES } from '@/constants/exam';
 
 // Re-export dari subscription-utils agar kode lain yang sudah
 // import dari queries tidak perlu diubah
@@ -66,7 +67,8 @@ export async function getPackageById(packageId: string): Promise<Package> {
 export async function getAllMaterials() {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('materials').select('*')
+    .from('materials')
+    .select('id, title, category, type, tier, content_url, duration_minutes')
     .eq('is_active', true).eq('is_deleted', false)
     .order('order_index', { ascending: true })
     .order('created_at',  { ascending: false });
@@ -196,7 +198,7 @@ export async function getAttemptHistory(
     .eq('user_id', userId).eq('status', 'completed');
 
   if (filterBy === 'passed')
-    query = query.gte('score_twk', 65).gte('score_tiu', 80).gte('score_tkp', 166);
+    query = query.gte('score_twk', PASSING_GRADES.TWK).gte('score_tiu', PASSING_GRADES.TIU).gte('score_tkp', PASSING_GRADES.TKP);
 
   if (sortBy === 'newest')      query = query.order('completed_at', { ascending: false });
   else if (sortBy === 'oldest') query = query.order('completed_at', { ascending: true });
@@ -209,7 +211,7 @@ export async function getAttemptHistory(
   let filteredData = data ?? [];
   if (filterBy === 'failed')
     filteredData = filteredData.filter(a =>
-      a.score_twk < 65 || a.score_tiu < 80 || a.score_tkp < 166);
+      a.score_twk < PASSING_GRADES.TWK || a.score_tiu < PASSING_GRADES.TIU || a.score_tkp < PASSING_GRADES.TKP);
 
   return {
     attempts:    filteredData as (Attempt & { packages: Package })[],
@@ -230,7 +232,7 @@ export async function getUserStats(userId: string) {
   const completed = attempts ?? [];
   const scores    = completed.filter(a => a.final_score != null).map(a => a.final_score!);
   const passed    = completed.filter(a =>
-    a.score_twk >= 65 && a.score_tiu >= 80 && a.score_tkp >= 166);
+    a.score_twk >= PASSING_GRADES.TWK && a.score_tiu >= PASSING_GRADES.TIU && a.score_tkp >= PASSING_GRADES.TKP);
 
   return {
     totalAttempts:  completed.length,

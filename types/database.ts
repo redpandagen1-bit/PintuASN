@@ -17,7 +17,7 @@ export interface Profile {
   phone?: string;
   role: 'user' | 'admin';
   avatar_url?: string;
-  gender?: 'Pria' | 'Wanita';
+  gender?: 'male' | 'female';
   birth_date?: string;
   address?: string;
   province?: string;
@@ -59,10 +59,11 @@ export interface Question {
 export interface Choice {
   id: string;
   question_id: string;
-  choice_text: string;
-  choice_label: 'A' | 'B' | 'C' | 'D' | 'E';
-  points: number;
-  is_correct: boolean;
+  label: 'A' | 'B' | 'C' | 'D' | 'E';
+  content: string;
+  image_url?: string | null;
+  is_answer: boolean;
+  score: number;
   created_at: string;
 }
 
