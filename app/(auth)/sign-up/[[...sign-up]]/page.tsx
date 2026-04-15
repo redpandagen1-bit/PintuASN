@@ -5,7 +5,6 @@ interface Props {
 }
 
 export default function SignUpPage({ searchParams }: Props) {
-  // Bawa ?plan ke onboarding agar bisa diteruskan ke beli-paket setelah selesai
   const plan = searchParams?.plan;
   const redirectUrl = plan ? `/onboarding?plan=${plan}` : '/onboarding';
 
@@ -37,14 +36,6 @@ export default function SignUpPage({ searchParams }: Props) {
             socialButtonsPlacement: 'top',
             logoPlacement: 'none',
           },
-        }}
-        localization={{
-          formFieldLabel__emailAddress: 'Alamat Email',
-          formFieldLabel__password: 'Kata Sandi',
-          formButtonPrimary: 'Daftar',
-          footerActionLink__signIn: 'Masuk',
-          socialButtonsBlockButton__google: 'Lanjutkan dengan Google',
-          socialButtonsBlockButton__github: 'Lanjutkan dengan GitHub',
         }}
       />
     </div>

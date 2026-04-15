@@ -38,8 +38,7 @@ export async function POST(req: NextRequest) {
 
     const adminFee = ['bri_va', 'bca_va', 'mandiri_va', 'other_bank'].includes(methodId) ? 4000 : 0;
 
-    // ✅ PERBAIKAN: final_price sudah mengandung diskon referral (disimpan oleh /referral/apply)
-    // Jangan gunakan base_price di sini
+    // ✅ final_price sudah mengandung diskon referral (disimpan oleh /referral/apply)
     const baseAfterDiscount = order.final_price ?? order.base_price;
     const total = baseAfterDiscount + adminFee;
 
@@ -51,6 +50,12 @@ export async function POST(req: NextRequest) {
 
     const serverKey = process.env.MIDTRANS_SERVER_KEY!;
     const encodedKey = Buffer.from(`${serverKey}:`).toString('base64');
+
+    // ✅ FIX: Gunakan URL dinamis berdasarkan environment, bukan hardcode sandbox
+    const isSandbox = process.env.MIDTRANS_IS_SANDBOX === 'true';
+    const baseUrl = isSandbox
+      ? 'https://api.sandbox.midtrans.com'
+      : 'https://api.midtrans.com';
 
     // Build payload berdasarkan metode
     let midtransBody: Record<string, unknown> = {
@@ -105,9 +110,10 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    console.log('Midtrans environment:', isSandbox ? 'SANDBOX' : 'PRODUCTION');
     console.log('Sending to Midtrans:', JSON.stringify(midtransBody));
 
-    const response = await fetch('https://api.sandbox.midtrans.com/v2/charge', {
+    const response = await fetch(`${baseUrl}/v2/charge`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -159,7 +165,7 @@ export async function POST(req: NextRequest) {
       .update({
         payment_method:          methodId,
         admin_fee:               adminFee,
-        total,                                  // final_price + admin_fee
+        total,
         va_number:               vaNumber,
         midtrans_transaction_id: data.transaction_id,
       })

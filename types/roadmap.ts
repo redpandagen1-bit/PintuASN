@@ -1,5 +1,5 @@
 // ============================================================
-// types/roadmap.ts  (replace seluruh file lama)
+// types/roadmap.ts
 // ============================================================
 
 export type PhaseStatus = 'completed' | 'active' | 'locked';
@@ -17,15 +17,15 @@ export type PhaseId =
 
 export interface RoadmapPhase {
   id: PhaseId;
-  step: number;           // 1–9
+  step: number;
   title: string;
-  description: string;    // satu kalimat ringkas
-  detail: string;         // penjelasan profesional untuk accordion
-  requirement: string;    // requirement teknis, tampil di accordion
+  description: string;
+  detail: string;
+  requirement: string;
   icon: string;
   status: PhaseStatus;
-  ctaLabel?: string;      // label tombol aksi di accordion
-  ctaHref?: string;       // href tombol aksi
+  ctaLabel?: string;
+  ctaHref?: string;
 }
 
 export interface CategoryScore {
@@ -45,14 +45,33 @@ export interface Milestone {
 }
 
 export interface RoadmapPageData {
-  // dari getRoadmapStats()
   avgTwk: number;
   avgTiu: number;
   avgTkp: number;
   totalCompleted: number;
   bestFinalScore: number;
   lastAttemptDate: string | null;
-  // tambahan baru
-  informasiViewCount: number;   // jumlah materi INFORMASI yang sudah dibuka
-  materiViewCount: number;      // jumlah materi TWK/TIU/TKP yang sudah dibuka
+  informasiViewCount: number;
+  materiViewCount: number;
+}
+
+// ─── Reminder preference ─────────────────────────────────────
+export interface ReminderPreference {
+  enabled:      boolean;
+
+  /**
+   * Interval preset: latihan setiap N hari.
+   * null jika mode custom (gunakan customDays).
+   */
+  intervalDays: 1 | 2 | 3 | 4 | null;
+
+  /**
+   * Mode custom: hari-hari dalam seminggu yang dipilih.
+   * 0 = Minggu, 1 = Senin, ..., 6 = Sabtu.
+   * null jika pakai intervalDays.
+   */
+  customDays:   number[] | null;
+
+  examDate:     string | null; // ISO string — tanggal ujian target
+  lastNotifAt:  string | null; // ISO string — diisi oleh Edge Function/cron
 }
