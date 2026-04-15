@@ -4,15 +4,15 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    // sendBeacon tidak mengirim cookie/auth header di beberapa browser,
-    // tapi Clerk dengan Next.js middleware seharusnya tetap bisa baca session.
-    // Fallback: jika auth gagal tapi attemptId valid, tetap proses.
     const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await req.json();
     const { attemptId, answers, flaggedQuestions } = body;
 
-    // Validate required fields
     if (!attemptId || !answers) {
       return NextResponse.json(
         { error: 'Missing required fields: attemptId and answers' },
@@ -20,9 +20,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Support BOTH format:
-    // 1. Array langsung: [{ questionId, choiceId }, ...]  ← dari sendBeacon / bulk
-    // 2. Array dari auto-save per-answer (format sama)
     if (!Array.isArray(answers)) {
       return NextResponse.json(
         { error: 'Answers must be an array' },
@@ -34,7 +31,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, saved: 0 });
     }
 
-    // Validate each answer structure
     for (const ans of answers) {
       if (!ans.questionId || !ans.choiceId) {
         return NextResponse.json(
@@ -46,7 +42,6 @@ export async function POST(req: Request) {
 
     const supabase = await createAdminClient();
 
-    // Verify attempt exists dan milik user yang benar
     const { data: attempt, error: attemptError } = await supabase
       .from('attempts')
       .select('user_id, status')
@@ -57,10 +52,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Attempt not found' }, { status: 404 });
     }
 
-    // Jika ada userId dari auth, validasi ownership
-    // Jika tidak ada (edge case sendBeacon), lewati validasi userId
-    // tapi tetap validasi via attemptId yang sudah unique
-    if (userId && attempt.user_id !== userId) {
+    if (attempt.user_id !== userId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -90,7 +82,7 @@ export async function POST(req: Request) {
     if (saveError) {
       console.error('Save answers error:', saveError);
       return NextResponse.json(
-        { error: 'Failed to save answers', details: saveError.message },
+        { error: 'Failed to save answers' },
         { status: 500 }
       );
     }
