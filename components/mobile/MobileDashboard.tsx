@@ -110,27 +110,23 @@ export function MobileDashboard({
             </Link>
           </div>
 
-          {/* 2×2 stat grid */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* 1 row — 4 stat */}
+          <div className="grid grid-cols-4 gap-1.5">
             {[
-              { label: 'Tryout Selesai',     value: completedCount,  Icon: CheckCircle },
-              { label: 'Rata-rata Skor',     value: averageScore,    Icon: BarChart2   },
-              { label: 'Peringkat Nasional', value: rankingDisplay,  Icon: Award       },
-              { label: 'Skor Terbaik',       value: bestScore,       Icon: TrendingUp  },
+              { label: 'Selesai',   value: completedCount, Icon: CheckCircle },
+              { label: 'Rata-rata', value: averageScore,   Icon: BarChart2   },
+              { label: 'Peringkat', value: rankingDisplay, Icon: Award       },
+              { label: 'Terbaik',   value: bestScore,      Icon: TrendingUp  },
             ].map(({ label, value, Icon }) => (
-              <div key={label} className="bg-slate-700/50 rounded-xl p-3 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
-                  <Icon size={14} className="text-yellow-400" strokeWidth={2} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-white font-extrabold text-sm leading-none truncate"
-                    style={{ fontFamily: 'var(--font-jakarta)' }}>
-                    {value}
-                  </p>
-                  <p className="text-slate-400 text-[9px] font-medium mt-0.5 leading-tight">
-                    {label}
-                  </p>
-                </div>
+              <div key={label} className="bg-slate-700/50 rounded-xl py-2.5 px-1.5 flex flex-col items-center gap-1">
+                <Icon size={13} className="text-yellow-400" strokeWidth={2} />
+                <p className="text-white font-extrabold text-sm leading-none text-center"
+                  style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  {value}
+                </p>
+                <p className="text-slate-400 text-[8px] font-medium leading-tight text-center">
+                  {label}
+                </p>
               </div>
             ))}
           </div>
@@ -155,6 +151,37 @@ export function MobileDashboard({
               </span>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* ── Premium CTA Banner ───────────────────────────────── */}
+      <section className="px-4">
+        <div className="bg-md-secondary-container/10 rounded-3xl p-5 relative overflow-hidden flex items-center justify-between">
+          <div className="absolute -right-8 -top-8 w-24 h-24 bg-md-secondary-container opacity-20 rounded-full blur-2xl pointer-events-none" />
+          <div className="space-y-1 relative z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-md-secondary text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
+                Limited Offer
+              </span>
+            </div>
+            <h3 className="text-lg font-extrabold text-md-primary leading-tight"
+              style={{ fontFamily: 'var(--font-jakarta)' }}>
+              Paket Premium 2026
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs line-through text-md-on-surface-variant font-medium">Rp 159.000</span>
+              <span className="text-xl font-black text-md-secondary"
+                style={{ fontFamily: 'var(--font-jakarta)' }}>
+                Rp 99.000
+              </span>
+            </div>
+          </div>
+          <Link href="/beli-paket" className="relative z-10">
+            <button className="bg-md-primary text-white font-bold px-4 py-2.5 rounded-xl text-xs active-press flex items-center gap-1 shadow-md3-md">
+              Beli Sekarang
+              <Zap size={14} />
+            </button>
+          </Link>
         </div>
       </section>
 
