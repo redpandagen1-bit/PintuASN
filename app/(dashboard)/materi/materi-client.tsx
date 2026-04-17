@@ -328,18 +328,18 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
       <div className="space-y-5 pb-10">
 
         {/* HERO */}
-        <div className="bg-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="bg-slate-800 rounded-2xl p-5 md:p-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
           <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
           <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-3 md:mb-4">
               <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
               <span className="text-xs font-medium text-slate-300">Pusat Materi SKD CPNS</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-extrabold text-white mb-2 md:mb-3 tracking-tight">
               Pelajari <span className="text-yellow-400">Materinya</span>
             </h1>
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
+            <p className="text-slate-300 text-sm leading-relaxed">
               Kuasai semua materi SKD TWK, TIU, TKP dengan video pembelajaran dari para ahli.
             </p>
           </div>

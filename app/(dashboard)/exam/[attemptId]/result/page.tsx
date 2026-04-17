@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
 import { getUserTier } from '@/lib/supabase/queries';
 import ResultClient from './_result-client';
+import { MobilePageWrapper }   from '@/components/mobile/MobilePageWrapper';
+import { MobileHasilSimulasi } from '@/components/mobile/MobileHasilSimulasi';
 
 interface ResultPageProps {
   params: Promise<{ attemptId: string }>;
@@ -146,20 +148,39 @@ export default async function ResultPage({ params }: ResultPageProps) {
   )?.rank;
 
   return (
-    <ResultClient
-      attemptId={attemptId}
-      attempt={data.attempt}
-      packageInfo={data.packageInfo}
-      leaderboard={data.leaderboard}
-      packageRank={data.packageRank}
-      totalParticipants={data.totalParticipants}
-      attemptHistory={data.attemptHistory}
-      lastThreeAttempts={data.lastThreeAttempts}
-      answers={data.answers}
-      duration={duration}
-      userId={userId}
-      userRankInLeaderboard={userRankInLeaderboard}
-      subscriptionTier={subscriptionTier}
-    />
+    <>
+      <MobilePageWrapper>
+        <MobileHasilSimulasi
+          attemptId={attemptId}
+          finalScore={data.attempt.final_score}
+          scoreTwk={data.attempt.score_twk}
+          scoreTiu={data.attempt.score_tiu}
+          scoreTkp={data.attempt.score_tkp}
+          isPassed={data.attempt.is_passed}
+          packageRank={data.packageRank}
+          totalParticipants={data.totalParticipants}
+          attemptHistory={data.attemptHistory}
+          completedAt={data.attempt.completed_at}
+          packageTitle={data.packageInfo?.title ?? null}
+        />
+      </MobilePageWrapper>
+      <div className="hidden md:block">
+        <ResultClient
+          attemptId={attemptId}
+          attempt={data.attempt}
+          packageInfo={data.packageInfo}
+          leaderboard={data.leaderboard}
+          packageRank={data.packageRank}
+          totalParticipants={data.totalParticipants}
+          attemptHistory={data.attemptHistory}
+          lastThreeAttempts={data.lastThreeAttempts}
+          answers={data.answers}
+          duration={duration}
+          userId={userId}
+          userRankInLeaderboard={userRankInLeaderboard}
+          subscriptionTier={subscriptionTier}
+        />
+      </div>
+    </>
   );
 }

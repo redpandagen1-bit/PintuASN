@@ -1,0 +1,45 @@
+{
+  "name": "PintuASN – Simulasi SKD CPNS",
+  "short_name": "PintuASN",
+  "description": "Platform tryout SKD CPNS online 99% mirip sistem BKN. Analitik mendalam, ranking nasional, roadmap belajar terstruktur.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f9ff",
+  "theme_color": "#091426",
+  "lang": "id",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/images/Logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/logo-navbar.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Daftar Tryout",
+      "short_name": "Tryout",
+      "description": "Lihat semua paket tryout SKD",
+      "url": "/daftar-tryout",
+      "icons": [{ "src": "/images/Logo.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Roadmap Belajar",
+      "short_name": "Roadmap",
+      "description": "Lihat jalur belajar SKD kamu",
+      "url": "/roadmap",
+      "icons": [{ "src": "/images/Logo.svg", "sizes": "any" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
+}

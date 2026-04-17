@@ -64,7 +64,7 @@ export default async function PackageDetailPage({
         </Link>
 
         {/* ── HERO ──────────────────────────────────────────────────── */}
-        <div className="relative bg-slate-800 rounded-2xl p-6 md:p-8 overflow-hidden shadow-xl">
+        <div className="relative bg-pn-navy rounded-2xl p-5 md:p-8 overflow-hidden shadow-xl">
           <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400 rounded-full opacity-10 blur-3xl -translate-y-1/4 translate-x-1/4 pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -79,7 +79,7 @@ export default async function PackageDetailPage({
                 </span>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
+              <h1 className="text-2xl md:text-4xl font-bold mb-3 md:mb-4 tracking-tight">
                 {packageData.title}
               </h1>
 
@@ -120,7 +120,7 @@ export default async function PackageDetailPage({
         {/* ── QUICK STATS ───────────────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-4">
           {/* Row 1: Total Soal + Durasi */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-4 shadow-sm hover:border-yellow-400 transition-colors">
+          <div className="bg-white p-5 rounded-xl flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
             <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
               <FileText size={20} />
             </div>
@@ -130,7 +130,7 @@ export default async function PackageDetailPage({
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center gap-4 shadow-sm hover:border-yellow-400 transition-colors">
+          <div className="bg-white p-5 rounded-xl flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
             <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
               <Clock size={20} />
             </div>
@@ -158,7 +158,7 @@ export default async function PackageDetailPage({
         <div className="grid md:grid-cols-2 gap-6">
 
           {/* Passing Grade */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="border-b border-slate-100 bg-slate-50/50 px-5 py-4 flex items-center gap-2">
               <Target size={18} className="text-yellow-600" />
               <h3 className="font-bold text-slate-800">Target Passing Grade</h3>
@@ -192,7 +192,7 @@ export default async function PackageDetailPage({
           </div>
 
           {/* Distribusi Soal */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="border-b border-slate-100 bg-slate-50/50 px-5 py-4 flex items-center gap-2">
               <FileText size={18} className="text-slate-600" />
               <h3 className="font-bold text-slate-800">Distribusi Jumlah Soal</h3>
@@ -211,7 +211,7 @@ export default async function PackageDetailPage({
                   { label: 'TIU', count: distribution.tiu, dot: 'bg-emerald-500' },
                   { label: 'TKP', count: distribution.tkp, dot: 'bg-purple-500'  },
                 ].map(item => (
-                  <div key={item.label} className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
+                  <div key={item.label} className="bg-[#eff4ff] rounded-xl p-3 text-center">
                     <div className={`w-2 h-2 rounded-full ${item.dot} mx-auto mb-2`} />
                     <p className="text-2xl font-black text-slate-800 leading-none mb-1">{item.count}</p>
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Soal {item.label}</p>

@@ -3,10 +3,13 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
+import { MobileHeader }       from '@/components/mobile/MobileHeader';
+import { MobilePaymentStatus } from '@/components/mobile/MobilePaymentStatus';
 import {
   Clock, Copy, Check, ChevronDown, ChevronUp,
   Loader2, CheckCircle2, XCircle, RefreshCw, Tag, ChevronRight,
-  CreditCard,
+  CreditCard, X,
 } from 'lucide-react';
 import {
   PAYMENT_METHODS, METHOD_LOGOS, VA_INSTRUCTIONS, CSTORE_INSTRUCTIONS,
@@ -49,6 +52,7 @@ type Step = 1 | 2;
 
 export default function PembayaranPage({ params }: { params: Promise<{ orderId: string }> }) {
   const router = useRouter();
+  const { user } = useUser();
   const { orderId } = use(params);
 
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -319,7 +323,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
 
   return (
     <>
-      {/* Payment Method Modal */}
+      {/* Payment Method Modal — rendered outside wrappers, works on all breakpoints */}
       {showMethodModal && (
         <PaymentMethodModal
           selected={selectedMethod}
@@ -328,7 +332,52 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         />
       )}
 
-      <div className="min-h-screen bg-slate-50 py-8 px-4">
+      {/* ── Mobile ────────────────────────────────────────────── */}
+      <div className="md:hidden">
+        <MobileHeader
+          userImageUrl={user?.imageUrl ?? null}
+          userInitials={user ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || 'U' : 'U'}
+        />
+        {order && (
+          <MobilePaymentStatus
+            orderId={order.orderId}
+            status={order.status}
+            totalAmount={totalDisplay}
+            vaNumber={order.vaNumber ?? null}
+            bankName={activeMethod?.name ?? null}
+            expiredAt={order.expiredAt}
+            packageName={order.packageName}
+            onCheckStatus={handleCheckStatus}
+          />
+        )}
+        {order && step === 1 && (
+          <div className="fixed bottom-0 left-0 w-full p-6 bg-white/80 backdrop-blur-xl border-t border-md-outline-variant/10 z-50">
+            <div className="max-w-md mx-auto space-y-3">
+              <button
+                onClick={() => setShowMethodModal(true)}
+                className="w-full font-extrabold py-4 rounded-xl bg-md-secondary-container text-md-primary text-sm"
+                style={{ fontFamily: 'var(--font-jakarta)' }}
+              >
+                {selectedMethod ? `Bayar dengan ${selectedMethod.name}` : 'Pilih Metode Pembayaran'}
+              </button>
+              {selectedMethod && (
+                <button
+                  onClick={handleLanjutkan}
+                  disabled={loadingMethod}
+                  className="w-full font-extrabold py-4 rounded-xl bg-md-primary text-white text-sm flex items-center justify-center gap-2"
+                  style={{ fontFamily: 'var(--font-jakarta)' }}
+                >
+                  {loadingMethod && <Loader2 size={16} className="animate-spin" />}
+                  Lanjutkan Pembayaran
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Desktop ───────────────────────────────────────────── */}
+      <div className="hidden md:block min-h-screen bg-slate-50 py-8 px-4">
         <div className="max-w-2xl mx-auto space-y-4">
 
           {/* Step indicator */}
@@ -546,7 +595,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
                   </button>
                 </div>
 
-                <div className="px-5 py-4 grid grid-cols-3 gap-4">
+                <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <p className="text-xs text-slate-400 mb-2">Metode Pembayaran</p>
                     {activeMethod && METHOD_LOGOS[activeMethod.id] && (

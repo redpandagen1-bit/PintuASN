@@ -142,7 +142,7 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
     <div className="space-y-5 pb-10">
 
       {/* ── HERO HEADER ──────────────────────────────────────────────── */}
-      <div className="bg-slate-800 rounded-2xl p-6 md:p-8 overflow-hidden shadow-xl relative">
+      <div className="bg-pn-navy rounded-2xl p-6 md:p-8 overflow-hidden shadow-xl relative">
         <div className="absolute right-0 top-0 w-64 h-64 bg-yellow-400 rounded-full opacity-10 blur-3xl -translate-y-1/4 translate-x-1/4 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-6">
@@ -216,7 +216,7 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
-                    ? 'bg-slate-800 text-yellow-400'
+                    ? 'bg-pn-navy text-pn-gold'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
                 }`}
               >
@@ -317,7 +317,7 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
                         onClick={() => set('gender', g)}
                         className={`flex flex-col items-center justify-center py-5 border-2 rounded-2xl transition-all duration-200 ${
                           form.gender === g
-                            ? 'border-slate-800 bg-slate-800 text-white shadow-md'
+                            ? 'border-pn-navy bg-pn-navy text-white shadow-md'
                             : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-white'
                         }`}
                       >
@@ -410,7 +410,7 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
                 <button
                   onClick={handleSave}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-6 py-2.5 bg-pn-navy text-white rounded-xl text-sm font-bold hover:bg-pn-navy-mid transition-colors disabled:opacity-50"
                 >
                   <Save size={15} />
                   {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -429,7 +429,7 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
               <div className="h-px bg-slate-100" />
 
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 flex flex-col items-center text-center gap-3">
-                <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center">
+                <div className="w-14 h-14 bg-pn-navy rounded-xl flex items-center justify-center">
                   <Shield size={24} className="text-yellow-400" />
                 </div>
                 <h3 className="font-bold text-slate-800">Kelola via Clerk</h3>
@@ -441,7 +441,7 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
                   href="https://accounts.pintuasn.com/user"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 transition-colors"
+                  className="px-5 py-2.5 bg-pn-navy text-white rounded-xl text-sm font-bold hover:bg-pn-navy-mid transition-colors"
                 >
                   Kelola Keamanan Akun
                 </a>
@@ -481,7 +481,7 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
 
               {profile.subscription_tier === 'free' && (
                 <a href="/pricing">
-                  <button className="w-full py-3 bg-slate-800 text-yellow-400 font-bold rounded-xl hover:bg-slate-700 transition-colors flex items-center justify-center gap-2">
+                  <button className="w-full py-3 bg-pn-navy text-pn-gold font-bold rounded-xl hover:bg-pn-navy-mid transition-colors flex items-center justify-center gap-2">
                     <Star size={16} fill="currentColor" />
                     Upgrade Sekarang
                   </button>

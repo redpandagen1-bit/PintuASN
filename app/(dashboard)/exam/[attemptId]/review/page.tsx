@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import { getReviewData } from '@/lib/supabase/queries';
 import ReviewContent from './review-content';
+import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
+import { MobilePembahasan }  from '@/components/mobile/MobilePembahasan';
 
 export default async function ReviewPage({ 
   params 
@@ -11,8 +13,15 @@ export default async function ReviewPage({
   const reviewData = await getReviewData(attemptId);
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ReviewContent reviewData={reviewData} />
-    </Suspense>
+    <>
+      <MobilePageWrapper>
+        <MobilePembahasan reviewData={reviewData} />
+      </MobilePageWrapper>
+      <div className="hidden md:block">
+        <Suspense fallback={<div>Loading...</div>}>
+          <ReviewContent reviewData={reviewData} />
+        </Suspense>
+      </div>
+    </>
   );
 }

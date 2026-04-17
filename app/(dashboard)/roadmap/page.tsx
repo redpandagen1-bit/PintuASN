@@ -8,6 +8,8 @@ import { getRoadmapStats } from '@/lib/supabase/queries';
 import { createClient }   from '@/lib/supabase/server';
 import { RoadmapContent } from './roadmap-content';
 import type { ReminderPreference } from '@/types/roadmap';
+import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
+import { MobileRoadmap }     from '@/components/mobile/MobileRoadmap';
 
 export const metadata = {
   title:       'Roadmap Belajar | PintuASN',
@@ -56,10 +58,20 @@ export default async function RoadmapPage() {
   );
 
   return (
-    <RoadmapContent
-      stats={stats}
-      savedPreference={savedPreference}
-      studyHistory={studyHistory}
-    />
+    <>
+      {/* ── Mobile ── */}
+      <MobilePageWrapper>
+        <MobileRoadmap stats={stats} />
+      </MobilePageWrapper>
+
+      {/* ── Desktop ── */}
+      <div className="hidden md:block">
+        <RoadmapContent
+          stats={stats}
+          savedPreference={savedPreference}
+          studyHistory={studyHistory}
+        />
+      </div>
+    </>
   );
 }

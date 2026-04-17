@@ -1,10 +1,29 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import type { Metadata, Viewport } from 'next';
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from 'sonner';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+});
+
+export const viewport: Viewport = {
+  themeColor: '#091426',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   title: 'PintuASN – Simulasi CAT SKD CPNS Terpercaya 2026',
@@ -14,6 +33,15 @@ export const metadata: Metadata = {
   },
   keywords: 'tryout CPNS, simulasi CAT BKN, SKD CPNS 2026, latihan soal CPNS, TWK TIU TKP, pintuasn',
   metadataBase: new URL('https://pintuasn.com'),
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'PintuASN',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: 'PintuASN – Simulasi CAT SKD CPNS Terpercaya 2026',
     description: 'Tryout SKD CPNS online 99% mirip BKN. Ranking nasional, analitik mendalam.',
@@ -36,8 +64,8 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="id">
-        <body className={inter.className}>
+      <html lang="id" className={`${inter.variable} ${jakarta.variable}`}>
+        <body className={`${inter.className} tap-none overscroll-none`}>
           {children}
           <Toaster position="top-right" richColors />
         </body>

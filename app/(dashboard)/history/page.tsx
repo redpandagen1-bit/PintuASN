@@ -2,15 +2,17 @@ import { Suspense } from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import { getAttemptHistory, getUserStats, getUserTier } from '@/lib/supabase/queries';
 import HistoryContent from './history-content';
+import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
+import { MobileRiwayat }     from '@/components/mobile/MobileRiwayat';
 
 async function HistoryPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     sort?: string;
     filter?: string;
     page?: string;
-  };
+  }>;
 }) {
   const user = await currentUser();
   if (!user) {
@@ -18,10 +20,11 @@ async function HistoryPage({
   }
 
   const userId = user.id;
+  const params = await searchParams;
 
-  const sortBy = (searchParams.sort as 'newest' | 'oldest' | 'highest_score') || 'newest';
-  const filterBy = (searchParams.filter as 'all' | 'passed' | 'failed') || 'all';
-  const page = parseInt(searchParams.page || '1');
+  const sortBy   = (params.sort   as 'newest' | 'oldest' | 'highest_score') || 'newest';
+  const filterBy = (params.filter as 'all' | 'passed' | 'failed')           || 'all';
+  const page     = parseInt(params.page || '1');
 
   const [historyData, stats, userTier] = await Promise.all([
     getAttemptHistory(userId, sortBy, filterBy, page),
@@ -30,15 +33,31 @@ async function HistoryPage({
   ]);
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HistoryContent
-        initialHistory={historyData}
-        initialStats={stats}
-        initialSort={sortBy}
-        initialFilter={filterBy}
-        userTier={userTier}
-      />
-    </Suspense>
+    <>
+      {/* ── Mobile ── */}
+      <MobilePageWrapper>
+        <MobileRiwayat
+          initialHistory={historyData}
+          initialStats={stats}
+          initialSort={sortBy}
+          initialFilter={filterBy}
+          userTier={userTier}
+        />
+      </MobilePageWrapper>
+
+      {/* ── Desktop ── */}
+      <div className="hidden md:block">
+        <Suspense fallback={<div>Loading...</div>}>
+          <HistoryContent
+            initialHistory={historyData}
+            initialStats={stats}
+            initialSort={sortBy}
+            initialFilter={filterBy}
+            userTier={userTier}
+          />
+        </Suspense>
+      </div>
+    </>
   );
 }
 

@@ -1,8 +1,10 @@
-import { Suspense } from 'react';
-import { currentUser } from '@clerk/nextjs/server';
+import { Suspense }           from 'react';
+import { currentUser }        from '@clerk/nextjs/server';
 import { getProfile, getUserStats } from '@/lib/supabase/queries';
-import { createClient } from '@/lib/supabase/server';
-import ProfileContent from './profile-content';
+import { createClient }       from '@/lib/supabase/server';
+import ProfileContent         from './profile-content';
+import { MobilePageWrapper }  from '@/components/mobile/MobilePageWrapper';
+import { MobileProfile }      from '@/components/mobile/MobileProfile';
 
 export default async function ProfilePage() {
   const user = await currentUser();
@@ -51,11 +53,24 @@ export default async function ProfilePage() {
   const stats = await getUserStats(userId);
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ProfileContent 
-        initialProfile={profile}
-        initialStats={stats}
-      />
-    </Suspense>
+    <>
+      {/* ── Mobile ── */}
+      <MobilePageWrapper>
+        <MobileProfile
+          initialProfile={profile!}
+          initialStats={stats}
+        />
+      </MobilePageWrapper>
+
+      {/* ── Desktop ── */}
+      <div className="hidden md:block">
+        <Suspense fallback={<div>Loading...</div>}>
+          <ProfileContent
+            initialProfile={profile!}
+            initialStats={stats}
+          />
+        </Suspense>
+      </div>
+    </>
   );
 }

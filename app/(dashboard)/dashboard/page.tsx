@@ -96,16 +96,16 @@ async function DashboardContent() {
 
       {/* Statistik Belajar */}
       <section className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-3xl p-5 md:p-7 shadow-lg border border-slate-600 space-y-5">
-        <div className="flex items-end justify-between">
+        <div className="flex flex-row items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-lg md:text-xl font-bold text-white">
               Statistik <span className="text-yellow-400">Belajar</span>
             </h2>
-            <p className="text-slate-300 text-xs mt-1">Pantau perkembangan belajarmu.</p>
+            <p className="text-slate-300 text-xs mt-0.5">Pantau perkembangan belajarmu.</p>
           </div>
-          <Link href="/statistics">
-            <Button className="bg-white text-slate-800 hover:bg-slate-100 flex items-center gap-1 px-4 py-2 font-semibold text-sm">
-              Lihat Detail <ChevronRight size={15} />
+          <Link href="/statistics" className="flex-shrink-0">
+            <Button className="bg-white text-slate-800 hover:bg-slate-100 flex items-center gap-1 px-3 md:px-4 py-2 font-semibold text-xs md:text-sm">
+              Lihat Detail <ChevronRight size={13} />
             </Button>
           </Link>
         </div>
