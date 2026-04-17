@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BarChart2, Map, User } from 'lucide-react';
+import { Home, BarChart2, Map, User } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'home',     label: 'Home',      href: '/dashboard',   icon: LayoutDashboard },
+  { id: 'home',     label: 'Home',      href: '/dashboard',   icon: Home },
   { id: 'statistik',label: 'Statistik', href: '/statistics',  icon: BarChart2 },
   { id: 'roadmap',  label: 'Roadmap',   href: '/roadmap',     icon: Map },
   { id: 'akun',     label: 'Akun',      href: '/profile',     icon: User },

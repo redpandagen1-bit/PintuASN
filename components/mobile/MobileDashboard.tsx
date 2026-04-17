@@ -6,8 +6,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  BookOpen, PlayCircle, History,
-  ShoppingCart, Zap, Users,
+  BookOpen, ClipboardList, History,
+  ShoppingCart, Megaphone, Users, Zap,
   ChevronRight, Play, Clock,
   BookMarked, CheckCircle, BarChart2,
   Award, TrendingUp, FileText,
@@ -53,10 +53,10 @@ interface MobileDashboardProps {
 
 const MENU_ITEMS = [
   { label: 'Materi',        href: '/materi',        Icon: BookOpen,   gold: false },
-  { label: 'Daftar Tryout', href: '/daftar-tryout', Icon: PlayCircle, gold: false },
+  { label: 'Daftar Tryout', href: '/daftar-tryout', Icon: ClipboardList, gold: false },
   { label: 'Riwayat',       href: '/history',       Icon: History,    gold: false },
   { label: 'Beli Paket',    href: '/beli-paket',    Icon: ShoppingCart, gold: true },
-  { label: 'Event & Promo', href: '/events-promo',  Icon: Zap,        gold: false },
+  { label: 'Event & Promo', href: '/events-promo',  Icon: Megaphone, gold: false },
   { label: 'Grup',          href: '/roadmap',       Icon: Users,      gold: false },
 ] as const;
 

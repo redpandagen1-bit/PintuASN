@@ -7,10 +7,10 @@ import {
   LayoutDashboard,
   BarChart2,
   BookOpen,
-  PlayCircle,
+  ClipboardList,
   History,
   ShoppingCart,
-  Zap,
+  Megaphone,
   Users,
   Crown,
   Trophy,
@@ -24,15 +24,15 @@ const ICON_MAP = {
   LayoutDashboard,
   BarChart2,
   BookOpen,
-  PlayCircle,
+  ClipboardList,
   History,
   ShoppingCart,
-  Zap,
+  Megaphone,
   Users,
 };
 
 const SECONDARY_ITEMS = [
-  { id: 'event-promo', label: 'Event & Promo', href: '/events-promo', icon: 'Zap'   },
+  { id: 'event-promo', label: 'Event & Promo', href: '/events-promo', icon: 'Megaphone' },
   { id: 'grup',        label: 'Grup',          href: '/grup',         icon: 'Users' },
 ];
 
