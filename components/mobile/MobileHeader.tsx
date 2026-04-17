@@ -4,6 +4,7 @@
 // Sticky top app bar for mobile PWA — avatar + notification bell
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Bell } from 'lucide-react';
 
 interface MobileHeaderProps {
@@ -13,12 +14,16 @@ interface MobileHeaderProps {
 
 export function MobileHeader({ userImageUrl, userInitials = 'U' }: MobileHeaderProps) {
   return (
-    <header className="md:hidden sticky top-0 z-50 flex items-center justify-between px-5 py-2.5 w-full bg-md-surface-container-low">
-      {/* Logo / brand slot — kiri */}
-      <span className="text-sm font-extrabold text-md-primary tracking-tight"
-        style={{ fontFamily: 'var(--font-jakarta)' }}>
-        PintuASN
-      </span>
+    <header className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-2.5 bg-md-surface-container-low">
+      {/* Logo */}
+      <Image
+        src="/images/logo-navbar.svg"
+        alt="PintuASN"
+        width={100}
+        height={28}
+        priority
+        className="h-7 w-auto"
+      />
 
       {/* Right side: notifikasi + avatar */}
       <div className="flex items-center gap-2">

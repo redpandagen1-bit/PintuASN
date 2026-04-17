@@ -22,6 +22,8 @@ export async function MobilePageWrapper({ children }: MobilePageWrapperProps) {
         userImageUrl={user?.imageUrl ?? null}
         userInitials={initials}
       />
+      {/* Spacer untuk fixed header — tinggi = py-2.5*2 + h-7 logo = 20+28 = 48px */}
+      <div className="h-12" />
       {children}
     </div>
   );
