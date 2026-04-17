@@ -9,7 +9,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, ReferenceLine,
 } from 'recharts';
-import { TrendingUp, ChevronRight, Trophy, Target, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { TrendingUp, ChevronRight, Trophy, Target, AlertTriangle, CheckCircle2, XCircle, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // ── Types ─────────────────────────────────────────────────────
@@ -166,19 +166,28 @@ export function MobileStatistik({ data, ranking }: MobileStatistikProps) {
   return (
     <main className="pb-28">
 
-      {/* ── Page header ────────────────────────────────────────── */}
-      <section className="px-5 pt-5 pb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-extrabold text-md-primary tracking-tight"
+      {/* ── Page header — matches desktop hero ────────────────── */}
+      <section className="mx-4 mt-4 mb-4 bg-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-4">
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
+
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-3">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
+            <span className="text-xs font-medium text-slate-300">Overview Performa</span>
+          </div>
+          <h1 className="text-xl font-extrabold text-white tracking-tight mb-1"
             style={{ fontFamily: 'var(--font-jakarta)' }}>
-            Statistik Performa
+            Statistik <span className="text-yellow-400">Performa</span>
           </h1>
-          <p className="text-xs text-md-on-surface-variant font-medium mt-0.5">
+          <p className="text-xs font-medium text-slate-300 leading-relaxed">
             Analisis kemajuan belajar Anda
           </p>
         </div>
-        <div className="w-10 h-10 bg-md-secondary-container rounded-xl flex items-center justify-center shadow-md3-sm flex-shrink-0">
-          <TrendingUp size={20} className="text-md-primary" strokeWidth={2.5} />
+
+        <div className="relative z-10 flex items-center justify-center w-14 h-14 bg-slate-700/40 rounded-2xl border border-slate-600 shadow-inner rotate-3 flex-shrink-0">
+          <BarChart2 size={28} className="text-yellow-400" />
         </div>
       </section>
 
