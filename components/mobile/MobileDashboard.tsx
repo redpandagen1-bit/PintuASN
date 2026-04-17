@@ -92,27 +92,6 @@ export function MobileDashboard({
   return (
     <main className="space-y-6 pb-28">
 
-      {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
-      <section className="px-4">
-        <div className="grid grid-cols-3 gap-4">
-          {MENU_ITEMS.map(({ label, href, Icon, gold }) => (
-            <Link key={label} href={href} className="flex flex-col items-center gap-2 group active-press">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-md3-sm flex items-center justify-center transition-all group-active:scale-95">
-                <Icon
-                  size={22}
-                  className={gold ? 'text-md-secondary' : 'text-md-primary'}
-                  strokeWidth={1.8}
-                />
-              </div>
-              <span className="text-[10px] font-bold text-md-primary text-center leading-tight"
-                style={{ fontFamily: 'var(--font-jakarta)' }}>
-                {label}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
       {/* ── Premium CTA Banner ───────────────────────────────── */}
       <section className="px-4">
         <div className="bg-md-secondary-container/10 rounded-3xl p-5 relative overflow-hidden flex items-center justify-between">
@@ -141,6 +120,27 @@ export function MobileDashboard({
               <Zap size={14} />
             </button>
           </Link>
+        </div>
+      </section>
+
+      {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
+      <section className="px-4">
+        <div className="grid grid-cols-3 gap-4">
+          {MENU_ITEMS.map(({ label, href, Icon, gold }) => (
+            <Link key={label} href={href} className="flex flex-col items-center gap-2 group active-press">
+              <div className="w-14 h-14 rounded-2xl bg-white shadow-md3-sm flex items-center justify-center transition-all group-active:scale-95">
+                <Icon
+                  size={22}
+                  className={gold ? 'text-md-secondary' : 'text-md-primary'}
+                  strokeWidth={1.8}
+                />
+              </div>
+              <span className="text-[10px] font-bold text-md-primary text-center leading-tight"
+                style={{ fontFamily: 'var(--font-jakarta)' }}>
+                {label}
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 
