@@ -92,47 +92,6 @@ export function MobileDashboard({
   return (
     <main className="space-y-6 pb-28">
 
-      {/* ── Mini Statistik Belajar ─────────────────────────────── */}
-      <section className="mx-4">
-        <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-2xl p-4 shadow-lg border border-slate-600">
-          {/* Header row */}
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-sm font-bold text-white" style={{ fontFamily: 'var(--font-jakarta)' }}>
-                Statistik <span className="text-yellow-400">Belajar</span>
-              </h2>
-              <p className="text-slate-400 text-[10px] mt-0.5">Pantau perkembangan belajarmu.</p>
-            </div>
-            <Link href="/statistics">
-              <span className="bg-white/10 border border-white/20 text-white text-[10px] font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1">
-                Detail <ChevronRight size={11} />
-              </span>
-            </Link>
-          </div>
-
-          {/* 1 row — 4 stat */}
-          <div className="grid grid-cols-4 gap-1.5">
-            {[
-              { label: 'Selesai',   value: completedCount, Icon: CheckCircle },
-              { label: 'Rata-rata', value: averageScore,   Icon: BarChart2   },
-              { label: 'Peringkat', value: rankingDisplay, Icon: Award       },
-              { label: 'Terbaik',   value: bestScore,      Icon: TrendingUp  },
-            ].map(({ label, value, Icon }) => (
-              <div key={label} className="bg-slate-700/50 rounded-xl py-2.5 px-1.5 flex flex-col items-center gap-1">
-                <Icon size={13} className="text-yellow-400" strokeWidth={2} />
-                <p className="text-white font-extrabold text-sm leading-none text-center"
-                  style={{ fontFamily: 'var(--font-jakarta)' }}>
-                  {value}
-                </p>
-                <p className="text-slate-400 text-[8px] font-medium leading-tight text-center">
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
       <section className="px-4">
         <div className="grid grid-cols-3 gap-4">
@@ -182,6 +141,44 @@ export function MobileDashboard({
               <Zap size={14} />
             </button>
           </Link>
+        </div>
+      </section>
+
+      {/* ── Mini Statistik Belajar ─────────────────────────────── */}
+      <section className="mx-4">
+        <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-2xl p-4 shadow-lg border border-slate-600">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-bold text-white" style={{ fontFamily: 'var(--font-jakarta)' }}>
+                Statistik <span className="text-yellow-400">Belajar</span>
+              </h2>
+              <p className="text-slate-400 text-[10px] mt-0.5">Pantau perkembangan belajarmu.</p>
+            </div>
+            <Link href="/statistics">
+              <span className="bg-white/10 border border-white/20 text-white text-[10px] font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1">
+                Detail <ChevronRight size={11} />
+              </span>
+            </Link>
+          </div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {[
+              { label: 'Selesai',   value: completedCount, Icon: CheckCircle },
+              { label: 'Rata-rata', value: averageScore,   Icon: BarChart2   },
+              { label: 'Peringkat', value: rankingDisplay, Icon: Award       },
+              { label: 'Terbaik',   value: bestScore,      Icon: TrendingUp  },
+            ].map(({ label, value, Icon }) => (
+              <div key={label} className="bg-slate-700/50 rounded-xl py-2.5 px-1.5 flex flex-col items-center gap-1">
+                <Icon size={13} className="text-yellow-400" strokeWidth={2} />
+                <p className="text-white font-extrabold text-sm leading-none text-center"
+                  style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  {value}
+                </p>
+                <p className="text-slate-400 text-[8px] font-medium leading-tight text-center">
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
