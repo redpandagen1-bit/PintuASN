@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation';
 import { currentUser } from '@clerk/nextjs/server';
 import { getPackageById, getUserAttempts } from '@/lib/supabase/queries';
 import { ExamInstructionsModal } from '@/components/exam/exam-instructions-modal';
+import { MobilePageWrapper }    from '@/components/mobile/MobilePageWrapper';
+import { MobilePackageDetail }  from '@/components/mobile/MobilePackageDetail';
 import {
   Clock,
   FileText,
@@ -52,7 +54,19 @@ export default async function PackageDetailPage({
   const passingGrade = { twk: 65, tiu: 80, tkp: 166 };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 md:pb-8">
+    <>
+      <MobilePageWrapper>
+        <MobilePackageDetail
+          packageId={id}
+          title={packageData.title}
+          description={packageData.description}
+          difficulty={packageData.difficulty}
+          tier={(packageData as any).tier ?? null}
+          hasActiveAttempt={!!activeAttempt}
+          activeAttemptId={activeAttempt?.id ?? null}
+        />
+      </MobilePageWrapper>
+      <div className="hidden md:block min-h-screen bg-slate-50 pb-20 md:pb-8">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
         {/* Back */}
@@ -239,5 +253,6 @@ export default async function PackageDetailPage({
         )}
       </div>
     </div>
+    </>
   );
 }

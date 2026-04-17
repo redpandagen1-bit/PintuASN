@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Clock, BookOpen, Lock, ArrowRight } from 'lucide-react';
+import { Search, Clock, BookOpen, Lock, ArrowRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 import { canAccess } from '@/lib/subscription-utils';
@@ -56,16 +56,71 @@ const TIER_BADGE: Record<string, { label: string; cls: string }> = {
   platinum: { label: 'PLATINUM', cls: 'bg-white/10 text-md-secondary-container backdrop-blur-md' },
 };
 
+// ── Upgrade Modal ─────────────────────────────────────────────
+
+function UpgradeModal({
+  requiredTier,
+  onClose,
+}: {
+  requiredTier: string;
+  onClose:      () => void;
+}) {
+  const tierLabel = requiredTier === 'platinum' ? 'Platinum' : 'Premium';
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div
+        className="relative bg-white rounded-t-3xl w-full max-w-md p-8 text-center"
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-md-surface-container"
+        >
+          <X size={16} className="text-md-on-surface-variant" />
+        </button>
+
+        <div className="w-16 h-16 bg-md-surface-container-low rounded-2xl flex items-center justify-center mx-auto mb-5">
+          <Lock size={30} className="text-md-primary" />
+        </div>
+        <h3 className="font-extrabold text-xl text-md-primary mb-2"
+          style={{ fontFamily: 'var(--font-jakarta)' }}>
+          Paket {tierLabel} Diperlukan
+        </h3>
+        <p className="text-md-on-surface-variant text-sm mb-8 leading-relaxed">
+          Tryout ini hanya tersedia untuk pengguna paket <strong>{tierLabel}</strong>.
+          Upgrade sekarang untuk akses penuh.
+        </p>
+        <div className="space-y-3">
+          <Link href="/beli-paket" onClick={onClose}>
+            <button className="w-full bg-md-primary text-white font-extrabold py-4 rounded-2xl text-sm active-press">
+              Upgrade ke {tierLabel}
+            </button>
+          </Link>
+          <button
+            onClick={onClose}
+            className="w-full text-md-on-surface-variant text-sm py-2"
+          >
+            Nanti saja
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Card ──────────────────────────────────────────────────────
 
 function TryoutCard({
   pkg,
   hasActiveAttempt,
   userTier,
+  onLocked,
 }: {
   pkg:              PackageData;
   hasActiveAttempt: boolean;
   userTier:         SubscriptionTier;
+  onLocked:         (tier: string) => void;
 }) {
   const tier       = (pkg.tier ?? 'free') as string;
   const badge      = TIER_BADGE[tier] ?? TIER_BADGE.free;
@@ -97,7 +152,7 @@ function TryoutCard({
       : 'bg-md-surface-container-low text-md-primary',
   );
 
-  const href = locked ? '/beli-paket' : `/exam/${pkg.id}/start`;
+  const href = locked ? null : `/exam/${pkg.id}/start`;
 
   return (
     <div className={cardCls}>
@@ -148,12 +203,19 @@ function TryoutCard({
       </div>
 
       {/* CTA */}
-      <Link href={href}>
-        <button className={ctaCls}>
-          {locked ? <Lock size={16} /> : hasActiveAttempt ? <ArrowRight size={16} /> : null}
+      {href ? (
+        <Link href={href}>
+          <button className={ctaCls}>
+            {hasActiveAttempt ? <ArrowRight size={16} /> : null}
+            {ctaLabel}
+          </button>
+        </Link>
+      ) : (
+        <button className={ctaCls} onClick={() => onLocked(tier)}>
+          <Lock size={16} />
           {ctaLabel}
         </button>
-      </Link>
+      )}
     </div>
   );
 }
@@ -161,8 +223,9 @@ function TryoutCard({
 // ── Component ─────────────────────────────────────────────────
 
 export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier }: MobileDaftarTryoutProps) {
-  const [search, setSearch]         = useState('');
-  const [tierFilter, setTierFilter] = useState<TierFilter>('Semua');
+  const [search, setSearch]             = useState('');
+  const [tierFilter, setTierFilter]     = useState<TierFilter>('Semua');
+  const [lockedTier, setLockedTier]     = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return packages.filter(pkg => {
@@ -173,6 +236,10 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
   }, [packages, search, tierFilter]);
 
   return (
+    <>
+    {lockedTier && (
+      <UpgradeModal requiredTier={lockedTier} onClose={() => setLockedTier(null)} />
+    )}
     <main className="pb-32 px-6 pt-6">
 
       {/* ── Hero Title ────────────────────────────────────────── */}
@@ -229,10 +296,12 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
               pkg={pkg}
               hasActiveAttempt={packageIdsWithAttempts.includes(pkg.id)}
               userTier={userTier}
+              onLocked={tier => setLockedTier(tier)}
             />
           ))
         )}
       </div>
     </main>
+    </>
   );
 }

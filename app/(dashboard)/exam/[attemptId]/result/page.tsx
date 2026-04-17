@@ -162,6 +162,8 @@ export default async function ResultPage({ params }: ResultPageProps) {
           attemptHistory={data.attemptHistory}
           completedAt={data.attempt.completed_at}
           packageTitle={data.packageInfo?.title ?? null}
+          leaderboard={data.leaderboard}
+          userId={userId}
         />
       </MobilePageWrapper>
       <div className="hidden md:block">

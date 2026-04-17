@@ -7,6 +7,8 @@ import { currentUser } from '@clerk/nextjs/server';
 import { getAllMaterials, getUserTier } from '@/lib/supabase/queries';
 import MateriPageClient from './materi-client';
 import { Skeleton }    from '@/components/ui/skeleton';
+import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
+import { MobileMateri }      from '@/components/mobile/MobileMateri';
 
 export interface Material {
   id:               string;
@@ -36,10 +38,14 @@ async function MateriContent() {
   ]);
 
   return (
-    <MateriPageClient
-      materials={materials as Material[]}
-      userTier={userTier}
-    />
+    <>
+      <MobilePageWrapper>
+        <MobileMateri materials={materials as Material[]} userTier={userTier} />
+      </MobilePageWrapper>
+      <div className="hidden md:block">
+        <MateriPageClient materials={materials as Material[]} userTier={userTier} />
+      </div>
+    </>
   );
 }
 

@@ -17,6 +17,8 @@ import Link              from 'next/link';
 import { ChevronRight }  from 'lucide-react';
 import { Skeleton }      from '@/components/ui/skeleton';
 import PaymentSuccessToast from '@/components/shared/payment-success-toast';
+import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
+import { MobileDashboard }   from '@/components/mobile/MobileDashboard';
 
 // ─────────────────────────────────────────────────────────────
 
@@ -90,54 +92,71 @@ async function DashboardContent() {
     .map(a => a.package_id);
 
   return (
-    <div className="space-y-5 pb-10">
-      <BannerSlider />
-      <FeatureGrid />
-
-      {/* Statistik Belajar */}
-      <section className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-3xl p-5 md:p-7 shadow-lg border border-slate-600 space-y-5">
-        <div className="flex flex-row items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg md:text-xl font-bold text-white">
-              Statistik <span className="text-yellow-400">Belajar</span>
-            </h2>
-            <p className="text-slate-300 text-xs mt-0.5">Pantau perkembangan belajarmu.</p>
-          </div>
-          <Link href="/statistics" className="flex-shrink-0">
-            <Button className="bg-white text-slate-800 hover:bg-slate-100 flex items-center gap-1 px-3 md:px-4 py-2 font-semibold text-xs md:text-sm">
-              Lihat Detail <ChevronRight size={13} />
-            </Button>
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Tryout Selesai"     value={completedAttempts.length} iconName="CheckCircle" iconColor="text-yellow-400" iconBg="bg-slate-800" />
-          <StatCard label="Rata-rata Skor"     value={averageScore}             iconName="BarChart2"   iconColor="text-yellow-400" iconBg="bg-slate-800" />
-          <StatCard label="Peringkat Nasional" value={rankingDisplay}           iconName="Award"       iconColor="text-yellow-400" iconBg="bg-slate-800" />
-          <StatCard label="Skor Terbaik"       value={bestScore}                iconName="TrendingUp"  iconColor="text-yellow-400" iconBg="bg-slate-800" />
-        </div>
-      </section>
-
-      {/* Daftar Tryout */}
-      <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-4">
-        <TryoutSection
+    <>
+      {/* ── MOBILE layout (md:hidden via MobilePageWrapper) ── */}
+      <MobilePageWrapper>
+        <MobileDashboard
+          completedCount={completedAttempts.length}
+          averageScore={averageScore}
+          bestScore={bestScore}
+          rankingDisplay={rankingDisplay}
           packages={packagesWithUserCount}
           packageIdsWithAttempts={packageIdsWithAttempts}
-          userTier={userTier}
-        />
-      </section>
-
-      {/* Materi */}
-      <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-5">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Materi</h2>
-          <p className="text-slate-500 text-xs mt-0.5">Pelajari materi persiapan CPNS 2026.</p>
-        </div>
-        <MateriTabs
           materials={materials ?? []}
           userTier={userTier}
         />
-      </section>
-    </div>
+      </MobilePageWrapper>
+
+      {/* ── DESKTOP layout (hidden on mobile) ─────────────── */}
+      <div className="hidden md:block space-y-5 pb-10">
+        <BannerSlider />
+        <FeatureGrid />
+
+        {/* Statistik Belajar */}
+        <section className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-3xl p-5 md:p-7 shadow-lg border border-slate-600 space-y-5">
+          <div className="flex flex-row items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-white">
+                Statistik <span className="text-yellow-400">Belajar</span>
+              </h2>
+              <p className="text-slate-300 text-xs mt-0.5">Pantau perkembangan belajarmu.</p>
+            </div>
+            <Link href="/statistics" className="flex-shrink-0">
+              <Button className="bg-white text-slate-800 hover:bg-slate-100 flex items-center gap-1 px-3 md:px-4 py-2 font-semibold text-xs md:text-sm">
+                Lihat Detail <ChevronRight size={13} />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard label="Tryout Selesai"     value={completedAttempts.length} iconName="CheckCircle" iconColor="text-yellow-400" iconBg="bg-slate-800" />
+            <StatCard label="Rata-rata Skor"     value={averageScore}             iconName="BarChart2"   iconColor="text-yellow-400" iconBg="bg-slate-800" />
+            <StatCard label="Peringkat Nasional" value={rankingDisplay}           iconName="Award"       iconColor="text-yellow-400" iconBg="bg-slate-800" />
+            <StatCard label="Skor Terbaik"       value={bestScore}                iconName="TrendingUp"  iconColor="text-yellow-400" iconBg="bg-slate-800" />
+          </div>
+        </section>
+
+        {/* Daftar Tryout */}
+        <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm space-y-4">
+          <TryoutSection
+            packages={packagesWithUserCount}
+            packageIdsWithAttempts={packageIdsWithAttempts}
+            userTier={userTier}
+          />
+        </section>
+
+        {/* Materi */}
+        <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-5">
+          <div>
+            <h2 className="text-xl font-bold text-slate-800">Materi</h2>
+            <p className="text-slate-500 text-xs mt-0.5">Pelajari materi persiapan CPNS 2026.</p>
+          </div>
+          <MateriTabs
+            materials={materials ?? []}
+            userTier={userTier}
+          />
+        </section>
+      </div>
+    </>
   );
 }
 

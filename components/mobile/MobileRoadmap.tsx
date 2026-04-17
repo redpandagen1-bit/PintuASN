@@ -2,7 +2,7 @@
 
 // components/mobile/MobileRoadmap.tsx
 // Mobile-only roadmap — Pathfinder Navy MD3 design
-// Vertical timeline + progress hero + milestone bento
+// Vertical timeline + progress hero + milestone bento + study calendar
 
 import { useMemo } from 'react';
 import Link from 'next/link';
@@ -14,13 +14,17 @@ import {
   getRekomendasi,
 } from '@/constants/roadmap-data';
 import type { RoadmapStats } from '@/lib/supabase/queries';
+import type { ReminderPreference } from '@/types/roadmap';
+import { StudyCalendar } from '@/components/roadmap/StudyCalendar';
 import { cn } from '@/lib/utils';
 
 interface MobileRoadmapProps {
-  stats: RoadmapStats;
+  stats:            RoadmapStats;
+  savedPreference?: ReminderPreference | null;
+  studyHistory?:    string[];
 }
 
-export function MobileRoadmap({ stats }: MobileRoadmapProps) {
+export function MobileRoadmap({ stats, savedPreference, studyHistory = [] }: MobileRoadmapProps) {
   const phases         = useMemo(() => derivePhases(stats),         [stats]);
   const categoryScores = useMemo(() => deriveCategoryScores(stats), [stats]);
   const milestones     = useMemo(() => getMilestones(stats),        [stats]);
@@ -70,7 +74,7 @@ export function MobileRoadmap({ stats }: MobileRoadmapProps) {
           {/* Category bars */}
           <div className="space-y-3">
             {categoryScores.map(cat => {
-              const pct = cat.maxScore > 0 ? Math.round((cat.score / cat.maxScore) * 100) : 0;
+              const pct = cat.passingGrade > 0 ? Math.min(100, Math.round((cat.avg / cat.passingGrade) * 100)) : 0;
               return (
                 <div key={cat.label} className="space-y-1.5">
                   <div className="flex justify-between text-[11px] font-bold uppercase tracking-wider text-md-on-surface-variant">
@@ -92,8 +96,8 @@ export function MobileRoadmap({ stats }: MobileRoadmapProps) {
         {timelinePhases.map((phase, idx) => {
           const isLast       = idx === timelinePhases.length - 1;
           const isCompleted  = phase.status === 'completed';
-          const isInProgress = phase.status === 'in_progress';
-          const isLocked     = phase.status === 'locked' || phase.status === 'pending';
+          const isInProgress = phase.status === 'active';
+          const isLocked     = phase.status === 'locked';
 
           return (
             <div key={phase.id} className="relative flex gap-5">
@@ -208,6 +212,26 @@ export function MobileRoadmap({ stats }: MobileRoadmapProps) {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── Study Calendar ────────────────────────────────────── */}
+      <section className="px-6 mt-4 pb-4">
+        <h2 className="font-bold text-lg text-md-primary mb-4"
+          style={{ fontFamily: 'var(--font-jakarta)' }}>
+          Kalender Belajar
+        </h2>
+        <StudyCalendar
+          examTargetDate={savedPreference?.examDate ? new Date(savedPreference.examDate) : null}
+          savedPreference={savedPreference}
+          studyHistory={studyHistory}
+          onSavePreference={async (pref) => {
+            await fetch('/api/profile/reminder', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(pref),
+            });
+          }}
+        />
       </section>
 
     </main>

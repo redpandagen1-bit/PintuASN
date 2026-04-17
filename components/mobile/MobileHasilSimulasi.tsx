@@ -18,6 +18,15 @@ interface AttemptHistory {
   completed_at: string | null;
 }
 
+interface LeaderboardItem {
+  id:           string;
+  rank:         number;
+  user_id:      string;
+  final_score:  number | null;
+  completed_at: string | null;
+  profiles:     { full_name: string | null; avatar_url: string | null } | null;
+}
+
 interface MobileHasilSimulasiProps {
   attemptId:         string;
   finalScore:        number | null;
@@ -30,6 +39,8 @@ interface MobileHasilSimulasiProps {
   attemptHistory:    AttemptHistory[];
   completedAt:       string | null;
   packageTitle:      string | null;
+  leaderboard?:      LeaderboardItem[];
+  userId?:           string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -60,6 +71,8 @@ export function MobileHasilSimulasi({
   totalParticipants,
   attemptHistory,
   packageTitle,
+  leaderboard = [],
+  userId,
 }: MobileHasilSimulasiProps) {
   const accuracy  = calcAccuracy(scoreTwk, scoreTiu, scoreTkp);
   const score     = finalScore ?? 0;
@@ -273,6 +286,63 @@ export function MobileHasilSimulasi({
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Leaderboard ───────────────────────────────────────── */}
+      {leaderboard.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <h2 className="font-bold text-md-primary text-lg" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              Leaderboard
+            </h2>
+            <span className="text-xs text-md-on-surface-variant">Top {Math.min(leaderboard.length, 10)}</span>
+          </div>
+          <div className="space-y-2">
+            {leaderboard.slice(0, 10).map((item) => {
+              const isCurrentUser = item.user_id === userId;
+              const medal = item.rank === 1 ? '🥇' : item.rank === 2 ? '🥈' : item.rank === 3 ? '🥉' : null;
+              const initials = item.profiles?.full_name
+                ? item.profiles.full_name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
+                : '?';
+              return (
+                <div
+                  key={item.id}
+                  className={cn(
+                    'bg-white p-4 rounded-xl flex items-center gap-3 shadow-md3-sm',
+                    isCurrentUser && 'ring-2 ring-md-secondary-container',
+                  )}
+                >
+                  <div className="w-8 flex-shrink-0 text-center">
+                    {medal
+                      ? <span className="text-lg">{medal}</span>
+                      : <span className="text-sm font-bold text-md-on-surface-variant">#{item.rank}</span>
+                    }
+                  </div>
+                  <div className="w-9 h-9 rounded-full bg-md-surface-container flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {item.profiles?.avatar_url
+                      // eslint-disable-next-line @next/next/no-img-element
+                      ? <img src={item.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                      : <span className="text-xs font-bold text-md-primary">{initials}</span>
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={cn('text-sm font-bold truncate', isCurrentUser ? 'text-md-secondary' : 'text-md-on-surface')}>
+                      {isCurrentUser ? 'Kamu' : (item.profiles?.full_name ?? 'Anonim')}
+                    </p>
+                    <p className="text-[10px] text-md-on-surface-variant">
+                      {formatDate(item.completed_at)}
+                    </p>
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    <p className="font-extrabold text-md-primary text-sm" style={{ fontFamily: 'var(--font-jakarta)' }}>
+                      {item.final_score ?? 0}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}

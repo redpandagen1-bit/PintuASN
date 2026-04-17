@@ -82,7 +82,7 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
     return (
       <>
         <div
-          className="relative bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden cursor-pointer group"
+          className="relative bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer group"
           onClick={() => setShowUpgradeModal(true)}
           role="button"
           aria-label="Buka riwayat terkunci — upgrade ke Platinum"
@@ -118,17 +118,17 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
                   </div>
                   <div className="flex items-center gap-1.5">
                     {attempt.score_twk != null && (
-                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                      <span className="px-2 py-0.5 bg-pn-surface-low rounded-md text-xs font-bold text-slate-600">
                         TWK <span className="text-slate-800">{attempt.score_twk}</span>
                       </span>
                     )}
                     {attempt.score_tiu != null && (
-                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                      <span className="px-2 py-0.5 bg-pn-surface-low rounded-md text-xs font-bold text-slate-600">
                         TIU <span className="text-slate-800">{attempt.score_tiu}</span>
                       </span>
                     )}
                     {attempt.score_tkp != null && (
-                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+                      <span className="px-2 py-0.5 bg-pn-surface-low rounded-md text-xs font-bold text-slate-600">
                         TKP <span className="text-slate-800">{attempt.score_tkp}</span>
                       </span>
                     )}
@@ -179,7 +179,7 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
 
   // ── NORMAL STATE ──────────────────────────────────────────────────────────
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       <div className="flex">
         <div className={cn('w-1 flex-shrink-0', passed ? 'bg-emerald-500' : 'bg-red-400')} />
 
@@ -227,17 +227,17 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
           {/* Score pills */}
           <div className="flex items-center gap-1.5 mb-3">
             {attempt.score_twk !== null && attempt.score_twk !== undefined && (
-              <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+              <span className="px-2 py-0.5 bg-pn-surface-low rounded-md text-xs font-bold text-slate-600">
                 TWK <span className="text-slate-800">{attempt.score_twk}</span>
               </span>
             )}
             {attempt.score_tiu !== null && attempt.score_tiu !== undefined && (
-              <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+              <span className="px-2 py-0.5 bg-pn-surface-low rounded-md text-xs font-bold text-slate-600">
                 TIU <span className="text-slate-800">{attempt.score_tiu}</span>
               </span>
             )}
             {attempt.score_tkp !== null && attempt.score_tkp !== undefined && (
-              <span className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded-md text-xs font-bold text-slate-600">
+              <span className="px-2 py-0.5 bg-pn-surface-low rounded-md text-xs font-bold text-slate-600">
                 TKP <span className="text-slate-800">{attempt.score_tkp}</span>
               </span>
             )}
@@ -262,7 +262,7 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
             <button
               onClick={handleCopyLink}
               title="Salin link hasil"
-              className="flex items-center justify-center w-9 h-9 bg-slate-50 hover:bg-yellow-50 border border-slate-200 hover:border-yellow-300 text-slate-500 hover:text-yellow-600 rounded-lg transition-colors flex-shrink-0"
+              className="flex items-center justify-center w-9 h-9 bg-pn-surface hover:bg-yellow-50 text-slate-500 hover:text-yellow-600 rounded-lg transition-colors flex-shrink-0"
             >
               {isCopied ? <Check size={13} className="text-emerald-600" /> : <Share2 size={13} />}
             </button>

@@ -3,16 +3,19 @@
 // components/mobile/MobileProfile.tsx
 // Mobile-only profile page — Pathfinder Navy MD3 design
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import Link from 'next/link';
 import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Save, LogOut, ChevronDown, Star } from 'lucide-react';
+import { Save, LogOut, ChevronDown, Star, Shield, Camera, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Profile } from '@/types/database';
 import type { UserStats } from '@/lib/supabase/queries';
 
 // ── Types ─────────────────────────────────────────────────────
+
+type ProfileTab = 'profil' | 'keamanan' | 'langganan';
 
 interface MobileProfileProps {
   initialProfile: Profile;
@@ -65,8 +68,11 @@ const selectCls = inputCls + ' appearance-none';
 // ── Component ─────────────────────────────────────────────────
 
 export function MobileProfile({ initialProfile, initialStats }: MobileProfileProps) {
-  const [profile, setProfile] = useState(initialProfile);
-  const [saving, setSaving]   = useState(false);
+  const [profile, setProfile]   = useState(initialProfile);
+  const [saving, setSaving]     = useState(false);
+  const [activeTab, setActiveTab] = useState<ProfileTab>('profil');
+  const [uploading, setUploading] = useState(false);
+  const avatarInputRef            = useRef<HTMLInputElement>(null);
   const { signOut } = useClerk();
   const router      = useRouter();
 
@@ -99,6 +105,31 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
     router.push('/sign-in');
   }
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/admin/upload/image', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal upload');
+      patch('avatar_url', data.url);
+      toast.success('Foto profil diperbarui!');
+    } catch {
+      toast.error('Gagal mengunggah foto.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  const tierInfo = {
+    free:     { label: 'Gratis',   color: 'bg-emerald-100 text-emerald-700' },
+    premium:  { label: 'Premium',  color: 'bg-blue-100 text-blue-700'       },
+    platinum: { label: 'Platinum', color: 'bg-purple-100 text-purple-700'   },
+  }[profile.subscription_tier ?? 'free'] ?? { label: 'Gratis', color: 'bg-emerald-100 text-emerald-700' };
+
   return (
     <main className="pb-32 mt-[72px]">
 
@@ -108,17 +139,39 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
           <div className="flex flex-col items-center text-center">
             {/* Avatar */}
             <div className="relative mb-4">
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name ?? 'Avatar'}
-                  className="w-24 h-24 rounded-full object-cover shadow-md3-md"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full bg-md-primary flex items-center justify-center text-white text-3xl font-extrabold shadow-md3-md">
-                  {initials}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+              <button
+                className="relative group active-press"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name ?? 'Avatar'}
+                    className="w-24 h-24 rounded-full object-cover shadow-md3-md"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-md-primary flex items-center justify-center text-white text-3xl font-extrabold shadow-md3-md">
+                    {initials}
+                  </div>
+                )}
+                {/* Camera overlay */}
+                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera size={22} className="text-white" />
                 </div>
-              )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+              </button>
               {/* Tier badge */}
               <div className={cn(
                 'absolute -bottom-1 -right-1 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase flex items-center gap-1 shadow-sm',
@@ -158,7 +211,33 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
         </div>
       </section>
 
+      {/* ── Tab Navigation ────────────────────────────────────── */}
+      <div className="px-4 mb-2">
+        <div className="bg-md-surface-container-low rounded-2xl p-1.5 flex gap-1">
+          {([
+            { id: 'profil',    label: 'Profil',     icon: <Star size={13} /> },
+            { id: 'keamanan',  label: 'Keamanan',   icon: <Shield size={13} /> },
+            { id: 'langganan', label: 'Langganan',  icon: <CreditCard size={13} /> },
+          ] as { id: ProfileTab; label: string; icon: React.ReactNode }[]).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-semibold text-xs transition-all active-press',
+                activeTab === tab.id
+                  ? 'bg-white text-md-primary shadow-md3-sm'
+                  : 'text-md-on-surface-variant',
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ── Data Diri Form ────────────────────────────────────── */}
+      {activeTab === 'profil' && (
       <section className="px-4 space-y-5">
         {/* Section label */}
         <div className="flex items-center gap-2">
@@ -329,6 +408,100 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
           Keluar Akun
         </button>
       </section>
+      )}
+
+      {/* ── Keamanan Tab ──────────────────────────────────────── */}
+      {activeTab === 'keamanan' && (
+        <section className="px-4 pt-2 space-y-5">
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-6 bg-md-secondary-container rounded-full" />
+            <h3 className="text-lg font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              Keamanan
+            </h3>
+          </div>
+
+          <div className="bg-md-surface-container-low rounded-2xl p-6 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 bg-md-primary rounded-2xl flex items-center justify-center">
+              <Shield size={24} className="text-md-secondary-container" />
+            </div>
+            <div>
+              <h4 className="font-bold text-md-on-surface mb-1">Kelola via Clerk</h4>
+              <p className="text-sm text-md-on-surface-variant leading-relaxed">
+                Password dan keamanan akun dikelola melalui sistem autentikasi Clerk.
+              </p>
+            </div>
+            <a
+              href="https://accounts.pintuasn.com/user"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-md-primary text-white font-extrabold py-4 rounded-xl text-sm flex items-center justify-center gap-2 active-press"
+            >
+              <Shield size={16} />
+              Kelola Keamanan Akun
+            </a>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 active-press"
+          >
+            <LogOut size={16} />
+            Keluar Akun
+          </button>
+        </section>
+      )}
+
+      {/* ── Langganan Tab ─────────────────────────────────────── */}
+      {activeTab === 'langganan' && (
+        <section className="px-4 pt-2 space-y-5">
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-6 bg-md-secondary-container rounded-full" />
+            <h3 className="text-lg font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              Paket Berlangganan
+            </h3>
+          </div>
+
+          <div className={cn(
+            'rounded-2xl p-6 border-2',
+            profile.subscription_tier === 'platinum' ? 'border-purple-200 bg-purple-50' :
+            profile.subscription_tier === 'premium'  ? 'border-blue-200 bg-blue-50'     :
+            'border-md-outline-variant/20 bg-md-surface-container-low',
+          )}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <CreditCard size={18} className="text-md-primary" />
+                <span className="font-bold text-md-on-surface">Paket Saat Ini</span>
+              </div>
+              <span className={cn('text-xs font-black px-3 py-1 rounded-full', tierInfo.color)}>
+                {tierInfo.label.toUpperCase()}
+              </span>
+            </div>
+            <p className="text-sm text-md-on-surface-variant">
+              {profile.subscription_tier === 'free'
+                ? 'Anda menggunakan paket gratis. Upgrade untuk akses penuh ke semua materi dan tryout premium.'
+                : `Anda memiliki akses ${tierInfo.label} ke semua konten PintuASN.`
+              }
+            </p>
+          </div>
+
+          {profile.subscription_tier === 'free' && (
+            <Link href="/beli-paket">
+              <button className="w-full bg-md-primary text-white font-extrabold py-4 rounded-xl text-sm flex items-center justify-center gap-2 active-press">
+                <Star size={16} fill="currentColor" />
+                Upgrade Sekarang
+              </button>
+            </Link>
+          )}
+
+          {profile.subscription_tier !== 'free' && (
+            <Link href="/beli-paket">
+              <button className="w-full bg-md-surface-container-low text-md-primary font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 active-press">
+                Lihat Detail Paket
+              </button>
+            </Link>
+          )}
+        </section>
+      )}
 
     </main>
   );

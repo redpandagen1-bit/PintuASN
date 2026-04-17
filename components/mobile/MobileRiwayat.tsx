@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { TrendingUp, Calendar, Clock, ChevronDown } from 'lucide-react';
+import { TrendingUp, Calendar, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AttemptHistoryData, UserStats } from '@/lib/supabase/queries';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
@@ -38,6 +38,10 @@ const SORT_LABELS: Record<string, string> = {
   highest_score: 'Skor Tertinggi',
 };
 
+// ── Constants ─────────────────────────────────────────────────
+
+const PAGE_SIZE = 10;
+
 // ── Component ─────────────────────────────────────────────────
 
 export function MobileRiwayat({
@@ -49,6 +53,7 @@ export function MobileRiwayat({
   const [filter, setFilter] = useState<'all' | 'passed' | 'failed'>(initialFilter);
   const [sort, setSort]     = useState(initialSort);
   const [showSort, setShowSort] = useState(false);
+  const [page, setPage]     = useState(1);
 
   const { attempts } = initialHistory;
 
@@ -66,6 +71,14 @@ export function MobileRiwayat({
     if (sort === 'highest_score') return (b.final_score ?? 0) - (a.final_score ?? 0);
     return new Date(b.completed_at ?? '').getTime() - new Date(a.completed_at ?? '').getTime();
   });
+
+  const totalPages   = Math.ceil(sorted.length / PAGE_SIZE);
+  const paginated    = sorted.slice(0, page * PAGE_SIZE);
+  const hasMore      = page < totalPages;
+
+  // Reset to page 1 when filter/sort changes
+  const handleFilter = (f: typeof filter) => { setFilter(f); setPage(1); };
+  const handleSort   = (s: typeof sort)   => { setSort(s);   setPage(1); setShowSort(false); };
 
   return (
     <main className="pb-32">
@@ -123,7 +136,7 @@ export function MobileRiwayat({
           {(['all', 'passed', 'failed'] as const).map(f => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => handleFilter(f)}
               className={cn(
                 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors active-press',
                 filter === f
@@ -150,7 +163,7 @@ export function MobileRiwayat({
               {(['newest', 'oldest', 'highest_score'] as const).map(s => (
                 <button
                   key={s}
-                  onClick={() => { setSort(s); setShowSort(false); }}
+                  onClick={() => handleSort(s)}
                   className={cn(
                     'w-full text-left px-4 py-2 text-xs font-semibold',
                     sort === s ? 'text-md-primary' : 'text-md-on-surface-variant',
@@ -172,7 +185,7 @@ export function MobileRiwayat({
           </div>
         ) : (
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          sorted.map((attempt: any) => {
+          paginated.map((attempt: any) => {
             const isPassed = attempt.is_passed;
             const duration = attempt.packages?.duration_minutes ?? 0;
             const title    = attempt.packages?.title ?? 'Tryout';
@@ -264,6 +277,35 @@ export function MobileRiwayat({
           })
         )}
       </section>
+
+      {/* ── Pagination ────────────────────────────────────────── */}
+      {sorted.length > PAGE_SIZE && (
+        <div className="px-6 mt-4 flex flex-col items-center gap-2">
+          <p className="text-[11px] text-md-on-surface-variant">
+            Menampilkan {paginated.length} dari {sorted.length} riwayat
+          </p>
+          <div className="flex gap-3">
+            {hasMore && (
+              <button
+                onClick={() => setPage(p => p + 1)}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-md-primary text-white text-xs font-bold active-press shadow-md3-sm"
+              >
+                <ChevronDown size={14} />
+                Muat Lebih Banyak
+              </button>
+            )}
+            {page > 1 && (
+              <button
+                onClick={() => setPage(1)}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-md-surface-container text-md-on-surface-variant text-xs font-bold active-press"
+              >
+                <ChevronUp size={14} />
+                Tampilkan Lebih Sedikit
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Premium Banner ────────────────────────────────────── */}
       <div className="mx-6 mt-8 mb-4 bg-gradient-to-br from-md-primary to-md-tertiary p-6 rounded-2xl relative overflow-hidden">

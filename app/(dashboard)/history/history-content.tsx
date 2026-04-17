@@ -166,7 +166,7 @@ export default function HistoryContent({
     return (
       <div className="space-y-6 pb-10">
         <HeroBanner totalAttempts={initialStats.totalAttempts} bestScore={initialStats.bestScore} />
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center text-center">
+        <div className="bg-white rounded-2xl shadow-sm p-16 flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
             <History className="h-8 w-8 text-slate-400" />
           </div>
@@ -232,7 +232,7 @@ export default function HistoryContent({
         )}
 
         {/* ── FILTER + SORT BAR ──────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl shadow-sm px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-slate-500">Urutkan:</span>
@@ -318,7 +318,7 @@ export default function HistoryContent({
 // ── HERO BANNER ──────────────────────────────────────────────────────────────
 function HeroBanner({ totalAttempts, bestScore }: { totalAttempts: number; bestScore: number }) {
   return (
-    <div className="relative bg-slate-800 rounded-2xl p-5 md:p-8 overflow-hidden shadow-xl border border-slate-700">
+    <div className="relative bg-pn-navy rounded-2xl p-5 md:p-8 overflow-hidden shadow-xl">
       {/* Decorative blobs */}
       <div className="absolute -right-20 -top-20 w-64 h-64 bg-yellow-400 rounded-full opacity-10 blur-3xl pointer-events-none" />
       <div className="absolute right-10 bottom-0 w-32 h-32 bg-yellow-500 rounded-full opacity-10 blur-2xl pointer-events-none" />

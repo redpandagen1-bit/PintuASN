@@ -61,7 +61,11 @@ export default async function RoadmapPage() {
     <>
       {/* ── Mobile ── */}
       <MobilePageWrapper>
-        <MobileRoadmap stats={stats} />
+        <MobileRoadmap
+          stats={stats}
+          savedPreference={savedPreference}
+          studyHistory={studyHistory}
+        />
       </MobilePageWrapper>
 
       {/* ── Desktop ── */}
