@@ -627,7 +627,7 @@ export default function ResultClient({
               </p>
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                 <ActionButton icon={<Eye size={16} />} label="Bedah Pembahasan" variant="primary" href={`/exam/${attemptId}/review`} />
-                <ActionButton icon={<RotateCcw size={16} />} label="Ulangi Simulasi" variant="default" href="/packages" />
+                <ActionButton icon={<RotateCcw size={16} />} label="Ulangi Simulasi" variant="default" href={packageInfo?.id ? `/packages/${packageInfo.id}` : '/daftar-tryout'} />
                 <ActionButton icon={<ArrowLeft size={16} />} label="Ke Dashboard" variant="ghost" href="/dashboard" />
               </div>
             </div>

@@ -222,21 +222,21 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
     <div className="pb-10">
       
       {/* ── HERO BANNER ──────────────────────────────────────────────── */}
-      <div className="bg-slate-800 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="bg-slate-800 rounded-2xl p-5 md:p-8 mb-6 md:mb-8 relative overflow-hidden shadow-xl border border-slate-700 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           {/* Decorative blobs */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
           <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
 
           <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-3 md:mb-4">
               <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
               <span className="text-xs font-medium text-slate-300">Overview Performa</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-extrabold text-white mb-2 md:mb-3 tracking-tight">
               Statistik <span className="text-yellow-400">Performa</span>
             </h1>
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-              Analisis mendalam hasil simulasi SKD Anda. Pantau terus perkembangan nilai, identifikasi kelemahan, dan tingkatkan peluang lulus dengan data yang akurat.
+            <p className="text-slate-300 text-sm leading-relaxed">
+              Analisis mendalam hasil simulasi SKD Anda. Identifikasi kelemahan dan tingkatkan peluang lulus.
             </p>
           </div>
 
@@ -494,12 +494,47 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
           </div>
         </div>
 
-        {/* 5. Last 5 Tryouts Table */}
+        {/* 5. Last 5 Tryouts */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-800">5 Tryout Terakhir</h2>
+          <div className="px-5 py-4 border-b border-slate-100">
+            <h2 className="text-base font-bold text-slate-800">5 Tryout Terakhir</h2>
           </div>
-          <div className="overflow-x-auto">
+
+          {/* Mobile: card list */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {stats.recentAttempts.map((row) => (
+              <div key={row.id} className="px-4 py-3.5 flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-slate-500 mb-1.5">
+                    {new Date(row.completed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      { label: 'TWK', val: row.score_twk, pass: row.score_twk >= THRESHOLD_TWK },
+                      { label: 'TIU', val: row.score_tiu, pass: row.score_tiu >= THRESHOLD_TIU },
+                      { label: 'TKP', val: row.score_tkp, pass: row.score_tkp >= THRESHOLD_TKP },
+                    ].map(({ label, val, pass }) => (
+                      <span key={label} className={`px-2 py-0.5 rounded-md text-xs font-bold border ${pass ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>
+                        {label} {val}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-lg font-black text-slate-800 leading-none">{row.final_score}</div>
+                  <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full mt-1 ${
+                    row.is_passed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-600'
+                  }`}>
+                    {row.is_passed ? <CheckCircle2 className="w-2.5 h-2.5" /> : <XCircle className="w-2.5 h-2.5" />}
+                    {row.is_passed ? 'Lulus' : 'Tidak Lulus'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
               <thead className="bg-slate-50 text-slate-900 font-semibold uppercase text-xs tracking-wider">
                 <tr>
@@ -515,28 +550,14 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
                 {stats.recentAttempts.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900">
-                      {new Date(row.completed_at).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
+                      {new Date(row.completed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className={`px-6 py-4 text-center font-semibold ${row.score_twk >= THRESHOLD_TWK ? 'text-emerald-600' : 'text-rose-500'}`}>
-                      {row.score_twk}
-                    </td>
-                    <td className={`px-6 py-4 text-center font-semibold ${row.score_tiu >= THRESHOLD_TIU ? 'text-emerald-600' : 'text-rose-500'}`}>
-                      {row.score_tiu}
-                    </td>
-                    <td className={`px-6 py-4 text-center font-semibold ${row.score_tkp >= THRESHOLD_TKP ? 'text-emerald-600' : 'text-rose-500'}`}>
-                      {row.score_tkp}
-                    </td>
+                    <td className={`px-6 py-4 text-center font-semibold ${row.score_twk >= THRESHOLD_TWK ? 'text-emerald-600' : 'text-rose-500'}`}>{row.score_twk}</td>
+                    <td className={`px-6 py-4 text-center font-semibold ${row.score_tiu >= THRESHOLD_TIU ? 'text-emerald-600' : 'text-rose-500'}`}>{row.score_tiu}</td>
+                    <td className={`px-6 py-4 text-center font-semibold ${row.score_tkp >= THRESHOLD_TKP ? 'text-emerald-600' : 'text-rose-500'}`}>{row.score_tkp}</td>
                     <td className="px-6 py-4 text-center font-bold text-slate-800">{row.final_score}</td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        row.is_passed 
-                          ? 'bg-emerald-100 text-emerald-800' 
-                          : 'bg-rose-100 text-rose-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.is_passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
                         {row.is_passed ? <CheckCircle2 className="w-3 h-3 mr-1"/> : <XCircle className="w-3 h-3 mr-1"/>}
                         {row.is_passed ? 'Lulus' : 'Tidak Lulus'}
                       </span>

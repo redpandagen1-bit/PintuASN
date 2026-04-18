@@ -66,15 +66,15 @@ export function RoadmapContent({
           />
         </div>
 
-        <div className="relative px-6 pt-8 pb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <div className="relative px-5 pt-6 pb-6 md:px-6 md:pt-8 md:pb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 md:gap-6">
             {/* Left: title + progress */}
             <div className="flex-1 max-w-xl">
               <div className="inline-flex items-center gap-1.5 bg-[#F5A623]/20 text-[#F5A623] text-xs font-bold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
                 <Map className="w-3 h-3" />
                 Roadmap Belajar
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight mb-2">
+              <h1 className="text-xl sm:text-3xl font-extrabold text-white leading-tight mb-2">
                 Jalur Persiapan<br />
                 <span className="text-[#F5A623]">SKD CPNS 2026</span>
               </h1>
@@ -96,7 +96,7 @@ export function RoadmapContent({
             </div>
 
             {/* Right: stat cards */}
-            <div className="grid grid-cols-3 gap-3 lg:w-80">
+            <div className="grid grid-cols-3 gap-2 md:gap-3 lg:w-80">
               <div className="bg-white/8 rounded-xl p-3 border border-white/10">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Target className="w-3.5 h-3.5 text-[#F5A623]" />

@@ -2,7 +2,7 @@
 // app/api/admin/events/[id]/route.ts  —  PATCH | DELETE
 // ============================================================
 
-import { createClient }     from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { requireAdmin }     from '@/lib/auth/check-admin';
 import { NextResponse }     from 'next/server';
 import type { NextRequest } from 'next/server';

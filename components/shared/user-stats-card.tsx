@@ -163,7 +163,7 @@ export function UserStatsCard({
             <div className="text-center py-8">
               <History className="h-12 w-12 mx-auto mb-4 text-slate-400" />
               <p className="text-slate-600 mb-4">Belum ada riwayat tryout</p>
-              <Link href="/packages">
+              <Link href="/daftar-tryout">
                 <Button>Mulai Tryout</Button>
               </Link>
             </div>

@@ -2,7 +2,7 @@
 // app/api/admin/events/route.ts  —  GET all | POST create
 // ============================================================
 
-import { createClient }   from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { requireAdmin }   from '@/lib/auth/check-admin';
 import { NextResponse }   from 'next/server';
 import type { NextRequest } from 'next/server';

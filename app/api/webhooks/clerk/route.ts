@@ -49,116 +49,6 @@ export async function POST(req: Request) {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // ─────────────────────────────────────────────────────────────
-  // SESSION CREATED — Single Active Session enforcement
-  //
-  // Setiap kali user login (dari device/browser manapun), Clerk
-  // mengirim event ini dengan session ID baru. Kita simpan ID ini
-  // sebagai "sesi yang sah". Sesi lama otomatis tidak valid karena
-  // ID-nya tidak cocok lagi.
-  //
-  // Safety note: jika update gagal (misal user baru belum punya
-  // profile), kita log error tapi tetap return 200 agar Clerk
-  // tidak retry terus-menerus. Webhook Clerk akan retry pada 4xx/5xx.
-  // ─────────────────────────────────────────────────────────────
-  if (evt.type === 'session.created') {
-    const sessionData = evt.data as { id: string; user_id: string };
-    const { id: sessionId, user_id: userId } = sessionData;
-
-    if (!sessionId || !userId) {
-      console.error('session.created: missing sessionId or userId', { sessionId, userId });
-      return new Response(
-        JSON.stringify({ error: 'Missing session data' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        active_session_id: sessionId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId);
-
-    if (error) {
-      // Jika profile belum ada (race condition user.created vs session.created),
-      // ini bukan error fatal — user.created webhook akan membuat profile-nya.
-      // Log saja dan return 200 agar tidak di-retry Clerk.
-      console.error('session.created: failed to update active_session_id', {
-        userId,
-        sessionId,
-        errorCode: error.code,
-        errorMessage: error.message,
-      });
-      // Return 200 intentionally: profile mungkin belum ada karena
-      // user.created webhook belum selesai. Tidak perlu retry.
-      return new Response(
-        JSON.stringify({ success: false, reason: 'profile_not_found_or_update_failed' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('session.created: active_session_id updated', { userId, sessionId });
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // SESSION ENDED — Bersihkan active_session_id saat user sign out
-  //
-  // Ini penting agar jika user sign out dari device A, lalu login
-  // lagi dari device A, tidak ada false conflict karena ID lama
-  // masih tersimpan di DB.
-  // ─────────────────────────────────────────────────────────────
-  if (evt.type === 'session.ended' || evt.type === 'session.revoked') {
-    const sessionData = evt.data as { id: string; user_id: string };
-    const { id: sessionId, user_id: userId } = sessionData;
-
-    if (!sessionId || !userId) {
-      return new Response(
-        JSON.stringify({ success: true, reason: 'missing_data_skipped' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Hanya hapus jika session yang ended adalah yang sedang aktif.
-    // Jangan hapus jika sudah digantikan session lain (user login di device baru
-    // sebelum logout dari device lama — active_session_id sudah berubah).
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        active_session_id: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId)
-      .eq('active_session_id', sessionId); // hanya hapus jika masih sama
-
-    if (error) {
-      console.error('session.ended: failed to clear active_session_id', {
-        userId,
-        sessionId,
-        errorCode: error.code,
-      });
-      // Return 200 tetap, ini non-fatal
-      return new Response(
-        JSON.stringify({ success: false, reason: 'update_failed' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('session.ended: active_session_id cleared', { userId, sessionId });
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // USER CREATED
-  // ─────────────────────────────────────────────────────────────
   if (evt.type === 'user.created') {
     const { id, email_addresses, first_name, last_name, phone_numbers, public_metadata } = evt.data;
     const role = (public_metadata as { role?: string })?.role || 'user';
@@ -175,7 +65,6 @@ export async function POST(req: Request) {
       phone: phone_numbers?.[0]?.phone_number || null,
       role,
       subscription_tier: 'free',
-      active_session_id: null, // akan diisi oleh session.created webhook
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -207,9 +96,6 @@ export async function POST(req: Request) {
     }
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // USER UPDATED
-  // ─────────────────────────────────────────────────────────────
   if (evt.type === 'user.updated') {
     const { id, email_addresses, first_name, last_name, phone_numbers, public_metadata } = evt.data;
     const role = (public_metadata as { role?: string })?.role || 'user';
@@ -252,9 +138,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // USER DELETED
-  // ─────────────────────────────────────────────────────────────
   if (evt.type === 'user.deleted') {
     const { id } = evt.data;
 

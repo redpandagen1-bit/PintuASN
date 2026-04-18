@@ -83,7 +83,7 @@ export function ExamNotFound({ onBack, className }: { onBack?: () => void; class
       message="Ujian yang Anda cari tidak tersedia atau telah berakhir."
       action={{
         label: "Kembali ke Daftar Ujian",
-        onClick: onBack || (() => window.location.href = '/packages'),
+        onClick: onBack || (() => window.location.href = '/daftar-tryout'),
         variant: "outline"
       }}
       showHome={false}

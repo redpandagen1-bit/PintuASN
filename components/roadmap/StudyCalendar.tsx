@@ -231,7 +231,7 @@ export function StudyCalendar({
       </div>
 
       {/* Main card */}
-      <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="rounded-2xl bg-white overflow-hidden shadow-sm">
 
         {/* ── Banner atas biru navy ── */}
         <div className="bg-[#1B2B5E] px-5 py-4 flex items-center justify-between">
@@ -398,7 +398,7 @@ export function StudyCalendar({
 
             {/* Custom day picker */}
             {scheduleMode === 'custom' && (
-              <div className="bg-slate-50 rounded-xl p-3 space-y-2 border border-slate-100">
+              <div className="bg-slate-50 rounded-xl p-3 space-y-2 ">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                   Pilih hari latihan
                 </p>
@@ -432,7 +432,7 @@ export function StudyCalendar({
           {/* Toggle pengingat */}
           <div className="space-y-1.5">
             <p className="text-xs font-bold text-[#1B2B5E]">Pengingat Otomatis</p>
-            <div className="flex items-center justify-between bg-slate-50 rounded-xl px-3.5 py-2.5 border border-slate-100">
+            <div className="flex items-center justify-between bg-slate-50 rounded-xl px-3.5 py-2.5 ">
               <div className="flex items-center gap-2.5">
                 <div className={cn(
                   'w-7 h-7 rounded-full flex items-center justify-center transition-colors flex-shrink-0',

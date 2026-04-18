@@ -23,10 +23,12 @@ import {
   X,
   Loader2,
   Info,
+  LayoutGrid,
 } from 'lucide-react';
 import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { QuestionNavigatorSheet } from '@/components/exam/QuestionNavigatorSheet';
 import { cn } from '@/lib/utils';
 import type { QuestionWithChoices } from '@/types/exam';
 
@@ -70,6 +72,7 @@ export function ExamInterface({
   const [showLegendDialog, setShowLegendDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showNavigatorSheet, setShowNavigatorSheet] = useState(false);
   const [textSize, setTextSize] = useState<'sm' | 'md' | 'lg'>('md');
 
   const router = useRouter();
@@ -160,6 +163,7 @@ export function ExamInterface({
   const confirmCancel = async () => {
     setIsCancelling(true);
     try {
+      hasSubmittedRef.current = true;
       const response = await fetch('/api/exam/abandon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -177,6 +181,7 @@ export function ExamInterface({
   };
 
   const handleSubmit = async () => {
+    hasSubmittedRef.current = true;
     const toastId = toast.loading('Mengirim ujian...');
     setIsSubmitting(true);
     try {
@@ -231,9 +236,60 @@ export function ExamInterface({
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
 
-      {/* ── TOP BAR ─────────────────────────────────────────────────── */}
-      <header className="flex-shrink-0 bg-slate-800 border-b border-slate-700 z-10">
-        <div className="flex items-center justify-between px-6 py-3.5">
+      {/* ── MOBILE HEADER (hidden md+) ─────────────────────────────── */}
+      <header className="flex md:hidden flex-shrink-0 bg-slate-800 items-center px-3 gap-2 h-14 z-10">
+        {/* Cancel */}
+        <button
+          onClick={handleCancel}
+          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-slate-700/60 hover:bg-slate-700 transition"
+          aria-label="Batalkan ujian"
+        >
+          <X size={16} className="text-slate-300" />
+        </button>
+
+        {/* Soal counter + category */}
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <span className={cn(
+            'text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0',
+            categoryColor,
+          )}>
+            {currentQuestion?.category}
+          </span>
+          <span className="text-sm font-semibold text-slate-200 truncate">
+            Soal {currentIndex + 1}
+            <span className="text-slate-400 font-normal"> / {questions.length}</span>
+          </span>
+        </div>
+
+        {/* Flag */}
+        <button
+          onClick={() => toggleFlag(currentQuestion?.id)}
+          aria-label={isFlagged ? 'Hapus tandai' : 'Tandai soal'}
+          className={cn(
+            'w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg transition',
+            isFlagged
+              ? 'bg-yellow-400/20 text-yellow-400'
+              : 'bg-slate-700/60 text-slate-400 hover:text-yellow-400'
+          )}
+        >
+          {isFlagged ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+        </button>
+
+        {/* Timer */}
+        <div className={cn(
+          'flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono font-bold text-sm flex-shrink-0',
+          isTimeWarning
+            ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+            : 'bg-slate-700/60 text-slate-100'
+        )}>
+          <Clock size={13} className={isTimeWarning ? 'animate-pulse' : ''} />
+          <span>{formatTime(Math.floor(timeLeft))}</span>
+        </div>
+      </header>
+
+      {/* ── DESKTOP HEADER (hidden mobile) ─────────────────────────── */}
+      <header className="hidden md:flex flex-shrink-0 bg-slate-800 border-b border-slate-700 z-10">
+        <div className="flex items-center justify-between px-6 py-3.5 w-full">
           <h1 className="text-sm font-semibold text-slate-100 truncate max-w-xs">
             {packageTitle}
           </h1>
@@ -263,12 +319,12 @@ export function ExamInterface({
       {/* ── BODY ────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ── LEFT: QUESTION AREA ─────────────────────────────────── */}
+        {/* ── QUESTION AREA ───────────────────────────────────────── */}
         <main className="flex-1 overflow-y-auto bg-white">
-          <div className="max-w-3xl mx-auto py-6 px-6">
+          <div className="max-w-3xl mx-auto py-4 px-4 md:py-6 md:px-8">
 
-            {/* Question meta */}
-            <div className="flex items-center gap-3 mb-4">
+            {/* Question meta — desktop only (mobile shows in header) */}
+            <div className="hidden md:flex items-center gap-3 mb-6">
               <span className={cn(
                 'text-xs font-bold px-3 py-1 rounded-full border tracking-wide',
                 categoryColor
@@ -284,8 +340,8 @@ export function ExamInterface({
             {/* Question text */}
             {currentQuestion?.content && (
               <p className={cn(
-                'text-slate-800 font-normal mb-5',
-                textSize === 'sm' && 'text-sm leading-6',
+                'text-slate-900 font-medium mb-5',
+                textSize === 'sm' && 'text-sm leading-7',
                 textSize === 'md' && 'text-base leading-7',
                 textSize === 'lg' && 'text-lg leading-8',
               )}>
@@ -295,7 +351,7 @@ export function ExamInterface({
 
             {/* Question image */}
             {currentQuestion?.image_url && (
-              <div className="mb-5">
+              <div className="mb-6">
                 <img
                   src={currentQuestion.image_url}
                   alt="Gambar soal"
@@ -305,8 +361,8 @@ export function ExamInterface({
               </div>
             )}
 
-            {/* Answer choices — display only, tidak bisa diklik */}
-            <div className="space-y-2">
+            {/* Answer choices — fully clickable on all screen sizes */}
+            <div className="space-y-2 pb-4 md:pb-0">
               {currentQuestion?.choices.map((choice, idx) => {
                 const isSelected = selectedAnswer === choice.id;
                 const choiceImageUrl = (choice as any).image_url as string | undefined;
@@ -314,13 +370,14 @@ export function ExamInterface({
                 const hasImage = !!choiceImageUrl;
 
                 return (
-                  <div
+                  <button
                     key={choice.id}
+                    onClick={() => handleAnswerSelect(choice.id)}
                     className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 min-h-[52px] rounded-xl border-2 select-none pointer-events-none',
+                      'w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-150 text-left active:scale-[0.99]',
                       isSelected
                         ? 'border-blue-500 bg-blue-50 shadow-sm'
-                        : 'border-slate-200 bg-white shadow-sm'
+                        : 'border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:bg-slate-50'
                     )}
                   >
                     <span className={cn(
@@ -331,7 +388,9 @@ export function ExamInterface({
                     )}>
                       {ANSWER_LABELS[idx]}
                     </span>
-                    <div className="flex flex-col gap-1 flex-1">
+
+                    {/* Choice content */}
+                    <div className="flex flex-col gap-2 flex-1">
                       {hasImage && (
                         <img
                           src={choiceImageUrl}
@@ -352,7 +411,7 @@ export function ExamInterface({
                         </span>
                       )}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -360,8 +419,8 @@ export function ExamInterface({
           </div>
         </main>
 
-        {/* ── RIGHT: NAVIGATION PANEL ────────────────────────────── */}
-        <aside className="flex-shrink-0 w-60 bg-white border-l border-slate-200 flex flex-col overflow-hidden shadow-sm">
+        {/* ── DESKTOP SIDEBAR ─────────────────────────────────────── */}
+        <aside className="hidden md:flex flex-shrink-0 w-60 bg-white border-l border-slate-200 flex-col overflow-hidden shadow-sm">
 
           {/* Fixed top controls — tidak ikut scroll */}
           <div className="flex-shrink-0 p-4 space-y-3">
@@ -574,6 +633,65 @@ export function ExamInterface({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── MOBILE BOTTOM BAR (hidden md+) ──────────────────────────── */}
+      <div className="flex md:hidden flex-shrink-0 bg-white border-t border-slate-200 items-center px-3 py-2 gap-2 pb-safe">
+        {/* Prev */}
+        <button
+          onClick={prevQuestion}
+          disabled={currentIndex === 0}
+          className={cn(
+            'w-11 h-11 flex items-center justify-center rounded-xl border-2 flex-shrink-0 transition-all',
+            currentIndex === 0
+              ? 'border-slate-100 text-slate-300 bg-slate-50 cursor-not-allowed'
+              : 'border-slate-200 text-slate-600 active:scale-95'
+          )}
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        {/* Navigator trigger — center */}
+        <button
+          onClick={() => setShowNavigatorSheet(true)}
+          className="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl bg-slate-800 text-white text-sm font-semibold active:scale-[0.98] transition-all"
+        >
+          <LayoutGrid size={15} />
+          <span>
+            <span className="text-blue-300 font-bold">{answers.size}</span>
+            <span className="text-slate-400"> / {questions.length}</span>
+            <span className="ml-1">dijawab</span>
+          </span>
+        </button>
+
+        {/* Next */}
+        <button
+          onClick={nextQuestion}
+          disabled={currentIndex === questions.length - 1}
+          className={cn(
+            'w-11 h-11 flex items-center justify-center rounded-xl border-2 flex-shrink-0 transition-all',
+            currentIndex === questions.length - 1
+              ? 'border-slate-100 text-slate-300 bg-slate-50 cursor-not-allowed'
+              : 'border-slate-200 text-slate-600 active:scale-95'
+          )}
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {/* ── QUESTION NAVIGATOR SHEET (mobile) ───────────────────────── */}
+      <QuestionNavigatorSheet
+        isOpen={showNavigatorSheet}
+        onClose={() => setShowNavigatorSheet(false)}
+        questions={questions}
+        answers={answers}
+        flaggedQuestions={flaggedQuestions}
+        currentIndex={currentIndex}
+        goToQuestion={goToQuestion}
+        textSize={textSize}
+        setTextSize={setTextSize}
+        onSubmit={() => { setShowNavigatorSheet(false); setShowSubmitDialog(true); }}
+        isSubmitting={isSubmitting}
+      />
 
       {/* ── LEGEND DIALOG ── */}
       <Dialog open={showLegendDialog} onOpenChange={setShowLegendDialog}>

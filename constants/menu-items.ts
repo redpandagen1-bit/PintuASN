@@ -45,7 +45,7 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     id: 'daftar-tryout',
     label: 'Daftar Tryout',
     href: '/daftar-tryout',
-    icon: 'PlayCircle',
+    icon: 'ClipboardList',
     isActive: true
   },
   {
@@ -69,7 +69,7 @@ export const SECONDARY_MENU_ITEMS: MenuItem[] = [
     id: 'event-promo',
     label: 'Event & Promo',
     href: '/events-promo',
-    icon: 'Zap',
+    icon: 'Megaphone',
     isActive: false
   },
   {

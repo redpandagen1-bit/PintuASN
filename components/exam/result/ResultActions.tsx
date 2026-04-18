@@ -56,7 +56,7 @@ export default function ResultActions({ attemptId, isPassed }: ResultActionsProp
         </Button>
 
         <Button asChild variant="secondary" size="lg">
-          <Link href="/packages" className="flex items-center gap-2">
+          <Link href="/daftar-tryout" className="flex items-center gap-2">
             <Grid3x3 className="w-4 h-4" />
             Coba Tryout Lain
           </Link>

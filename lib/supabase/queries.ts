@@ -2,7 +2,7 @@
 // lib/supabase/queries.ts
 // ============================================================
 
-import { createClient } from './server';
+import { createClient, createAdminClient } from './server';
 import type { Profile, Package, Attempt } from '@/types/database';
 import { PASSING_GRADES } from '@/constants/exam';
 
@@ -402,6 +402,71 @@ export async function getReviewData(attemptId: string) {
     .from('attempts')
     .select('*, packages ( id, title, description, difficulty )')
     .eq('id', attemptId).eq('status', 'completed').single();
+
+  if (attemptError) throw new Error(`Failed to fetch attempt: ${attemptError.message}`);
+  if (!attempt)     throw new Error(`Attempt ${attemptId} not found or not completed`);
+
+  const [
+    { data: packageQuestions, error: questionsError },
+    { data: userAnswers,      error: answersError   },
+  ] = await Promise.all([
+    supabase
+      .from('package_questions')
+      .select(`
+        position,
+        questions!inner (
+          id, category, content, image_url, explanation, topic, difficulty,
+          choices ( id, label, content, image_url, is_answer, score )
+        )
+      `)
+      .eq('package_id', attempt.package_id)
+      .order('position', { ascending: true }),
+    supabase.from('attempt_answers').select('*').eq('attempt_id', attemptId),
+  ]);
+
+  if (questionsError) throw new Error(`Failed to fetch questions: ${questionsError.message}`);
+  if (answersError)   throw new Error(`Failed to fetch answers: ${answersError.message}`);
+
+  const questions = (packageQuestions ?? []).map((pq: any, index: number) => {
+    const question      = pq.questions;
+    const userAnswer    = (userAnswers ?? []).find((a: any) => a.question_id === question.id);
+    const correctChoice = question.choices.find((c: any) => c.is_answer);
+    const userChoice    = question.choices.find((c: any) => c.id === userAnswer?.choice_id);
+    const isCorrect     = question.category !== 'TKP'
+      ? (userAnswer?.choice_id === correctChoice?.id) : null;
+    const score         = question.category === 'TKP' && userChoice
+      ? (userChoice.score ?? 1) : null;
+
+    return {
+      position: index + 1, id: question.id, category: question.category,
+      content: question.content, image_url: question.image_url ?? null,
+      explanation: question.explanation ?? null, topic: question.topic ?? null,
+      difficulty: question.difficulty ?? 'medium', choices: question.choices ?? [],
+      userAnswer: userAnswer ?? null, isCorrect, score,
+      userChoice: userChoice ?? null, correctChoice: correctChoice ?? null,
+      isFlagged: userAnswer?.is_flagged ?? false,
+    };
+  });
+
+  return { attempt, questions };
+}
+
+// ─────────────────────────────────────────────────────────────
+// REVIEW — Admin client version (bypasses RLS for mobile PWA)
+// Validates ownership via userId from Clerk auth instead of cookies
+// ─────────────────────────────────────────────────────────────
+
+export async function getReviewDataAdmin(attemptId: string, userId: string) {
+  const supabase = await createAdminClient();
+
+  // Ownership validated via userId — no need for RLS cookies
+  const { data: attempt, error: attemptError } = await supabase
+    .from('attempts')
+    .select('*, packages ( id, title, description, difficulty )')
+    .eq('id', attemptId)
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .single();
 
   if (attemptError) throw new Error(`Failed to fetch attempt: ${attemptError.message}`);
   if (!attempt)     throw new Error(`Attempt ${attemptId} not found or not completed`);
