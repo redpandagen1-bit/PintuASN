@@ -10,7 +10,7 @@ import type { NextRequest } from 'next/server';
 export async function GET(req: NextRequest) {
   try {
     await requireAdmin();
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { searchParams } = new URL(req.url);
     const includeInactive  = searchParams.get('all') === '1';
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const body     = await req.json() as Record<string, unknown>;
 
     // Validasi wajib

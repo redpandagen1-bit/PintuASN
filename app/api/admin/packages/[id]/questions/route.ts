@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/check-admin';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 // GET - Get questions in package
 export async function GET(
@@ -10,7 +10,7 @@ export async function GET(
   try {
     await requireAdmin();
     const { id: packageId } = await params;
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { data, error } = await supabase
       .from('package_questions')
@@ -65,7 +65,7 @@ export async function POST(
     await requireAdmin();
     const { id: packageId } = await params;
     const body = await request.json();
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { question_id } = body;
 
@@ -119,7 +119,7 @@ export async function DELETE(
     const { id: packageId } = await params;
     const { searchParams } = new URL(request.url);
     const questionId = searchParams.get('question_id');
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     if (!questionId) {
       return NextResponse.json(

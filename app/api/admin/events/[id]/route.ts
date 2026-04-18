@@ -13,7 +13,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   try {
     await requireAdmin();
     const { id } = await params;
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const body     = await req.json() as Record<string, unknown>;
 
     const { data, error } = await supabase
@@ -35,7 +35,7 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
   try {
     await requireAdmin();
     const { id } = await params;
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     // 1. Ambil banner_url dulu sebelum dihapus
     const { data: event } = await supabase

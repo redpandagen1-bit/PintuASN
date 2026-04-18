@@ -26,6 +26,14 @@ export interface Profile {
   postal_code?: string;
   target_institution?: string;
   subscription_tier?: 'free' | 'premium' | 'platinum';
+  // ─── Single Active Session ───────────────────────────────────
+  // Diisi oleh webhook session.created dengan Clerk session ID.
+  // NULL berarti user belum pernah login setelah fitur ini aktif,
+  // atau sudah sign out (session.ended webhook).
+  // Middleware hanya enforce jika nilai ini bukan NULL.
+  active_session_id?: string | null;
+  // ─────────────────────────────────────────────────────────────
+  onboarding_completed?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -78,7 +86,9 @@ export interface Attempt {
   score_tiu?: number;
   score_tkp?: number;
   total_score?: number;
+  final_score?: number;
   status: 'in_progress' | 'completed' | 'abandoned';
+  completed_at?: string;
   created_at: string;
   updated_at: string;
 }
