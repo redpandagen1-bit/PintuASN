@@ -203,8 +203,8 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
 
       <main>
 
-        {/* ── Header + Search (dark bg) ────────────────────────── */}
-        <div className="bg-slate-800 px-4 pt-4 pb-4">
+        {/* ── Header + Search (dark bg, rounded) ──────────────── */}
+        <div className="bg-slate-800 mx-4 mt-2 rounded-2xl px-4 pt-4 pb-4">
           {/* Title */}
           <div className="mb-3">
             <h1 className="text-xl font-extrabold text-white leading-tight">

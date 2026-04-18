@@ -181,13 +181,13 @@ export function DaftarTryoutClient({ packages, packageIdsWithAttempts, userTier 
       <div className="space-y-4 pb-10">
 
         {/* HEADER */}
-        <div className="pt-1 pb-0.5">
-          <h1 className="text-2xl font-extrabold text-pn-navy mb-1">
-            Daftar <span className="text-pn-gold">Tryout</span>
+        <div className="bg-slate-800 rounded-2xl px-6 py-5">
+          <h1 className="text-2xl font-extrabold text-white mb-1">
+            Daftar <span className="text-yellow-400">Tryout</span>
           </h1>
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-400 text-sm">
             Semua paket simulasi SKD tersedia di sini.{' '}
-            <span className="font-semibold text-slate-700">{packages.length} paket</span> tersedia.
+            <span className="font-semibold text-slate-200">{packages.length} paket</span> tersedia.
           </p>
         </div>
 
