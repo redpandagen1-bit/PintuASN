@@ -406,13 +406,13 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
         return (
           <div key={pkg.id} className={`relative rounded-2xl flex flex-col border transition-all duration-200 hover:-translate-y-1 hover:shadow-xl
             ${pkg.isPremium  ? 'bg-blue-600 border-blue-500 shadow-blue-200 shadow-lg' : ''}
-            ${pkg.isPlatinum ? 'bg-slate-900 border-slate-700' : ''}
+            ${pkg.isPlatinum ? 'bg-gradient-to-br from-violet-900 via-purple-800 to-slate-900 border-violet-700' : ''}
             ${pkg.isFree     ? 'bg-white border-slate-200' : ''}
           `}>
 
             {/* Badge */}
             {pkg.badge && (
-              <div className={`absolute top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap z-10
+              <div className={`absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap z-10 tracking-wide shadow-sm
                 ${pkg.isPremium ? 'bg-white text-blue-600' : 'bg-amber-400 text-slate-900'}`}>
                 {pkg.badge}
               </div>
@@ -463,7 +463,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
                 </p>
               </div>
 
-              <div className={`h-px ${pkg.isPremium ? 'bg-blue-500' : pkg.isPlatinum ? 'bg-slate-700' : 'bg-slate-100'}`} />
+              <div className={`h-px ${pkg.isPremium ? 'bg-blue-500' : pkg.isPlatinum ? 'bg-violet-700' : 'bg-slate-100'}`} />
             </div>
 
             {/* Feature list */}
@@ -475,7 +475,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
                   <div key={i}>
                     {sectionLabel && (
                       <p className={`text-[9px] font-black uppercase tracking-widest pt-3 pb-1.5
-                        ${pkg.isPremium ? 'text-blue-200/60' : pkg.isPlatinum ? 'text-slate-500' : 'text-slate-400'}`}>
+                        ${pkg.isPremium ? 'text-blue-200/60' : pkg.isPlatinum ? 'text-purple-400' : 'text-slate-400'}`}>
                         {sectionLabel}
                       </p>
                     )}
@@ -498,7 +498,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
 
             {/* CTA */}
             <div className="p-5 pt-3">
-              <div className={`h-px mb-3 ${pkg.isPremium ? 'bg-blue-500' : pkg.isPlatinum ? 'bg-slate-700' : 'bg-slate-100'}`} />
+              <div className={`h-px mb-3 ${pkg.isPremium ? 'bg-blue-500' : pkg.isPlatinum ? 'bg-violet-700' : 'bg-slate-100'}`} />
               <button
                 onClick={() => !isOwned && handleBuy(pkg)}
                 disabled={isDisabled}
@@ -668,9 +668,9 @@ export default function BeliPaketPage() {
       </div>
 
       {/* ── Desktop ────────────────────────────────────────────── */}
-      <div className="hidden md:block min-h-screen bg-slate-50 py-8 px-4">
+      <div className="hidden md:block min-h-screen bg-slate-50 pt-10 pb-10 px-4">
       <div className="text-center mb-7">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">Paket Belajar</h1>
+        <h1 className="text-lg font-bold text-slate-900 mb-1">Paket Belajar</h1>
         <p className="text-slate-500 text-sm max-w-md mx-auto">Pilih paket terbaik untuk persiapan SKD CPNS 2026.</p>
         {error && <div className="mt-3 inline-block bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-2 rounded-lg">{error}</div>}
       </div>

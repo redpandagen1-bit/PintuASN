@@ -1,211 +1,235 @@
 'use client';
 
 // components/mobile/MobilePaketBelajar.tsx
-// Mobile-only paket belajar (pricing) — Pathfinder Navy MD3 design
+// Mobile-only paket belajar — mirrors desktop feature list, simplified layout
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2 } from 'lucide-react';
+import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2, Lock, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 
-// ── Types ─────────────────────────────────────────────────────
+// ── Feature list (same as desktop) ───────────────────────────
 
-interface PricingPackage {
-  id:         string;
-  name:       string;
-  priceLabel: string;
-  period:     string;
-  description: string;
-  badge:      string | null;
-  features:   string[];
-  unavailable: string[];
-  isCurrent:  boolean;
-  tier:       SubscriptionTier;
+const ALL_FEATURES: { label: string; free: boolean; premium: boolean; platinum: boolean }[] = [
+  { label: 'Tryout paket gratis',                              free: true,  premium: true,  platinum: true  },
+  { label: 'Akses Roadmap pembelajaran',                       free: true,  premium: true,  platinum: true  },
+  { label: 'Akses materi dasar',                               free: true,  premium: true,  platinum: true  },
+  { label: 'Tryout paket premium',                             free: false, premium: true,  platinum: true  },
+  { label: 'Latihan Soal SKD / Mini Try Out (TWK, TIU, TKP)', free: false, premium: true,  platinum: true  },
+  { label: 'Review soal + pembahasan lengkap',                 free: false, premium: true,  platinum: true  },
+  { label: 'Materi SKD gratis & premium (TWK, TIU, TKP)',      free: false, premium: true,  platinum: true  },
+  { label: 'Akses Riwayat (3 terbaru)',                        free: false, premium: true,  platinum: true  },
+  { label: 'Statistik & analisis performa',                    free: false, premium: true,  platinum: true  },
+  { label: 'Peringkat nasional',                               free: false, premium: true,  platinum: true  },
+  { label: 'Leaderboard paket',                                free: false, premium: true,  platinum: true  },
+  { label: 'Akses Riwayat tidak terbatas',                     free: false, premium: false, platinum: true  },
+  { label: 'Tryout paket platinum eksklusif',                  free: false, premium: false, platinum: true  },
+  { label: 'Materi platinum + video series SKD',               free: false, premium: false, platinum: true  },
+  { label: 'Analisis soal dengan waktu pengerjaan terlama',    free: false, premium: false, platinum: true  },
+  { label: 'Laporan perkembangan belajar',                     free: false, premium: false, platinum: true  },
+  { label: 'Masa aktif 1 tahun',                               free: false, premium: false, platinum: true  },
+];
+
+const SECTION_LABELS: Record<number, string> = {
+  0:  'Fitur Dasar',
+  3:  'Fitur Premium',
+  11: 'Fitur Platinum',
+};
+
+// ── Package definitions (matches desktop pricing) ─────────────
+
+interface MobilePackage {
+  id:            string;
+  name:          string;
+  tier:          SubscriptionTier;
+  priceLabel:    string;
+  originalPrice: string | null;
+  period:        string;
+  description:   string;
+  badge:         string | null;
+  isFree:        boolean;
+  isPremium:     boolean;
+  isPlatinum:    boolean;
+  ctaDefault:    string;
 }
 
-interface MobilePaketBelajarProps {
-  userTier:    SubscriptionTier;
-  onSelectPkg: (tier: SubscriptionTier) => void;
-}
-
-// ── Package definitions (static pricing copy) ────────────────
-
-const PACKAGES: PricingPackage[] = [
+const PACKAGES: MobilePackage[] = [
   {
-    id:          'free',
-    name:        'Gratis',
-    priceLabel:  'Rp 0',
-    period:      'Selamanya',
+    id: 'free', name: 'Gratis', tier: 'free',
+    priceLabel: 'Rp 0', originalPrice: null,
+    period: 'Selamanya',
     description: 'Cocok untuk mencoba fitur dasar simulasi SKD',
-    badge:       null,
-    tier:        'free',
-    isCurrent:   false,
-    features: [
-      'Akses 1 Tryout Gratis',
-      'Materi Dasar TIU, TWK, TKP',
-      'Akses Roadmap pembelajaran',
-    ],
-    unavailable: [
-      'Analisis Ranking Nasional',
-      'Review soal + pembahasan',
-      'Statistik & analisis performa',
-    ],
+    badge: null,
+    isFree: true, isPremium: false, isPlatinum: false,
+    ctaDefault: 'Mulai Belajar',
   },
   {
-    id:          'premium',
-    name:        'Premium',
-    priceLabel:  'Rp 149rb',
-    period:      '6 Bulan',
-    description: 'Akses penuh untuk persiapan intensif CPNS 2026',
-    badge:       'POPULER',
-    tier:        'premium',
-    isCurrent:   false,
-    features: [
-      'Akses 15+ Tryout Premium',
-      'Pembahasan Video Lengkap',
-      'Analisis Ranking Nasional',
-      'Grup Belajar Eksklusif',
-    ],
-    unavailable: [],
+    id: 'premium', name: 'Premium', tier: 'premium',
+    priceLabel: 'Rp 99.000', originalPrice: 'Rp 200.000',
+    period: 'Hingga November 2026',
+    description: 'Akses penuh untuk persiapan SKD CPNS 2026',
+    badge: 'Populer',
+    isFree: false, isPremium: true, isPlatinum: false,
+    ctaDefault: 'Mulai Premium',
   },
   {
-    id:          'platinum',
-    name:        'Platinum',
-    priceLabel:  'Rp 299rb',
-    period:      '12 Bulan',
-    description: 'Semua fitur premium + live class & mentoring privat',
-    badge:       null,
-    tier:        'platinum',
-    isCurrent:   false,
-    features: [
-      'Semua Fitur Premium',
-      'Live Class Setiap Minggu',
-      'Mentoring Privat 1-on-1',
-      'Modul Cetak Dikirim ke Rumah',
-    ],
-    unavailable: [],
+    id: 'platinum', name: 'Platinum', tier: 'platinum',
+    priceLabel: 'Rp 119.000', originalPrice: 'Rp 349.000',
+    period: 'Masa aktif 1 tahun',
+    description: 'Paket lengkap dengan fitur eksklusif & prioritas',
+    badge: 'Terlengkap',
+    isFree: false, isPremium: false, isPlatinum: true,
+    ctaDefault: 'Mulai Platinum',
   },
 ];
 
-// ── Feature Matrix ────────────────────────────────────────────
-
-interface MatrixRow {
-  feature:  string;
-  free:     boolean | string;
-  premium:  boolean | string;
-  platinum: boolean | string;
-}
-
-const FEATURE_MATRIX: MatrixRow[] = [
-  { feature: 'Tryout Gratis',           free: true,     premium: true,    platinum: true     },
-  { feature: 'Tryout Premium',          free: false,    premium: true,    platinum: true     },
-  { feature: 'Tryout Platinum',         free: false,    premium: false,   platinum: true     },
-  { feature: 'Materi SKD Dasar',        free: true,     premium: true,    platinum: true     },
-  { feature: 'Materi SKD Lengkap',      free: false,    premium: true,    platinum: true     },
-  { feature: 'Video Pembahasan',        free: false,    premium: true,    platinum: true     },
-  { feature: 'Riwayat Tryout',          free: '3 terakhir', premium: true, platinum: true   },
-  { feature: 'Statistik Performa',      free: false,    premium: true,    platinum: true     },
-  { feature: 'Peringkat Nasional',      free: false,    premium: true,    platinum: true     },
-  { feature: 'Live Class Mingguan',     free: false,    premium: false,   platinum: true     },
-  { feature: 'Mentoring Privat 1-on-1', free: false,    premium: false,   platinum: true     },
-  { feature: 'Modul Cetak',            free: false,    premium: false,   platinum: true     },
-];
-
-// ── Card ──────────────────────────────────────────────────────
+// ── Pricing Card ──────────────────────────────────────────────
 
 function PricingCard({
   pkg,
   isCurrent,
   onSelect,
 }: {
-  pkg:       PricingPackage;
+  pkg:       MobilePackage;
   isCurrent: boolean;
   onSelect:  () => void;
 }) {
-  const isPremium  = pkg.tier === 'premium';
-  const isPlatinum = pkg.tier === 'platinum';
+  const { isFree, isPremium, isPlatinum } = pkg;
 
-  const cardCls = cn(
-    'rounded-2xl p-6 relative overflow-hidden shadow-md3-sm',
-    isPremium
-      ? 'bg-md-primary text-white shadow-md3-lg border-2 border-md-secondary-container'
-      : 'bg-white',
-  );
+  const cardBg = isPremium
+    ? 'bg-blue-600 border-blue-500'
+    : isPlatinum
+    ? 'bg-gradient-to-br from-violet-900 via-purple-800 to-slate-900 border-violet-700'
+    : 'bg-white border-slate-200';
 
-  const ctaLabel = isCurrent ? 'Paket Aktif' : isPremium ? 'Beli Paket Premium' : isPlatinum ? 'Pilih Platinum' : 'Mulai Belajar';
+  const ctaLabel = isCurrent
+    ? 'Paket Aktif'
+    : isFree
+    ? pkg.ctaDefault
+    : isPremium
+    ? pkg.ctaDefault
+    : pkg.ctaDefault;
 
   const ctaCls = cn(
-    'w-full py-4 rounded-xl font-bold text-sm active-press transition-all',
+    'w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active-press',
     isCurrent
-      ? 'bg-md-surface-container text-md-on-surface-variant cursor-default'
+      ? 'bg-white/20 text-white/60 cursor-default'
       : isPremium
-      ? 'bg-md-secondary-container text-md-primary'
+      ? 'bg-white text-blue-600 hover:bg-blue-50'
       : isPlatinum
-      ? 'bg-md-primary text-white'
-      : 'bg-md-surface-container-low text-md-primary',
+      ? 'bg-amber-400 text-slate-900 hover:bg-amber-300'
+      : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
   );
 
   return (
-    <div className={cardCls}>
-      {/* Popular badge */}
+    <div className={cn('relative rounded-2xl border shadow-sm overflow-hidden flex flex-col', cardBg)}>
+
+      {/* Badge */}
       {pkg.badge && (
-        <div className="absolute top-4 right-[-35px] bg-md-secondary-container text-md-on-secondary-container text-[10px] font-bold py-1 px-10 rotate-45">
+        <div className={cn(
+          'absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap z-10 tracking-wide',
+          isPremium  ? 'bg-white text-blue-600' : 'bg-amber-400 text-slate-900',
+        )}>
           {pkg.badge}
         </div>
       )}
 
-      {/* Tier label */}
-      <div className="mb-6">
-        <span className={cn(
-          'inline-block px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded-full mb-3',
-          isPremium
-            ? 'bg-md-secondary/20 text-md-secondary-container'
-            : isPlatinum
-            ? 'bg-md-secondary/10 text-md-secondary'
-            : 'bg-md-surface-container-low text-md-primary',
-        )}>
-          {pkg.name.toUpperCase()}
-        </span>
-        <h3 className={cn('text-2xl font-bold', isPremium ? 'text-white' : 'text-md-primary')}
-          style={{ fontFamily: 'var(--font-jakarta)' }}>
-          {pkg.name}
-        </h3>
-        <div className="mt-2 flex items-baseline gap-1">
-          <span className={cn('text-3xl font-extrabold', isPremium ? 'text-md-secondary-container' : 'text-md-primary')}
-            style={{ fontFamily: 'var(--font-jakarta)' }}>
-            {pkg.priceLabel}
-          </span>
-          <span className={cn('text-xs', isPremium ? 'text-white/60' : 'text-md-on-surface-variant')}>
-            /{pkg.period}
-          </span>
+      {/* Header */}
+      <div className={cn('px-5 pb-3', pkg.badge ? 'pt-9' : 'pt-5')}>
+        <div className="flex items-center gap-2.5 mb-3">
+          <div>
+            <p className={cn('font-bold text-base leading-tight', isPremium || isPlatinum ? 'text-white' : 'text-slate-900')}>
+              {pkg.name}
+            </p>
+            <p className={cn('text-xs', isPremium ? 'text-blue-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
+              {pkg.period}
+            </p>
+          </div>
+          {isCurrent && (
+            <span className={cn(
+              'ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1',
+              isPlatinum ? 'bg-amber-400 text-slate-900' : isPremium ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700',
+            )}>
+              <Check size={9} strokeWidth={3} /> Aktif
+            </span>
+          )}
         </div>
+
+        {/* Price */}
+        <div className="mb-3">
+          {pkg.originalPrice && (
+            <p className={cn('text-xs line-through mb-0.5', isPremium ? 'text-blue-200' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
+              {pkg.originalPrice}
+            </p>
+          )}
+          <p className={cn('text-2xl font-bold', isPremium || isPlatinum ? 'text-white' : 'text-slate-900')}>
+            {pkg.priceLabel === 'Rp 0' ? 'Gratis' : pkg.priceLabel}
+          </p>
+          <p className={cn('text-xs mt-0.5', isPremium ? 'text-blue-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
+            {pkg.description}
+          </p>
+        </div>
+
+        <div className={cn('h-px', isPremium ? 'bg-blue-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
       </div>
 
-      {/* Features */}
-      <ul className="space-y-3 mb-8">
-        {pkg.features.map(f => (
-          <li key={f} className="flex items-start gap-3">
-            <Check size={16} className={cn('mt-0.5 flex-shrink-0', isPremium ? 'text-md-secondary-container' : 'text-md-secondary')} />
-            <span className={cn('text-sm', isPremium ? 'text-white/90' : 'text-md-on-surface-variant')}>
-              {f}
-            </span>
-          </li>
-        ))}
-        {pkg.unavailable.map(f => (
-          <li key={f} className="flex items-start gap-3 opacity-40">
-            <X size={16} className="mt-0.5 flex-shrink-0 text-md-outline" />
-            <span className="text-sm text-md-on-surface-variant line-through">{f}</span>
-          </li>
-        ))}
-      </ul>
+      {/* Feature list */}
+      <div className="flex-1 px-5 pb-2 space-y-0">
+        {ALL_FEATURES.map((feature, i) => {
+          const hasFeature = isFree ? feature.free : isPremium ? feature.premium : feature.platinum;
+          const sectionLabel = SECTION_LABELS[i];
+          return (
+            <div key={i}>
+              {sectionLabel && (
+                <p className={cn(
+                  'text-[9px] font-black uppercase tracking-widest pt-3 pb-1.5',
+                  isPremium ? 'text-blue-200/60' : isPlatinum ? 'text-purple-400' : 'text-slate-400',
+                )}>
+                  {sectionLabel}
+                </p>
+              )}
+              <div className={cn('flex items-start gap-2.5 py-1', !hasFeature && 'opacity-35')}>
+                {/* Icon */}
+                <div className="mt-0.5 flex-shrink-0">
+                  {hasFeature ? (
+                    <div className={cn(
+                      'w-4 h-4 rounded-full flex items-center justify-center',
+                      isPlatinum ? 'bg-amber-400/25' : isPremium ? 'bg-white/20' : 'bg-emerald-100',
+                    )}>
+                      <Check size={9} strokeWidth={3} className={isPlatinum ? 'text-amber-300' : isPremium ? 'text-white' : 'text-emerald-600'} />
+                    </div>
+                  ) : (
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center bg-black/10">
+                      <X size={8} strokeWidth={2.5} className={isPremium || isPlatinum ? 'text-white/30' : 'text-slate-400'} />
+                    </div>
+                  )}
+                </div>
+                {/* Label */}
+                <span className={cn(
+                  'text-xs leading-snug',
+                  !hasFeature
+                    ? (isPremium || isPlatinum ? 'text-white/40 line-through' : 'text-slate-400 line-through')
+                    : (isPremium || isPlatinum ? 'text-white' : 'text-slate-700'),
+                )}>
+                  {feature.label}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-      <button
-        onClick={isCurrent ? undefined : onSelect}
-        className={ctaCls}
-      >
-        {ctaLabel}
-      </button>
+      {/* CTA */}
+      <div className="px-5 pt-3 pb-5">
+        <div className={cn('h-px mb-3', isPremium ? 'bg-blue-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
+        <button onClick={isCurrent ? undefined : onSelect} disabled={isCurrent} className={ctaCls}>
+          {isCurrent
+            ? <><Lock size={13} /> {ctaLabel}</>
+            : <>{ctaLabel} <ArrowRight size={13} /></>
+          }
+        </button>
+      </div>
     </div>
   );
 }
@@ -227,8 +251,8 @@ const STATUS_STYLE: Record<string, string> = {
   SETTLEMENT: 'bg-emerald-100 text-emerald-700',
   SUCCESS:    'bg-emerald-100 text-emerald-700',
   FAILED:     'bg-red-100 text-red-600',
-  EXPIRED:    'bg-md-surface-container text-md-on-surface-variant',
-  CANCEL:     'bg-md-surface-container text-md-on-surface-variant',
+  EXPIRED:    'bg-slate-100 text-slate-500',
+  CANCEL:     'bg-slate-100 text-slate-500',
 };
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Menunggu', SETTLEMENT: 'Lunas', SUCCESS: 'Lunas',
@@ -272,13 +296,13 @@ function RiwayatPembayaranTab() {
   return (
     <div className="space-y-4">
       {history.map(item => (
-        <div key={item.id} className="bg-white rounded-2xl p-5 shadow-md3-sm">
+        <div key={item.id} className="bg-white rounded-2xl p-5 shadow-md3-sm border border-slate-100">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-md-on-surface text-sm truncate">{item.name}</p>
+              <p className="font-bold text-slate-800 text-sm truncate">{item.name}</p>
               <button
                 onClick={() => handleCopy(item.orderId)}
-                className="flex items-center gap-1.5 text-xs text-md-on-surface-variant mt-1 active-press"
+                className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 active-press"
               >
                 {copied === item.orderId
                   ? <CheckCheck size={11} className="text-emerald-500" />
@@ -291,13 +315,13 @@ function RiwayatPembayaranTab() {
               {STATUS_LABEL[item.status.toUpperCase()] ?? item.status}
             </span>
           </div>
-          <div className="flex items-center justify-between text-xs text-md-on-surface-variant">
+          <div className="flex items-center justify-between text-xs text-slate-400">
             <span>{item.method}</span>
             <span>{new Date(item.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
           </div>
-          {(item.status.toUpperCase() === 'PENDING') && (
+          {item.status.toUpperCase() === 'PENDING' && (
             <Link href={`/pembayaran/${item.orderId}`} className="block mt-3">
-              <button className="w-full py-2.5 bg-md-secondary-container text-md-primary text-xs font-bold rounded-xl active-press">
+              <button className="w-full py-2.5 bg-blue-50 text-blue-600 text-xs font-bold rounded-xl active-press border border-blue-100">
                 Lanjutkan Pembayaran
               </button>
             </Link>
@@ -313,9 +337,9 @@ function RiwayatPembayaranTab() {
 function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
   const tierName  = { free: 'Gratis', premium: 'Premium', platinum: 'Platinum' }[userTier];
   const tierColor = {
-    free:     'border-md-outline-variant/20 bg-md-surface-container-low',
+    free:     'border-slate-200 bg-slate-50',
     premium:  'border-blue-200 bg-blue-50',
-    platinum: 'border-purple-200 bg-purple-50',
+    platinum: 'border-violet-200 bg-violet-50',
   }[userTier];
   const features  = {
     free:     ['Tryout paket gratis', 'Akses Roadmap pembelajaran', 'Akses materi dasar'],
@@ -327,10 +351,10 @@ function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
     <div className="space-y-5">
       <div className={cn('rounded-2xl p-6 border-2', tierColor)}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-md-on-surface">Paket Aktif</h3>
+          <h3 className="font-bold text-slate-800">Paket Aktif</h3>
           <span className={cn(
             'text-xs font-black px-3 py-1 rounded-full',
-            userTier === 'platinum' ? 'bg-purple-100 text-purple-700' :
+            userTier === 'platinum' ? 'bg-violet-100 text-violet-700' :
             userTier === 'premium'  ? 'bg-blue-100 text-blue-700'     :
             'bg-emerald-100 text-emerald-700',
           )}>
@@ -340,19 +364,17 @@ function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
         <ul className="space-y-2.5">
           {features.map(f => (
             <li key={f} className="flex items-start gap-2">
-              <Check size={14} className="text-md-secondary flex-shrink-0 mt-0.5" />
-              <span className="text-sm text-md-on-surface-variant">{f}</span>
+              <Check size={14} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+              <span className="text-sm text-slate-600">{f}</span>
             </li>
           ))}
         </ul>
       </div>
       {userTier === 'free' && (
-        <Link href="/beli-paket#beli">
-          <button className="w-full bg-md-primary text-white font-extrabold py-4 rounded-2xl text-sm flex items-center justify-center gap-2 active-press shadow-md3-sm">
-            <Star size={16} fill="currentColor" />
-            Upgrade Sekarang
-          </button>
-        </Link>
+        <button className="w-full bg-blue-600 text-white font-extrabold py-4 rounded-2xl text-sm flex items-center justify-center gap-2 active-press shadow-sm">
+          <Star size={16} fill="currentColor" />
+          Upgrade Sekarang
+        </button>
       )}
     </div>
   );
@@ -361,6 +383,11 @@ function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
 // ── Component ─────────────────────────────────────────────────
 
 type Tab = 'beli' | 'riwayat' | 'aktif';
+
+interface MobilePaketBelajarProps {
+  userTier:    SubscriptionTier;
+  onSelectPkg: (tier: SubscriptionTier) => void;
+}
 
 export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajarProps) {
   const [activeTab, setActiveTab] = useState<Tab>('beli');
@@ -372,30 +399,29 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
   ];
 
   return (
-    <main className="px-6 py-6">
+    <main className="px-4 pt-16 pb-28">
 
       {/* ── Page Headline ─────────────────────────────────────── */}
-      <section className="mb-6">
-        <h1 className="text-3xl font-extrabold text-md-primary mb-2 tracking-tight"
-          style={{ fontFamily: 'var(--font-jakarta)' }}>
+      <section className="mb-5 pt-2">
+        <h1 className="text-xl font-extrabold text-slate-900 mb-1 tracking-tight">
           Paket Belajar
         </h1>
-        <p className="text-md-on-surface-variant text-sm leading-relaxed">
-          Pilih paket terbaik untuk memaksimalkan persiapan CPNS Anda.
+        <p className="text-slate-500 text-sm">
+          Pilih paket terbaik untuk persiapan SKD CPNS 2026.
         </p>
       </section>
 
       {/* ── Tabs ──────────────────────────────────────────────── */}
-      <div className="bg-md-surface-container-low rounded-2xl p-1.5 flex gap-1 mb-8">
+      <div className="bg-slate-100 rounded-xl p-1 flex gap-1 mb-6">
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-semibold text-xs transition-all active-press',
+              'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg font-semibold text-xs transition-all active-press',
               activeTab === tab.id
-                ? 'bg-white text-md-primary shadow-md3-sm'
-                : 'text-md-on-surface-variant',
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500',
             )}
           >
             {tab.icon}
@@ -406,93 +432,16 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
 
       {/* ── Beli Tab ──────────────────────────────────────────── */}
       {activeTab === 'beli' && (
-        <>
-          <div className="flex flex-col gap-8">
-            {PACKAGES.map(pkg => (
-              <PricingCard
-                key={pkg.id}
-                pkg={pkg}
-                isCurrent={userTier === pkg.tier}
-                onSelect={() => onSelectPkg(pkg.tier)}
-              />
-            ))}
-          </div>
-
-          {/* Feature Matrix */}
-          <section className="mt-10">
-            <h4 className="text-lg font-bold text-md-primary mb-4"
-              style={{ fontFamily: 'var(--font-jakarta)' }}>
-              Perbandingan Fitur
-            </h4>
-            <div className="overflow-x-auto -mx-6 px-6">
-              <table className="w-full min-w-[340px] text-left border-collapse">
-                <thead>
-                  <tr>
-                    <th className="text-[11px] font-bold text-md-on-surface-variant pb-3 pr-3 w-[44%]">Fitur</th>
-                    {(['Gratis', 'Premium', 'Platinum'] as const).map(tier => (
-                      <th key={tier} className={cn(
-                        'text-[11px] font-black pb-3 text-center w-[18%]',
-                        tier === 'Premium'  ? 'text-md-primary' :
-                        tier === 'Platinum' ? 'text-purple-600' :
-                        'text-md-on-surface-variant',
-                      )}>
-                        {tier}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-md-outline-variant/10">
-                  {FEATURE_MATRIX.map(row => (
-                    <tr key={row.feature} className="bg-white odd:bg-md-surface-container-low/30">
-                      <td className="py-3 pr-3 text-xs text-md-on-surface leading-snug rounded-l-lg">
-                        {row.feature}
-                      </td>
-                      {(['free', 'premium', 'platinum'] as const).map(tier => (
-                        <td key={tier} className="py-3 text-center rounded-r-lg">
-                          {row[tier] === true ? (
-                            <Check size={15} className={cn(
-                              'mx-auto',
-                              tier === 'premium'  ? 'text-md-primary' :
-                              tier === 'platinum' ? 'text-purple-500' :
-                              'text-emerald-500',
-                            )} />
-                          ) : row[tier] === false ? (
-                            <span className="inline-block w-3 h-0.5 bg-md-outline-variant/40 rounded-full mx-auto" />
-                          ) : (
-                            <span className="text-[10px] font-bold text-md-on-surface-variant leading-tight block px-1">
-                              {row[tier]}
-                            </span>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* Trust Section */}
-          <section className="mt-10 bg-md-surface-container-low rounded-2xl p-6">
-            <h4 className="text-lg font-bold text-md-primary mb-4"
-              style={{ fontFamily: 'var(--font-jakarta)' }}>
-              Kenapa Upgrade?
-            </h4>
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { icon: '🛡️', label: 'Materi Terupdate 2026' },
-                { icon: '⚡', label: 'Simulasi CAT Real-time' },
-                { icon: '📊', label: 'Analisis Performa AI' },
-                { icon: '👥', label: 'Komunitas 10.000+ Peserta' },
-              ].map(({ icon, label }) => (
-                <div key={label} className="flex flex-col gap-2">
-                  <span className="text-2xl">{icon}</span>
-                  <p className="text-xs font-semibold text-md-on-surface">{label}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        </>
+        <div className="flex flex-col gap-6">
+          {PACKAGES.map(pkg => (
+            <PricingCard
+              key={pkg.id}
+              pkg={pkg}
+              isCurrent={userTier === pkg.tier}
+              onSelect={() => onSelectPkg(pkg.tier)}
+            />
+          ))}
+        </div>
       )}
 
       {/* ── Riwayat Tab ───────────────────────────────────────── */}
