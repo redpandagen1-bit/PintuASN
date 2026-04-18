@@ -493,9 +493,11 @@ export default function Home() {
 
         @media(max-width:768px){
           .nav-links{display:none}
-          .nav-btns{display:none}
+          .nav-btns{display:flex;gap:6px}
+          .btn-ghost{padding:6px 13px;font-size:12.5px}
+          .btn-primary{padding:6px 13px;font-size:12.5px}
           .hamburger{display:flex}
-          .nav-inner{padding:0 16px}
+          .nav-inner{padding:0 16px;gap:8px}
           .hero{padding:100px 20px 60px;min-height:auto}
           .hero::before{display:none}
           .hero-grid{grid-template-columns:1fr;gap:32px;text-align:center;}
