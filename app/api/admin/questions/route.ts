@@ -170,7 +170,8 @@ export async function POST(request: NextRequest) {
 
     // UPDATE existing choices in-place (preserves choice IDs → FK in attempt_answers stays valid)
     // INSERT only if a label doesn't exist yet (e.g. brand-new question)
-    for (const c of choices) {
+    // Run all 5 choice ops concurrently to avoid sequential round-trips
+    await Promise.all(choices.map(async (c: any) => {
       const choicePayload = {
         question_id: questionId,
         label: c.label,
@@ -191,7 +192,7 @@ export async function POST(request: NextRequest) {
           throw uErr;
         }
       } else {
-        // INSERT — new choice (shouldn't happen for existing question, but safe fallback)
+        // INSERT — new choice (brand-new question without existing choices)
         const { error: iErr } = await supabase
           .from('choices')
           .insert(choicePayload);
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest) {
           throw iErr;
         }
       }
-    }
+    }));
 
     return NextResponse.json({ success: true, questionId }, { status: 201 });
   } catch (error: any) {

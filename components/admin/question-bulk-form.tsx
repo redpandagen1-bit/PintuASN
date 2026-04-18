@@ -319,10 +319,9 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
         }
       }
 
-      for (const draft of completed) {
+      // Helper: kirim 1 soal ke API
+      const saveDraft = async (draft: QuestionDraft) => {
         const questionImageUrl = uploadedUrls[`q${draft.number}`] || (draft.image_url?.startsWith('http') ? draft.image_url : '') || '';
-        
-        // Gambar pembahasan: pakai uploaded URL, atau gambar jawaban benar, atau existing URL
         const correctChoice = draft.choices.find(c => c.is_answer);
         const correctChoiceImageKey = `q${draft.number}_${correctChoice?.label}`;
         const explanationImageUrl =
@@ -337,7 +336,6 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
           const imageUrl = uploadedUrls[choiceImageKey] || (c.image_url?.startsWith('http') ? c.image_url : '') || '';
           return {
             label: c.label,
-            // Jika tidak ada text tapi ada gambar, simpan string kosong di content
             content: c.content || '',
             image_url: imageUrl,
             is_answer: c.is_answer,
@@ -366,6 +364,13 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
           const data = await response.json();
           throw new Error(`Soal #${draft.number}: ${data.error}`);
         }
+      };
+
+      // Kirim dalam batch paralel — 10 soal sekaligus untuk menghindari 110 sequential requests
+      const BATCH_SIZE = 10;
+      for (let i = 0; i < completed.length; i += BATCH_SIZE) {
+        const batch = completed.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map(saveDraft));
       }
 
       alert(`✅ Berhasil menyimpan ${completed.length} soal!`);
