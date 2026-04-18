@@ -103,16 +103,8 @@ export async function POST(request: NextRequest) {
         throw qError;
       }
 
-      // Delete old choices — must succeed before inserting new ones
-      const { error: deleteError } = await supabase
-        .from('choices')
-        .delete()
-        .eq('question_id', questionId);
-
-      if (deleteError) {
-        console.error('❌ Error deleting old choices:', deleteError);
-        throw deleteError;
-      }
+      // NOTE: Do NOT delete old choices — attempt_answers references choice_id via FK.
+      // Instead we UPDATE existing choices in-place (preserves IDs → preserves user answer history).
 
     } else {
       // INSERT new question
@@ -165,23 +157,49 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert/Update choices
-    const choicesData = choices.map((c: any) => ({
-      question_id: questionId,
-      label: c.label,
-      content: c.content,
-      image_url: c.image_url || null,
-      is_answer: category === 'TKP' ? false : (c.is_answer || false),
-      score: category === 'TKP' ? c.score : null,
-    }));
-
-    const { error: cError } = await supabase
+    // Fetch existing choices for this question (to decide UPDATE vs INSERT per label)
+    const { data: existingChoices } = await supabase
       .from('choices')
-      .insert(choicesData);
+      .select('id, label')
+      .eq('question_id', questionId);
 
-    if (cError) {
-      console.error('❌ Error inserting choices:', cError);
-      throw cError;
+    const existingByLabel: Record<string, string> = {};
+    for (const ec of existingChoices ?? []) {
+      existingByLabel[ec.label] = ec.id;
+    }
+
+    // UPDATE existing choices in-place (preserves choice IDs → FK in attempt_answers stays valid)
+    // INSERT only if a label doesn't exist yet (e.g. brand-new question)
+    for (const c of choices) {
+      const choicePayload = {
+        question_id: questionId,
+        label: c.label,
+        content: c.content,
+        image_url: c.image_url || null,
+        is_answer: category === 'TKP' ? false : (c.is_answer || false),
+        score: category === 'TKP' ? c.score : null,
+      };
+
+      if (existingByLabel[c.label]) {
+        // UPDATE — keep the same row ID
+        const { error: uErr } = await supabase
+          .from('choices')
+          .update(choicePayload)
+          .eq('id', existingByLabel[c.label]);
+        if (uErr) {
+          console.error(`❌ Error updating choice ${c.label}:`, uErr);
+          throw uErr;
+        }
+      } else {
+        // INSERT — new choice (shouldn't happen for existing question, but safe fallback)
+        const { error: iErr } = await supabase
+          .from('choices')
+          .insert(choicePayload);
+        if (iErr) {
+          console.error(`❌ Error inserting choice ${c.label}:`, iErr);
+          throw iErr;
+        }
+      }
     }
 
     return NextResponse.json({ success: true, questionId }, { status: 201 });
