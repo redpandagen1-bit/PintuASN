@@ -23,6 +23,8 @@ interface MateriPageClientProps {
 }
 
 const TABS = [
+  { id: 'SEMUA',     label: 'Semua',         icon: BookOpen,
+    description: 'Semua materi SKD CPNS — Informasi, TWK, TIU, dan TKP.' },
   { id: 'INFORMASI', label: 'Informasi CPNS', icon: FileText,
     description: 'Panduan lengkap seleksi CPNS — jadwal, persyaratan, dan alur pendaftaran.' },
   { id: 'TWK', label: 'TWK', icon: Flag,
@@ -283,7 +285,7 @@ function EmptyState({ category }: { category: string }) {
 }
 
 export default function MateriPageClient({ materials, userTier }: MateriPageClientProps) {
-  const [activeTab,      setActiveTab]      = useState<string>('INFORMASI');
+  const [activeTab,      setActiveTab]      = useState<string>('SEMUA');
   const [activeModal,    setActiveModal]    = useState<Material | null>(null);
   const [showLeftArrow,  setShowLeftArrow]  = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
@@ -293,7 +295,9 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
 
   const scrollRef       = useRef<HTMLDivElement>(null);
   const activeTabConfig = TABS.find(t => t.id === activeTab)!;
-  const tabMaterials    = materials.filter(m => m.category === activeTab);
+  const tabMaterials    = activeTab === 'SEMUA'
+    ? materials
+    : materials.filter(m => m.category === activeTab);
   const totalMaterials  = materials.length;
   const categories      = new Set(materials.map(m => m.category)).size;
 
@@ -374,7 +378,9 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
               {TABS.map(tab => {
                 const Icon    = tab.icon;
                 const isActive = tab.id === activeTab;
-                const count   = materials.filter(m => m.category === tab.id).length;
+                const count   = tab.id === 'SEMUA'
+                    ? materials.length
+                    : materials.filter(m => m.category === tab.id).length;
                 return (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
@@ -423,7 +429,7 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
                   onPlay={setActiveModal} onLocked={handleLocked}
                 />
               ))
-            : <EmptyState category={activeTabConfig.label} />
+            : <EmptyState category={activeTab === 'SEMUA' ? 'Semua' : activeTabConfig.label} />
           }
         </div>
       </div>
