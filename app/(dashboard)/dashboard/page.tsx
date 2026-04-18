@@ -107,7 +107,7 @@ async function DashboardContent() {
           packages={packagesWithUserCount}
           packageIdsWithAttempts={packageIdsWithAttempts}
           materials={materials ?? []}
-          userTier={userTier}
+          userTier={userTier as 'free' | 'premium' | 'platinum'}
         />
       </MobilePageWrapper>
 
@@ -115,6 +115,41 @@ async function DashboardContent() {
       <div className="hidden md:block space-y-5 pb-10">
         <BannerSlider />
         <FeatureGrid />
+
+        {/* Upgrade Offer Banner — hanya tampil untuk free & premium */}
+        {userTier !== 'platinum' && (
+          <section className={`rounded-2xl p-5 flex items-center justify-between gap-4
+            ${userTier === 'premium'
+              ? 'bg-gradient-to-r from-violet-600 to-purple-700'
+              : 'bg-gradient-to-r from-blue-600 to-blue-700'
+            }`}>
+            <div>
+              <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-0.5">
+                {userTier === 'premium' ? 'Upgrade Spesial' : 'Limited Offer'}
+              </p>
+              <h3 className="text-white font-extrabold text-base leading-tight">
+                {userTier === 'premium' ? 'Upgrade ke Platinum' : 'Paket Premium 2026'}
+              </h3>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-white/50 text-sm line-through">
+                  {userTier === 'premium' ? 'Rp 119.000' : 'Rp 200.000'}
+                </span>
+                <span className="text-yellow-300 font-extrabold text-xl">
+                  {userTier === 'premium' ? 'Rp 29.000' : 'Rp 99.000'}
+                </span>
+              </div>
+            </div>
+            <Link href="/beli-paket" className="flex-shrink-0">
+              <Button className={`font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg
+                ${userTier === 'premium'
+                  ? 'bg-amber-400 text-slate-900 hover:bg-amber-300'
+                  : 'bg-white text-blue-700 hover:bg-blue-50'
+                }`}>
+                {userTier === 'premium' ? 'Upgrade' : 'Beli Sekarang'}
+              </Button>
+            </Link>
+          </section>
+        )}
 
         {/* Statistik Belajar */}
         <section className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-3xl p-5 md:p-7 shadow-lg border border-slate-600 space-y-5">

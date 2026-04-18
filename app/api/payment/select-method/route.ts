@@ -98,12 +98,23 @@ export async function POST(req: NextRequest) {
         payment_type: 'gopay',
         gopay: { enable_callback: true },
       };
+    } else if (methodId === 'alfamart' || methodId === 'indomaret') {
+      // Convenience Store
+      midtransBody = {
+        ...midtransBody,
+        payment_type: 'cstore',
+        cstore: {
+          store:   methodId,
+          message: 'PintuASN',
+        },
+      };
     } else {
       // Virtual Account
       const bankMap: Record<string, string> = {
         bri_va:     'bri',
         bca_va:     'bca',
         mandiri_va: 'mandiri',
+        bni_va:     'bni',
         other_bank: 'permata',
       };
       const bankCode = bankMap[methodId] || bank || 'bri';
@@ -135,9 +146,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Ekstrak VA / QRIS / eWallet URL
-    let vaNumber: string | undefined;
-    let qrisUrl: string | undefined;
-    let ewalletUrl: string | undefined;
+    let vaNumber:    string | undefined;
+    let qrisUrl:     string | undefined;
+    let ewalletUrl:  string | undefined;
+    let paymentCode: string | undefined;
 
     if (data.payment_type === 'bank_transfer') {
       vaNumber =
@@ -152,6 +164,8 @@ export async function POST(req: NextRequest) {
       ewalletUrl =
         data.actions?.find((a: { name: string; url: string }) => a.name === 'deeplink-redirect')?.url ||
         data.actions?.find((a: { name: string; url: string }) => a.name === 'get-status')?.url;
+    } else if (data.payment_type === 'cstore') {
+      paymentCode = data.payment_code;
     }
 
     // Update order di Supabase dengan total final (setelah admin fee)
@@ -161,7 +175,8 @@ export async function POST(req: NextRequest) {
         payment_method:          methodId,
         admin_fee:               adminFee,
         total,
-        va_number:               vaNumber,
+        va_number:               vaNumber ?? null,
+        payment_code:            paymentCode ?? null,
         midtrans_transaction_id: data.transaction_id,
       })
       .eq('order_id', orderId);
@@ -174,6 +189,7 @@ export async function POST(req: NextRequest) {
       vaNumber,
       qrisUrl,
       ewalletUrl,
+      paymentCode,
       total,
     });
   } catch (error) {

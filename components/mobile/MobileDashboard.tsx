@@ -86,42 +86,65 @@ export function MobileDashboard({
   packages,
   packageIdsWithAttempts,
   materials,
+  userTier,
 }: MobileDashboardProps) {
   const activeSet = new Set(packageIdsWithAttempts);
+
+  // ── Offer banner logic ────────────────────────────────────────
+  const showOffer   = userTier !== 'platinum';
+  const isPremium   = userTier === 'premium';
+  const offerTitle  = isPremium ? 'Upgrade ke Platinum' : 'Paket Premium 2026';
+  const offerPrice  = isPremium ? 'Rp 29.000' : 'Rp 99.000';
+  const offerOrig   = isPremium ? 'Rp 119.000' : 'Rp 200.000';
+  const offerBadge  = isPremium ? 'Upgrade Spesial' : 'Limited Offer';
+  const offerBg     = isPremium
+    ? 'bg-gradient-to-br from-violet-50 to-purple-50'
+    : 'bg-md-secondary-container/10';
+  const offerGlow   = isPremium ? 'bg-violet-300' : 'bg-md-secondary-container';
+  const offerBadgeCls = isPremium
+    ? 'bg-violet-600 text-white'
+    : 'bg-md-secondary text-white';
+  const offerTitleCls = isPremium ? 'text-violet-800' : 'text-md-primary';
+  const offerPriceCls = isPremium ? 'text-violet-700' : 'text-md-secondary';
+  const offerBtnCls   = isPremium
+    ? 'bg-violet-700 text-white'
+    : 'bg-md-primary text-white';
 
   return (
     <main className="space-y-6">
 
-      {/* ── Premium CTA Banner ───────────────────────────────── */}
-      <section className="px-4">
-        <div className="bg-md-secondary-container/10 rounded-3xl p-5 relative overflow-hidden flex items-center justify-between">
-          <div className="absolute -right-8 -top-8 w-24 h-24 bg-md-secondary-container opacity-20 rounded-full blur-2xl pointer-events-none" />
-          <div className="space-y-1 relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-md-secondary text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
-                Limited Offer
-              </span>
-            </div>
-            <h3 className="text-lg font-extrabold text-md-primary leading-tight"
-              style={{ fontFamily: 'var(--font-jakarta)' }}>
-              Paket Premium 2026
-            </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-xs line-through text-md-on-surface-variant font-medium">Rp 159.000</span>
-              <span className="text-xl font-black text-md-secondary"
+      {/* ── Upgrade / Premium CTA Banner ─────────────────────── */}
+      {showOffer && (
+        <section className="px-4">
+          <div className={cn('rounded-3xl p-5 relative overflow-hidden flex items-center justify-between', offerBg)}>
+            <div className={cn('absolute -right-8 -top-8 w-24 h-24 opacity-20 rounded-full blur-2xl pointer-events-none', offerGlow)} />
+            <div className="space-y-1 relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <span className={cn('text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest', offerBadgeCls)}>
+                  {offerBadge}
+                </span>
+              </div>
+              <h3 className={cn('text-lg font-extrabold leading-tight', offerTitleCls)}
                 style={{ fontFamily: 'var(--font-jakarta)' }}>
-                Rp 99.000
-              </span>
+                {offerTitle}
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs line-through text-md-on-surface-variant font-medium">{offerOrig}</span>
+                <span className={cn('text-xl font-black', offerPriceCls)}
+                  style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  {offerPrice}
+                </span>
+              </div>
             </div>
+            <Link href="/beli-paket" className="relative z-10">
+              <button className={cn('font-bold px-4 py-2.5 rounded-xl text-xs active-press flex items-center gap-1 shadow-md3-md', offerBtnCls)}>
+                {isPremium ? 'Upgrade' : 'Beli Sekarang'}
+                <Zap size={14} />
+              </button>
+            </Link>
           </div>
-          <Link href="/beli-paket" className="relative z-10">
-            <button className="bg-md-primary text-white font-bold px-4 py-2.5 rounded-xl text-xs active-press flex items-center gap-1 shadow-md3-md">
-              Beli Sekarang
-              <Zap size={14} />
-            </button>
-          </Link>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
       <section className="px-4">
