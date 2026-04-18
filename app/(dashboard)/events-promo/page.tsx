@@ -2,12 +2,14 @@
 // app/(dashboard)/events-promo/page.tsx
 // ============================================================
 
-import { Suspense }         from 'react';
-import { createClient }     from '@/lib/supabase/server';
-import EventPromoCard       from '@/components/dashboard/user/EventPromoCard';
-import { Skeleton }         from '@/components/ui/skeleton';
-import type { Event }       from '@/types/events';
-import { Megaphone }        from 'lucide-react';
+import { Suspense }           from 'react';
+import { createClient }       from '@/lib/supabase/server';
+import EventPromoCard         from '@/components/dashboard/user/EventPromoCard';
+import { Skeleton }           from '@/components/ui/skeleton';
+import type { Event }         from '@/types/events';
+import { Megaphone }          from 'lucide-react';
+import { MobilePageWrapper }  from '@/components/mobile/MobilePageWrapper';
+import { MobileEventPromo }   from '@/components/mobile/MobileEventPromo';
 
 // ── data fetching ─────────────────────────────────────────────
 async function getActiveEvents(): Promise<Event[]> {
@@ -47,7 +49,7 @@ function EventsSkeleton() {
   );
 }
 
-// ── events grid ───────────────────────────────────────────────
+// ── desktop events grid ───────────────────────────────────────
 async function EventsGrid() {
   const events = await getActiveEvents();
 
@@ -74,6 +76,16 @@ async function EventsGrid() {
   );
 }
 
+// ── mobile wrapper (needs data) ────────────────────────────────
+async function MobileEventsWrapper() {
+  const events = await getActiveEvents();
+  return (
+    <MobilePageWrapper>
+      <MobileEventPromo events={events} />
+    </MobilePageWrapper>
+  );
+}
+
 // ── page ─────────────────────────────────────────────────────
 export const metadata = {
   title:       'Event & Promo',
@@ -82,22 +94,28 @@ export const metadata = {
 
 export default function EventsPromoPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-      {/* Header */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <Megaphone size={22} className="text-emerald-600" />
-          <h1 className="text-2xl font-bold text-slate-900">Event &amp; Promo</h1>
-        </div>
-        <p className="text-slate-500 text-sm">
-          Dapatkan penawaran terbaik untuk persiapan SKD kamu. Jangan sampai kehabisan!
-        </p>
-      </div>
-
-      {/* Grid */}
-      <Suspense fallback={<EventsSkeleton />}>
-        <EventsGrid />
+    <>
+      {/* ── Mobile ── */}
+      <Suspense fallback={null}>
+        <MobileEventsWrapper />
       </Suspense>
-    </div>
+
+      {/* ── Desktop ── */}
+      <div className="hidden md:block max-w-4xl mx-auto px-4 pt-4 pb-8 md:py-8 space-y-6 md:space-y-8">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Megaphone size={22} className="text-emerald-600" />
+            <h1 className="text-2xl font-bold text-slate-900">Event &amp; Promo</h1>
+          </div>
+          <p className="text-slate-500 text-sm">
+            Dapatkan penawaran terbaik untuk persiapan SKD kamu. Jangan sampai kehabisan!
+          </p>
+        </div>
+
+        <Suspense fallback={<EventsSkeleton />}>
+          <EventsGrid />
+        </Suspense>
+      </div>
+    </>
   );
 }

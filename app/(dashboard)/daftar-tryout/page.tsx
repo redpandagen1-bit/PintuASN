@@ -13,6 +13,8 @@ import {
 import { DaftarTryoutClient } from './daftar-tryout-client';
 import { Skeleton }     from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { MobilePageWrapper }  from '@/components/mobile/MobilePageWrapper';
+import { MobileDaftarTryout } from '@/components/mobile/MobileDaftarTryout';
 
 // ─────────────────────────────────────────────────────────────
 
@@ -62,11 +64,22 @@ async function DaftarTryoutContent() {
   );
 
   return (
-    <DaftarTryoutClient
-      packages={packagesWithMeta}
-      packageIdsWithAttempts={Array.from(packageIdsWithAttempts)}
-      userTier={userTier}
-    />
+    <>
+      <MobilePageWrapper>
+        <MobileDaftarTryout
+          packages={packagesWithMeta}
+          packageIdsWithAttempts={Array.from(packageIdsWithAttempts)}
+          userTier={userTier}
+        />
+      </MobilePageWrapper>
+      <div className="hidden md:block">
+        <DaftarTryoutClient
+          packages={packagesWithMeta}
+          packageIdsWithAttempts={Array.from(packageIdsWithAttempts)}
+          userTier={userTier}
+        />
+      </div>
+    </>
   );
 }
 

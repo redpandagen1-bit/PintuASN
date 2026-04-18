@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
+import { MobileHeader }      from '@/components/mobile/MobileHeader';
+import { MobilePaketBelajar } from '@/components/mobile/MobilePaketBelajar';
+import type { SubscriptionTier } from '@/lib/subscription-utils';
 import {
   Check, Zap, Shield, Crown, ArrowRight, Loader2,
   ShoppingBag, History, PackageCheck, Copy, CheckCheck,
@@ -556,7 +560,7 @@ function RiwayatTab() {
               </button>
             </div>
             <div className="h-px bg-slate-100 mb-4" />
-            <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
               <div><p className="text-xs text-slate-400 mb-1">Metode Pembayaran</p><p className="font-semibold text-slate-800">{item.method || '-'}</p>{item.methodDetail && <p className="text-slate-500 text-xs mt-0.5 font-mono truncate">{item.methodDetail}</p>}</div>
               <div><p className="text-xs text-slate-400 mb-1">Waktu Transaksi</p><p className="font-semibold text-slate-800">{item.date}</p></div>
               <div><p className="text-xs text-slate-400 mb-1">Status</p><span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${STATUS_STYLE[item.status] ?? 'bg-slate-100 text-slate-500'}`}>{STATUS_LABEL[item.status] ?? item.status}</span></div>
@@ -615,6 +619,8 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 ];
 
 export default function BeliPaketPage() {
+  const router = useRouter();
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState<Tab>('beli');
   const [error, setError]         = useState<string | null>(null);
   // Fetch user tier once at page level — passed down as prop, no extra requests
@@ -632,8 +638,37 @@ export default function BeliPaketPage() {
       .finally(() => setTierLoading(false));
   }, []);
 
+  const userInitials = user
+    ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || 'U'
+    : 'U';
+
+  const handleMobileSelectPkg = useCallback(async (tier: SubscriptionTier) => {
+    const pkg = PACKAGES.find(p => p.id === tier);
+    if (!pkg || pkg.isFree) { router.push('/dashboard'); return; }
+    try {
+      const res  = await fetch('/api/payment/charge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ package_id: pkg.id }),
+      });
+      const data = await res.json();
+      if (data.redirectUrl) router.push(data.redirectUrl);
+    } catch { /* handled by charge API */ }
+  }, [router]);
+
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <>
+      {/* ── Mobile ─────────────────────────────────────────────── */}
+      <div className="md:hidden">
+        <MobileHeader userImageUrl={user?.imageUrl ?? null} userInitials={userInitials} />
+        {tierLoading
+          ? <div className="flex items-center justify-center py-24"><Loader2 size={28} className="animate-spin text-md-primary" /></div>
+          : <MobilePaketBelajar userTier={userTier} onSelectPkg={handleMobileSelectPkg} />
+        }
+      </div>
+
+      {/* ── Desktop ────────────────────────────────────────────── */}
+      <div className="hidden md:block min-h-screen bg-slate-50 py-8 px-4">
       <div className="text-center mb-7">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Paket Belajar</h1>
         <p className="text-slate-500 text-sm max-w-md mx-auto">Pilih paket terbaik untuk persiapan SKD CPNS 2026.</p>
@@ -641,12 +676,14 @@ export default function BeliPaketPage() {
       </div>
 
       <div className="max-w-5xl mx-auto mb-6">
-        <div className="inline-flex bg-white border border-slate-200 rounded-xl p-1 gap-1">
+        <div className="flex w-full sm:w-auto sm:inline-flex bg-white border border-slate-200 rounded-xl p-1 gap-1">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => { setActiveTab(id); setError(null); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all
                 ${activeTab === id ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'}`}>
-              <Icon size={15} />{label}
+              <Icon size={15} />
+              <span className="hidden sm:inline">{label}</span>
+              <span className="sm:hidden text-xs">{id === 'beli' ? 'Beli' : id === 'riwayat' ? 'Riwayat' : 'Aktif'}</span>
             </button>
           ))}
         </div>
@@ -667,5 +704,6 @@ export default function BeliPaketPage() {
         )}
       </div>
     </div>
+    </>
   );
 }
