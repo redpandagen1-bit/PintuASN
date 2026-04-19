@@ -15,7 +15,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="glass-nav fixed bottom-0 left-0 right-0 z-50 flex md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex md:hidden bg-white border-t border-slate-200">
       <div className="flex w-full pb-safe">
         {NAV_ITEMS.map(({ id, label, href, icon: Icon }) => {
           const isActive = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href));

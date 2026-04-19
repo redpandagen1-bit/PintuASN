@@ -3,18 +3,21 @@
 // components/mobile/MobileDashboard.tsx
 // Mobile-only dashboard layout following Pathfinder Navy MD3 mockup
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   BookOpen, ClipboardList, History,
   ShoppingCart, Megaphone, Users,
   ChevronRight, Play, Clock,
-  BookMarked, CheckCircle, BarChart2,
+  CheckCircle, BarChart2,
   Award, TrendingUp, FileText,
-  Crown,
+  Crown, Lock, Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { canAccess }             from '@/lib/subscription-utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
+import { UpgradeModal }          from '@/components/shared/upgrade-modal';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -61,7 +64,25 @@ const MENU_ITEMS = [
   { label: 'Grup',          href: '/roadmap',       Icon: Users,      gold: false },
 ] as const;
 
-// ── Category chip colors ──────────────────────────────────────
+// ── Tryout card constants (sama dengan daftar-tryout) ─────────
+
+const TIER_BADGE: Record<string, { label: string; className: string }> = {
+  free:     { label: 'Gratis',   className: 'bg-emerald-500 text-white' },
+  premium:  { label: 'Premium',  className: 'bg-blue-500 text-white' },
+  platinum: { label: 'Platinum', className: 'bg-purple-500 text-white' },
+};
+
+const DIFFICULTY_LABEL: Record<string, string> = {
+  easy: 'Mudah', medium: 'Sedang', hard: 'Sulit',
+};
+
+const DIFFICULTY_COLOR: Record<string, string> = {
+  easy:   'bg-emerald-100 text-emerald-700',
+  medium: 'bg-yellow-100  text-yellow-700',
+  hard:   'bg-red-100     text-red-700',
+};
+
+// ── Category chip colors (for materials) ─────────────────────
 
 const CAT_CHIP: Record<string, string> = {
   TWK: 'bg-blue-100 text-blue-700',
@@ -90,6 +111,17 @@ export function MobileDashboard({
   userTier,
 }: MobileDashboardProps) {
   const activeSet = new Set(packageIdsWithAttempts);
+
+  // ── Upgrade modal state ───────────────────────────────────────
+  const [modalOpen,  setModalOpen]  = useState(false);
+  const [modalTier,  setModalTier]  = useState<'premium' | 'platinum'>('premium');
+  const [modalTitle, setModalTitle] = useState('');
+
+  const handleLocked = (title: string, tier: 'premium' | 'platinum') => {
+    setModalTitle(title);
+    setModalTier(tier);
+    setModalOpen(true);
+  };
 
   // ── Offer banner logic ────────────────────────────────────────
   const showOffer  = userTier !== 'platinum';
@@ -149,10 +181,10 @@ export function MobileDashboard({
               </div>
             </div>
 
-            {/* Harga (hanya untuk premium → platinum) */}
+            {/* Harga sebaris (hanya untuk premium → platinum) */}
             {isPremium && (
-              <div className="mb-3">
-                <p className="text-slate-500 text-xs line-through leading-none mb-0.5">{offerOrig}</p>
+              <div className="flex items-baseline gap-2 mb-3">
+                <p className="text-slate-500 text-xs line-through leading-none">{offerOrig}</p>
                 <p className="text-white font-bold text-lg leading-none"
                   style={{ fontFamily: 'var(--font-jakarta)' }}>
                   {offerPrice}
@@ -234,67 +266,91 @@ export function MobileDashboard({
       {packages.length > 0 && (
         <section className="space-y-3">
           <div className="flex justify-between items-end px-4">
-            <h2 className="text-base font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
-              Daftar Tryout
-            </h2>
-            <Link href="/daftar-tryout" className="text-xs font-semibold text-md-on-surface-variant uppercase tracking-wide">
-              Lihat Semua
+            <div>
+              <h2 className="text-base font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
+                Daftar Tryout
+              </h2>
+              <p className="text-slate-500 text-[10px] mt-0.5">Pilih paket simulasi SKD sesuai kebutuhanmu.</p>
+            </div>
+            <Link href="/daftar-tryout" className="text-xs font-semibold text-md-on-surface-variant uppercase tracking-wide flex items-center gap-0.5">
+              Lihat Semua <ChevronRight size={12} />
             </Link>
           </div>
 
-          <div className="flex gap-4 overflow-x-auto scrollbar-hide -mx-0 px-4 pb-2">
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
             {packages.slice(0, 5).map(pkg => {
-              const hasActive = activeSet.has(pkg.id);
-              const tier = pkg.tier ?? 'free';
-              const catLabel = tier === 'free' ? 'TWK' : tier === 'premium' ? 'TIU' : 'TKP';
-              const catClass = CAT_CHIP[catLabel] ?? 'bg-slate-100 text-slate-600';
+              const hasActive    = activeSet.has(pkg.id);
+              const contentTier  = (pkg.tier ?? 'free') as SubscriptionTier;
+              const accessible   = canAccess(userTier, contentTier);
+              const tierBadge    = TIER_BADGE[contentTier] ?? TIER_BADGE.free;
+              const diffLabel    = DIFFICULTY_LABEL[pkg.difficulty] ?? pkg.difficulty;
+              const diffColor    = DIFFICULTY_COLOR[pkg.difficulty] ?? 'bg-slate-100 text-slate-600';
 
               return (
-                <Link
+                <div
                   key={pkg.id}
-                  href={`/packages/${pkg.id}`}
-                  className="min-w-[240px] bg-white rounded-2xl p-4 shadow-md3-sm relative overflow-hidden active-press flex-shrink-0 block"
+                  className="min-w-[200px] flex-shrink-0 bg-white rounded-2xl shadow-sm relative flex flex-col active-press overflow-hidden"
                 >
-                  {/* Category chip */}
-                  <div className="absolute top-0 right-0 p-3">
-                    <span className={`text-[9px] px-2 py-0.5 rounded-lg font-extrabold uppercase ${catClass}`}>
-                      {catLabel}
+                  {/* Tier badge — top-right absolute, sama persis daftar-tryout */}
+                  <div className="absolute top-3 right-3 z-10">
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 ${tierBadge.className}`}>
+                      {contentTier !== 'free' && <Star size={8} fill="currentColor" />}
+                      {tierBadge.label}
                     </span>
                   </div>
 
-                  <div className="space-y-4 pt-1">
-                    <div className="space-y-1.5">
-                      <h3 className="font-bold text-sm text-md-primary leading-tight pr-10"
-                        style={{ fontFamily: 'var(--font-jakarta)' }}>
-                        {pkg.title}
-                      </h3>
-                      <div className="flex items-center gap-3 text-md-on-surface-variant">
-                        <span className="flex items-center gap-1 text-[10px] font-medium">
-                          <BookMarked size={12} strokeWidth={1.6} />
-                          {pkg.total_questions ?? 110} Soal
-                        </span>
-                        <span className="flex items-center gap-1 text-[10px] font-medium">
-                          <Clock size={12} strokeWidth={1.6} />
-                          {pkg.duration_minutes ?? 100} Mnt
-                        </span>
+                  <div className="p-4 flex-1 flex flex-col">
+                    {/* Judul */}
+                    <h3 className={`font-bold text-sm leading-snug mb-2.5 pr-16 ${accessible ? 'text-slate-800' : 'text-slate-500'}`}
+                      style={{ fontFamily: 'var(--font-jakarta)' }}>
+                      {pkg.title}
+                    </h3>
+
+                    {/* Difficulty */}
+                    <div className="mb-2.5">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${diffColor}`}>
+                        {diffLabel}
+                      </span>
+                    </div>
+
+                    {/* Info list */}
+                    <div className="space-y-1 mb-3 flex-1">
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                        <BookOpen size={12} className="text-slate-400" />
+                        <span>{pkg.total_questions ?? 110} Soal</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                        <Clock size={12} className="text-slate-400" />
+                        <span>{pkg.duration_minutes ?? 100} Menit</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                        <Users size={12} className="text-slate-400" />
+                        <span>{pkg.completedUsersCount.toLocaleString('id-ID')} Peserta</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-3">
-                      {/* Participants — sama seperti desktop TryoutSection */}
-                      <span className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
-                        <Users size={13} className="text-slate-400" strokeWidth={1.6} />
-                        {pkg.completedUsersCount.toLocaleString('id-ID')} Peserta
-                      </span>
-
-                      <button className="bg-md-primary text-white font-bold px-4 py-2 rounded-xl text-xs active:scale-95 transition-transform flex items-center gap-1.5">
-                        {hasActive ? (
-                          <><Play size={11} fill="currentColor" />Lanjut</>
-                        ) : 'Mulai'}
+                    {/* CTA — sama dengan daftar-tryout */}
+                    {accessible ? (
+                      <Link href={`/packages/${pkg.id}`}>
+                        <button className="w-full py-2 rounded-xl bg-slate-900 text-white text-xs font-bold active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                          {hasActive ? (
+                            <><Play size={10} fill="currentColor" />Lanjutkan Tryout</>
+                          ) : (
+                            <><ChevronRight size={12} />Mulai Tryout</>
+                          )}
+                        </button>
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => handleLocked(pkg.title, contentTier as 'premium' | 'platinum')}
+                        className="w-full py-2 rounded-xl bg-slate-200 text-slate-500 text-xs font-bold active:scale-95 transition-transform flex items-center justify-center gap-1.5"
+                      >
+                        <Lock size={11} />
+                        Buka dengan {contentTier === 'platinum' ? 'Platinum' : 'Premium'}
                       </button>
-                    </div>
+                    )}
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
@@ -392,6 +448,14 @@ export function MobileDashboard({
           </div>
         </section>
       )}
+
+      {/* ── Upgrade Modal ────────────────────────────────────── */}
+      <UpgradeModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        requiredTier={modalTier}
+        contentTitle={modalTitle}
+      />
 
     </main>
   );
