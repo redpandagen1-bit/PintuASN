@@ -34,11 +34,12 @@ export default function DashboardLayout({
 
   return (
     <div className="bg-[#f8f9ff] min-h-screen">
-      {/* Desktop navbar — hidden on mobile */}
+      {/* Desktop navbar — fixed, hidden on mobile */}
       <div className="hidden md:block">
         <Navbar />
       </div>
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+      {/* pt-14 = 56px = tinggi navbar (h-14) supaya konten tidak tertutup fixed navbar */}
+      <div className="md:pt-14 max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex gap-6 lg:gap-8 items-start min-h-[calc(100vh-3.5rem)]">
           <Sidebar />
           {/* Bottom padding: mobile handled by MobilePageWrapper h-20, desktop explicit */}
