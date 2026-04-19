@@ -49,39 +49,46 @@ export function RoadmapContent({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 -mt-2">
+    <div className="min-h-screen bg-slate-50 -mt-2 pb-10">
 
       {/* ── HERO BANNER ─────────────────────────────────────── */}
-      <div className="relative bg-[#1B2B5E] overflow-hidden rounded-2xl mb-6">
+      <div className="relative bg-[#1B2B5E] overflow-hidden rounded-2xl mb-6 shadow-lg shadow-[#1B2B5E]/20">
+        {/* Decorative elements */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-white/5" />
-          <div className="absolute top-8 right-32 w-32 h-32 rounded-full bg-[#F5A623]/10" />
-          <div className="absolute -bottom-8 -left-8 w-48 h-48 rounded-full bg-white/5" />
+          <div className="absolute -top-12 -right-12 w-72 h-72 rounded-full bg-white/[0.04]" />
+          <div className="absolute top-6 right-28 w-36 h-36 rounded-full bg-[#F5A623]/10" />
+          <div className="absolute -bottom-10 -left-10 w-56 h-56 rounded-full bg-white/[0.04]" />
+          <div className="absolute bottom-4 right-4 w-20 h-20 rounded-full bg-[#F5A623]/5" />
+          {/* Subtle grid */}
           <div
-            className="absolute inset-0 opacity-5"
+            className="absolute inset-0 opacity-[0.04]"
             style={{
-              backgroundImage: 'linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)',
-              backgroundSize: '32px 32px',
+              backgroundImage: 'linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)',
+              backgroundSize: '40px 40px',
             }}
           />
         </div>
 
-        <div className="relative px-5 pt-6 pb-6 md:px-6 md:pt-8 md:pb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 md:gap-6">
-            {/* Left: title + progress */}
+        <div className="relative px-5 pt-5 pb-5 md:px-6 md:pt-6 md:pb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 md:gap-5">
+
+            {/* Left: title + progress bar */}
             <div className="flex-1 max-w-xl">
-              <div className="inline-flex items-center gap-1.5 bg-[#F5A623]/20 text-[#F5A623] text-xs font-bold px-3 py-1 rounded-full mb-4 tracking-wide uppercase">
+              <div className="inline-flex items-center gap-1.5 bg-[#F5A623]/20 text-[#F5A623] text-xs font-bold px-3 py-1 rounded-full mb-3 tracking-wide uppercase">
                 <Map className="w-3 h-3" />
                 Roadmap Belajar
               </div>
-              <h1 className="text-xl sm:text-3xl font-extrabold text-white leading-tight mb-2">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight mb-2"
+                style={{ fontFamily: 'var(--font-jakarta)' }}>
                 Jalur Persiapan<br />
                 <span className="text-[#F5A623]">SKD CPNS 2026</span>
               </h1>
-              <p className="text-sm text-white/60 max-w-md mb-6">
+              <p className="text-sm text-white/60 max-w-md mb-4">
                 Ikuti 9 tahap terstruktur untuk memaksimalkan skor dan peluang kelulusanmu.
               </p>
-              <div className="space-y-2">
+
+              {/* Progress bar */}
+              <div className="space-y-1.5 max-w-md">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-white/70 font-medium">Progress Keseluruhan</span>
                   <span className="text-[#F5A623] font-bold">{completedCount} / {totalPhases} tahap</span>
@@ -92,36 +99,36 @@ export function RoadmapContent({
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
+                {progressPct === 100 && (
+                  <p className="text-[10px] text-white/35">🎉 Semua tahap berhasil diselesaikan!</p>
+                )}
               </div>
             </div>
 
-            {/* Right: stat cards */}
-            <div className="grid grid-cols-3 gap-2 md:gap-3 lg:w-80">
-              <div className="bg-white/8 rounded-xl p-3 border border-white/10">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Target className="w-3.5 h-3.5 text-[#F5A623]" />
-                  <span className="text-[10px] text-white/50 uppercase tracking-wide font-semibold">Tryout</span>
+            {/* Right: 3 stat cards */}
+            <div className="grid grid-cols-3 gap-2 lg:w-56 flex-shrink-0">
+              {[
+                { Icon: Target, label: 'Tryout',  value: stats.totalCompleted, sub: 'dikerjakan' },
+                { Icon: Flame,  label: 'Skor',    value: stats.bestFinalScore, sub: 'terbaik'    },
+                { label: 'Tahap', value: `${progressPct}%`, sub: 'selesai', emoji: '🏅' },
+              ].map(({ Icon, label, value, sub, emoji }) => (
+                <div key={label} className="bg-white/8 border border-white/10 rounded-xl p-3 hover:bg-white/10 transition-colors">
+                  <div className="flex items-center gap-1 mb-1">
+                    {Icon ? (
+                      <Icon className="w-3 h-3 text-[#F5A623]" />
+                    ) : (
+                      <span className="text-xs leading-none">{emoji}</span>
+                    )}
+                    <span className="text-[9px] text-white/50 uppercase tracking-wide font-semibold">{label}</span>
+                  </div>
+                  <p className="text-xl font-bold text-white leading-none" style={{ fontFamily: 'var(--font-jakarta)' }}>
+                    {value}
+                  </p>
+                  <p className="text-[10px] text-white/40 mt-1">{sub}</p>
                 </div>
-                <p className="text-xl font-bold text-white">{stats.totalCompleted}</p>
-                <p className="text-[10px] text-white/40 mt-0.5">dikerjakan</p>
-              </div>
-              <div className="bg-white/8 rounded-xl p-3 border border-white/10">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Flame className="w-3.5 h-3.5 text-[#F5A623]" />
-                  <span className="text-[10px] text-white/50 uppercase tracking-wide font-semibold">Skor</span>
-                </div>
-                <p className="text-xl font-bold text-white">{stats.bestFinalScore}</p>
-                <p className="text-[10px] text-white/40 mt-0.5">terbaik</p>
-              </div>
-              <div className="bg-white/8 rounded-xl p-3 border border-white/10">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-[#F5A623] text-sm">🏅</span>
-                  <span className="text-[10px] text-white/50 uppercase tracking-wide font-semibold">Tahap</span>
-                </div>
-                <p className="text-xl font-bold text-white">{progressPct}%</p>
-                <p className="text-[10px] text-white/40 mt-0.5">selesai</p>
-              </div>
+              ))}
             </div>
+
           </div>
         </div>
       </div>
@@ -129,8 +136,8 @@ export function RoadmapContent({
       {/* ── 2-COLUMN CONTENT GRID ───────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* Kolom Kiri (lebar): Rekomendasi + Roadmap */}
-        <div className="lg:col-span-7 space-y-6">
+        {/* Kolom Kiri (7): Rekomendasi + Roadmap Steps */}
+        <div className="lg:col-span-7 space-y-5">
           <RekomendasiNext
             priority={rekomendasi.priority}
             message={rekomendasi.message}
@@ -141,13 +148,12 @@ export function RoadmapContent({
           <RoadmapPersiapan phases={phases} />
         </div>
 
-        {/* Kolom Kanan (sempit): Progress + Kalender */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* Kolom Kanan (5): Progress + Kalender */}
+        <div className="lg:col-span-5 space-y-5">
           <ProgressMilestone
             categoryScores={categoryScores}
             milestones={milestones}
             totalCompleted={stats.totalCompleted}
-            bestFinalScore={stats.bestFinalScore}
           />
           <StudyCalendar
             examTargetDate={examTargetDate}

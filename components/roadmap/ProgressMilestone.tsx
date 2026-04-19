@@ -1,82 +1,86 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Progress } from '@/components/ui/progress';
 import type { CategoryScore, Milestone } from '@/types/roadmap';
-import { Trophy, TrendingUp, Star } from 'lucide-react';
+import { Trophy, CheckCircle2, BarChart3 } from 'lucide-react';
 
 interface ProgressMilestoneProps {
   categoryScores: CategoryScore[];
   milestones:     Milestone[];
   totalCompleted: number;
-  bestFinalScore: number;
 }
+
+const catColor: Record<string, {
+  bar: string; barGlow: string; badge: string; text: string; iconBg: string; border: string;
+}> = {
+  TWK: {
+    bar:     'bg-blue-500',
+    barGlow: 'shadow-blue-300',
+    badge:   'bg-blue-100 text-blue-700',
+    text:    'text-blue-600',
+    iconBg:  'bg-blue-50 border-blue-100',
+    border:  'border-blue-200',
+  },
+  TIU: {
+    bar:     'bg-violet-500',
+    barGlow: 'shadow-violet-300',
+    badge:   'bg-violet-100 text-violet-700',
+    text:    'text-violet-600',
+    iconBg:  'bg-violet-50 border-violet-100',
+    border:  'border-violet-200',
+  },
+  TKP: {
+    bar:     'bg-amber-500',
+    barGlow: 'shadow-amber-300',
+    badge:   'bg-amber-100 text-amber-700',
+    text:    'text-amber-600',
+    iconBg:  'bg-amber-50 border-amber-100',
+    border:  'border-amber-200',
+  },
+};
 
 export function ProgressMilestone({
   categoryScores,
   milestones,
   totalCompleted,
-  bestFinalScore,
 }: ProgressMilestoneProps) {
   const achievedCount = milestones.filter(m => m.achieved).length;
 
-  const catColor: Record<string, { bar: string; badge: string; text: string }> = {
-    TWK: {
-      bar:   'bg-blue-500',
-      badge: 'bg-blue-100 text-blue-700',
-      text:  'text-blue-600',
-    },
-    TIU: {
-      bar:   'bg-violet-500',
-      badge: 'bg-violet-100 text-violet-700',
-      text:  'text-violet-600',
-    },
-    TKP: {
-      bar:   'bg-amber-500',
-      badge: 'bg-amber-100 text-amber-700',
-      text:  'text-amber-600',
-    },
-  };
-
   return (
     <section className="space-y-4">
-      <div>
-        <h2 className="text-base font-bold text-[#1B2B5E]">Progress & Pencapaian</h2>
-        <p className="text-xs text-gray-500 mt-0.5">Skor per kategori dan milestone yang diraih</p>
-      </div>
 
-      {/* ── STAT CARDS ── */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="relative overflow-hidden rounded-2xl bg-[#1B2B5E] p-4 text-white">
-          <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/5" />
-          <p className="text-[10px] text-white/50 font-semibold uppercase tracking-wide">Tryout Selesai</p>
-          <p className="text-4xl font-extrabold mt-1 leading-none">{totalCompleted}</p>
-          <p className="text-xs text-white/40 mt-1.5">paket dikerjakan</p>
-          <TrendingUp className="absolute bottom-3 right-3 w-8 h-8 text-white/10" />
+      {/* ── Section title ─────────────────────────────────── */}
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-[#1B2B5E]/8 flex items-center justify-center flex-shrink-0">
+          <BarChart3 className="w-4.5 h-4.5 text-[#1B2B5E]" />
         </div>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#F5A623] to-[#f7c05a] p-4 text-white">
-          <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10" />
-          <p className="text-[10px] text-white/70 font-semibold uppercase tracking-wide">Skor Terbaik</p>
-          <p className="text-4xl font-extrabold mt-1 leading-none">{bestFinalScore}</p>
-          <p className="text-xs text-white/60 mt-1.5">poin final</p>
-          <Star className="absolute bottom-3 right-3 w-8 h-8 text-white/20" />
+        <div>
+          <h2 className="text-sm font-extrabold text-[#1B2B5E]" style={{ fontFamily: 'var(--font-jakarta)' }}>
+            Progress &amp; Pencapaian
+          </h2>
+          <p className="text-[11px] text-slate-400 mt-0.5">Skor per kategori dan milestone yang diraih</p>
         </div>
       </div>
 
-      {/* ── SKOR PER KATEGORI ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-50">
-          <TrendingUp className="w-4 h-4 text-[#1B2B5E]" />
-          <span className="text-sm font-bold text-[#1B2B5E]">Skor per Kategori</span>
+      {/* ── SKOR PER KATEGORI ──────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 px-4 py-3.5 border-b border-slate-50">
+          <BarChart3 className="w-4 h-4 text-[#1B2B5E]" />
+          <span className="text-sm font-extrabold text-[#1B2B5E]">Skor per Kategori</span>
+          {totalCompleted > 0 && (
+            <span className="ml-auto text-[10px] text-slate-400 font-medium">
+              vs. passing grade
+            </span>
+          )}
         </div>
 
         {totalCompleted === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
-            <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-3">
-              <TrendingUp className="w-5 h-5 text-gray-300" />
+            <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-3">
+              <BarChart3 className="w-5 h-5 text-slate-300" />
             </div>
-            <p className="text-sm font-medium text-gray-400">Belum ada data</p>
-            <p className="text-xs text-gray-300 mt-0.5">Selesaikan tryout pertamamu untuk melihat skor.</p>
+            <p className="text-sm font-semibold text-slate-400">Belum ada data skor</p>
+            <p className="text-xs text-slate-300 mt-0.5">Selesaikan tryout pertamamu untuk melihat skor per kategori.</p>
           </div>
         ) : (
           <div className="p-4 space-y-5">
@@ -86,40 +90,62 @@ export function ProgressMilestone({
 
               return (
                 <div key={cs.category} className="space-y-2">
+                  {/* Label row */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={cn('text-xs font-extrabold px-2 py-0.5 rounded-lg', color.badge)}>
+                      <span className={cn(
+                        'text-[11px] font-extrabold px-2 py-0.5 rounded-lg',
+                        color.badge,
+                      )}>
                         {cs.category}
                       </span>
-                      <span className="text-xs text-gray-400 hidden sm:inline">{cs.label}</span>
+                      <span className="text-xs text-slate-400 hidden sm:inline">{cs.label}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <span className={cn('text-base font-extrabold', cs.isPassed ? 'text-emerald-600' : color.text)}>
+                    <div className="flex items-center gap-1 text-xs">
+                      <span className={cn(
+                        'text-base font-extrabold leading-none',
+                        cs.isPassed ? 'text-emerald-600' : color.text,
+                      )}>
                         {cs.avg}
                       </span>
-                      <span className="text-gray-200">/</span>
-                      <span className="text-gray-400 font-medium">{cs.passingGrade}</span>
+                      <span className="text-slate-200 text-sm">/</span>
+                      <span className="text-slate-400 font-semibold">{cs.passingGrade}</span>
                       {cs.isPassed ? (
-                        <span className="text-emerald-500 font-bold">✓</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 ml-0.5" />
                       ) : (
-                        <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-50', color.text)}>
-                          -{Math.abs(cs.gap)}
+                        <span className={cn(
+                          'text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 ml-0.5',
+                        )}>
+                          −{Math.abs(cs.gap)}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Custom progress bar */}
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  {/* Progress bar */}
+                  <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={cn('h-full rounded-full transition-all duration-700', color.bar)}
+                      className={cn(
+                        'h-full rounded-full transition-all duration-700',
+                        cs.isPassed ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : color.bar,
+                      )}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
 
+                  {/* Gap hint */}
                   {!cs.isPassed && (
-                    <p className="text-[10px] text-gray-400">
-                      Butuh <span className={cn('font-bold', color.text)}>{Math.abs(cs.gap)} poin</span> lagi untuk lulus passing grade
+                    <p className="text-[10px] text-slate-400">
+                      Butuh{' '}
+                      <span className={cn('font-extrabold', color.text)}>
+                        {Math.abs(cs.gap)} poin
+                      </span>{' '}
+                      lagi untuk mencapai passing grade
+                    </p>
+                  )}
+                  {cs.isPassed && (
+                    <p className="text-[10px] text-emerald-600 font-semibold">
+                      ✓ Sudah melewati passing grade
                     </p>
                   )}
                 </div>
@@ -129,16 +155,24 @@ export function ProgressMilestone({
         )}
       </div>
 
-      {/* ── MILESTONES ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+      {/* ── MILESTONES ─────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-50">
           <div className="flex items-center gap-2">
             <Trophy className="w-4 h-4 text-[#F5A623]" />
-            <span className="text-sm font-bold text-[#1B2B5E]">Pencapaian</span>
+            <span className="text-sm font-extrabold text-[#1B2B5E]">Pencapaian</span>
           </div>
-          <span className="text-xs font-semibold text-gray-400">
-            {achievedCount}<span className="text-gray-200">/{milestones.length}</span> diraih
-          </span>
+          <div className="flex items-center gap-1.5">
+            <div className="flex -space-x-1">
+              {[...Array(Math.min(achievedCount, 3))].map((_, i) => (
+                <div key={i} className="w-4 h-4 rounded-full bg-[#F5A623] border-2 border-white" />
+              ))}
+            </div>
+            <span className="text-xs font-bold text-slate-500">
+              {achievedCount}
+              <span className="text-slate-300 font-normal">/{milestones.length}</span>
+            </span>
+          </div>
         </div>
 
         <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -148,25 +182,26 @@ export function ProgressMilestone({
               className={cn(
                 'relative rounded-xl p-3 border transition-all duration-300',
                 m.achieved
-                  ? 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-[#F5A623]/30 shadow-sm'
-                  : 'bg-gray-50 border-gray-100 opacity-40 grayscale',
+                  ? 'bg-gradient-to-br from-amber-50 to-orange-50/60 border-[#F5A623]/30 shadow-sm'
+                  : 'bg-slate-50/50 border-slate-100 opacity-50 grayscale',
               )}
             >
               {m.achieved && (
-                <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#F5A623]" />
+                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#F5A623] shadow-sm" />
               )}
-              <div className="text-xl mb-1.5">{m.achieved ? '🏅' : '🔒'}</div>
+              <div className="text-xl mb-2 leading-none">{m.achieved ? '🏅' : '🔒'}</div>
               <p className={cn(
-                'text-xs font-bold leading-tight',
-                m.achieved ? 'text-[#1B2B5E]' : 'text-gray-400',
+                'text-xs font-extrabold leading-snug',
+                m.achieved ? 'text-[#1B2B5E]' : 'text-slate-400',
               )}>
                 {m.label}
               </p>
-              <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{m.description}</p>
+              <p className="text-[10px] text-slate-400 mt-1 leading-tight">{m.description}</p>
             </div>
           ))}
         </div>
       </div>
+
     </section>
   );
 }
