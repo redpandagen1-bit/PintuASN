@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, use } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { MobileHeader }       from '@/components/mobile/MobileHeader';
