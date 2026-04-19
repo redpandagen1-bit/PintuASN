@@ -8,14 +8,14 @@ import Link from 'next/link';
 import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Save, LogOut, ChevronDown, Star, Shield, Camera, CreditCard } from 'lucide-react';
+import { Save, LogOut, ChevronDown, Star, Camera, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Profile } from '@/types/database';
 import type { UserStats } from '@/lib/supabase/queries';
 
 // ── Types ─────────────────────────────────────────────────────
 
-type ProfileTab = 'profil' | 'keamanan' | 'langganan';
+type ProfileTab = 'profil' | 'langganan';
 
 interface MobileProfileProps {
   initialProfile: Profile;
@@ -131,7 +131,7 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
   }[profile.subscription_tier ?? 'free'] ?? { label: 'Gratis', color: 'bg-emerald-100 text-emerald-700' };
 
   return (
-    <main className="mt-[72px]">
+    <main>
 
       {/* ── User Identity Hero ────────────────────────────────── */}
       <section className="px-4 mb-6">
@@ -215,9 +215,8 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
       <div className="px-4 mb-2">
         <div className="bg-md-surface-container-low rounded-2xl p-1.5 flex gap-1">
           {([
-            { id: 'profil',    label: 'Profil',     icon: <Star size={13} /> },
-            { id: 'keamanan',  label: 'Keamanan',   icon: <Shield size={13} /> },
-            { id: 'langganan', label: 'Langganan',  icon: <CreditCard size={13} /> },
+            { id: 'profil',    label: 'Profil',    icon: <Star size={13} /> },
+            { id: 'langganan', label: 'Langganan', icon: <CreditCard size={13} /> },
           ] as { id: ProfileTab; label: string; icon: React.ReactNode }[]).map(tab => (
             <button
               key={tab.id}
@@ -408,47 +407,6 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
           Keluar Akun
         </button>
       </section>
-      )}
-
-      {/* ── Keamanan Tab ──────────────────────────────────────── */}
-      {activeTab === 'keamanan' && (
-        <section className="px-4 pt-2 space-y-5">
-          <div className="flex items-center gap-2">
-            <div className="w-1 h-6 bg-md-secondary-container rounded-full" />
-            <h3 className="text-lg font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
-              Keamanan
-            </h3>
-          </div>
-
-          <div className="bg-md-surface-container-low rounded-2xl p-6 flex flex-col items-center text-center gap-4">
-            <div className="w-14 h-14 bg-md-primary rounded-2xl flex items-center justify-center">
-              <Shield size={24} className="text-md-secondary-container" />
-            </div>
-            <div>
-              <h4 className="font-bold text-md-on-surface mb-1">Kelola via Clerk</h4>
-              <p className="text-sm text-md-on-surface-variant leading-relaxed">
-                Password dan keamanan akun dikelola melalui sistem autentikasi Clerk.
-              </p>
-            </div>
-            <a
-              href="https://accounts.pintuasn.com/user"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-md-primary text-white font-extrabold py-4 rounded-xl text-sm flex items-center justify-center gap-2 active-press"
-            >
-              <Shield size={16} />
-              Kelola Keamanan Akun
-            </a>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 active-press"
-          >
-            <LogOut size={16} />
-            Keluar Akun
-          </button>
-        </section>
       )}
 
       {/* ── Langganan Tab ─────────────────────────────────────── */}

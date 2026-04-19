@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import {
-  User, Mail, Phone, Shield, CreditCard, LogOut,
+  User, Mail, Phone, CreditCard, LogOut,
   Camera, CheckCircle2, Building, Calendar, ChevronDown,
   MapPin, Star, Save, X, Edit3,
 } from 'lucide-react';
@@ -19,7 +19,7 @@ interface ProfileContentProps {
   initialStats: UserStats;
 }
 
-type ActiveTab = 'profil' | 'keamanan' | 'langganan';
+type ActiveTab = 'profil' | 'langganan';
 
 // ── INDONESIAN PROVINCES ───────────────────────────────────────────────────
 
@@ -133,9 +133,8 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
   };
 
   const tabs = [
-    { id: 'profil' as ActiveTab, label: 'Informasi Profil', icon: User },
-    { id: 'keamanan' as ActiveTab, label: 'Keamanan', icon: Shield },
-    { id: 'langganan' as ActiveTab, label: 'Paket Berlangganan', icon: CreditCard },
+    { id: 'profil' as ActiveTab,    label: 'Informasi Profil',    icon: User },
+    { id: 'langganan' as ActiveTab, label: 'Paket Berlangganan',  icon: CreditCard },
   ];
 
   return (
@@ -415,36 +414,6 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
                   <Save size={15} />
                   {isLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── TAB: KEAMANAN ── */}
-          {activeTab === 'keamanan' && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Keamanan & Password</h2>
-                <p className="text-sm text-slate-500 mt-0.5">Kelola keamanan akun Anda.</p>
-              </div>
-              <div className="h-px bg-slate-100" />
-
-              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 flex flex-col items-center text-center gap-3">
-                <div className="w-14 h-14 bg-pn-navy rounded-xl flex items-center justify-center">
-                  <Shield size={24} className="text-yellow-400" />
-                </div>
-                <h3 className="font-bold text-slate-800">Kelola via Clerk</h3>
-                <p className="text-sm text-slate-500 max-w-sm">
-                  Password dan keamanan akun dikelola melalui sistem autentikasi Clerk.
-                  Gunakan tombol di bawah untuk mengubah password.
-                </p>
-                <a
-                  href="https://accounts.pintuasn.com/user"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-pn-navy text-white rounded-xl text-sm font-bold hover:bg-pn-navy-mid transition-colors"
-                >
-                  Kelola Keamanan Akun
-                </a>
               </div>
             </div>
           )}

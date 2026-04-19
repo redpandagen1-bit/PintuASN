@@ -9,10 +9,10 @@ import Image from 'next/image';
 import {
   BookOpen, ClipboardList, History,
   ShoppingCart, Megaphone, Users,
-  ChevronRight, Play, Clock,
+  ChevronRight, ArrowRight, Play, Clock,
   CheckCircle, BarChart2,
   Award, TrendingUp, FileText,
-  Crown, Lock, Star,
+  Crown, Lock, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canAccess }             from '@/lib/subscription-utils';
@@ -64,23 +64,28 @@ const MENU_ITEMS = [
   { label: 'Grup',          href: '/roadmap',       Icon: Users,      gold: false },
 ] as const;
 
-// ── Tryout card constants (sama dengan daftar-tryout) ─────────
+// ── Tryout card constants (identik dengan MobileDaftarTryout) ─
 
-const TIER_BADGE: Record<string, { label: string; className: string }> = {
-  free:     { label: 'Gratis',   className: 'bg-emerald-500 text-white' },
-  premium:  { label: 'Premium',  className: 'bg-blue-500 text-white' },
-  platinum: { label: 'Platinum', className: 'bg-purple-500 text-white' },
+const TIER_BADGE: Record<string, { label: string; cls: string }> = {
+  free:     { label: 'Gratis',   cls: 'bg-emerald-500 text-white'  },
+  premium:  { label: 'Premium',  cls: 'bg-blue-500 text-white'     },
+  platinum: { label: 'Platinum', cls: 'bg-purple-500 text-white'   },
+};
+
+const DIFFICULTY_BADGE: Record<string, string> = {
+  easy:   'bg-emerald-100 text-emerald-700',
+  medium: 'bg-yellow-100 text-yellow-700',
+  hard:   'bg-red-100 text-red-700',
 };
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Mudah', medium: 'Sedang', hard: 'Sulit',
 };
 
-const DIFFICULTY_COLOR: Record<string, string> = {
-  easy:   'bg-emerald-100 text-emerald-700',
-  medium: 'bg-yellow-100  text-yellow-700',
-  hard:   'bg-red-100     text-red-700',
-};
+function fmtCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+}
 
 // ── Category chip colors (for materials) ─────────────────────
 
@@ -132,69 +137,65 @@ export function MobileDashboard({
   return (
     <main className="space-y-6">
 
-      {/* ── Upgrade / Premium CTA ────────────────────────────── */}
+      {/* ── Upgrade / Premium CTA (compact) ─────────────────── */}
       {showOffer && (
         <section className="px-4">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-4 shadow-lg">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-3 shadow-lg">
 
-            {/* Header: icon + judul */}
-            <div className="flex items-center gap-2 mb-2">
-              <Crown size={15} className="text-yellow-400 flex-shrink-0" />
-              <h3 className="text-white font-bold text-sm leading-tight"
-                style={{ fontFamily: 'var(--font-jakarta)' }}>
-                Upgrade{' '}
-                <span className="text-yellow-400">
-                  {isPremium ? 'Platinum' : 'Premium'}
-                </span>
-              </h3>
+            {/* Header: icon + judul + deskripsi inline */}
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="flex items-center gap-1.5">
+                <Crown size={13} className="text-yellow-400 flex-shrink-0 mt-px" />
+                <div>
+                  <h3 className="text-white font-bold text-xs leading-tight"
+                    style={{ fontFamily: 'var(--font-jakarta)' }}>
+                    Upgrade{' '}
+                    <span className="text-yellow-400">
+                      {isPremium ? 'Platinum' : 'Premium'}
+                    </span>
+                  </h3>
+                  <p className="text-slate-400 text-[10px] leading-tight mt-0.5">
+                    {isPremium
+                      ? 'Akses fitur eksklusif & video SKD lengkap.'
+                      : 'Tryout Premium + Materi video lengkap.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Harga di kanan atas (hanya premium) */}
+              {isPremium && (
+                <div className="flex-shrink-0 text-right">
+                  <p className="text-slate-500 text-[9px] line-through leading-none">{offerOrig}</p>
+                  <p className="text-white font-bold text-sm leading-tight"
+                    style={{ fontFamily: 'var(--font-jakarta)' }}>
+                    {offerPrice}
+                  </p>
+                </div>
+              )}
             </div>
-
-            {/* Deskripsi */}
-            <p className="text-slate-300 text-xs mb-3 leading-relaxed">
-              {isPremium
-                ? 'Akses fitur eksklusif & video series SKD lengkap.'
-                : 'Akses Paket Tryout Premium dan Materi video lengkap.'}
-            </p>
 
             {/* Divider */}
-            <div className="h-px bg-white/10 mb-3" />
+            <div className="h-px bg-white/10 mb-2" />
 
-            {/* Feature grid 3-col */}
-            <div className="grid grid-cols-3 gap-1.5 mb-3">
-              <div className="bg-white/5 border border-white/10 rounded-lg py-1.5 text-center">
-                <p className={`text-[11px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
-                  {isPremium ? '∞' : '✗'}
-                </p>
-                <p className="text-slate-400 text-[9px] mt-0.5">Riwayat</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg py-1.5 text-center">
-                <p className={`text-[11px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
-                  {isPremium ? 'HD' : '✗'}
-                </p>
-                <p className="text-slate-400 text-[9px] mt-0.5">Video SKD</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-lg py-1.5 text-center">
-                <p className={`text-[11px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
-                  {isPremium ? 'Pro' : '✗'}
-                </p>
-                <p className="text-slate-400 text-[9px] mt-0.5">Analisis</p>
-              </div>
+            {/* Feature grid 3-col compact */}
+            <div className="grid grid-cols-3 gap-1 mb-2.5">
+              {[
+                { val: isPremium ? '∞' : '✗', label: 'Riwayat' },
+                { val: isPremium ? 'HD' : '✗', label: 'Video SKD' },
+                { val: isPremium ? 'Pro' : '✗', label: 'Analisis' },
+              ].map(({ val, label }) => (
+                <div key={label} className="bg-white/5 border border-white/10 rounded-md py-1 text-center">
+                  <p className={`text-[10px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
+                    {val}
+                  </p>
+                  <p className="text-slate-400 text-[8px] mt-0.5">{label}</p>
+                </div>
+              ))}
             </div>
-
-            {/* Harga sebaris (hanya untuk premium → platinum) */}
-            {isPremium && (
-              <div className="flex items-baseline gap-2 mb-3">
-                <p className="text-slate-500 text-xs line-through leading-none">{offerOrig}</p>
-                <p className="text-white font-bold text-lg leading-none"
-                  style={{ fontFamily: 'var(--font-jakarta)' }}>
-                  {offerPrice}
-                </p>
-              </div>
-            )}
 
             {/* CTA button */}
             <Link href="/beli-paket">
-              <button className="w-full bg-white text-slate-800 font-semibold py-2.5 px-4 rounded-xl active-press transition-all text-xs shadow-md">
+              <button className="w-full bg-white text-slate-800 font-semibold py-2 px-4 rounded-xl active-press transition-all text-xs shadow-md">
                 {isPremium ? 'Upgrade Sekarang' : 'Lihat Paket'}
               </button>
             </Link>
@@ -262,10 +263,11 @@ export function MobileDashboard({
         </div>
       </section>
 
-      {/* ── Daftar Tryout (horizontal scroll) ───────────────── */}
+      {/* ── Daftar Tryout (2-col grid — identik dengan MobileDaftarTryout) ── */}
       {packages.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex justify-between items-end px-4">
+        <section className="space-y-3 px-4">
+          {/* Section header */}
+          <div className="flex justify-between items-end">
             <div>
               <h2 className="text-base font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
                 Daftar Tryout
@@ -277,76 +279,92 @@ export function MobileDashboard({
             </Link>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2">
-            {packages.slice(0, 5).map(pkg => {
-              const hasActive    = activeSet.has(pkg.id);
-              const contentTier  = (pkg.tier ?? 'free') as SubscriptionTier;
-              const accessible   = canAccess(userTier, contentTier);
-              const tierBadge    = TIER_BADGE[contentTier] ?? TIER_BADGE.free;
-              const diffLabel    = DIFFICULTY_LABEL[pkg.difficulty] ?? pkg.difficulty;
-              const diffColor    = DIFFICULTY_COLOR[pkg.difficulty] ?? 'bg-slate-100 text-slate-600';
+          {/* Horizontal slider — desain kartu identik MobileDaftarTryout */}
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+            {packages.slice(0, 4).map(pkg => {
+              const hasActive   = activeSet.has(pkg.id);
+              const contentTier = (pkg.tier ?? 'free') as SubscriptionTier;
+              const accessible  = canAccess(userTier, contentTier);
+              const badge       = TIER_BADGE[contentTier] ?? TIER_BADGE.free;
+              const diffBadge   = DIFFICULTY_BADGE[pkg.difficulty] ?? 'bg-slate-100 text-slate-600';
+              const diffLabel   = DIFFICULTY_LABEL[pkg.difficulty] ?? pkg.difficulty;
 
               return (
                 <div
                   key={pkg.id}
-                  className="min-w-[200px] flex-shrink-0 bg-white rounded-2xl shadow-sm relative flex flex-col active-press overflow-hidden"
+                  className={cn(
+                    'min-w-[calc(50vw-22px)] bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden',
+                    !accessible && 'opacity-90',
+                  )}
                 >
-                  {/* Tier badge — top-right absolute, sama persis daftar-tryout */}
-                  <div className="absolute top-3 right-3 z-10">
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 ${tierBadge.className}`}>
-                      {contentTier !== 'free' && <Star size={8} fill="currentColor" />}
-                      {tierBadge.label}
+                  {/* Top row: tier badge + difficulty */}
+                  <div className="flex items-center justify-between px-3 pt-3 pb-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn('text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full', badge.cls)}>
+                        {badge.label}
+                      </span>
+                      {hasActive && (
+                        <span className="text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                          Lanjutkan
+                        </span>
+                      )}
+                    </div>
+                    <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-lg', diffBadge)}>
+                      {diffLabel}
                     </span>
                   </div>
 
-                  <div className="p-4 flex-1 flex flex-col">
-                    {/* Judul */}
-                    <h3 className={`font-bold text-sm leading-snug mb-2.5 pr-16 ${accessible ? 'text-slate-800' : 'text-slate-500'}`}
-                      style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  {/* Title */}
+                  <div className="px-3 pb-2">
+                    <h3 className={cn(
+                      'text-sm font-bold leading-snug',
+                      accessible ? 'text-slate-800' : 'text-slate-500',
+                    )}>
                       {pkg.title}
                     </h3>
+                  </div>
 
-                    {/* Difficulty */}
-                    <div className="mb-2.5">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${diffColor}`}>
-                        {diffLabel}
-                      </span>
-                    </div>
+                  {/* Meta row — satu baris horizontal */}
+                  <div className="flex items-center gap-3 px-3 pb-2.5 text-[11px] text-slate-400 font-medium">
+                    <span className="flex items-center gap-1">
+                      <BookOpen size={11} />
+                      {pkg.total_questions ?? 110}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={11} />
+                      {pkg.duration_minutes ?? 100} mnt
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users size={11} />
+                      {fmtCount(pkg.completedUsersCount)}
+                    </span>
+                  </div>
 
-                    {/* Info list */}
-                    <div className="space-y-1 mb-3 flex-1">
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                        <BookOpen size={12} className="text-slate-400" />
-                        <span>{pkg.total_questions ?? 110} Soal</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                        <Clock size={12} className="text-slate-400" />
-                        <span>{pkg.duration_minutes ?? 100} Menit</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                        <Users size={12} className="text-slate-400" />
-                        <span>{pkg.completedUsersCount.toLocaleString('id-ID')} Peserta</span>
-                      </div>
-                    </div>
-
-                    {/* CTA — sama dengan daftar-tryout */}
+                  {/* CTA */}
+                  <div className="px-3 pb-3">
                     {accessible ? (
                       <Link href={`/packages/${pkg.id}`}>
-                        <button className="w-full py-2 rounded-xl bg-slate-900 text-white text-xs font-bold active:scale-95 transition-transform flex items-center justify-center gap-1.5">
-                          {hasActive ? (
-                            <><Play size={10} fill="currentColor" />Lanjutkan Tryout</>
-                          ) : (
-                            <><ChevronRight size={12} />Mulai Tryout</>
-                          )}
+                        <button className={cn(
+                          'w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors active:scale-[0.98]',
+                          hasActive
+                            ? 'bg-amber-400 text-slate-900 active:bg-amber-500'
+                            : 'bg-slate-900 text-white active:bg-slate-700',
+                        )}>
+                          {hasActive
+                            ? <><ArrowRight size={12} />Lanjutkan Tryout</>
+                            : <><ChevronRight size={12} />Mulai Tryout</>
+                          }
                         </button>
                       </Link>
                     ) : (
                       <button
                         onClick={() => handleLocked(pkg.title, contentTier as 'premium' | 'platinum')}
-                        className="w-full py-2 rounded-xl bg-slate-200 text-slate-500 text-xs font-bold active:scale-95 transition-transform flex items-center justify-center gap-1.5"
+                        className="w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-slate-100 text-slate-500 active:bg-slate-200 transition-colors"
                       >
-                        <Lock size={11} />
-                        Buka dengan {contentTier === 'platinum' ? 'Platinum' : 'Premium'}
+                        {contentTier === 'platinum'
+                          ? <><Crown size={11} />Buka dengan Platinum</>
+                          : <><Zap size={11} />Buka dengan Premium</>
+                        }
                       </button>
                     )}
                   </div>
@@ -354,6 +372,13 @@ export function MobileDashboard({
               );
             })}
           </div>
+
+          {/* Lihat semua */}
+          <Link href="/daftar-tryout">
+            <button className="w-full py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-semibold active:bg-slate-50 transition-colors flex items-center justify-center gap-1.5">
+              Lihat Semua Tryout <ChevronRight size={13} />
+            </button>
+          </Link>
         </section>
       )}
 
