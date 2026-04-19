@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/check-admin';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 // GET - Get package by ID with questions
 export async function GET(
@@ -10,7 +10,7 @@ export async function GET(
   try {
     await requireAdmin();
     const { id } = await params;
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { data: pkg, error: pkgError } = await supabase
       .from('packages')
@@ -63,7 +63,7 @@ export async function PATCH(
     await requireAdmin();
     const { id } = await params;
     const body = await request.json();
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { data, error } = await supabase
       .from('packages')
@@ -100,7 +100,7 @@ export async function DELETE(
   try {
     await requireAdmin();
     const { id } = await params;
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     // Check if package has attempts
     const { data: attempts } = await supabase

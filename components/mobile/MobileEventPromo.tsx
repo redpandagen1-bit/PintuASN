@@ -62,7 +62,7 @@ export function MobileEventPromo({ events }: MobileEventPromoProps) {
   const rest     = events.slice(1);
 
   return (
-    <main className="pb-32">
+    <main className="">
 
       {/* ── Page Title ────────────────────────────────────────── */}
       <section className="px-6 pt-6 pb-2">

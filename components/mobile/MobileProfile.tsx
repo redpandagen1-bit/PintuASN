@@ -131,7 +131,7 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
   }[profile.subscription_tier ?? 'free'] ?? { label: 'Gratis', color: 'bg-emerald-100 text-emerald-700' };
 
   return (
-    <main className="pb-32 mt-[72px]">
+    <main className="mt-[72px]">
 
       {/* ── User Identity Hero ────────────────────────────────── */}
       <section className="px-4 mb-6">

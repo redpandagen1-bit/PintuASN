@@ -37,7 +37,7 @@ export function MobileRoadmap({ stats, savedPreference, studyHistory = [] }: Mob
   const timelinePhases = phases.slice(0, 4);
 
   return (
-    <main className="pb-32">
+    <main className="">
 
       {/* ── Hero Section & Overall Progress ──────────────────── */}
       <section className="px-6 pt-6 pb-8 bg-gradient-to-b from-md-surface to-md-surface-container-low">

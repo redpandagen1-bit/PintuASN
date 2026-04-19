@@ -20,7 +20,7 @@ export default function ExamError({ error, reset }: ExamErrorProps) {
   }, [error, attemptId]);
 
   const handleBackToPackages = () => {
-    router.push('/packages');
+    router.push('/daftar-tryout');
   };
 
   const handleBackToHistory = () => {

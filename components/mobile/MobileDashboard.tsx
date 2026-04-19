@@ -90,7 +90,7 @@ export function MobileDashboard({
   const activeSet = new Set(packageIdsWithAttempts);
 
   return (
-    <main className="space-y-6 pb-28">
+    <main className="space-y-6">
 
       {/* ── Premium CTA Banner ───────────────────────────────── */}
       <section className="px-4">

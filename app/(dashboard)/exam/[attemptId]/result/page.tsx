@@ -160,10 +160,16 @@ export default async function ResultPage({ params }: ResultPageProps) {
           packageRank={data.packageRank}
           totalParticipants={data.totalParticipants}
           attemptHistory={data.attemptHistory}
+          lastThreeAttempts={data.lastThreeAttempts}
           completedAt={data.attempt.completed_at}
+          startedAt={data.attempt.started_at}
           packageTitle={data.packageInfo?.title ?? null}
+          packageId={data.packageInfo?.id ?? null}
           leaderboard={data.leaderboard}
           userId={userId}
+          answers={data.answers}
+          duration={duration}
+          subscriptionTier={subscriptionTier}
         />
       </MobilePageWrapper>
       <div className="hidden md:block">

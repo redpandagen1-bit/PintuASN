@@ -7,7 +7,7 @@ export default function ExamNotFoundPage() {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push('/packages');
+    router.push('/daftar-tryout');
   };
 
   return (

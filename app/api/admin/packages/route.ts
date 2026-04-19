@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/check-admin';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 // GET - List all packages for admin
 export async function GET(request: NextRequest) {
   try {
     await requireAdmin();
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive') === 'true';
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAdmin();
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const body = await request.json();
 
     const { title, description, difficulty, tier, duration_minutes, is_active } = body;

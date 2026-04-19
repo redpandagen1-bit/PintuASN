@@ -372,7 +372,7 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
   ];
 
   return (
-    <main className="pb-32 px-6 py-6">
+    <main className="px-6 py-6">
 
       {/* ── Page Headline ─────────────────────────────────────── */}
       <section className="mb-6">

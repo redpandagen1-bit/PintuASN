@@ -129,7 +129,7 @@ export function MobilePaymentStatus({
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
 
   return (
-    <main className="px-6 py-4 pb-36 max-w-md mx-auto">
+    <main className="px-6 py-4 max-w-md mx-auto">
 
       {/* ── Status & Timer ────────────────────────────────────── */}
       <div className="mb-6">

@@ -1,7 +1,7 @@
 // app/api/admin/reports/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { checkIsAdmin } from '@/lib/auth/check-admin'
 
 export async function PATCH(
@@ -12,7 +12,7 @@ export async function PATCH(
     const isAdmin = await checkIsAdmin()
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const body = await req.json()
 
     const { error } = await supabase

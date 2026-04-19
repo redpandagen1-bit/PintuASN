@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/check-admin';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 // POST - Create/Update question with specific position
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAdmin();
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const body = await request.json();
 
     const {
@@ -103,8 +103,16 @@ export async function POST(request: NextRequest) {
         throw qError;
       }
 
-      // Delete old choices
-      await supabase.from('choices').delete().eq('question_id', questionId);
+      // Delete old choices — must succeed before inserting new ones
+      const { error: deleteError } = await supabase
+        .from('choices')
+        .delete()
+        .eq('question_id', questionId);
+
+      if (deleteError) {
+        console.error('❌ Error deleting old choices:', deleteError);
+        throw deleteError;
+      }
 
     } else {
       // INSERT new question

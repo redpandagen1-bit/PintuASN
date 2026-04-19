@@ -1,14 +1,18 @@
 'use client';
 
 // components/mobile/MobileDaftarTryout.tsx
-// Mobile-only daftar tryout — Pathfinder Navy MD3 design
+// Mobile-only daftar tryout — compact list, feature-parity with desktop
 
-import { useState, useMemo } from 'react';
-import Link from 'next/link';
-import { Search, Clock, BookOpen, Lock, ArrowRight, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useMemo }     from 'react';
+import Link                      from 'next/link';
+import {
+  Search, X, BookOpen, Clock, Users,
+  ChevronRight, ArrowRight, Zap, Crown,
+} from 'lucide-react';
+import { cn }                    from '@/lib/utils';
+import { canAccess }             from '@/lib/subscription-utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
-import { canAccess } from '@/lib/subscription-utils';
+import { UpgradeModal }          from '@/components/shared/upgrade-modal';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -40,76 +44,27 @@ const TIER_MAP: Record<TierFilter, string> = {
   Semua: '', Gratis: 'free', Premium: 'premium', Platinum: 'platinum',
 };
 
-const DIFFICULTY_DOTS: Record<string, number> = {
-  easy: 1, medium: 2, hard: 3,
+const DIFFICULTY_BADGE: Record<string, string> = {
+  easy:   'bg-emerald-100 text-emerald-700',
+  medium: 'bg-yellow-100 text-yellow-700',
+  hard:   'bg-red-100 text-red-700',
 };
 const DIFFICULTY_LABEL: Record<string, string> = {
   easy: 'Mudah', medium: 'Sedang', hard: 'Sulit',
 };
-const DIFFICULTY_COLOR: Record<string, string> = {
-  easy: 'text-emerald-600', medium: 'text-md-secondary', hard: 'text-md-error',
+
+const TIER_BADGE: Record<string, { label: string; cls: string; dot: string }> = {
+  free:     { label: 'Gratis',   cls: 'bg-emerald-500 text-white',   dot: 'bg-emerald-500'  },
+  premium:  { label: 'Premium',  cls: 'bg-blue-500 text-white',      dot: 'bg-blue-500'     },
+  platinum: { label: 'Platinum', cls: 'bg-purple-500 text-white',    dot: 'bg-purple-500'   },
 };
 
-const TIER_BADGE: Record<string, { label: string; cls: string }> = {
-  free:     { label: 'GRATIS',   cls: 'bg-emerald-500/10 text-emerald-700' },
-  premium:  { label: 'PREMIUM',  cls: 'bg-amber-500/10 text-amber-700'    },
-  platinum: { label: 'PLATINUM', cls: 'bg-white/10 text-md-secondary-container backdrop-blur-md' },
-};
-
-// ── Upgrade Modal ─────────────────────────────────────────────
-
-function UpgradeModal({
-  requiredTier,
-  onClose,
-}: {
-  requiredTier: string;
-  onClose:      () => void;
-}) {
-  const tierLabel = requiredTier === 'platinum' ? 'Platinum' : 'Premium';
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div
-        className="relative bg-white rounded-t-3xl w-full max-w-md p-8 text-center"
-        onClick={e => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-md-surface-container"
-        >
-          <X size={16} className="text-md-on-surface-variant" />
-        </button>
-
-        <div className="w-16 h-16 bg-md-surface-container-low rounded-2xl flex items-center justify-center mx-auto mb-5">
-          <Lock size={30} className="text-md-primary" />
-        </div>
-        <h3 className="font-extrabold text-xl text-md-primary mb-2"
-          style={{ fontFamily: 'var(--font-jakarta)' }}>
-          Paket {tierLabel} Diperlukan
-        </h3>
-        <p className="text-md-on-surface-variant text-sm mb-8 leading-relaxed">
-          Tryout ini hanya tersedia untuk pengguna paket <strong>{tierLabel}</strong>.
-          Upgrade sekarang untuk akses penuh.
-        </p>
-        <div className="space-y-3">
-          <Link href="/beli-paket" onClick={onClose}>
-            <button className="w-full bg-md-primary text-white font-extrabold py-4 rounded-2xl text-sm active-press">
-              Upgrade ke {tierLabel}
-            </button>
-          </Link>
-          <button
-            onClick={onClose}
-            className="w-full text-md-on-surface-variant text-sm py-2"
-          >
-            Nanti saja
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+function fmtCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
 }
 
-// ── Card ──────────────────────────────────────────────────────
+// ── Compact Card ──────────────────────────────────────────────
 
 function TryoutCard({
   pkg,
@@ -120,102 +75,90 @@ function TryoutCard({
   pkg:              PackageData;
   hasActiveAttempt: boolean;
   userTier:         SubscriptionTier;
-  onLocked:         (tier: string) => void;
+  onLocked:         (title: string, tier: 'premium' | 'platinum') => void;
 }) {
-  const tier       = (pkg.tier ?? 'free') as string;
-  const badge      = TIER_BADGE[tier] ?? TIER_BADGE.free;
-  const difficulty = pkg.difficulty ?? 'medium';
-  const dotCount   = DIFFICULTY_DOTS[difficulty] ?? 2;
-  const dotColor   = difficulty === 'hard' ? 'bg-md-error' : difficulty === 'easy' ? 'bg-emerald-500' : 'bg-md-secondary';
-  const isPlatinum = tier === 'platinum';
-  const locked     = !canAccess(tier as SubscriptionTier, userTier);
-
-  const cardCls = cn(
-    'rounded-[2rem] p-6 shadow-md3-sm relative overflow-hidden',
-    isPlatinum ? 'bg-md-primary text-white' : 'bg-white',
-  );
-
-  const ctaLabel = locked
-    ? 'Buka Akses Tryout'
-    : hasActiveAttempt
-    ? 'Lanjutkan Tryout'
-    : 'Mulai Tryout';
-
-  const ctaCls = cn(
-    'w-full font-bold py-4 rounded-xl active-press flex items-center justify-center gap-2 text-sm',
-    locked
-      ? 'bg-md-surface-container text-md-on-surface-variant'
-      : hasActiveAttempt
-      ? 'bg-md-secondary-container text-md-primary shadow-md3-sm'
-      : isPlatinum
-      ? 'bg-md-secondary-container text-md-primary'
-      : 'bg-md-surface-container-low text-md-primary',
-  );
-
-  const href = locked ? null : `/exam/${pkg.id}/start`;
+  const contentTier = (pkg.tier ?? 'free') as SubscriptionTier;
+  const accessible  = canAccess(userTier, contentTier);   // ✅ correct order
+  const badge       = TIER_BADGE[contentTier] ?? TIER_BADGE.free;
+  const diffBadge   = DIFFICULTY_BADGE[pkg.difficulty] ?? 'bg-slate-100 text-slate-600';
+  const diffLabel   = DIFFICULTY_LABEL[pkg.difficulty] ?? pkg.difficulty;
 
   return (
-    <div className={cardCls}>
-      {/* Decorative blur for platinum */}
-      {isPlatinum && (
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-md-secondary-container/10 rounded-full blur-3xl" />
-      )}
-
-      {/* Tier badge */}
-      <div className="absolute top-0 right-0 p-4">
-        <span className={cn('text-[0.6875rem] font-bold tracking-widest uppercase px-3 py-1 rounded-full', badge.cls)}>
-          {badge.label}
+    <div className={cn(
+      'bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden',
+      !accessible && 'opacity-90',
+    )}>
+      {/* Top row: tier badge + difficulty */}
+      <div className="flex items-center justify-between px-3 pt-3 pb-1">
+        <div className="flex items-center gap-1.5">
+          <span className={cn('text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full', badge.cls)}>
+            {badge.label}
+          </span>
+          {hasActiveAttempt && (
+            <span className="text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              Lanjutkan
+            </span>
+          )}
+        </div>
+        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-lg', diffBadge)}>
+          {diffLabel}
         </span>
       </div>
 
-      {/* Difficulty */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className={cn('text-[0.6875rem] font-bold tracking-widest uppercase', DIFFICULTY_COLOR[difficulty] ?? 'text-md-secondary')}>
-            {DIFFICULTY_LABEL[difficulty] ?? difficulty}
-          </span>
-          <div className="flex gap-0.5">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className={cn('w-1.5 h-1.5 rounded-full', i < dotCount ? dotColor : 'bg-md-outline-variant/30')} />
-            ))}
-          </div>
-        </div>
-        <h3 className={cn('text-xl font-bold leading-tight', isPlatinum ? 'text-white' : 'text-md-primary')}
-          style={{ fontFamily: 'var(--font-jakarta)' }}>
+      {/* Title */}
+      <div className="px-3 pb-2">
+        <h3 className={cn(
+          'text-sm font-bold leading-snug',
+          accessible ? 'text-slate-800' : 'text-slate-500',
+        )}>
           {pkg.title}
         </h3>
       </div>
 
-      {/* Meta */}
-      <div className="flex items-center gap-6 mb-6">
-        <div className="flex items-center gap-2">
-          <BookOpen size={18} className={isPlatinum ? 'text-md-on-primary-container' : 'text-md-on-surface-variant'} />
-          <span className={cn('text-sm font-medium', isPlatinum ? 'text-white/80' : 'text-md-on-surface')}>
-            {pkg.total_questions ?? '?'} Soal
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Clock size={18} className={isPlatinum ? 'text-md-on-primary-container' : 'text-md-on-surface-variant'} />
-          <span className={cn('text-sm font-medium', isPlatinum ? 'text-white/80' : 'text-md-on-surface')}>
-            {pkg.duration_minutes ?? '?'} Menit
-          </span>
-        </div>
+      {/* Meta row */}
+      <div className="flex items-center gap-3 px-3 pb-2.5 text-[11px] text-slate-400 font-medium">
+        <span className="flex items-center gap-1">
+          <BookOpen size={11} />
+          {pkg.total_questions ?? 110}
+        </span>
+        <span className="flex items-center gap-1">
+          <Clock size={11} />
+          {pkg.duration_minutes ?? 100} mnt
+        </span>
+        <span className="flex items-center gap-1">
+          <Users size={11} />
+          {fmtCount(pkg.completedUsersCount)} peserta
+        </span>
       </div>
 
       {/* CTA */}
-      {href ? (
-        <Link href={href}>
-          <button className={ctaCls}>
-            {hasActiveAttempt ? <ArrowRight size={16} /> : null}
-            {ctaLabel}
+      <div className="px-3 pb-3">
+        {accessible ? (
+          <Link href={`/packages/${pkg.id}`}>
+            <button className={cn(
+              'w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors',
+              hasActiveAttempt
+                ? 'bg-amber-400 text-slate-900 hover:bg-amber-500'
+                : 'bg-slate-900 text-white hover:bg-slate-700',
+            )}>
+              {hasActiveAttempt
+                ? <><ArrowRight size={12} />Lanjutkan Tryout</>
+                : <><ChevronRight size={12} />Mulai Tryout</>
+              }
+            </button>
+          </Link>
+        ) : (
+          <button
+            onClick={() => onLocked(pkg.title, contentTier as 'premium' | 'platinum')}
+            className="w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+          >
+            {contentTier === 'platinum'
+              ? <><Crown size={11} />Buka dengan Platinum</>
+              : <><Zap size={11} />Buka dengan Premium</>
+            }
           </button>
-        </Link>
-      ) : (
-        <button className={ctaCls} onClick={() => onLocked(tier)}>
-          <Lock size={16} />
-          {ctaLabel}
-        </button>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -223,85 +166,138 @@ function TryoutCard({
 // ── Component ─────────────────────────────────────────────────
 
 export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier }: MobileDaftarTryoutProps) {
-  const [search, setSearch]             = useState('');
-  const [tierFilter, setTierFilter]     = useState<TierFilter>('Semua');
-  const [lockedTier, setLockedTier]     = useState<string | null>(null);
+  const [search,      setSearch]      = useState('');
+  const [tierFilter,  setTierFilter]  = useState<TierFilter>('Semua');
+  const [modalOpen,   setModalOpen]   = useState(false);
+  const [modalTier,   setModalTier]   = useState<'premium' | 'platinum'>('premium');
+  const [modalTitle,  setModalTitle]  = useState('');
+
+  const activeSet = new Set(packageIdsWithAttempts);
+
+  const handleLocked = (title: string, tier: 'premium' | 'platinum') => {
+    setModalTitle(title);
+    setModalTier(tier);
+    setModalOpen(true);
+  };
 
   const filtered = useMemo(() => {
-    return packages.filter(pkg => {
-      const matchSearch = search === '' || pkg.title.toLowerCase().includes(search.toLowerCase());
-      const matchTier   = TIER_MAP[tierFilter] === '' || pkg.tier === TIER_MAP[tierFilter];
-      return matchSearch && matchTier;
-    });
+    let result = tierFilter === 'Semua'
+      ? packages
+      : packages.filter(pkg => pkg.tier === TIER_MAP[tierFilter]);
+
+    if (search.trim()) {
+      const kw = search.trim().toLowerCase();
+      result = result.filter(pkg => pkg.title.toLowerCase().includes(kw));
+    }
+    return result;
   }, [packages, search, tierFilter]);
 
   return (
     <>
-    {lockedTier && (
-      <UpgradeModal requiredTier={lockedTier} onClose={() => setLockedTier(null)} />
-    )}
-    <main className="pb-32 px-6 pt-6">
+      <UpgradeModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        requiredTier={modalTier}
+        contentTitle={modalTitle}
+      />
 
-      {/* ── Hero Title ────────────────────────────────────────── */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-md-primary tracking-tight mb-2"
-          style={{ fontFamily: 'var(--font-jakarta)' }}>
-          Daftar Tryout
-        </h1>
-        <p className="text-md-on-surface-variant text-sm leading-relaxed">
-          Semua paket simulasi SKD tersedia di sini
-        </p>
-      </div>
+      <main>
 
-      {/* ── Search Bar ────────────────────────────────────────── */}
-      <div className="mb-6 relative">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-md-on-surface-variant/50" />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Cari nama tryout..."
-          className="w-full pl-12 pr-4 py-4 bg-white rounded-xl border-none ring-1 ring-md-outline-variant/20 focus:ring-md-secondary-container focus:bg-white transition-all shadow-md3-sm placeholder:text-md-on-surface-variant/40 outline-none text-sm"
-        />
-      </div>
+        {/* ── Header + Search (dark bg) ────────────────────────── */}
+        <div className="bg-slate-800 px-4 pt-4 pb-4">
+          {/* Title */}
+          <div className="mb-3">
+            <h1 className="text-xl font-extrabold text-white leading-tight">
+              Daftar <span className="text-yellow-400">Tryout</span>
+            </h1>
+            <p className="text-slate-400 text-xs mt-0.5">
+              {packages.length} paket tersedia · Tier kamu:{' '}
+              <span className={cn(
+                'font-bold',
+                userTier === 'platinum' ? 'text-purple-300'
+                : userTier === 'premium'  ? 'text-blue-300'
+                : 'text-emerald-400',
+              )}>
+                {userTier === 'platinum' ? 'Platinum' : userTier === 'premium' ? 'Premium' : 'Gratis'}
+              </span>
+            </p>
+          </div>
 
-      {/* ── Category Filters ──────────────────────────────────── */}
-      <div className="flex gap-2 overflow-x-auto pb-4 -mx-6 px-6 mb-6 scrollbar-hide">
-        {TIER_FILTERS.map(f => (
-          <button
-            key={f}
-            onClick={() => setTierFilter(f)}
-            className={cn(
-              'whitespace-nowrap px-6 py-2.5 rounded-full font-semibold text-sm active-press transition-colors',
-              tierFilter === f
-                ? 'bg-md-primary text-white shadow-md3-sm'
-                : 'bg-white text-md-on-surface-variant',
+          {/* Search — compact */}
+          <div className="relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cari tryout..."
+              className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:border-slate-400 placeholder:text-slate-500 transition-colors"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                <X size={12} />
+              </button>
             )}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
+          </div>
+        </div>
 
-      {/* ── Tryout List ───────────────────────────────────────── */}
-      <div className="space-y-6">
+        {/* ── Filter Pills ────────────────────────────────────── */}
+        <div className="flex gap-2 overflow-x-auto py-2.5 px-4 scrollbar-hide bg-white border-b border-slate-100">
+          {TIER_FILTERS.map(f => (
+            <button
+              key={f}
+              onClick={() => setTierFilter(f)}
+              className={cn(
+                'whitespace-nowrap px-3.5 py-1 rounded-full text-xs font-bold transition-colors flex-shrink-0',
+                tierFilter === f
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'bg-slate-100 text-slate-500',
+              )}
+            >
+              {f}
+            </button>
+          ))}
+          <span className="ml-auto flex-shrink-0 text-[10px] text-slate-400 font-medium self-center">
+            {filtered.length}/{packages.length}
+          </span>
+        </div>
+
+        <div className="px-4 pt-3">
+
+        {/* ── Cards ───────────────────────────────────────────── */}
         {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-md-on-surface-variant text-sm">Tidak ada tryout yang cocok.</p>
+          <div className="text-center py-16 flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+              {search
+                ? <Search size={20} className="text-slate-400" />
+                : <BookOpen size={20} className="text-slate-400" />
+              }
+            </div>
+            <p className="text-sm font-semibold text-slate-600">
+              {search ? `Tidak ditemukan "${search}"` : `Tidak ada paket ${tierFilter !== 'Semua' ? tierFilter : ''}`}
+            </p>
+            <p className="text-xs text-slate-400">
+              {search ? 'Coba kata kunci lain.' : 'Coba filter lain.'}
+            </p>
           </div>
         ) : (
-          filtered.map(pkg => (
-            <TryoutCard
-              key={pkg.id}
-              pkg={pkg}
-              hasActiveAttempt={packageIdsWithAttempts.includes(pkg.id)}
-              userTier={userTier}
-              onLocked={tier => setLockedTier(tier)}
-            />
-          ))
+          <div className="grid grid-cols-2 gap-3">
+            {filtered.map(pkg => (
+              <TryoutCard
+                key={pkg.id}
+                pkg={pkg}
+                hasActiveAttempt={activeSet.has(pkg.id)}
+                userTier={userTier}
+                onLocked={handleLocked}
+              />
+            ))}
+          </div>
         )}
-      </div>
-    </main>
+        </div>{/* /px-4 pt-3 */}
+      </main>
     </>
   );
 }

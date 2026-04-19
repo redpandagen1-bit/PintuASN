@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/check-admin';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import Papa from 'papaparse';
 
 const VALID_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Ambil posisi yang sudah terisi di package ini
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data: existingPositions } = await supabase
       .from('package_questions')
       .select('position')

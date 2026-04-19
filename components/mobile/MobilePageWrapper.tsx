@@ -25,6 +25,8 @@ export async function MobilePageWrapper({ children }: MobilePageWrapperProps) {
       {/* Spacer untuk fixed header — tinggi = py-2.5*2 + h-7 logo = 20+28 = 48px */}
       <div className="h-12" />
       {children}
+      {/* Spacer bawah — BottomNav ~66px + 16px breathing room = 82px ≈ h-20 */}
+      <div className="h-20" />
     </div>
   );
 }

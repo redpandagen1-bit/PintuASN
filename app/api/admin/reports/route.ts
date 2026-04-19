@@ -1,13 +1,13 @@
 // app/api/admin/reports/route.ts
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { checkIsAdmin } from '@/lib/auth/check-admin'
 
 // POST — user kirim laporan (tidak perlu admin)
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
     const body = await req.json()
 
     const { error } = await supabase.from('question_reports').insert({
@@ -35,7 +35,7 @@ export async function GET() {
     const isAdmin = await checkIsAdmin()
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const supabase = await createClient()
+    const supabase = await createAdminClient()
 
     const { data, error } = await supabase
       .from('question_reports')

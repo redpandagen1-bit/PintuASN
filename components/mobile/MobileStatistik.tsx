@@ -164,7 +164,7 @@ export function MobileStatistik({ data, ranking }: MobileStatistikProps) {
   ];
 
   return (
-    <main className="pb-28">
+    <main className="">
 
       {/* ── Page header — matches desktop hero ────────────────── */}
       <section className="mx-4 mt-4 mb-4 bg-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-4">

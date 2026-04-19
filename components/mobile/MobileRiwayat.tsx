@@ -81,7 +81,7 @@ export function MobileRiwayat({
   const handleSort   = (s: typeof sort)   => { setSort(s);   setPage(1); setShowSort(false); };
 
   return (
-    <main className="pb-32">
+    <main className="">
 
       {/* ── Hero Header ──────────────────────────────────────── */}
       <section className="px-6 pt-6 pb-6 bg-md-surface-container-low">
@@ -265,7 +265,7 @@ export function MobileRiwayat({
                         <span className="text-xs font-bold">Hasil</span>
                       </button>
                     </Link>
-                    <Link href={`/exam/${attempt.id}/pembahasan`}>
+                    <Link href={`/exam/${attempt.id}/review`}>
                       <button className="px-4 py-2 rounded-lg bg-md-secondary-container text-md-on-secondary-container text-xs font-bold active-press">
                         Pembahasan
                       </button>

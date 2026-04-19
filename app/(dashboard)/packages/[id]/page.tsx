@@ -9,7 +9,6 @@ import {
   FileText,
   Target,
   AlertCircle,
-  ArrowLeft,
   BookOpen,
   BrainCircuit,
   Users,
@@ -68,14 +67,6 @@ export default async function PackageDetailPage({
       </MobilePageWrapper>
       <div className="hidden md:block min-h-screen bg-slate-50 pb-20 md:pb-8">
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-
-        {/* Back */}
-        <Link
-          href="/daftar-tryout"
-          className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 font-medium text-sm transition-colors"
-        >
-          <ArrowLeft size={16} /> Kembali ke Daftar Tryout
-        </Link>
 
         {/* ── HERO ──────────────────────────────────────────────────── */}
         <div className="relative bg-pn-navy rounded-2xl p-5 md:p-8 overflow-hidden shadow-xl">

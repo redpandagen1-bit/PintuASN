@@ -1,38 +1,53 @@
 'use client';
 
 // components/mobile/MobilePackageDetail.tsx
-// Mobile-only package detail page — Pathfinder Navy MD3 design
+// Mobile package detail — feature-parity with desktop
 
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, BrainCircuit, Users, Target, Clock, FileText, AlertCircle } from 'lucide-react';
+import {
+  BookOpen, BrainCircuit, Users,
+  Target, Clock, FileText, AlertCircle,
+  PlayCircle, ChevronRight,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ExamInstructionsModal } from '@/components/exam/exam-instructions-modal';
 
 // ── Types ─────────────────────────────────────────────────────
 
-interface PackageDetailProps {
-  packageId:    string;
-  title:        string;
-  description?: string | null;
-  difficulty:   string;
-  tier?:        string | null;
+interface MobilePackageDetailProps {
+  packageId:        string;
+  title:            string;
+  description?:     string | null;
+  difficulty:       string;
+  tier?:            string | null;
   hasActiveAttempt: boolean;
   activeAttemptId?: string | null;
 }
 
+// ── Constants ─────────────────────────────────────────────────
+
+const TOTAL_QUESTIONS = 110;
+const DURATION_MINUTES = 100;
+const DISTRIBUTION     = { twk: 30, tiu: 35, tkp: 45 };
+const PASSING_GRADE    = { twk: 65, tiu: 80, tkp: 166 };
+
 // ── Helpers ───────────────────────────────────────────────────
 
-function getDifficultyConfig(difficulty: string) {
+function getDifficultyBadge(difficulty: string) {
   switch (difficulty) {
-    case 'easy':   return { label: 'Mudah', dotCls: 'bg-emerald-500', textCls: 'text-emerald-600', bgCls: 'bg-emerald-100' };
-    case 'hard':   return { label: 'Sulit',  dotCls: 'bg-md-error',   textCls: 'text-md-error',   bgCls: 'bg-red-100'     };
-    default:       return { label: 'Sedang', dotCls: 'bg-md-secondary', textCls: 'text-md-secondary', bgCls: 'bg-md-secondary-container' };
+    case 'easy':   return { label: 'Mudah',  cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
+    case 'hard':   return { label: 'Sulit',  cls: 'bg-red-500/20 text-red-300 border-red-500/30'             };
+    default:       return { label: 'Sedang', cls: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'    };
   }
 }
 
-const TOTAL_QUESTIONS = 110;
-const DISTRIBUTION    = { twk: 30, tiu: 35, tkp: 45 };
-const PASSING_GRADE   = { twk: 65, tiu: 80, tkp: 166 };
+function getTierBadge(tier?: string | null) {
+  switch (tier) {
+    case 'premium':  return { label: 'Premium',  cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30'       };
+    case 'platinum': return { label: 'Platinum', cls: 'bg-purple-500/20 text-purple-300 border-purple-500/30' };
+    default:         return { label: 'Gratis',   cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
+  }
+}
 
 // ── Component ─────────────────────────────────────────────────
 
@@ -44,171 +59,203 @@ export function MobilePackageDetail({
   tier,
   hasActiveAttempt,
   activeAttemptId,
-}: PackageDetailProps) {
-  const diff = getDifficultyConfig(difficulty);
-
-  const tierBadge = tier === 'premium'
-    ? { label: 'PREMIUM',  cls: 'bg-amber-100 text-amber-700' }
-    : tier === 'platinum'
-    ? { label: 'PLATINUM', cls: 'bg-purple-100 text-purple-700' }
-    : { label: 'GRATIS',   cls: 'bg-emerald-100 text-emerald-700' };
+}: MobilePackageDetailProps) {
+  const diffBadge = getDifficultyBadge(difficulty);
+  const tierBadge = getTierBadge(tier);
 
   return (
-    <main className="pb-36 px-5 pt-2">
+    <main className="pb-24">
 
-      {/* ── Back ──────────────────────────────────────────────── */}
-      <Link
-        href="/daftar-tryout"
-        className="inline-flex items-center gap-2 text-md-on-surface-variant text-sm mb-6 active-press"
-      >
-        <ArrowLeft size={16} /> Kembali
-      </Link>
+      {/* ══════════════════════════════════════════════════════
+          HERO — bg-slate-800, rounded bottom corners
+      ══════════════════════════════════════════════════════ */}
+      <div className="bg-slate-800 relative overflow-hidden rounded-3xl mx-3 mt-3 shadow-xl">
+        {/* Decorative glow */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-400 rounded-full opacity-10 blur-3xl pointer-events-none" />
 
-      {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative bg-md-primary rounded-3xl p-6 text-white overflow-hidden mb-6 shadow-md3-lg">
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-md-secondary opacity-20 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <span className={cn('text-[10px] font-bold px-3 py-1 rounded-full', diff.bgCls, diff.textCls)}>
-              {diff.label}
+        <div className="relative z-10 px-4 pt-4 pb-6">
+
+          {/* Badges */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border', diffBadge.cls)}>
+              {diffBadge.label}
             </span>
-            <span className={cn('text-[10px] font-bold px-3 py-1 rounded-full', tierBadge.cls)}>
+            <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border', tierBadge.cls)}>
               {tierBadge.label}
             </span>
-            <span className="text-white/50 text-xs ml-auto">SKD CPNS</span>
           </div>
 
-          <h1 className="text-2xl font-extrabold leading-tight mb-3"
-            style={{ fontFamily: 'var(--font-jakarta)' }}>
-            {title}
-          </h1>
+          {/* Title + Button — same row */}
+          <div className="flex items-start gap-3 mb-2">
+            <h1 className="text-xl font-extrabold text-white leading-tight flex-1">
+              {title}
+            </h1>
+            <div className="flex-shrink-0 mt-1">
+              {hasActiveAttempt && activeAttemptId ? (
+                <Link href={`/exam/${activeAttemptId}`}>
+                  <button className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 hover:text-white text-slate-900 font-bold py-2 px-4 rounded-full text-sm transition-all shadow-[0_4px_14px_rgba(250,204,21,0.45)] hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap">
+                    <PlayCircle size={15} />
+                    Lanjutkan
+                  </button>
+                </Link>
+              ) : (
+                <div className="[&_button]:flex [&_button]:items-center [&_button]:gap-2 [&_button]:bg-yellow-400 [&_button:hover]:bg-yellow-500 [&_button:hover]:text-white [&_button]:text-slate-900 [&_button]:font-bold [&_button]:py-2 [&_button]:px-4 [&_button]:rounded-full [&_button]:border-0 [&_button]:text-sm [&_button]:transition-all [&_button]:shadow-[0_4px_14px_rgba(250,204,21,0.45)] [&_button]:whitespace-nowrap">
+                  <ExamInstructionsModal packageId={packageId} />
+                </div>
+              )}
+            </div>
+          </div>
 
+          {/* Description */}
           {description && (
-            <p className="text-white/70 text-sm leading-relaxed">{description}</p>
+            <p className="text-slate-400 text-xs leading-relaxed">{description}</p>
           )}
         </div>
-      </section>
-
-      {/* ── Quick Stats ───────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-md3-sm">
-          <div className="w-10 h-10 rounded-xl bg-md-surface-container-low flex items-center justify-center flex-shrink-0">
-            <FileText size={18} className="text-md-primary" />
-          </div>
-          <div>
-            <p className="text-xl font-extrabold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
-              {TOTAL_QUESTIONS}
-            </p>
-            <p className="text-[10px] font-bold text-md-on-surface-variant uppercase tracking-wide">Total Soal</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl p-4 flex items-center gap-3 shadow-md3-sm">
-          <div className="w-10 h-10 rounded-xl bg-md-surface-container-low flex items-center justify-center flex-shrink-0">
-            <Clock size={18} className="text-md-secondary" />
-          </div>
-          <div>
-            <p className="text-xl font-extrabold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
-              100
-            </p>
-            <p className="text-[10px] font-bold text-md-on-surface-variant uppercase tracking-wide">Menit</p>
-          </div>
-        </div>
       </div>
 
-      {/* ── Warning ───────────────────────────────────────────── */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 mb-6">
-        <AlertCircle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
-        <p className="text-amber-800 text-xs font-medium leading-relaxed">
-          Semua kategori harus memenuhi nilai ambang batas. Pastikan koneksi internet stabil sebelum memulai.
-        </p>
-      </div>
+      {/* ══════════════════════════════════════════════════════
+          CONTENT SECTIONS
+      ══════════════════════════════════════════════════════ */}
+      <div className="px-4 pt-4 space-y-4">
 
-      {/* ── Passing Grade ─────────────────────────────────────── */}
-      <section className="bg-white rounded-2xl shadow-md3-sm overflow-hidden mb-6">
-        <div className="border-b border-md-outline-variant/10 bg-md-surface-container-low/50 px-5 py-4 flex items-center gap-2">
-          <Target size={16} className="text-md-secondary" />
-          <h2 className="font-bold text-md-on-surface text-sm">Target Passing Grade</h2>
-        </div>
-        <div className="p-5 space-y-4">
-          {[
-            { key: 'TWK', label: 'Tes Wawasan Kebangsaan',    value: PASSING_GRADE.twk, icon: <BookOpen size={15} />,    cls: 'bg-blue-50 text-blue-600'   },
-            { key: 'TIU', label: 'Tes Intelegensia Umum',     value: PASSING_GRADE.tiu, icon: <BrainCircuit size={15} />, cls: 'bg-emerald-50 text-emerald-600' },
-            { key: 'TKP', label: 'Tes Karakteristik Pribadi', value: PASSING_GRADE.tkp, icon: <Users size={15} />,        cls: 'bg-purple-50 text-purple-600' },
-          ].map((item, i) => (
-            <div key={item.key}>
-              {i > 0 && <div className="h-px bg-md-outline-variant/10 mb-4" />}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', item.cls)}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-md-on-surface">{item.key}</p>
-                    <p className="text-xs text-md-on-surface-variant">{item.label}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-md-on-surface-variant mb-0.5">Nilai Minimal</p>
-                  <p className="text-xl font-extrabold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
-                    ≥ {item.value}
-                  </p>
-                </div>
-              </div>
+        {/* ── Quick Stats ───────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white rounded-xl p-3.5 flex items-center gap-3 shadow-sm border border-slate-100">
+            <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <FileText size={16} className="text-blue-600" />
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Distribusi Soal ───────────────────────────────────── */}
-      <section className="bg-white rounded-2xl shadow-md3-sm overflow-hidden mb-6">
-        <div className="border-b border-md-outline-variant/10 bg-md-surface-container-low/50 px-5 py-4 flex items-center gap-2">
-          <FileText size={16} className="text-md-on-surface-variant" />
-          <h2 className="font-bold text-md-on-surface text-sm">Distribusi Jumlah Soal</h2>
-        </div>
-        <div className="p-5">
-          {/* Bar */}
-          <div className="flex h-3 rounded-full overflow-hidden mb-5">
-            <div className="bg-indigo-500" style={{ width: `${(DISTRIBUTION.twk / TOTAL_QUESTIONS) * 100}%` }} />
-            <div className="bg-emerald-500" style={{ width: `${(DISTRIBUTION.tiu / TOTAL_QUESTIONS) * 100}%` }} />
-            <div className="bg-purple-500"  style={{ width: `${(DISTRIBUTION.tkp / TOTAL_QUESTIONS) * 100}%` }} />
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Soal</p>
+              <p className="text-xl font-extrabold text-slate-800 leading-tight">{TOTAL_QUESTIONS}</p>
+            </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-xl p-3.5 flex items-center gap-3 shadow-sm border border-slate-100">
+            <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Clock size={16} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Durasi</p>
+              <p className="text-xl font-extrabold text-slate-800 leading-tight">{DURATION_MINUTES} <span className="text-sm font-semibold text-slate-500">mnt</span></p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Warning ───────────────────────────────────────── */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-3">
+          <AlertCircle size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide mb-0.5">Perhatian</p>
+            <p className="text-xs text-amber-900 font-medium leading-relaxed">
+              Semua kategori harus memenuhi nilai ambang batas. Pastikan koneksi internet stabil sebelum memulai.
+            </p>
+          </div>
+        </div>
+
+        {/* ── Passing Grade ─────────────────────────────────── */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 flex items-center gap-2">
+            <Target size={14} className="text-yellow-600" />
+            <h2 className="font-bold text-slate-800 text-sm">Target Passing Grade</h2>
+          </div>
+          <div className="p-4 space-y-3">
             {[
-              { label: 'TWK', count: DISTRIBUTION.twk, dot: 'bg-indigo-500' },
-              { label: 'TIU', count: DISTRIBUTION.tiu, dot: 'bg-emerald-500' },
-              { label: 'TKP', count: DISTRIBUTION.tkp, dot: 'bg-purple-500'  },
-            ].map(item => (
-              <div key={item.label} className="bg-md-surface-container-low rounded-xl p-3 text-center">
-                <div className={cn('w-2 h-2 rounded-full mx-auto mb-2', item.dot)} />
-                <p className="text-2xl font-extrabold text-md-primary leading-none mb-1"
-                  style={{ fontFamily: 'var(--font-jakarta)' }}>
-                  {item.count}
-                </p>
-                <p className="text-[10px] font-bold text-md-on-surface-variant uppercase tracking-wide">
-                  Soal {item.label}
-                </p>
+              { key: 'TWK', label: 'Tes Wawasan Kebangsaan',    value: PASSING_GRADE.twk, Icon: BookOpen,     cls: 'bg-blue-50 text-blue-600'    },
+              { key: 'TIU', label: 'Tes Intelegensia Umum',     value: PASSING_GRADE.tiu, Icon: BrainCircuit, cls: 'bg-emerald-50 text-emerald-600' },
+              { key: 'TKP', label: 'Tes Karakteristik Pribadi', value: PASSING_GRADE.tkp, Icon: Users,        cls: 'bg-purple-50 text-purple-600'  },
+            ].map((item, i) => (
+              <div key={item.key}>
+                {i > 0 && <div className="h-px bg-slate-100 mb-3" />}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0', item.cls)}>
+                      <item.Icon size={14} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">{item.key}</p>
+                      <p className="text-[10px] text-slate-400">{item.label}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-slate-400 mb-0.5">Nilai Minimal</p>
+                    <p className="text-lg font-black text-slate-800">≥ {item.value}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ── Fixed Bottom CTA ──────────────────────────────────── */}
-      <div className="fixed bottom-0 left-0 w-full p-5 bg-white/80 backdrop-blur-xl border-t border-md-outline-variant/10 z-40">
-        <div className="max-w-md mx-auto">
-          {hasActiveAttempt && activeAttemptId ? (
-            <Link href={`/exam/${activeAttemptId}`}>
-              <button className="w-full bg-md-secondary-container text-md-primary font-extrabold py-4 rounded-2xl text-sm active-press"
-                style={{ fontFamily: 'var(--font-jakarta)' }}>
-                Lanjutkan Tryout
-              </button>
-            </Link>
-          ) : (
-            <div className="[&_button]:w-full [&_button]:bg-md-primary [&_button]:text-white [&_button]:font-extrabold [&_button]:py-4 [&_button]:rounded-2xl [&_button]:text-sm [&_button]:border-0">
-              <ExamInstructionsModal packageId={packageId} />
+        {/* ── Distribusi Soal ───────────────────────────────── */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 flex items-center gap-2">
+            <FileText size={14} className="text-slate-500" />
+            <h2 className="font-bold text-slate-800 text-sm">Distribusi Jumlah Soal</h2>
+          </div>
+          <div className="p-4">
+            {/* Segmented bar */}
+            <div className="flex h-2.5 rounded-full overflow-hidden mb-4">
+              <div className="bg-indigo-500 transition-all" style={{ width: `${(DISTRIBUTION.twk / TOTAL_QUESTIONS) * 100}%` }} />
+              <div className="bg-emerald-500 transition-all" style={{ width: `${(DISTRIBUTION.tiu / TOTAL_QUESTIONS) * 100}%` }} />
+              <div className="bg-purple-500 transition-all"  style={{ width: `${(DISTRIBUTION.tkp / TOTAL_QUESTIONS) * 100}%` }} />
             </div>
-          )}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: 'TWK', count: DISTRIBUTION.twk, dot: 'bg-indigo-500',  bg: 'bg-indigo-50'  },
+                { label: 'TIU', count: DISTRIBUTION.tiu, dot: 'bg-emerald-500', bg: 'bg-emerald-50' },
+                { label: 'TKP', count: DISTRIBUTION.tkp, dot: 'bg-purple-500',  bg: 'bg-purple-50'  },
+              ].map(item => (
+                <div key={item.label} className={cn('rounded-xl p-3 text-center', item.bg)}>
+                  <div className={cn('w-2 h-2 rounded-full mx-auto mb-1.5', item.dot)} />
+                  <p className="text-2xl font-black text-slate-800 leading-none mb-1">{item.count}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Soal {item.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* ── Instruksi ringkas ─────────────────────────────── */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 flex items-center gap-2">
+            <AlertCircle size={14} className="text-slate-500" />
+            <h2 className="font-bold text-slate-800 text-sm">Petunjuk Ujian</h2>
+          </div>
+          <ul className="p-4 space-y-2">
+            {[
+              'Waktu pengerjaan 100 menit tidak dapat dijeda.',
+              'Jawaban tersimpan otomatis setiap 60 detik.',
+              'Jangan menutup atau me-refresh browser selama ujian.',
+              'Pastikan koneksi internet stabil sebelum memulai.',
+              'Setiap kategori memiliki nilai ambang batas minimum.',
+            ].map((tip, i) => (
+              <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
+                <ChevronRight size={12} className="text-slate-400 flex-shrink-0 mt-0.5" />
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+      </div>
+
+      {/* ══════════════════════════════════════════════════════
+          FIXED BOTTOM CTA — sits above BottomNav (bottom-16)
+          BottomNav: fixed bottom-0 z-50 ~64px tall
+          CTA:       fixed bottom-16 z-40 → clears BottomNav
+      ══════════════════════════════════════════════════════ */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200 shadow-lg px-4 py-3">
+        {hasActiveAttempt && activeAttemptId ? (
+          <Link href={`/exam/${activeAttemptId}`}>
+            <button className="w-full flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 hover:text-white text-slate-900 font-extrabold py-3 rounded-xl text-sm transition-colors">
+              <PlayCircle size={16} />
+              Lanjutkan Tryout
+            </button>
+          </Link>
+        ) : (
+          <div className="[&_button]:w-full [&_button]:bg-yellow-400 [&_button:hover]:bg-yellow-500 [&_button:hover]:text-white [&_button]:text-slate-900 [&_button]:font-extrabold [&_button]:py-3 [&_button]:rounded-xl [&_button]:border-0 [&_button]:text-sm [&_button]:transition-colors">
+            <ExamInstructionsModal packageId={packageId} />
+          </div>
+        )}
       </div>
 
     </main>

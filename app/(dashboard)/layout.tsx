@@ -41,8 +41,8 @@ export default function DashboardLayout({
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex gap-6 lg:gap-8 items-start min-h-[calc(100vh-3.5rem)]">
           <Sidebar />
-          {/* Extra bottom padding on mobile for BottomNav */}
-          <main className="flex-1 min-w-0 pt-2 pb-24 md:pb-8">
+          {/* Bottom padding: mobile handled by MobilePageWrapper h-20, desktop explicit */}
+          <main className="flex-1 min-w-0 pt-2 md:pb-8">
             {children}
           </main>
         </div>
