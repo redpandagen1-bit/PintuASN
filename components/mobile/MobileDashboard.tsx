@@ -7,10 +7,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   BookOpen, ClipboardList, History,
-  ShoppingCart, Megaphone, Users, Zap,
+  ShoppingCart, Megaphone, Users,
   ChevronRight, Play, Clock,
   BookMarked, CheckCircle, BarChart2,
   Award, TrendingUp, FileText,
+  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
@@ -99,39 +100,73 @@ export function MobileDashboard({
   return (
     <main className="space-y-6">
 
-      {/* ── Upgrade / Premium CTA Banner ─────────────────────── */}
+      {/* ── Upgrade / Premium CTA ────────────────────────────── */}
       {showOffer && (
         <section className="px-4">
-          <div className="rounded-2xl px-4 py-3.5 bg-white border border-slate-200 shadow-sm">
-            {/* Row 1: label + badge */}
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-              {isPremium ? 'Upgrade Spesial' : 'Limited Offer'}
-            </p>
-            {/* Row 2: title + CTA button */}
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-base font-extrabold text-slate-800 leading-tight"
+          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-4 shadow-lg">
+
+            {/* Header: icon + judul */}
+            <div className="flex items-center gap-2 mb-2">
+              <Crown size={15} className="text-yellow-400 flex-shrink-0" />
+              <h3 className="text-white font-bold text-sm leading-tight"
                 style={{ fontFamily: 'var(--font-jakarta)' }}>
-                {isPremium ? (
-                  <>Upgrade ke <span className="text-violet-600">Platinum</span></>
-                ) : (
-                  <>Paket <span className="text-violet-600">Premium</span> 2026</>
-                )}
+                Upgrade{' '}
+                <span className="text-yellow-400">
+                  {isPremium ? 'Platinum' : 'Premium'}
+                </span>
               </h3>
-              <Link href="/beli-paket" className="flex-shrink-0">
-                <button className="font-bold px-4 py-2.5 rounded-xl text-xs active-press flex items-center gap-1 bg-violet-600 hover:bg-violet-700 text-white shadow-sm">
-                  {isPremium ? 'Upgrade' : 'Beli Sekarang'}
-                  <Zap size={14} />
-                </button>
-              </Link>
             </div>
-            {/* Row 3: harga — selalu sebaris */}
-            <div className="flex items-baseline gap-2 mt-1.5">
-              <span className="text-sm line-through text-slate-400 font-medium">{offerOrig}</span>
-              <span className="text-2xl font-black text-slate-800 leading-none"
-                style={{ fontFamily: 'var(--font-jakarta)' }}>
-                {offerPrice}
-              </span>
+
+            {/* Deskripsi */}
+            <p className="text-slate-300 text-xs mb-3 leading-relaxed">
+              {isPremium
+                ? 'Akses fitur eksklusif & video series SKD lengkap.'
+                : 'Akses Paket Tryout Premium dan Materi video lengkap.'}
+            </p>
+
+            {/* Divider */}
+            <div className="h-px bg-white/10 mb-3" />
+
+            {/* Feature grid 3-col */}
+            <div className="grid grid-cols-3 gap-1.5 mb-3">
+              <div className="bg-white/5 border border-white/10 rounded-lg py-1.5 text-center">
+                <p className={`text-[11px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
+                  {isPremium ? '∞' : '✗'}
+                </p>
+                <p className="text-slate-400 text-[9px] mt-0.5">Riwayat</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg py-1.5 text-center">
+                <p className={`text-[11px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
+                  {isPremium ? 'HD' : '✗'}
+                </p>
+                <p className="text-slate-400 text-[9px] mt-0.5">Video SKD</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-lg py-1.5 text-center">
+                <p className={`text-[11px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
+                  {isPremium ? 'Pro' : '✗'}
+                </p>
+                <p className="text-slate-400 text-[9px] mt-0.5">Analisis</p>
+              </div>
             </div>
+
+            {/* Harga (hanya untuk premium → platinum) */}
+            {isPremium && (
+              <div className="mb-3">
+                <p className="text-slate-500 text-xs line-through leading-none mb-0.5">{offerOrig}</p>
+                <p className="text-white font-bold text-lg leading-none"
+                  style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  {offerPrice}
+                </p>
+              </div>
+            )}
+
+            {/* CTA button */}
+            <Link href="/beli-paket">
+              <button className="w-full bg-white text-slate-800 font-semibold py-2.5 px-4 rounded-xl active-press transition-all text-xs shadow-md">
+                {isPremium ? 'Upgrade Sekarang' : 'Lihat Paket'}
+              </button>
+            </Link>
+
           </div>
         </section>
       )}

@@ -95,8 +95,8 @@ async function DashboardContent() {
     <>
       {/* ── MOBILE layout (md:hidden via MobilePageWrapper) ── */}
       <MobilePageWrapper>
-        {/* Banner full-width mobile */}
-        <div className="mb-4">
+        {/* Banner mobile — lebar sesuai layout */}
+        <div className="px-4 mb-4">
           <BannerSlider />
         </div>
         <MobileDashboard
