@@ -1,7 +1,13 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { rateLimit } from '@/lib/rate-limit';
+
+// Sanitasi first_name agar aman di sisi Midtrans (hanya huruf/angka/spasi)
+function sanitizeName(input: string, fallback = 'PintuASN User'): string {
+  const cleaned = (input || '').replace(/[^A-Za-z0-9 ]+/g, ' ').trim().slice(0, 40);
+  return cleaned || fallback;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,13 +53,21 @@ export async function POST(req: NextRequest) {
     const baseAfterDiscount = order.final_price ?? order.base_price;
     const total = baseAfterDiscount + adminFee;
 
-    // Kalau order_id sudah pernah di-charge Midtrans dengan metode berbeda,
-    // buat order_id baru dengan suffix metode agar tidak konflik
-    const midtransOrderId = order.midtrans_transaction_id
-      ? `${orderId}-${methodId}-${Date.now()}`
-      : orderId;
+    // Midtrans menolak `order_id` yang sudah pernah di-charge. Selalu pakai
+    // suffix unik supaya tiap attempt memilih metode menghasilkan order_id
+    // Midtrans yang baru. Original orderId tetap disimpan di kolom order_id
+    // Supabase sebagai referensi internal; kolom midtrans_transaction_id
+    // menyimpan transaction_id hasil charge.
+    const midtransOrderId = `${orderId}-${methodId}-${Date.now().toString(36)}`;
 
-    const serverKey = process.env.MIDTRANS_SERVER_KEY!;
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
+    if (!serverKey) {
+      console.error('MIDTRANS_SERVER_KEY is not set');
+      return NextResponse.json(
+        { error: 'Konfigurasi pembayaran belum lengkap. Hubungi admin.' },
+        { status: 500 }
+      );
+    }
     const encodedKey = Buffer.from(`${serverKey}:`).toString('base64');
 
     const isSandbox = process.env.MIDTRANS_IS_SANDBOX === 'true';
@@ -61,15 +75,31 @@ export async function POST(req: NextRequest) {
       ? 'https://api.sandbox.midtrans.com'
       : 'https://api.midtrans.com';
 
+    // Ambil email & nama dari Clerk — Midtrans production butuh customer_details
+    // yang valid (minimal email) untuk beberapa metode
+    const clerkUser = await currentUser();
+    const email =
+      clerkUser?.emailAddresses?.[0]?.emailAddress ||
+      `${userId}@users.pintuasn.com`;
+    const firstNameRaw = clerkUser?.firstName || clerkUser?.fullName || 'PintuASN User';
+    const lastName = sanitizeName(clerkUser?.lastName || '', '');
+    const firstName = sanitizeName(firstNameRaw);
+    const phone = clerkUser?.phoneNumbers?.[0]?.phoneNumber;
+
     // Build payload berdasarkan metode
+    const customerDetails: Record<string, string> = {
+      first_name: firstName,
+      email,
+    };
+    if (lastName) customerDetails.last_name = lastName;
+    if (phone)    customerDetails.phone     = phone;
+
     let midtransBody: Record<string, unknown> = {
       transaction_details: {
         order_id: midtransOrderId,
         gross_amount: total,
       },
-      customer_details: {
-        first_name: userId,
-      },
+      customer_details: customerDetails,
     };
 
     if (methodId === 'qris') {
@@ -138,9 +168,24 @@ export async function POST(req: NextRequest) {
 
     // Handle error dari Midtrans
     if (!response.ok || (data.status_code && !['200', '201'].includes(data.status_code))) {
-      console.error('Midtrans charge error:', data.status_code, data.status_message);
+      console.error(
+        'Midtrans charge error:',
+        data.status_code,
+        data.status_message,
+        Array.isArray(data.validation_messages) ? data.validation_messages : undefined
+      );
+      // Forward status_message Midtrans (string aman, bukan stack) agar user
+      // tahu penyebab konkret (mis. "Order ID has already been taken",
+      // "transaction_details.gross_amount is less than minimum amount")
+      const midtransMsg =
+        (Array.isArray(data.validation_messages) && data.validation_messages.join('; ')) ||
+        data.status_message ||
+        'Gagal memproses pembayaran. Silakan coba lagi.';
       return NextResponse.json(
-        { error: 'Gagal memproses pembayaran. Silakan coba lagi.' },
+        {
+          error: `Pembayaran gagal: ${midtransMsg}`,
+          code: data.status_code ?? null,
+        },
         { status: 400 }
       );
     }
