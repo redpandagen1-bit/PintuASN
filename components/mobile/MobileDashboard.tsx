@@ -102,11 +102,13 @@ export function MobileDashboard({
       {/* ── Upgrade / Premium CTA Banner ─────────────────────── */}
       {showOffer && (
         <section className="px-4">
-          <div className="rounded-3xl p-5 bg-white border border-slate-200 shadow-sm flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                {isPremium ? 'Upgrade Spesial' : 'Limited Offer'}
-              </p>
+          <div className="rounded-2xl px-4 py-3.5 bg-white border border-slate-200 shadow-sm">
+            {/* Row 1: label + badge */}
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+              {isPremium ? 'Upgrade Spesial' : 'Limited Offer'}
+            </p>
+            {/* Row 2: title + CTA button */}
+            <div className="flex items-center justify-between gap-3">
               <h3 className="text-base font-extrabold text-slate-800 leading-tight"
                 style={{ fontFamily: 'var(--font-jakarta)' }}>
                 {isPremium ? (
@@ -115,29 +117,30 @@ export function MobileDashboard({
                   <>Paket <span className="text-violet-600">Premium</span> 2026</>
                 )}
               </h3>
-              <div className="flex items-center gap-2">
-                <span className="text-xs line-through text-slate-400 font-medium">{offerOrig}</span>
-                <span className="text-xl font-black text-slate-800"
-                  style={{ fontFamily: 'var(--font-jakarta)' }}>
-                  {offerPrice}
-                </span>
-              </div>
+              <Link href="/beli-paket" className="flex-shrink-0">
+                <button className="font-bold px-4 py-2.5 rounded-xl text-xs active-press flex items-center gap-1 bg-violet-600 hover:bg-violet-700 text-white shadow-sm">
+                  {isPremium ? 'Upgrade' : 'Beli Sekarang'}
+                  <Zap size={14} />
+                </button>
+              </Link>
             </div>
-            <Link href="/beli-paket" className="flex-shrink-0">
-              <button className="font-bold px-4 py-2.5 rounded-xl text-xs active-press flex items-center gap-1 bg-violet-600 hover:bg-violet-700 text-white shadow-sm">
-                {isPremium ? 'Upgrade' : 'Beli Sekarang'}
-                <Zap size={14} />
-              </button>
-            </Link>
+            {/* Row 3: harga — selalu sebaris */}
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <span className="text-sm line-through text-slate-400 font-medium">{offerOrig}</span>
+              <span className="text-2xl font-black text-slate-800 leading-none"
+                style={{ fontFamily: 'var(--font-jakarta)' }}>
+                {offerPrice}
+              </span>
+            </div>
           </div>
         </section>
       )}
 
       {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
-      <section className="px-4">
-        <div className="grid grid-cols-3 gap-4">
+      <section>
+        <div className="grid grid-cols-3">
           {MENU_ITEMS.map(({ label, href, Icon, gold }) => (
-            <Link key={label} href={href} className="flex flex-col items-center gap-2 group active-press">
+            <Link key={label} href={href} className="flex flex-col items-center gap-2 py-3 group active-press">
               <div className="w-14 h-14 rounded-2xl bg-white shadow-md3-sm flex items-center justify-center transition-all group-active:scale-95">
                 <Icon
                   size={22}
