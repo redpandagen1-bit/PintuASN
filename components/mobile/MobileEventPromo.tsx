@@ -1,257 +1,319 @@
 'use client';
 
 // components/mobile/MobileEventPromo.tsx
-// Mobile-only event & promo page — Pathfinder Navy MD3 design
+// Mobile-only event & promo — feature-parity dengan desktop EventPromoCard
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Clock, Copy, ChevronRight, Check, Tag } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Event } from '@/types/events';
+import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
+import Link  from 'next/link';
+import {
+  Copy, Check, Clock, Users, ChevronDown, ChevronUp,
+  Tag, Zap, CalendarDays, Ticket, Megaphone,
+} from 'lucide-react';
+import { cn }          from '@/lib/utils';
+import type { Event, EventType } from '@/types/events';
 
-// ── Types ─────────────────────────────────────────────────────
+// ── Type config (identik desktop) ─────────────────────────────
 
-interface MobileEventPromoProps {
-  events: Event[];
-}
+const TYPE_CONFIG: Record<EventType, { label: string; color: string; icon: React.ReactNode }> = {
+  promo:      { label: 'Promo',      color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: <Tag         size={10} /> },
+  event:      { label: 'Event',      color: 'bg-blue-100   text-blue-700   border-blue-200',      icon: <CalendarDays size={10} /> },
+  flash_sale: { label: 'Flash Sale', color: 'bg-red-100    text-red-700    border-red-200',       icon: <Zap         size={10} /> },
+  diskon:     { label: 'Diskon',     color: 'bg-orange-100 text-orange-700 border-orange-200',    icon: <Ticket      size={10} /> },
+};
 
 // ── Helpers ───────────────────────────────────────────────────
 
-function formatEventDate(iso: string | null) {
-  if (!iso) return '';
+function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('id-ID', {
     day: '2-digit', month: 'short', year: 'numeric',
   });
 }
 
-function typeLabel(type: string) {
-  switch (type) {
-    case 'flash_sale': return 'FLASH SALE';
-    case 'diskon':     return 'DISKON';
-    case 'promo':      return 'PROMO';
-    default:           return 'EVENT';
-  }
+// ── Countdown hook (sama persis desktop) ─────────────────────
+
+function useCountdown(endDate: string | null) {
+  const calc = useCallback(() => {
+    if (!endDate) return null;
+    const diff = new Date(endDate).getTime() - Date.now();
+    if (diff <= 0) return { d: 0, h: 0, m: 0, s: 0, expired: true };
+    const d = Math.floor(diff / 86_400_000);
+    const h = Math.floor((diff % 86_400_000) / 3_600_000);
+    const m = Math.floor((diff % 3_600_000)  / 60_000);
+    const s = Math.floor((diff % 60_000)     / 1_000);
+    return { d, h, m, s, expired: false };
+  }, [endDate]);
+
+  const [time, setTime] = useState(calc);
+  useEffect(() => {
+    if (!endDate) return;
+    const id = setInterval(() => setTime(calc()), 1_000);
+    return () => clearInterval(id);
+  }, [endDate, calc]);
+
+  return time;
 }
 
-// ── CopyButton ────────────────────────────────────────────────
+// ── Single Event Card ─────────────────────────────────────────
 
-function CopyButton({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false);
+function EventCard({ event }: { event: Event }) {
+  const [copied,    setCopied]    = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
-  async function handleCopy() {
-    await navigator.clipboard.writeText(code);
+  const countdown = useCountdown(event.end_date);
+  const cfg       = TYPE_CONFIG[event.type] ?? TYPE_CONFIG.promo;
+
+  const now          = Date.now();
+  const isExpired    = event.end_date    ? new Date(event.end_date).getTime()    < now : false;
+  const isComingSoon = event.start_date  ? new Date(event.start_date).getTime()  > now : false;
+  const quotaFull    = event.quota != null && event.quota_used >= event.quota;
+
+  const quotaPct = event.quota
+    ? Math.min(100, Math.round((event.quota_used / event.quota) * 100))
+    : null;
+
+  const handleCopy = async () => {
+    if (!event.referral_code) return;
+    await navigator.clipboard.writeText(event.referral_code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }
+  };
 
   return (
-    <button
-      onClick={handleCopy}
-      className="flex items-center gap-1.5 text-md-secondary text-sm font-bold active-press"
-    >
-      {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-      {copied ? 'Tersalin!' : `COPY: ${code}`}
-    </button>
+    <div className={cn(
+      'bg-white rounded-2xl overflow-hidden shadow-sm',
+      (isExpired || quotaFull) && 'opacity-60 grayscale',
+    )}>
+
+      {/* Banner */}
+      <div className="relative w-full aspect-[3/1] overflow-hidden bg-slate-100">
+        <Image
+          src={event.banner_url}
+          alt={event.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw"
+        />
+
+        {/* Status badges — top-left */}
+        <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
+          <span className={cn(
+            'flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border backdrop-blur-sm',
+            cfg.color,
+          )}>
+            {cfg.icon} {cfg.label}
+          </span>
+          {isComingSoon && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-800/80 text-white backdrop-blur-sm">
+              Coming Soon
+            </span>
+          )}
+          {isExpired && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-500/80 text-white backdrop-blur-sm">
+              Berakhir
+            </span>
+          )}
+          {quotaFull && !isExpired && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-600/80 text-white backdrop-blur-sm">
+              Habis
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="p-4 space-y-3">
+
+        {/* Title + Benefit */}
+        <div>
+          <h3 className="font-bold text-slate-900 text-base leading-snug">{event.title}</h3>
+          {event.benefit && (
+            <p className="mt-0.5 text-xl font-extrabold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+              {event.benefit}
+            </p>
+          )}
+        </div>
+
+        {/* Periode + Countdown */}
+        {(event.start_date || event.end_date) && (
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <CalendarDays size={12} className="shrink-0" />
+              <span>
+                {event.start_date ? formatDate(event.start_date) : 'Sekarang'}
+                {' – '}
+                {event.end_date ? formatDate(event.end_date) : 'Tidak terbatas'}
+              </span>
+            </div>
+
+            {/* Countdown — tampil jika < 7 hari & belum expired & bukan coming soon */}
+            {countdown && !countdown.expired && !isComingSoon && countdown.d < 7 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Clock size={11} className="text-red-500 shrink-0" />
+                <span className="text-[11px] text-red-600 font-medium">Berakhir dalam</span>
+                <div className="flex items-center gap-1 text-[11px] font-mono font-bold">
+                  {countdown.d > 0 && (
+                    <span className="bg-red-50 text-red-700 px-1.5 py-0.5 rounded">
+                      {countdown.d}h
+                    </span>
+                  )}
+                  <span className="bg-red-50 text-red-700 px-1.5 py-0.5 rounded">
+                    {String(countdown.h).padStart(2, '0')}j
+                  </span>
+                  <span className="bg-red-50 text-red-700 px-1.5 py-0.5 rounded">
+                    {String(countdown.m).padStart(2, '0')}m
+                  </span>
+                  <span className="bg-red-50 text-red-700 px-1.5 py-0.5 rounded">
+                    {String(countdown.s).padStart(2, '0')}d
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Description */}
+        {event.description && (
+          <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+            {event.description}
+          </p>
+        )}
+
+        {/* Quota bar */}
+        {event.quota != null && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] text-slate-500">
+              <span className="flex items-center gap-1">
+                <Users size={11} /> Kuota
+              </span>
+              <span className={cn(
+                'font-medium',
+                quotaFull ? 'text-red-500 font-semibold' : 'text-slate-700',
+              )}>
+                {quotaFull
+                  ? 'Kuota habis'
+                  : `${event.quota - event.quota_used} sisa dari ${event.quota}`}
+              </span>
+            </div>
+            <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all',
+                  quotaFull ? 'bg-red-400' : 'bg-emerald-500',
+                )}
+                style={{ width: `${quotaPct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Promo / Referral code */}
+        {event.referral_code && (
+          <div className="flex items-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 px-3 py-2.5">
+            <div className="flex-1 min-w-0">
+              <p className="text-[9px] text-emerald-600 font-semibold uppercase tracking-widest mb-0.5">
+                Kode Promo
+              </p>
+              <p className="font-mono font-extrabold text-emerald-800 text-base tracking-widest truncate">
+                {event.referral_code}
+              </p>
+            </div>
+            <button
+              onClick={handleCopy}
+              className={cn(
+                'shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg transition-all',
+                copied
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-white border border-emerald-300 text-emerald-700 active:bg-emerald-50',
+              )}
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied ? 'Tersalin!' : 'Salin'}
+            </button>
+          </div>
+        )}
+
+        {/* Syarat & Ketentuan (collapsible) */}
+        {event.terms && (
+          <div className="bg-slate-50 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setTermsOpen(v => !v)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold text-slate-600 active:bg-slate-100 transition-colors"
+            >
+              <span>Syarat &amp; Ketentuan</span>
+              {termsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            </button>
+            {termsOpen && (
+              <div className="px-3.5 pb-3 pt-1 text-xs text-slate-500 leading-relaxed bg-slate-100 whitespace-pre-line">
+                {event.terms}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CTA */}
+        {event.cta_link && !isExpired && !quotaFull && !isComingSoon && (
+          <Link href={event.cta_link}>
+            <button className="w-full py-3 rounded-xl bg-emerald-600 text-white text-sm font-bold active:bg-emerald-700 transition-colors">
+              {event.cta_label ?? 'Klaim Sekarang'}
+            </button>
+          </Link>
+        )}
+        {isComingSoon && (
+          <button disabled className="w-full py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 text-sm font-semibold cursor-not-allowed">
+            Segera Hadir
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
-// ── Component ─────────────────────────────────────────────────
+// ── Page Component ────────────────────────────────────────────
+
+interface MobileEventPromoProps {
+  events: Event[];
+}
 
 export function MobileEventPromo({ events }: MobileEventPromoProps) {
-  const featured = events[0] ?? null;
-  const rest     = events.slice(1);
-
   return (
-    <main className="">
+    <main className="pb-24 space-y-4">
 
-      {/* ── Page Title ────────────────────────────────────────── */}
-      <section className="px-6 pt-6 pb-2">
-        <h1 className="text-3xl font-extrabold text-md-primary tracking-tight mb-2"
-          style={{ fontFamily: 'var(--font-jakarta)' }}>
-          Event &amp; Promo
-        </h1>
-        <p className="text-md-on-surface-variant text-sm font-medium">
-          Temukan penawaran terbaik untuk perjalanan karir ASN Anda.
+      {/* ── Header ────────────────────────────────────────────── */}
+      <div className="px-4 pt-4">
+        <div className="flex items-center gap-2 mb-0.5">
+          <Megaphone size={18} className="text-emerald-600" />
+          <h1 className="text-xl font-extrabold text-slate-900"
+            style={{ fontFamily: 'var(--font-jakarta)' }}>
+            Event &amp; Promo
+          </h1>
+        </div>
+        <p className="text-slate-500 text-xs">
+          Dapatkan penawaran terbaik untuk persiapan SKD kamu. Jangan sampai kehabisan!
         </p>
-      </section>
+      </div>
 
-      {/* ── Featured Promo Card ───────────────────────────────── */}
-      {featured ? (
-        <section className="px-6 mt-6 mb-2">
-          <div className="relative bg-md-primary-container rounded-[2rem] overflow-hidden shadow-md3-lg min-h-[220px] flex flex-col justify-end p-6">
-            {/* Background image */}
-            {featured.banner_url && (
-              <div className="absolute inset-0 opacity-40">
-                <img
-                  src={featured.banner_url}
-                  alt={featured.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-md-primary/80 via-md-primary/20 to-transparent" />
-
-            <div className="relative z-10">
-              <span className="inline-block px-3 py-1 bg-md-secondary-container text-md-on-secondary-container text-[10px] font-extrabold uppercase tracking-widest rounded-full mb-3">
-                {typeLabel(featured.type)}
-              </span>
-              <h2 className="text-2xl font-extrabold text-white leading-tight mb-2"
-                style={{ fontFamily: 'var(--font-jakarta)' }}>
-                {featured.title}
-              </h2>
-              {featured.description && (
-                <p className="text-white/80 text-sm font-medium mb-4">
-                  {featured.description}
-                </p>
-              )}
-              <div className="flex items-center justify-between">
-                {(featured.start_date || featured.end_date) && (
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-white/80">
-                    <Clock size={14} />
-                    {featured.start_date && formatEventDate(featured.start_date)}
-                    {featured.start_date && featured.end_date && ' — '}
-                    {featured.end_date && formatEventDate(featured.end_date)}
-                  </div>
-                )}
-                {featured.referral_code ? (
-                  <button
-                    onClick={() => navigator.clipboard.writeText(featured.referral_code!)}
-                    className="bg-md-secondary-container text-md-on-secondary-container px-5 py-2.5 rounded-xl font-bold text-sm shadow-md3-sm active-press"
-                  >
-                    Copy Code
-                  </button>
-                ) : featured.cta_link ? (
-                  <Link href={featured.cta_link}>
-                    <button className="bg-md-secondary-container text-md-on-secondary-container px-5 py-2.5 rounded-xl font-bold text-sm shadow-md3-sm active-press">
-                      {featured.cta_label}
-                    </button>
-                  </Link>
-                ) : null}
-              </div>
-            </div>
+      {/* ── Empty state ───────────────────────────────────────── */}
+      {events.length === 0 && (
+        <div className="mx-4 bg-white rounded-2xl p-12 flex flex-col items-center text-center shadow-sm">
+          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+            <Megaphone size={24} className="text-slate-400" />
           </div>
-        </section>
-      ) : (
-        /* Empty state */
-        <section className="px-6 mt-8 flex flex-col items-center text-center py-16">
-          <div className="w-16 h-16 rounded-full bg-md-surface-container flex items-center justify-center mb-4">
-            <Tag size={28} className="text-md-on-surface-variant" />
-          </div>
-          <h3 className="font-bold text-md-primary text-lg mb-1">Belum ada promo aktif</h3>
-          <p className="text-md-on-surface-variant text-sm max-w-xs">
+          <h3 className="font-semibold text-slate-700 mb-1">Belum ada promo aktif</h3>
+          <p className="text-slate-400 text-xs leading-relaxed max-w-xs">
             Pantau terus halaman ini — promo &amp; event menarik akan segera hadir!
           </p>
-        </section>
+        </div>
       )}
 
-      {/* ── Promo List ────────────────────────────────────────── */}
-      {rest.length > 0 && (
-        <section className="px-6 mt-6 space-y-6">
-          {rest.map(event => {
-            const isComingSoon = event.start_date
-              ? new Date(event.start_date) > new Date()
-              : false;
-
-            return (
-              <div
-                key={event.id}
-                className={cn(
-                  'bg-md-surface-container-low rounded-[2rem] p-4 flex flex-col gap-4',
-                  isComingSoon && 'opacity-75',
-                )}
-              >
-                {/* Banner image */}
-                {event.banner_url && (
-                  <div className="h-44 rounded-2xl overflow-hidden relative">
-                    <img
-                      src={event.banner_url}
-                      alt={event.title}
-                      className={cn(
-                        'w-full h-full object-cover',
-                        isComingSoon && 'grayscale',
-                      )}
-                    />
-                    <div className="absolute top-4 left-4">
-                      <span className={cn(
-                        'px-3 py-1 rounded-full text-[10px] font-bold tracking-wider shadow-sm uppercase',
-                        isComingSoon
-                          ? 'bg-md-primary text-white'
-                          : 'bg-white/90 backdrop-blur-sm text-md-secondary',
-                      )}>
-                        {isComingSoon ? 'COMING SOON' : (event.benefit ?? typeLabel(event.type))}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="px-2 pb-2">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-bold text-md-primary"
-                      style={{ fontFamily: 'var(--font-jakarta)' }}>
-                      {event.title}
-                    </h3>
-                    {event.benefit && (
-                      <span className="text-md-secondary font-extrabold text-xl">
-                        {event.benefit}
-                      </span>
-                    )}
-                  </div>
-
-                  {event.description && (
-                    <p className="text-md-on-surface-variant text-sm mb-4 leading-relaxed">
-                      {event.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-medium text-md-outline flex items-center gap-1">
-                      <Clock size={12} />
-                      {event.end_date
-                        ? `Hingga ${formatEventDate(event.end_date)}`
-                        : event.start_date
-                        ? `Mulai ${formatEventDate(event.start_date)}`
-                        : 'Selama persediaan ada'}
-                    </span>
-
-                    {isComingSoon ? (
-                      <span className="bg-md-surface-container-highest text-md-on-surface-variant px-4 py-2 rounded-xl text-xs font-bold">
-                        Nantikan
-                      </span>
-                    ) : event.referral_code ? (
-                      <CopyButton code={event.referral_code} />
-                    ) : event.cta_link ? (
-                      <Link href={event.cta_link}>
-                        <button className="text-md-secondary text-sm font-bold flex items-center gap-1 active-press">
-                          {event.cta_label}
-                          <ChevronRight size={14} />
-                        </button>
-                      </Link>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </section>
+      {/* ── Event cards ───────────────────────────────────────── */}
+      {events.length > 0 && (
+        <div className="px-4 space-y-4">
+          {events.map(event => (
+            <EventCard key={event.id} event={event} />
+          ))}
+        </div>
       )}
-
-      {/* ── Referral Reward Card ──────────────────────────────── */}
-      <div className="mx-6 mt-6 bg-md-surface-container-low rounded-[2rem] p-4 flex gap-4 items-center">
-        <div className="w-20 h-20 bg-md-secondary-container rounded-2xl flex items-center justify-center flex-shrink-0">
-          <span className="text-3xl">🎁</span>
-        </div>
-        <div className="flex-grow">
-          <h4 className="text-sm font-bold text-md-primary mb-1"
-            style={{ fontFamily: 'var(--font-jakarta)' }}>
-            Referral Reward
-          </h4>
-          <p className="text-[12px] text-md-on-surface-variant leading-tight">
-            Undang teman dan dapatkan koin gratis senilai Rp&nbsp;50.000.
-          </p>
-        </div>
-        <ChevronRight size={18} className="text-md-secondary flex-shrink-0" />
-      </div>
 
     </main>
   );
