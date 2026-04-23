@@ -395,3 +395,148 @@
   transform: scale(0.97);
   opacity: 0.9;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Clerk Auth UI — PintuASN override
+   Append these rules to the bottom of globals.css
+   ───────────────────────────────────────────────────────────── */
+
+/* Remove Clerk default card shadow & border */
+.cl-card {
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+/* Social button refinement */
+.cl-socialButtonsBlockButton {
+  border-radius: 0.75rem !important;
+  height: 2.75rem !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  border-color: #c5c6cd !important;
+  background: #ffffff !important;
+  color: #0b1c30 !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 4px rgba(9, 20, 38, 0.06) !important;
+}
+.cl-socialButtonsBlockButton:hover {
+  background: #f8f9ff !important;
+  border-color: rgba(9, 20, 38, 0.3) !important;
+}
+
+/* Input fields */
+.cl-formFieldInput {
+  height: 2.75rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid #c5c6cd !important;
+  background: #ffffff !important;
+  font-size: 0.875rem !important;
+  color: #0b1c30 !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+.cl-formFieldInput:hover {
+  border-color: #75777d !important;
+}
+.cl-formFieldInput:focus {
+  border-color: #091426 !important;
+  box-shadow: 0 0 0 3px rgba(9, 20, 38, 0.1) !important;
+  outline: none !important;
+}
+
+/* Labels */
+.cl-formFieldLabel {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  margin-bottom: 4px !important;
+}
+
+/* Primary button — Navy */
+.cl-formButtonPrimary {
+  height: 2.75rem !important;
+  border-radius: 0.75rem !important;
+  background: #091426 !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  transition: background 0.15s, transform 0.1s !important;
+  box-shadow: 0 2px 12px rgba(9, 20, 38, 0.2) !important;
+}
+.cl-formButtonPrimary:hover {
+  background: #0d1f38 !important;
+}
+.cl-formButtonPrimary:active {
+  transform: scale(0.98) !important;
+}
+
+/* Forgot password / action links */
+.cl-formFieldAction,
+.cl-footerActionLink {
+  color: #795900 !important;
+  font-weight: 600 !important;
+  font-size: 0.8rem !important;
+  transition: color 0.15s !important;
+}
+.cl-formFieldAction:hover,
+.cl-footerActionLink:hover {
+  color: #091426 !important;
+}
+
+/* Divider */
+.cl-dividerLine {
+  background: #c5c6cd !important;
+}
+.cl-dividerText {
+  font-size: 0.75rem !important;
+  color: #75777d !important;
+}
+
+/* Error text */
+.cl-formFieldErrorText {
+  font-size: 0.75rem !important;
+  color: #ba1a1a !important;
+  margin-top: 3px !important;
+}
+
+/* Alert / global error banner */
+.cl-alert {
+  border-radius: 0.75rem !important;
+  background: #ffdad6 !important;
+  border: 1px solid #f09595 !important;
+  color: #93000a !important;
+  font-size: 0.8rem !important;
+}
+
+/* OTP fields */
+.cl-otpCodeFieldInput {
+  width: 2.5rem !important;
+  height: 3rem !important;
+  border-radius: 0.5rem !important;
+  border: 1px solid #c5c6cd !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: #091426 !important;
+}
+.cl-otpCodeFieldInput:focus {
+  border-color: #091426 !important;
+  box-shadow: 0 0 0 3px rgba(9, 20, 38, 0.1) !important;
+}
+
+/* Hide Clerk branding footer */
+.cl-footer,
+.cl-footerAction,
+.cl-poweredBy {
+  display: none !important;
+}
+
+/* Internal Clerk header (we use custom) */
+.cl-header {
+  display: none !important;
+}
+
+/* Checkbox (terms) */
+.cl-checkbox {
+  accent-color: #091426 !important;
+}
