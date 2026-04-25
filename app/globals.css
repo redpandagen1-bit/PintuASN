@@ -423,19 +423,32 @@
 .cl-main {
   width: 100% !important;
 }
+/* CRITICAL: Clerk uses CSS-in-JS with flex+gap on .cl-main and .cl-cardContent.
+   Override the gap directly so social/divider/form spacing is controlled. */
+.cl-main,
+.cl-cardContent,
+.cl-cardBox > .cl-cardContent {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.875rem !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
 .cl-form {
   padding: 0 !important;
-}
-/* Spacing rhythm between form sections */
-.cl-form > * + * {
-  margin-top: 0.875rem !important;
-}
-.cl-formFieldRow + .cl-formFieldRow {
-  margin-top: 0.875rem !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
 }
 /* Two-column row (firstName/lastName) — proper gap */
 .cl-formFieldRow__name {
   gap: 0.75rem !important;
+}
+/* Kill Clerk's own margins on socialButtons & form children */
+.cl-socialButtons,
+.cl-socialButtonsBlock {
+  margin: 0 !important;
 }
 
 /* Social button refinement */
@@ -464,13 +477,15 @@
   font-weight: 500 !important;
 }
 
-/* Input fields */
+/* Input fields — height controlled ONLY by height + padding, NOT line-height
+   (inputs use height as max(height, line-height+padding) so line-height=height
+    causes visual bloat) */
 .cl-formFieldInput {
   display: block !important;
   width: 100% !important;
   height: 2.75rem !important;
-  line-height: 2.75rem !important;
-  padding: 0 2.75rem 0 0.875rem !important; /* extra right pad for Safari autofill key icon / show-password */
+  line-height: 1.4 !important;
+  padding: 0 2.5rem 0 0.875rem !important;
   border-radius: 0.75rem !important;
   border: 1px solid #e2e8f0 !important;
   background: #ffffff !important;
@@ -569,9 +584,11 @@
   color: #091426 !important;
 }
 
-/* Divider — tight vertical rhythm, no large gap before form fields */
-.cl-dividerRow {
-  margin: 1rem 0 !important;
+/* Divider — sibling of social/form inside .cl-main flex column.
+   No own margin needed: parent's gap handles spacing. */
+.cl-dividerRow,
+.cl-divider {
+  margin: 0 !important;
   display: flex !important;
   align-items: center !important;
   gap: 0.75rem !important;
@@ -586,12 +603,7 @@
   font-weight: 500 !important;
   color: #94a3b8 !important;
   text-transform: lowercase !important;
-}
-/* Reset cumulative top-margin from earlier rule for the divider's siblings,
-   so divider's own margin is the single source of spacing */
-.cl-form > .cl-dividerRow + *,
-.cl-form > * + .cl-dividerRow {
-  margin-top: 0 !important;
+  padding: 0 !important;
 }
 
 /* Error text */
