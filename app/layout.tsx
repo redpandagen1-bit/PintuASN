@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
+import { idID } from '@clerk/localizations';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -63,20 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <ClerkProvider localization={{
-      formFieldLabel__emailAddress:       'Alamat Email',
-      formFieldLabel__password:           'Kata Sandi',
-      formFieldLabel__firstName:          'Nama Depan',
-      formFieldLabel__lastName:           'Nama Belakang',
-      formFieldPlaceholder__emailAddress: 'nama@email.com',
-      formButtonPrimary:                  'Lanjutkan',
-      dividerText:                        'atau',
-      socialButtonsBlockButton__google:   'Lanjutkan dengan Google',
-      signIn: {
-        password: { forgotPasswordLink: 'Lupa kata sandi?' },
-      },
-    } as any}>
+    <ClerkProvider localization={idID}>
       <html lang="id" className={`${inter.variable} ${jakarta.variable}`}>
         <body className={`${inter.className} tap-none overscroll-none`}>
           {children}

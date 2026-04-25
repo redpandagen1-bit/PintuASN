@@ -401,40 +401,83 @@
    Append these rules to the bottom of globals.css
    ───────────────────────────────────────────────────────────── */
 
-/* Remove Clerk default card shadow & border */
-.cl-card {
+/* Remove Clerk default card shadow & border on ALL internal wrappers
+   to eliminate "card-in-card" double-background effect */
+.cl-rootBox,
+.cl-card,
+.cl-main,
+.cl-form,
+.cl-cardContent,
+.cl-cardBox {
   box-shadow: none !important;
   border: none !important;
   background: transparent !important;
+}
+.cl-card,
+.cl-cardContent,
+.cl-cardBox {
   padding: 0 !important;
+}
+/* Inner spacing so form fields breathe & aren't flush to container edges */
+.cl-rootBox,
+.cl-main {
+  width: 100% !important;
+}
+.cl-form {
+  padding: 0 !important;
+}
+/* Spacing rhythm between form sections */
+.cl-form > * + * {
+  margin-top: 0.875rem !important;
+}
+.cl-formFieldRow + .cl-formFieldRow {
+  margin-top: 0.875rem !important;
+}
+/* Two-column row (firstName/lastName) — proper gap */
+.cl-formFieldRow__name {
+  gap: 0.75rem !important;
 }
 
 /* Social button refinement */
+.cl-socialButtons,
+.cl-socialButtonsBlock {
+  width: 100% !important;
+}
 .cl-socialButtonsBlockButton {
+  width: 100% !important;
   border-radius: 0.75rem !important;
   height: 2.75rem !important;
   font-size: 0.85rem !important;
   font-weight: 500 !important;
-  border-color: #c5c6cd !important;
+  border: 1px solid #e2e8f0 !important;
   background: #ffffff !important;
   color: #0b1c30 !important;
   transition: all 0.15s ease !important;
-  box-shadow: 0 1px 4px rgba(9, 20, 38, 0.06) !important;
+  box-shadow: 0 1px 2px rgba(9, 20, 38, 0.04) !important;
 }
 .cl-socialButtonsBlockButton:hover {
   background: #f8f9ff !important;
-  border-color: rgba(9, 20, 38, 0.3) !important;
+  border-color: rgba(9, 20, 38, 0.18) !important;
+}
+.cl-socialButtonsBlockButtonText {
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
 }
 
 /* Input fields */
 .cl-formFieldInput {
+  width: 100% !important;
   height: 2.75rem !important;
+  padding: 0 0.875rem !important;
   border-radius: 0.75rem !important;
-  border: 1px solid #c5c6cd !important;
+  border: 1px solid #e2e8f0 !important;
   background: #ffffff !important;
   font-size: 0.875rem !important;
   color: #0b1c30 !important;
   transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+.cl-formFieldInput::placeholder {
+  color: #94a3b8 !important;
 }
 .cl-formFieldInput:hover {
   border-color: #75777d !important;
@@ -571,4 +614,49 @@
 /* Checkbox (terms) */
 .cl-checkbox {
   accent-color: #091426 !important;
+}
+
+/* Hide the Clerk built-in continue arrow icon inside primary button —
+   we use plain "Lanjutkan" text without the chevron */
+.cl-formButtonPrimary svg,
+.cl-formButtonPrimary .cl-internal-1rpdi70,
+.cl-formButtonPrimary [class*="ButtonIcon"] {
+  display: none !important;
+}
+
+/* Field row layout (two-column for firstName + lastName) */
+.cl-formFieldRow {
+  width: 100% !important;
+}
+.cl-formField {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+/* Field label hint (Optional) — softer, less aggressive */
+.cl-formFieldLabelRow {
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  margin-bottom: 0.375rem !important;
+}
+.cl-formFieldHintText {
+  font-size: 0.7rem !important;
+  font-weight: 400 !important;
+  color: #94a3b8 !important;
+}
+
+/* Identity preview (in 2-step sign-in) */
+.cl-identityPreview {
+  border-radius: 0.75rem !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  padding: 0.625rem 0.875rem !important;
+}
+
+/* Show password button position fix */
+.cl-formFieldInputShowPasswordButton {
+  right: 0.625rem !important;
+  color: #94a3b8 !important;
+}
+.cl-formFieldInputShowPasswordButton:hover {
+  color: #475569 !important;
 }
