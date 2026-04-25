@@ -477,23 +477,55 @@
   font-weight: 500 !important;
 }
 
-/* Input fields — height controlled ONLY by height + padding, NOT line-height
-   (inputs use height as max(height, line-height+padding) so line-height=height
-    causes visual bloat) */
+/* Input fields — full reset to prevent cropping/double-styling from browser
+   defaults and Clerk's CSS-in-JS injected styles */
 .cl-formFieldInput {
+  -webkit-appearance: none !important;
+  appearance: none !important;
   display: block !important;
   width: 100% !important;
   height: 2.75rem !important;
-  line-height: 1.4 !important;
-  padding: 0 2.5rem 0 0.875rem !important;
-  border-radius: 0.75rem !important;
+  min-height: 2.75rem !important;
+  max-height: 2.75rem !important;
+  line-height: 1.5 !important;
+  padding: 0 1rem !important;
+  margin: 0 !important;
   border: 1px solid #e2e8f0 !important;
+  border-radius: 0.75rem !important;
   background: #ffffff !important;
   font-size: 0.875rem !important;
+  font-family: inherit !important;
   color: #0b1c30 !important;
   box-sizing: border-box !important;
   vertical-align: middle !important;
+  outline: none !important;
+  box-shadow: none !important;
   transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+/* Browser autofill background (Chrome/Safari yellow) — kill it */
+.cl-formFieldInput:-webkit-autofill,
+.cl-formFieldInput:-webkit-autofill:hover,
+.cl-formFieldInput:-webkit-autofill:focus,
+.cl-formFieldInput:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0b1c30 !important;
+  caret-color: #0b1c30 !important;
+  transition: background-color 9999s ease-in-out 0s !important;
+}
+/* Wrapper around input must NOT clip the field or its focus ring.
+   Use :not(input) so the actual <input class="cl-formFieldInput"> is not affected. */
+.cl-formFieldInputGroup,
+.cl-formFieldInputContainer,
+div[class*="cl-formFieldInput"]:not(input) {
+  overflow: visible !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: block !important;
+  width: 100% !important;
+  position: relative !important;
 }
 .cl-formFieldInput::placeholder {
   color: #94a3b8 !important;
