@@ -453,22 +453,54 @@
   margin-bottom: 4px !important;
 }
 
-/* Primary button — Navy */
+/* Primary button — structural styles only; variant sets color */
 .cl-formButtonPrimary {
   height: 2.75rem !important;
   border-radius: 0.75rem !important;
-  background: #091426 !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.01em !important;
   transition: background 0.15s, transform 0.1s !important;
-  box-shadow: 0 2px 12px rgba(9, 20, 38, 0.2) !important;
-}
-.cl-formButtonPrimary:hover {
-  background: #0d1f38 !important;
+  box-shadow: 0 2px 12px rgba(9, 20, 38, 0.18) !important;
 }
 .cl-formButtonPrimary:active {
   transform: scale(0.98) !important;
+}
+
+/* Per-page variants (wrap SignIn/SignUp with these classes) */
+.auth-variant-navy .cl-formButtonPrimary {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+.auth-variant-navy .cl-formButtonPrimary:hover {
+  background: #1e293b !important;
+}
+.auth-variant-emerald .cl-formButtonPrimary {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+.auth-variant-emerald .cl-formButtonPrimary:hover {
+  background: #059669 !important;
+}
+
+/* Focus ring per variant */
+.auth-variant-navy .cl-formFieldInput:focus {
+  border-color: #0ea5e9 !important;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18) !important;
+}
+.auth-variant-emerald .cl-formFieldInput:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18) !important;
+}
+
+/* Variant-scoped action link color */
+.auth-variant-navy .cl-formFieldAction,
+.auth-variant-navy .cl-footerActionLink {
+  color: #0ea5e9 !important;
+}
+.auth-variant-emerald .cl-formFieldAction,
+.auth-variant-emerald .cl-footerActionLink {
+  color: #10b981 !important;
 }
 
 /* Forgot password / action links */
