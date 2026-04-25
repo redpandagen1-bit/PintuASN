@@ -201,29 +201,25 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         */}
         <div
           className="relative w-full lg:w-[48%] flex flex-col"
-          style={{
-            minHeight: '100dvh',
-            /* Mobile: dark bg applied DIRECTLY on container (not absolute child)
-               so it extends with scroll and never shows white gap at bottom */
-            background: 'linear-gradient(160deg,#020b18 0%,#071422 55%,#040f1d 100%)',
-          }}
+          style={{ minHeight:'100dvh' }}
         >
-          {/* ── Desktop background — overlays the dark mobile bg on lg+ ── */}
+          {/* ── Desktop background ── */}
           <div className="absolute inset-0 hidden lg:block" style={{ background:'#f8fafc' }}/>
           <div className="absolute inset-0 hidden lg:block pointer-events-none"
             style={{ backgroundImage:`radial-gradient(ellipse at 75% 10%,#dbeafe 0%,transparent 55%),radial-gradient(ellipse at 15% 90%,#dcfce7 0%,transparent 55%)`, opacity:.6 }}/>
           <div className="absolute top-0 inset-x-0 h-[2px] hidden lg:block"
             style={{ background:'linear-gradient(90deg,transparent,#0ea5e9 30%,#10b981 70%,transparent)' }}/>
 
-          {/* ── Mobile accent blobs (decorative) ── */}
+          {/* ── Mobile background ── */}
+          <div className="absolute inset-0 lg:hidden"
+            style={{ background:'linear-gradient(160deg,#020b18 0%,#071422 55%,#040f1d 100%)' }}/>
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full pointer-events-none lg:hidden"
             style={{ background:'radial-gradient(circle,#0ea5e9,transparent 70%)', opacity:.13, transform:'translate(40%,-40%)' }}/>
           <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full pointer-events-none lg:hidden"
             style={{ background:'radial-gradient(circle,#10b981,transparent 70%)', opacity:.1, transform:'translate(-40%,40%)' }}/>
 
           {/* ══════ MOBILE LAYOUT ══════ */}
-          <div className="lg:hidden relative z-10 flex flex-col auth-in px-4 pt-8"
-            style={{ minHeight:'100dvh', paddingBottom:'max(1.5rem, env(safe-area-inset-bottom, 1.5rem))' }}>
+          <div className="lg:hidden relative z-10 flex flex-col auth-in px-4 pt-8 pb-10" style={{ minHeight:'100dvh' }}>
 
             {/* logo */}
             <div className="flex flex-col items-center mb-5">
