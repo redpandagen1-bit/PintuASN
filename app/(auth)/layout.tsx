@@ -200,7 +200,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           Desktop: light bg, form vertically centered
         */}
         <div
-          className="relative w-full lg:w-[48%] flex flex-col"
+          className="relative w-full lg:w-[48%] flex flex-col bg-[#020b18] lg:bg-transparent"
           style={{ minHeight:'100dvh' }}
         >
           {/* ── Desktop background ── */}
