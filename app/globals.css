@@ -466,18 +466,28 @@
 
 /* Input fields */
 .cl-formFieldInput {
+  display: block !important;
   width: 100% !important;
   height: 2.75rem !important;
-  padding: 0 0.875rem !important;
+  line-height: 2.75rem !important;
+  padding: 0 2.75rem 0 0.875rem !important; /* extra right pad for Safari autofill key icon / show-password */
   border-radius: 0.75rem !important;
   border: 1px solid #e2e8f0 !important;
   background: #ffffff !important;
   font-size: 0.875rem !important;
   color: #0b1c30 !important;
+  box-sizing: border-box !important;
+  vertical-align: middle !important;
   transition: border-color 0.15s, box-shadow 0.15s !important;
 }
 .cl-formFieldInput::placeholder {
   color: #94a3b8 !important;
+}
+/* Ensure field wrappers never clip the focus ring of the input */
+.cl-formFieldInputGroup,
+.cl-formField,
+.cl-formFieldRow {
+  overflow: visible !important;
 }
 .cl-formFieldInput:hover {
   border-color: #75777d !important;
@@ -559,13 +569,29 @@
   color: #091426 !important;
 }
 
-/* Divider */
+/* Divider — tight vertical rhythm, no large gap before form fields */
+.cl-dividerRow {
+  margin: 1rem 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+}
 .cl-dividerLine {
-  background: #c5c6cd !important;
+  background: #e2e8f0 !important;
+  height: 1px !important;
+  flex: 1 1 auto !important;
 }
 .cl-dividerText {
-  font-size: 0.75rem !important;
-  color: #75777d !important;
+  font-size: 0.72rem !important;
+  font-weight: 500 !important;
+  color: #94a3b8 !important;
+  text-transform: lowercase !important;
+}
+/* Reset cumulative top-margin from earlier rule for the divider's siblings,
+   so divider's own margin is the single source of spacing */
+.cl-form > .cl-dividerRow + *,
+.cl-form > * + .cl-dividerRow {
+  margin-top: 0 !important;
 }
 
 /* Error text */

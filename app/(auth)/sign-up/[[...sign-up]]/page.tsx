@@ -19,7 +19,7 @@ export default async function SignUpPage({
     <div className="auth-variant-emerald w-full">
 
       {/* ── Header ──────────────────────────────────────── */}
-      <div className="text-center mb-7">
+      <div className="flex flex-col items-center text-center mb-6">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3"
           style={{ background:'rgba(16,185,129,.08)', border:'1px solid rgba(16,185,129,.2)' }}>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"/>
@@ -27,15 +27,14 @@ export default async function SignUpPage({
             Mulai Gratis Sekarang
           </span>
         </div>
-        <h2 className="text-2xl font-extrabold tracking-tight leading-snug text-slate-900 mb-1.5"
+        <h2 className="text-[1.65rem] font-extrabold tracking-tight leading-[1.15] text-slate-900 mb-2"
           style={{ fontFamily:'var(--font-headline)' }}>
-          Buka{' '}
-          <span style={{ background:'linear-gradient(125deg,#10b981,#0ea5e9)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
-            Pintu Karir ASN
+          <span className="block">Buka Pintu</span>
+          <span className="block" style={{ background:'linear-gradient(125deg,#10b981,#0ea5e9)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+            Karir ASN Anda
           </span>
-          {' '}Anda
         </h2>
-        <p className="text-[0.82rem] text-slate-500">
+        <p className="text-[0.82rem] text-slate-500 max-w-[18rem]">
           Daftar gratis dan mulai persiapan CPNS hari ini
         </p>
       </div>

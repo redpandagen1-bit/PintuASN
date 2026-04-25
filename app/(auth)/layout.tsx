@@ -268,9 +268,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           */}
           <div
             className="hidden lg:flex flex-col items-center justify-center relative z-10 auth-in"
-            style={{ minHeight:'100dvh', padding:'48px 0' }}
+            style={{ minHeight:'100dvh', padding:'48px 24px' }}
           >
-            <div className="w-full" style={{ maxWidth:'420px', padding:'0 40px' }}>
+            <div className="w-full mx-auto" style={{ maxWidth:'400px' }}>
               {children}
             </div>
           </div>

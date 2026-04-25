@@ -64,7 +64,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider localization={idID}>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    <ClerkProvider localization={{
+      ...idID,
+      formFieldInputPlaceholder__emailAddress: 'nama@email.com',
+      formFieldInputPlaceholder__password:     'Masukkan kata sandi',
+      formFieldInputPlaceholder__firstName:    'Nama depan',
+      formFieldInputPlaceholder__lastName:     'Nama belakang',
+    } as any}>
       <html lang="id" className={`${inter.variable} ${jakarta.variable}`}>
         <body className={`${inter.className} tap-none overscroll-none`}>
           {children}
