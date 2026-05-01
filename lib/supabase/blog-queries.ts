@@ -1,6 +1,6 @@
 // lib/supabase/blog-queries.ts
 
-import { createClient, createPublicClient } from '@/lib/supabase/server'
+import { createAdminClient, createPublicClient } from '@/lib/supabase/server'
 import type { Post, PostFormData } from '@/types/blog'
 
 // ── PUBLIC QUERIES ──────────────────────────────────────────
@@ -10,7 +10,7 @@ export async function getPublishedPosts(options?: {
   limit?: number
   offset?: number
 }): Promise<{ posts: Post[]; total: number }> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const limit = options?.limit ?? 9
   const offset = options?.offset ?? 0
 
@@ -32,7 +32,7 @@ export async function getPublishedPosts(options?: {
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { data, error } = await supabase
     .from('posts')
@@ -46,7 +46,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 }
 
 export async function getRelatedPosts(category: string, excludeSlug: string): Promise<Post[]> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { data } = await supabase
     .from('posts')
@@ -60,7 +60,7 @@ export async function getRelatedPosts(category: string, excludeSlug: string): Pr
 }
 
 export async function incrementViewCount(slug: string): Promise<void> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   await supabase.rpc('increment_view_count', { post_slug: slug })
 }
 
@@ -79,7 +79,7 @@ export async function getAllPublishedSlugs(): Promise<string[]> {
 // ── ADMIN QUERIES ────────────────────────────────────────────
 
 export async function getAllPostsAdmin(): Promise<Post[]> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { data, error } = await supabase
     .from('posts')
@@ -91,7 +91,7 @@ export async function getAllPostsAdmin(): Promise<Post[]> {
 }
 
 export async function getPostByIdAdmin(id: string): Promise<Post | null> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { data, error } = await supabase
     .from('posts')
@@ -104,7 +104,7 @@ export async function getPostByIdAdmin(id: string): Promise<Post | null> {
 }
 
 export async function createPost(formData: PostFormData): Promise<Post> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { data, error } = await supabase
     .from('posts')
@@ -120,7 +120,7 @@ export async function createPost(formData: PostFormData): Promise<Post> {
 }
 
 export async function updatePost(id: string, formData: Partial<PostFormData>): Promise<Post> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const updateData: any = { ...formData }
   if (formData.status === 'published') {
@@ -142,7 +142,7 @@ export async function updatePost(id: string, formData: Partial<PostFormData>): P
 }
 
 export async function deletePost(id: string): Promise<void> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   const { error } = await supabase
     .from('posts')
@@ -153,7 +153,7 @@ export async function deletePost(id: string): Promise<void> {
 }
 
 export async function checkSlugExists(slug: string, excludeId?: string): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
 
   let query = supabase
     .from('posts')

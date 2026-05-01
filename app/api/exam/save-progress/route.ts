@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     const { attemptId, timeRemaining } = await req.json();
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { error } = await supabase
       .from('attempts')

@@ -4,7 +4,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Order ID tidak valid' }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     // 1. Ambil order — pastikan milik user ini dan masih pending
     const { data: order, error: orderError } = await supabase
@@ -114,7 +114,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Order ID tidak valid' }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     // Ambil order untuk mendapatkan base_price
     const { data: order, error: orderError } = await supabase

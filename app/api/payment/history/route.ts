@@ -1,7 +1,7 @@
 // app/api/payment/history/route.ts
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 const PAYMENT_METHOD_NAMES: Record<string, string> = {
   bri_va:     'BRI Virtual Account',
@@ -34,7 +34,7 @@ export async function GET() {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     // Auto-expire orders yang sudah melewati expired_at tapi masih 'pending'
     await supabase

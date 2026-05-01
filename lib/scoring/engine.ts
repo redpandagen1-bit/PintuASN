@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import type { CategoryScores } from '@/types/exam';
 
 export async function calculateAttemptScore(attemptId: string): Promise<CategoryScores> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase.rpc('calculate_attempt_score', { attempt_uuid: attemptId });
   
   if (error) throw error;

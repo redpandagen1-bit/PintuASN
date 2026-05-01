@@ -3,7 +3,7 @@
 // ============================================================
 
 import { auth } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import type { ReminderPreference } from '@/types/roadmap';
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
   const body: ReminderPreference = await req.json();
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { error } = await supabase
     .from('user_reminder_preferences')
@@ -42,7 +42,7 @@ export async function GET() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data, error } = await supabase
     .from('user_reminder_preferences')

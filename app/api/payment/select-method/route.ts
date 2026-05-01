@@ -1,6 +1,6 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { rateLimit } from '@/lib/rate-limit';
 
 // Sanitasi first_name agar aman di sisi Midtrans (hanya huruf/angka/spasi)
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     const { orderId, methodId, bank } = await req.json();
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     // Ambil order dari Supabase
     const { data: order, error: fetchError } = await supabase

@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { Attempt } from '@/types/statistics';
 
 export async function getUserAttempts(userId: string): Promise<Attempt[]> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   const { data, error } = await supabase
     .from('attempts')

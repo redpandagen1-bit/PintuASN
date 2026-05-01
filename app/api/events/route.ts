@@ -2,12 +2,12 @@
 // app/api/events/route.ts  —  public: ambil event aktif
 // ============================================================
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse }  from 'next/server';
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const now      = new Date().toISOString();
 
     const { data, error } = await supabase

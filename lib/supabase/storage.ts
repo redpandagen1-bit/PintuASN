@@ -1,4 +1,4 @@
-import { createClient } from './server';
+import { createAdminClient } from './server';
 
 const BUCKET_NAME = 'question-images';
 
@@ -6,7 +6,7 @@ export async function uploadQuestionImage(
   file: File,
   questionId?: string
 ): Promise<{ url: string; path: string } | null> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   // Generate unique filename
   const fileExt = file.name.split('.').pop();
@@ -40,7 +40,7 @@ export async function uploadQuestionImage(
 }
 
 export async function deleteQuestionImage(path: string): Promise<boolean> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   const { error } = await supabase.storage
     .from(BUCKET_NAME)

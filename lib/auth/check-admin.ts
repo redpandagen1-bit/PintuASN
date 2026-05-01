@@ -1,11 +1,11 @@
 import { currentUser } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function checkIsAdmin(): Promise<boolean> {
   const user = await currentUser();
   if (!user) return false;
   
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data } = await supabase
     .from('profiles')
     .select('role')

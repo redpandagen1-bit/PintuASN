@@ -1,14 +1,14 @@
 // app/api/payment/status/[orderId]/route.ts
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function GET(req: NextRequest, { params }: { params: { orderId: string } }) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     // Cek expired_at di DB dulu sebelum hit Midtrans
     const { data: localOrder } = await supabase

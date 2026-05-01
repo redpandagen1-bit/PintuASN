@@ -4,7 +4,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Base price tidak valid' }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { data: referral, error } = await supabase
       .from('referral_codes')
