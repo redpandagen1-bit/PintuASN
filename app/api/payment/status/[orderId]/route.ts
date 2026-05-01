@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
     // Cek expired_at di DB dulu sebelum hit Midtrans
     const { data: localOrder } = await supabase
       .from('payment_orders')
-      .select('expired_at, status')
+      .select('expired_at, status, midtrans_transaction_id')
       .eq('order_id', params.orderId)
       .eq('user_id', userId)
       .single();
@@ -42,7 +42,12 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
       ? 'https://api.sandbox.midtrans.com'
       : 'https://api.midtrans.com';
 
-    const response = await fetch(`${baseUrl}/v2/${params.orderId}/status`, {
+    // Pakai midtrans_transaction_id (UUID dari Midtrans) kalau tersedia,
+    // karena kita charge Midtrans dengan order_id yang punya suffix
+    // (PINTUASN-XXX-timestamp-methodId-ts), bukan base orderId.
+    // Midtrans menerima keduanya untuk endpoint /status, tapi UUID lebih reliable.
+    const midtransId = localOrder?.midtrans_transaction_id ?? params.orderId;
+    const response = await fetch(`${baseUrl}/v2/${midtransId}/status`, {
       headers: { Authorization: `Basic ${encodedKey}` },
     });
 

@@ -41,17 +41,29 @@ export async function POST(req: NextRequest) {
       fraud_status,
     } = body;
 
+    console.log(`[midtrans-webhook] Received: order_id=${order_id} status=${transaction_status} tx_status=${status_code}`);
+
     // ── Verifikasi signature Midtrans ──────────────────────────────────
-    const serverKey = process.env.MIDTRANS_SERVER_KEY!;
+    const serverKey = process.env.MIDTRANS_SERVER_KEY;
+    if (!serverKey) {
+      console.error('[midtrans-webhook] MIDTRANS_SERVER_KEY is not set');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+
+    // gross_amount dari Midtrans selalu string (mis. "99000.00").
+    // Paksa ke string untuk mencegah mismatch kalau JSON parse hasilkan number.
+    const grossAmountStr = String(gross_amount);
     const expectedSignature = crypto
       .createHash('sha512')
-      .update(`${order_id}${status_code}${gross_amount}${serverKey}`)
+      .update(`${order_id}${status_code}${grossAmountStr}${serverKey}`)
       .digest('hex');
 
     if (signature_key !== expectedSignature) {
-      console.error('Invalid Midtrans signature. Expected:', expectedSignature, 'Got:', signature_key);
+      console.error(`[midtrans-webhook] Signature mismatch for order_id=${order_id}. gross_amount="${grossAmountStr}" status_code="${status_code}"`);
       return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
     }
+
+    console.log(`[midtrans-webhook] Signature verified for order_id=${order_id}`);
 
     // ── Normalize order_id (handle suffix dari retry charge) ───────────
     const normalizedOrderId = normalizeOrderId(order_id);
