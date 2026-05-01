@@ -70,17 +70,43 @@ export async function POST(req: Request) {
     };
 
     try {
-      const { error: insertError } = await supabase
+      // Cek dulu apakah email sudah ada di DB (bisa dari akun lama / signup ulang)
+      // Jika ada → update row lama dengan user_id baru (bukan insert baru)
+      // Ini mencegah error "duplicate key value violates unique constraint profiles_email_key"
+      const { data: existingByEmail } = await supabase
         .from('profiles')
-        .upsert(profileData, { onConflict: 'user_id' })
-        .select();
+        .select('user_id')
+        .eq('email', profileData.email)
+        .maybeSingle();
 
-      if (insertError) {
-        console.error('Clerk user.created: upsert failed', insertError.code);
-        return new Response(
-          JSON.stringify({ error: insertError.message, code: insertError.code }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
-        );
+      if (existingByEmail) {
+        // Email sudah ada (akun lama) → migrate ke user_id baru
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ user_id: id, updated_at: new Date().toISOString() })
+          .eq('email', profileData.email);
+
+        if (updateError) {
+          console.error('Clerk user.created: migrate existing profile failed', updateError.code);
+          return new Response(
+            JSON.stringify({ error: updateError.message, code: updateError.code }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      } else {
+        // Email belum ada → insert baru (upsert by user_id untuk idempotency webhook retry)
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .upsert(profileData, { onConflict: 'user_id' })
+          .select();
+
+        if (insertError) {
+          console.error('Clerk user.created: upsert failed', insertError.code);
+          return new Response(
+            JSON.stringify({ error: insertError.message, code: insertError.code }),
+            { status: 500, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
       }
 
       return new Response(

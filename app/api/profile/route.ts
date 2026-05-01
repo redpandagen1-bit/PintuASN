@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const supabase = await createClient();
+    // Auth sudah divalidasi via Clerk auth() di atas, aman pakai adminClient
+    // (createClient() dengan Clerk JWT return 401 karena Supabase belum trust Clerk JWT)
+    const supabase = await createAdminClient();
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
@@ -56,7 +58,9 @@ export async function PATCH(req: NextRequest) {
     const user = await currentUser();
     const email = user?.emailAddresses?.[0]?.emailAddress ?? null;
 
-    const supabase = await createClient();
+    // Auth sudah divalidasi via Clerk auth() di atas, aman pakai adminClient
+    // (createClient() dengan Clerk JWT return 401 karena Supabase belum trust Clerk JWT)
+    const supabase = await createAdminClient();
 
     // Cek apakah row dengan user_id ini sudah ada
     const { data: existingByUserId } = await supabase
