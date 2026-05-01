@@ -69,7 +69,7 @@ const PACKAGES = [
     priceLabel: 'Rp 99.000',
     upgradePrice: null as number | null,
     upgradePriceLabel: null as string | null,
-    period: 'Hingga November 2026',
+    period: 'Masa aktif 6 bulan',
     description: 'Akses penuh untuk persiapan SKD CPNS 2026',
     icon: Zap,
     badge: 'Populer' as string | null,

@@ -34,8 +34,23 @@ export async function getUserTier(
 ): Promise<import('@/lib/subscription-utils').SubscriptionTier> {
   const supabase = await createAdminClient();
   const { data } = await supabase
-    .from('profiles').select('subscription_tier').eq('user_id', userId).single();
-  return (data?.subscription_tier as import('@/lib/subscription-utils').SubscriptionTier) ?? 'free';
+    .from('profiles')
+    .select('subscription_tier, subscription_end')
+    .eq('user_id', userId)
+    .single();
+
+  const tier = (data?.subscription_tier as import('@/lib/subscription-utils').SubscriptionTier) ?? 'free';
+
+  // Lazy expiry: kalau subscription sudah kadaluarsa, downgrade ke free
+  if (tier !== 'free' && data?.subscription_end && new Date(data.subscription_end) < new Date()) {
+    await supabase
+      .from('profiles')
+      .update({ subscription_tier: 'free', updated_at: new Date().toISOString() })
+      .eq('user_id', userId);
+    return 'free';
+  }
+
+  return tier;
 }
 
 // ─────────────────────────────────────────────────────────────

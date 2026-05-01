@@ -15,9 +15,17 @@ const PACKAGE_TIER: Record<string, 'premium' | 'platinum'> = {
   platinum: 'platinum',
 };
 
-// Tanggal berakhir subscription → November 2026
-function getSubscriptionEnd(): string {
-  return new Date('2026-11-30T23:59:59.000Z').toISOString();
+// Hitung tanggal berakhir subscription berdasarkan package:
+// premium  → 6 bulan dari sekarang
+// platinum → 1 tahun dari sekarang
+function getSubscriptionEnd(packageId: string): string {
+  const end = new Date();
+  if (packageId === 'premium') {
+    end.setMonth(end.getMonth() + 6);
+  } else {
+    end.setFullYear(end.getFullYear() + 1);
+  }
+  return end.toISOString();
 }
 
 // Normalize order_id — strip suffix -methodId-timestamp kalau ada
@@ -120,7 +128,7 @@ export async function POST(req: NextRequest) {
           .update({
             subscription_tier:  newTier,
             subscription_start: new Date().toISOString(),
-            subscription_end:   getSubscriptionEnd(),
+            subscription_end:   getSubscriptionEnd(order.package_id),
             updated_at:         new Date().toISOString(),
           })
           .eq('user_id', order.user_id);

@@ -17,6 +17,21 @@ export async function GET() {
       .single();
 
     if (error) throw error;
+
+    // Lazy expiry: kalau subscription sudah habis, auto-downgrade ke free di DB
+    if (
+      profile &&
+      profile.subscription_tier !== 'free' &&
+      profile.subscription_end &&
+      new Date(profile.subscription_end) < new Date()
+    ) {
+      await supabase
+        .from('profiles')
+        .update({ subscription_tier: 'free', updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+      profile.subscription_tier = 'free';
+    }
+
     return NextResponse.json({ profile });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
