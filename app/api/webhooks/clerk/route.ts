@@ -53,8 +53,10 @@ export async function POST(req: Request) {
     const role = (public_metadata as { role?: string })?.role || 'user';
 
     if (!email_addresses || email_addresses.length === 0) {
-      console.error('Clerk user.created: no email address');
-      return new Response('No email address', { status: 400 });
+      console.warn('Clerk user.created: no email address (test event?), skipping');
+      return new Response(JSON.stringify({ skipped: true, reason: 'no_email' }), {
+        status: 200, headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const profileData = {
