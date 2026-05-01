@@ -3,7 +3,7 @@
 // ============================================================
 
 import { Suspense }           from 'react';
-import { createClient }       from '@/lib/supabase/server';
+import { createAdminClient }  from '@/lib/supabase/server';
 import EventPromoCard         from '@/components/dashboard/user/EventPromoCard';
 import { Skeleton }           from '@/components/ui/skeleton';
 import type { Event }         from '@/types/events';
@@ -13,7 +13,7 @@ import { MobileEventPromo }   from '@/components/mobile/MobileEventPromo';
 
 // ── data fetching ─────────────────────────────────────────────
 async function getActiveEvents(): Promise<Event[]> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const now      = new Date().toISOString();
 
   const { data, error } = await supabase

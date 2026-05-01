@@ -1,4 +1,4 @@
-import { createClient }   from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import BannerSliderClient from './BannerSliderClient';
 import { BANNER_SLIDES }  from '@/constants/dashboard-data';
 
@@ -6,7 +6,7 @@ export default async function BannerSlider() {
   let banners: { id: string; title: string; image_url: string; button_link: string }[] = [];
 
   try {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
     const { data } = await supabase
       .from('banners')
       .select('id, title, image_url, button_link')

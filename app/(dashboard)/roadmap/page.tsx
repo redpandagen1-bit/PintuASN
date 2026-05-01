@@ -5,7 +5,7 @@
 import { auth }           from '@clerk/nextjs/server';
 import { redirect }       from 'next/navigation';
 import { getRoadmapStats } from '@/lib/supabase/queries';
-import { createClient }   from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { RoadmapContent } from './roadmap-content';
 import type { ReminderPreference } from '@/types/roadmap';
 import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
@@ -20,7 +20,7 @@ export default async function RoadmapPage() {
   const { userId } = await auth();
   if (!userId) redirect('/sign-in');
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   // Fetch stats, reminder preference, dan history secara paralel
   const [stats, { data: prefData }, { data: historyData }] = await Promise.all([

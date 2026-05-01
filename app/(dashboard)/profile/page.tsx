@@ -1,16 +1,15 @@
 import { Suspense }           from 'react';
+import { redirect }           from 'next/navigation';
 import { currentUser }        from '@clerk/nextjs/server';
 import { getProfile, getUserStats } from '@/lib/supabase/queries';
-import { createClient }       from '@/lib/supabase/server';
+import { createAdminClient }  from '@/lib/supabase/server';
 import ProfileContent         from './profile-content';
 import { MobilePageWrapper }  from '@/components/mobile/MobilePageWrapper';
 import { MobileProfile }      from '@/components/mobile/MobileProfile';
 
 export default async function ProfilePage() {
   const user = await currentUser();
-  if (!user) {
-    throw new Error('User not found');
-  }
+  if (!user) redirect('/sign-in');
 
   const userId = user.id;
 
@@ -19,7 +18,7 @@ export default async function ProfilePage() {
 
   // Kalau profil belum ada (webhook belum jalan), buat otomatis
   if (!profile) {
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const primaryEmail = user.emailAddresses?.[0]?.emailAddress || null;
     const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || null;

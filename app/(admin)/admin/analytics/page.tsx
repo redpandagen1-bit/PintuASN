@@ -3,7 +3,7 @@
 // ============================================================
 
 import { requireAdmin }  from '@/lib/auth/check-admin';
-import { createClient }  from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import {
   Users, TrendingUp, CreditCard, BookOpen,
   FileQuestion, Package, CheckCircle, XCircle,
@@ -28,7 +28,7 @@ function fmtPct(val: number, total: number) {
 
 // ── data fetching ─────────────────────────────────────────────
 async function getAnalytics() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const now              = new Date();
   const startOfMonth     = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();

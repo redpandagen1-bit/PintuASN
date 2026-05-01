@@ -2,13 +2,13 @@
 // app/(admin)/admin/events/page.tsx
 // ============================================================
 
-import { createClient }      from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { requireAdmin }      from '@/lib/auth/check-admin';
 import AdminEventsClient     from './admin-events-client';
 import type { Event }        from '@/types/events';
 
 async function getAllEvents(): Promise<Event[]> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('events')
     .select('*')

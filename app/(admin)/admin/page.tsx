@@ -1,5 +1,5 @@
 import { requireAdmin } from '@/lib/auth/check-admin';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, FileQuestion, Package, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 export default async function AdminDashboardPage() {
   await requireAdmin(); // This will throw if not admin
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   // Fetch metrics
   const [usersCount, questionsCount, packagesCount, attemptsCount] = await Promise.all([

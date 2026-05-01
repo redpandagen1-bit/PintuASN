@@ -3,8 +3,9 @@
 // ============================================================
 
 import { Suspense }     from 'react';
+import { redirect }    from 'next/navigation';
 import { currentUser } from '@clerk/nextjs/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import {
   getActivePackages,
   getUserAttempts,
@@ -20,7 +21,7 @@ import { MobileDaftarTryout } from '@/components/mobile/MobileDaftarTryout';
 
 async function DaftarTryoutContent() {
   const user = await currentUser();
-  if (!user) throw new Error('User not found');
+  if (!user) redirect('/sign-in');
 
   const userId = user.id;
 
@@ -35,7 +36,7 @@ async function DaftarTryoutContent() {
   let userCountsByPackage = new Map<string, number>();
 
   if (packages.length > 0) {
-    const supabase   = await createClient();
+    const supabase   = await createAdminClient();
     const packageIds = packages.map(pkg => pkg.id);
 
     const { data: completedCounts } = await supabase

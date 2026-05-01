@@ -2,7 +2,7 @@
 // lib/supabase/queries.ts
 // ============================================================
 
-import { createClient, createAdminClient } from './server';
+import { createAdminClient } from './server';
 import type { Profile, Package, Attempt } from '@/types/database';
 import { PASSING_GRADES } from '@/constants/exam';
 
@@ -16,7 +16,7 @@ export { canAccess }              from '@/lib/subscription-utils';
 // ─────────────────────────────────────────────────────────────
 
 export async function getProfile(userId: string): Promise<Profile | null> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('profiles').select('*').eq('user_id', userId).single();
   if (error) {
@@ -32,7 +32,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
 export async function getUserTier(
   userId: string,
 ): Promise<import('@/lib/subscription-utils').SubscriptionTier> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data } = await supabase
     .from('profiles').select('subscription_tier').eq('user_id', userId).single();
   return (data?.subscription_tier as import('@/lib/subscription-utils').SubscriptionTier) ?? 'free';
@@ -43,7 +43,7 @@ export async function getUserTier(
 // ─────────────────────────────────────────────────────────────
 
 export async function getActivePackages(): Promise<Package[]> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('packages').select('*')
     .eq('is_active', true).eq('is_deleted', false)
@@ -53,7 +53,7 @@ export async function getActivePackages(): Promise<Package[]> {
 }
 
 export async function getPackageById(packageId: string): Promise<Package> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('packages').select('*').eq('id', packageId).single();
   if (error) {
@@ -68,7 +68,7 @@ export async function getPackageById(packageId: string): Promise<Package> {
 // ─────────────────────────────────────────────────────────────
 
 export async function getAllMaterials() {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('materials')
     .select('id, title, category, type, tier, content_url, duration_minutes')
@@ -84,7 +84,7 @@ export async function getAllMaterials() {
 // ─────────────────────────────────────────────────────────────
 
 export async function getPackageQuestions(packageId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('package_questions')
     .select(`
@@ -124,7 +124,7 @@ export async function getPackageQuestions(packageId: string) {
 // ─────────────────────────────────────────────────────────────
 
 export async function createAttempt(attempt: Partial<Attempt>): Promise<Attempt> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('attempts').insert(attempt).select().single();
   if (error) throw new Error(`Failed to create attempt: ${error.message}`);
@@ -132,7 +132,7 @@ export async function createAttempt(attempt: Partial<Attempt>): Promise<Attempt>
 }
 
 export async function getAttemptById(attemptId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data: attempt, error: attemptError } = await supabase
     .from('attempts')
@@ -162,7 +162,7 @@ export async function getAttemptById(attemptId: string) {
 }
 
 export async function getAttemptWithAnswers(attemptId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const [
     { data: attempt, error: attemptError },
     { data: answers, error: answersError },
@@ -176,7 +176,7 @@ export async function getAttemptWithAnswers(attemptId: string) {
 }
 
 export async function getUserAttempts(userId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('attempts')
     .select('*, packages ( id, title, description, difficulty )')
@@ -193,7 +193,7 @@ export async function getAttemptHistory(
   page:     number = 1,
   limit:    number = 20,
 ) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   let query = supabase
     .from('attempts')
@@ -225,7 +225,7 @@ export async function getAttemptHistory(
 }
 
 export async function getUserStats(userId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data: attempts, error } = await supabase
     .from('attempts').select('*')
     .eq('user_id', userId).eq('status', 'completed')
@@ -261,7 +261,7 @@ export type AttemptHistoryData = {
 // ─────────────────────────────────────────────────────────────
 
 export async function getRoadmapStats(userId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   // Step 1: ambil ID materi per kategori dulu (Supabase JS v2 tidak
   // support subquery langsung di .in() — harus fetch ID terlebih dahulu)
@@ -377,7 +377,7 @@ export type RoadmapStats = Awaited<ReturnType<typeof getRoadmapStats>>;
  * Non-fatal: error tidak di-throw agar tidak breaking halaman materi.
  */
 export async function trackMaterialView(userId: string, materialId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { error } = await supabase
     .from('material_views')
@@ -396,7 +396,7 @@ export async function trackMaterialView(userId: string, materialId: string): Pro
 // ─────────────────────────────────────────────────────────────
 
 export async function getReviewData(attemptId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const { data: attempt, error: attemptError } = await supabase
     .from('attempts')
@@ -524,7 +524,7 @@ export async function getQuestionsAdmin(params?: {
   category?: 'TWK' | 'TIU' | 'TKP' | 'all'; difficulty?: 'easy' | 'medium' | 'hard' | 'all';
   status?: 'draft' | 'published' | 'all'; search?: string; page?: number; limit?: number;
 }) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   let query = supabase.from('questions')
     .select('*, choices (*)', { count: 'exact' }).eq('is_deleted', false);
 
@@ -548,7 +548,7 @@ export async function getQuestionsAdmin(params?: {
 }
 
 export async function getQuestionById(questionId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('questions').select('*, choices (*)').eq('id', questionId).single();
   if (error) throw error;
@@ -559,7 +559,7 @@ export async function updateQuestion(questionId: string, updates: {
   content?: string; explanation?: string; topic?: string;
   difficulty?: string; image_url?: string; status?: string; is_published?: boolean;
 }) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('questions').update(updates).eq('id', questionId).select().single();
   if (error) throw error;
@@ -569,7 +569,7 @@ export async function updateQuestion(questionId: string, updates: {
 export async function updateChoice(choiceId: string, updates: {
   content?: string; is_answer?: boolean; score?: number;
 }) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('choices').update(updates).eq('id', choiceId).select().single();
   if (error) throw error;
@@ -577,7 +577,7 @@ export async function updateChoice(choiceId: string, updates: {
 }
 
 export async function deleteQuestion(questionId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { error } = await supabase.from('questions')
     .update({ is_deleted: true, is_published: false, status: 'deleted' })
     .eq('id', questionId);
@@ -585,7 +585,7 @@ export async function deleteQuestion(questionId: string) {
 }
 
 export async function togglePublishQuestion(questionId: string, publish: boolean) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase.from('questions')
     .update({ is_published: publish, status: publish ? 'published' : 'draft' })
     .eq('id', questionId).select().single();
@@ -598,7 +598,7 @@ export async function togglePublishQuestion(questionId: string, publish: boolean
 // ─────────────────────────────────────────────────────────────
 
 export async function getPackagesAdmin(includeInactive = false) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   let query = supabase.from('packages')
     .select('*, package_questions (count)')
     .eq('is_deleted', false)
@@ -613,7 +613,7 @@ export async function getPackagesAdmin(includeInactive = false) {
 }
 
 export async function getPublishedQuestionsByCategory(category: 'TWK' | 'TIU' | 'TKP') {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase.from('questions')
     .select('id, content, difficulty, topic')
     .eq('category', category).eq('is_published', true).eq('is_deleted', false)
@@ -627,7 +627,7 @@ export async function createPackage(packageData: {
   tier: 'free' | 'premium' | 'platinum'; is_active: boolean;
   questionIds: string[]; userId: string;
 }) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   if (packageData.questionIds.length !== 110)
     throw new Error('Paket harus berisi tepat 110 soal');
 
@@ -653,7 +653,7 @@ export async function createPackage(packageData: {
 export async function updatePackageInfo(packageId: string, updates: {
   title?: string; description?: string; difficulty?: string; tier?: string; is_active?: boolean;
 }) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('packages').update(updates).eq('id', packageId).select().single();
   if (error) throw error;
@@ -661,7 +661,7 @@ export async function updatePackageInfo(packageId: string, updates: {
 }
 
 export async function deletePackage(packageId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const { data: attempts } = await supabase
     .from('attempts').select('id').eq('package_id', packageId).limit(1);
   if (attempts?.length) throw new Error('Paket tidak bisa dihapus karena sudah ada percobaan');
@@ -671,7 +671,7 @@ export async function deletePackage(packageId: string) {
 }
 
 export async function getPackageWithQuestions(packageId: string) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const [
     { data: pkg,       error: pkgError },
     { data: questions, error: qError   },
