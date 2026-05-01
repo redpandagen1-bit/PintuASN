@@ -24,7 +24,9 @@ function getSubscriptionEnd(): string {
 // Format asli:        PINTUASN-PAIOXG-1775989365468
 // Format dengan suffix: PINTUASN-PAIOXG-1775989365468-bri_va-1234567890
 function normalizeOrderId(id: string): string {
-  const match = id.match(/^(PINTUASN-[A-Z]+-\d+)/);
+  // Order ID format: PINTUASN-{userId.slice(-6).toUpperCase()}-{timestamp}
+  // userId suffix bisa alfanumerik (mis. "5GVMR2"), bukan hanya huruf
+  const match = id.match(/^(PINTUASN-[A-Z0-9]+-\d+)/);
   return match ? match[1] : id;
 }
 
