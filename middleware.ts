@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/blog(.*)',
   '/api/webhooks(.*)',
 ]);
 
@@ -17,34 +18,32 @@ const isProtectedRoute = createRouteMatcher([
   '/history(.*)',
   '/statistics(.*)',
   '/packages(.*)',
-  '/roadmap(.*)',   // ← ditambahkan: roadmap butuh login
+  '/roadmap(.*)',
+  '/materi(.*)',        // ← ditambahkan: ada di tree tapi tidak di sini
+  '/beli-paket(.*)',    // ← ditambahkan
+  '/daftar-tryout(.*)', // ← ditambahkan
+  '/pembayaran(.*)',    // ← ditambahkan
 ]);
 
 const isOnboarding = createRouteMatcher(['/onboarding(.*)']);
 
 export default clerkMiddleware(async (auth, req) => {
-  // Skip public routes
-  if (isPublicRoute(req)) {
-    return;
-  }
+  if (isPublicRoute(req)) return;
 
-  const { userId, getToken } = await auth();
+  const { userId } = await auth();
 
-  // /onboarding requires login but not auth.protect() (no redirect loop)
   if (isOnboarding(req)) {
     if (!userId) return NextResponse.redirect(new URL('/sign-in', req.url));
     return;
   }
 
-  // Protect dashboard + admin routes
   if (isProtectedRoute(req) || isAdminRoute(req)) {
     await auth.protect();
   }
 
-  // Onboarding guard — only for logged-in users on non-public, non-admin routes
-  if (userId && (isProtectedRoute(req))) {
+  // Onboarding guard — hanya untuk protected routes, bukan admin
+  if (userId && isProtectedRoute(req)) {
     try {
-      const token = await getToken();
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
@@ -52,9 +51,9 @@ export default clerkMiddleware(async (auth, req) => {
         `${supabaseUrl}/rest/v1/profiles?user_id=eq.${userId}&select=onboarding_completed`,
         {
           headers: {
-            apikey: serviceKey,
+            apikey:        serviceKey,
             Authorization: `Bearer ${serviceKey}`,
-            Accept: 'application/json',
+            Accept:        'application/json',
           },
         }
       );
@@ -67,7 +66,7 @@ export default clerkMiddleware(async (auth, req) => {
         }
       }
     } catch {
-      // If check fails, allow through — don't block the user
+      // Gagal check → biarkan lewat, jangan block user
     }
   }
 });
