@@ -46,13 +46,13 @@ export const METHOD_LOGOS: Record<string, string> = {
   bri_va:     '/images/payment/bri.svg',
   bca_va:     '/images/payment/bca.svg',
   mandiri_va: '/images/payment/mandiri.svg',
-  bni_va:     '/images/payment/bni.png',
+  bni_va:     '/images/payment/bni.svg',
   qris:       '/images/payment/qris.svg',
   gopay:      '/images/payment/gopay.svg',
-  shopeepay:  '/images/payment/shopeepay.png',
+  shopeepay:  '/images/payment/shopeepay.svg',
   dana:       '/images/payment/dana.svg',
   alfamart:   '/images/payment/alfamart.svg',
-  indomaret:  '/images/payment/indomaret.png',
+  indomaret:  '/images/payment/indomaret.svg',
 };
 
 export const VA_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
