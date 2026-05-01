@@ -43,16 +43,16 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
 export const METHOD_GROUPS = ['QRIS', 'Bank Transfer', 'E-Wallet', 'Convenience Store'] as const;
 
 export const METHOD_LOGOS: Record<string, string> = {
-  bri_va:     'https://upload.wikimedia.org/wikipedia/commons/6/68/BANK_BRI_logo.svg',
-  bca_va:     'https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg',
-  mandiri_va: 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg',
-  bni_va:     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/BNI_logo.svg/320px-BNI_logo.svg.png',
-  qris:       'https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg',
-  gopay:      'https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg',
-  shopeepay:  'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Logo_ShopeePay.png/320px-Logo_ShopeePay.png',
-  dana:       'https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg',
-  alfamart:   'https://upload.wikimedia.org/wikipedia/commons/d/d6/Alfamart_logo.svg',
-  indomaret:  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Indomaret_logo2022.svg/320px-Indomaret_logo2022.svg.png',
+  bri_va:     '/images/payment/bri.svg',
+  bca_va:     '/images/payment/bca.svg',
+  mandiri_va: '/images/payment/mandiri.svg',
+  bni_va:     '/images/payment/bni.png',
+  qris:       '/images/payment/qris.svg',
+  gopay:      '/images/payment/gopay.svg',
+  shopeepay:  '/images/payment/shopeepay.png',
+  dana:       '/images/payment/dana.svg',
+  alfamart:   '/images/payment/alfamart.svg',
+  indomaret:  '/images/payment/indomaret.png',
 };
 
 export const VA_INSTRUCTIONS: Record<string, { title: string; steps: string[] }[]> = {
