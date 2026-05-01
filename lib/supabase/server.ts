@@ -2,10 +2,10 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { auth } from '@clerk/nextjs/server';
 
-// ✅ Regular client (dengan RLS) - METODE BARU
+// ✅ Regular client (dengan RLS) - token di-resolve sekali di luar fetch callback
 export async function createClient() {
   const cookieStore = await cookies();
-  const { userId } = await auth();
+  const clerkToken = await (await auth()).getToken();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,20 +25,13 @@ export async function createClient() {
           }
         },
       },
-      // 🔥 INI YANG BARU: accessToken tanpa template!
       global: {
-        async fetch(url, options = {}) {
-          const clerkToken = await (await auth()).getToken();
-          
+        fetch(url, options = {}) {
           const headers = new Headers(options?.headers);
           if (clerkToken) {
             headers.set('Authorization', `Bearer ${clerkToken}`);
           }
-          
-          return fetch(url, {
-            ...options,
-            headers,
-          });
+          return fetch(url, { ...options, headers });
         },
       },
     }

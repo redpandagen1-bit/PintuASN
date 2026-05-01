@@ -33,7 +33,7 @@ export async function PATCH(req: NextRequest) {
     const allowedFields = [
       'full_name', 'phone', 'gender', 'birth_date', 'address',
       'province', 'city', 'district', 'postal_code', 'target_institution',
-      'onboarding_completed',
+      'referral_source', 'onboarding_completed',
     ];
 
     const updates: Record<string, unknown> = {};

@@ -1,12 +1,8 @@
 // app/(dashboard)/dashboard/page.tsx
 
 import { Suspense }      from 'react';
+import { redirect }      from 'next/navigation';
 import { currentUser }  from '@clerk/nextjs/server';
-import {
-  getActivePackages,
-  getUserAttempts,
-  getUserTier,
-} from '@/lib/supabase/queries';
 import { createAdminClient } from '@/lib/supabase/server';
 import { BannerSlider, StatCard, MateriTabs } from '@/components/dashboard/user';
 import { FeatureGrid }   from '@/components/layout/FeatureGrid';
@@ -24,29 +20,51 @@ import { MobileDashboard }   from '@/components/mobile/MobileDashboard';
 
 async function DashboardContent() {
   const user = await currentUser();
-  if (!user) throw new Error('User not found');
+  if (!user) redirect('/sign-in');
 
   const userId = user.id;
+  const supabase = await createAdminClient();
 
-  const [packages, attempts, userTier] = await Promise.all([
-    getActivePackages(),
-    getUserAttempts(userId),
-    getUserTier(userId),
+  const [
+    { data: packagesData },
+    { data: attemptsData },
+    { data: tierData },
+  ] = await Promise.all([
+    supabase
+      .from('packages')
+      .select('*')
+      .eq('is_active', true)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('attempts')
+      .select('*, packages ( id, title, description, difficulty )')
+      .eq('user_id', userId)
+      .order('started_at', { ascending: false }),
+    supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('user_id', userId)
+      .single(),
   ]);
 
-  const supabase    = await createAdminClient();
-  const packageIds  = packages.map(pkg => pkg.id);
+  const packages   = packagesData ?? [];
+  const attempts   = attemptsData ?? [];
+  const userTier   = (tierData?.subscription_tier as 'free' | 'premium' | 'platinum') ?? 'free';
+  const packageIds = packages.map(pkg => pkg.id);
 
   const [
     { data: completedCounts },
     { data: rankingData },
     { data: materials },
   ] = await Promise.all([
-    supabase
-      .from('attempts')
-      .select('package_id, user_id')
-      .in('package_id', packageIds)
-      .eq('status', 'completed'),
+    packageIds.length > 0
+      ? supabase
+          .from('attempts')
+          .select('package_id, user_id')
+          .in('package_id', packageIds)
+          .eq('status', 'completed')
+      : Promise.resolve({ data: [] as { package_id: string; user_id: string }[], error: null }),
 
     supabase.rpc('get_user_national_rank', { p_user_id: userId }),
 
