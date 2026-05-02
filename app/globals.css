@@ -728,12 +728,31 @@ div[class*="cl-formFieldInput"]:not(input) {
   color: #94a3b8 !important;
 }
 
-/* Identity preview (in 2-step sign-in) */
+/* Identity preview (in 2-step sign-in) — must be full-width so it doesn't
+   expand the Clerk container beyond the card's inner padding on PWA mobile */
 .cl-identityPreview {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
   border-radius: 0.75rem !important;
   border: 1px solid #e2e8f0 !important;
   background: #f8fafc !important;
   padding: 0.625rem 0.875rem !important;
+}
+.cl-identityPreviewText,
+.cl-identityPreviewEditButton {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Input group wrapper & password toggle — constrain so they can't push
+   the layout wider than the container on narrow PWA viewports */
+.cl-formFieldInputGroup {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  position: relative !important;
 }
 
 /* Show password button position fix */
