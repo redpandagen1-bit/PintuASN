@@ -219,7 +219,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             style={{ background:'radial-gradient(circle,#10b981,transparent 70%)', opacity:.1, transform:'translate(-40%,40%)' }}/>
 
           {/* ══════ MOBILE LAYOUT ══════ */}
-          <div className="lg:hidden relative z-10 flex flex-col auth-in px-4 pt-8 pb-10" style={{ minHeight:'100dvh' }}>
+          <div className="lg:hidden relative z-10 flex flex-col auth-in px-2 pt-8 pb-10" style={{ minHeight:'100dvh' }}>
 
             {/* logo */}
             <div className="flex flex-col items-center mb-5">
@@ -248,7 +248,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 overflow: visible is intentional: overflow-hidden clips Clerk's
                 injected "last used" badges and Optional hint text at label edges. */}
             <div className="rounded-2xl bg-white shadow-2xl w-full">
-              <div className="px-5 py-6 sm:px-6">
+              <div className="px-4 py-6 sm:px-5">
                 {children}
               </div>
             </div>
