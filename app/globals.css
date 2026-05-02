@@ -730,3 +730,30 @@ div[class*="cl-formFieldInput"]:not(input) {
 .cl-formFieldInputShowPasswordButton:hover {
   color: #475569 !important;
 }
+
+/* ── Mobile responsiveness ──────────────────────────────────────────
+   Stack first/last name single-column on narrow screens so each field
+   isn't crammed to ~120px on a 375px phone. */
+@media (max-width: 480px) {
+  .cl-formFieldRow__name {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Shrink OTP boxes so 6 fit comfortably on small phones */
+  .cl-otpCodeFieldInput {
+    width: 2.1rem !important;
+    height: 2.75rem !important;
+    font-size: 1rem !important;
+  }
+
+  /* Prevent the Optional / last-used hint from overflowing label row */
+  .cl-formFieldHintText,
+  .cl-formFieldLabelRow > span:last-child {
+    font-size: 0.68rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 5rem !important;
+  }
+}

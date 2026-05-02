@@ -244,9 +244,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               ))}
             </div>
 
-            {/* form card — solid white, NO backdrop-filter (Safari overflow bug) */}
-            <div className="rounded-2xl bg-white shadow-2xl w-full overflow-hidden">
-              <div className="px-6 py-6">
+            {/* form card — solid white, NO backdrop-filter (Safari overflow bug).
+                overflow: visible is intentional: overflow-hidden clips Clerk's
+                injected "last used" badges and Optional hint text at label edges. */}
+            <div className="rounded-2xl bg-white shadow-2xl w-full">
+              <div className="px-5 py-6 sm:px-6">
                 {children}
               </div>
             </div>
