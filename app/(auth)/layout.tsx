@@ -201,7 +201,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         */}
         <div
           className="relative w-full lg:w-[48%] flex flex-col bg-[#020b18] lg:bg-transparent overflow-hidden"
-          style={{ minHeight:'100dvh' }}
+          style={{ minHeight:'100dvh', clipPath:'inset(0)' }}
         >
           {/* ── Desktop background ── */}
           <div className="absolute inset-0 hidden lg:block" style={{ background:'#f8fafc' }}/>
@@ -214,9 +214,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="absolute inset-0 lg:hidden"
             style={{ background:'linear-gradient(160deg,#020b18 0%,#071422 55%,#040f1d 100%)' }}/>
           <div className="absolute top-0 right-0 w-80 h-80 rounded-full pointer-events-none lg:hidden"
-            style={{ background:'radial-gradient(circle,#0ea5e9,transparent 70%)', opacity:.13, transform:'translate(40%,-40%)' }}/>
+            style={{ background:'radial-gradient(circle,#0ea5e9,transparent 70%)', opacity:.13, transform:'translate(20%,-20%)' }}/>
           <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full pointer-events-none lg:hidden"
-            style={{ background:'radial-gradient(circle,#10b981,transparent 70%)', opacity:.1, transform:'translate(-40%,40%)' }}/>
+            style={{ background:'radial-gradient(circle,#10b981,transparent 70%)', opacity:.1, transform:'translate(-20%,20%)' }}/>
 
           {/* ══════ MOBILE LAYOUT ══════ */}
           <div className="lg:hidden relative z-10 flex flex-col auth-in px-4 pt-8 pb-10" style={{ minHeight:'100dvh' }}>
