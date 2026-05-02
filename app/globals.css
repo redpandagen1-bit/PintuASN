@@ -418,8 +418,9 @@
 .cl-cardBox {
   padding: 0 !important;
 }
-/* Force all Clerk wrappers to respect container width — prevents min-width
-   overflow on PWA mobile where effective viewport is narrower than DevTools shows. */
+/* Force all Clerk wrappers to respect container width.
+   overflow:visible (bukan hidden) — overflow-x:hidden menyebabkan Clerk
+   meng-clip kontennya sendiri saat di-center dalam container sempit mobile. */
 .cl-rootBox,
 .cl-card,
 .cl-cardBox,
@@ -430,7 +431,7 @@
   max-width: 100% !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  overflow-x: hidden !important;
+  overflow: visible !important;
 }
 /* Inner spacing so form fields breathe & aren't flush to container edges */
 .cl-rootBox,

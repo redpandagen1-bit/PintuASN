@@ -48,7 +48,6 @@ const features = [
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const [current,   setCurrent]   = useState(0);
   const [animating, setAnimating] = useState(false);
-  const [dbg, setDbg] = useState('');
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -56,28 +55,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       setTimeout(() => { setCurrent(p => (p + 1) % testimonials.length); setAnimating(false); }, 400);
     }, 7000);
     return () => clearInterval(id);
-  }, []);
-
-  useEffect(() => {
-    const run = () => {
-      const vw = window.innerWidth;
-      const scrollX = Math.round(window.scrollX);
-      const bodyW = document.body.scrollWidth;
-      const hits: string[] = [];
-      document.querySelectorAll('*').forEach(el => {
-        const r = el.getBoundingClientRect();
-        if (r.right > vw + 1 || r.left < -1) {
-          const cs = window.getComputedStyle(el);
-          const cls = (el.className?.toString() ?? (el as HTMLElement).tagName).slice(0, 90);
-          hits.push(`L${Math.round(r.left)} R${Math.round(r.right)} W${Math.round(r.width)} minW:${cs.minWidth} maxW:${cs.maxWidth} | ${cls}`);
-        }
-      });
-      const summary = `vw=${vw} scrollX=${scrollX} bodyW=${bodyW}\n${hits.length ? hits.join('\n') : 'NO ELEMENT OVERFLOW'}`;
-      setDbg(summary);
-    };
-    const t1 = setTimeout(run, 2000);
-    const t2 = setTimeout(run, 5000);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   const t = testimonials[current];
@@ -303,11 +280,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
 
-      {dbg && (
-        <pre style={{ position:'fixed',bottom:0,left:0,right:0,zIndex:99999,background:'rgba(0,0,0,.95)',color:'#86efac',fontSize:'9px',padding:'8px',maxHeight:'55vh',overflowY:'auto',fontFamily:'monospace',whiteSpace:'pre-wrap',wordBreak:'break-all' }}>
-          {dbg}
-        </pre>
-      )}
     </>
   );
 }
