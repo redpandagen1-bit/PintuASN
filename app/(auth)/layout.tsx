@@ -48,7 +48,6 @@ const features = [
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const [current,   setCurrent]   = useState(0);
   const [animating, setAnimating] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>('');
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -56,30 +55,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       setTimeout(() => { setCurrent(p => (p + 1) % testimonials.length); setAnimating(false); }, 400);
     }, 7000);
     return () => clearInterval(id);
-  }, []);
-
-  // DEBUG OVERLAY — cari element yang overflow viewport
-  useEffect(() => {
-    const run = () => {
-      const vw = window.innerWidth;
-      type Hit = { cls: string; left: number; right: number; w: number };
-      const hits: Hit[] = [];
-      document.querySelectorAll('*').forEach(el => {
-        const r = el.getBoundingClientRect();
-        if (r.right > vw + 2 || r.left < -2) {
-          hits.push({
-            cls: (el.className?.toString() ?? el.tagName).slice(0, 120),
-            left: Math.round(r.left),
-            right: Math.round(r.right),
-            w: Math.round(r.width),
-          });
-        }
-      });
-      if (hits.length) setDebugInfo(`vw=${vw}\n` + hits.map(h => `L${h.left} R${h.right} W${h.w} | ${h.cls}`).join('\n'));
-    };
-    const t1 = setTimeout(run, 1500);
-    const t2 = setTimeout(run, 4000);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   const t = testimonials[current];
@@ -225,7 +200,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           Desktop: light bg, form vertically centered
         */}
         <div
-          className="relative w-full lg:w-[48%] flex flex-col bg-[#020b18] lg:bg-transparent"
+          className="relative w-full lg:w-[48%] flex flex-col bg-[#020b18] lg:bg-transparent overflow-x-hidden"
           style={{ minHeight:'100dvh' }}
         >
           {/* ── Desktop background ── */}
@@ -244,7 +219,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             style={{ background:'radial-gradient(circle,#10b981,transparent 70%)', opacity:.1, transform:'translate(-40%,40%)' }}/>
 
           {/* ══════ MOBILE LAYOUT ══════ */}
-          <div className="lg:hidden relative z-10 flex flex-col auth-in px-2 pt-8 pb-10" style={{ minHeight:'100dvh' }}>
+          <div className="lg:hidden relative z-10 flex flex-col auth-in px-4 pt-8 pb-10" style={{ minHeight:'100dvh' }}>
 
             {/* logo */}
             <div className="flex flex-col items-center mb-5">
@@ -273,7 +248,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 overflow: visible is intentional: overflow-hidden clips Clerk's
                 injected "last used" badges and Optional hint text at label edges. */}
             <div className="rounded-2xl bg-white shadow-2xl w-full">
-              <div className="px-4 py-6 sm:px-5">
+              <div className="px-5 py-6 sm:px-6">
                 {children}
               </div>
             </div>
@@ -305,17 +280,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
       </div>
 
-      {/* DEBUG OVERLAY — hapus setelah masalah overflow ditemukan */}
-      {debugInfo && (
-        <pre style={{
-          position:'fixed', bottom:0, left:0, right:0, zIndex:99999,
-          background:'rgba(0,0,0,.92)', color:'#4ade80', fontSize:'9px',
-          padding:'8px', maxHeight:'45vh', overflowY:'auto',
-          fontFamily:'monospace', whiteSpace:'pre-wrap', wordBreak:'break-all',
-        }}>
-          {debugInfo}
-        </pre>
-      )}
     </>
   );
 }
