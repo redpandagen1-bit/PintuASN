@@ -571,6 +571,7 @@ div[class*="cl-formFieldInput"]:not(input) {
 /* Primary button — structural styles only; variant sets color */
 .cl-formButtonPrimary {
   height: 2.75rem !important;
+  margin-top: 0.5rem !important;
   border-radius: 0.75rem !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
@@ -756,13 +757,23 @@ div[class*="cl-formFieldInput"]:not(input) {
   position: relative !important;
 }
 
-/* Show password button position fix */
+/* Show password button — posisi & ukuran agar tidak terpotong di mobile */
 .cl-formFieldInputShowPasswordButton {
+  position: absolute !important;
   right: 0.625rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   color: #94a3b8 !important;
+  z-index: 2 !important;
 }
 .cl-formFieldInputShowPasswordButton:hover {
   color: #475569 !important;
+}
+
+/* Pastikan input password punya ruang untuk eye icon */
+input[type="password"].cl-formFieldInput,
+.cl-formFieldInput[type="password"] {
+  padding-right: 2.75rem !important;
 }
 
 /* ── Mobile responsiveness ──────────────────────────────────────────
