@@ -48,6 +48,7 @@ const features = [
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const [current,   setCurrent]   = useState(0);
   const [animating, setAnimating] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -55,6 +56,30 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       setTimeout(() => { setCurrent(p => (p + 1) % testimonials.length); setAnimating(false); }, 400);
     }, 7000);
     return () => clearInterval(id);
+  }, []);
+
+  // DEBUG OVERLAY — cari element yang overflow viewport
+  useEffect(() => {
+    const run = () => {
+      const vw = window.innerWidth;
+      type Hit = { cls: string; left: number; right: number; w: number };
+      const hits: Hit[] = [];
+      document.querySelectorAll('*').forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.right > vw + 2 || r.left < -2) {
+          hits.push({
+            cls: (el.className?.toString() ?? el.tagName).slice(0, 120),
+            left: Math.round(r.left),
+            right: Math.round(r.right),
+            w: Math.round(r.width),
+          });
+        }
+      });
+      if (hits.length) setDebugInfo(`vw=${vw}\n` + hits.map(h => `L${h.left} R${h.right} W${h.w} | ${h.cls}`).join('\n'));
+    };
+    const t1 = setTimeout(run, 1500);
+    const t2 = setTimeout(run, 4000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   const t = testimonials[current];
@@ -279,6 +304,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         </div>
       </div>
+
+      {/* DEBUG OVERLAY — hapus setelah masalah overflow ditemukan */}
+      {debugInfo && (
+        <pre style={{
+          position:'fixed', bottom:0, left:0, right:0, zIndex:99999,
+          background:'rgba(0,0,0,.92)', color:'#4ade80', fontSize:'9px',
+          padding:'8px', maxHeight:'45vh', overflowY:'auto',
+          fontFamily:'monospace', whiteSpace:'pre-wrap', wordBreak:'break-all',
+        }}>
+          {debugInfo}
+        </pre>
+      )}
     </>
   );
 }
