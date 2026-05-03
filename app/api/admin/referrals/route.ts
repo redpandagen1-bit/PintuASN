@@ -3,6 +3,7 @@ import { requireAdmin }              from '@/lib/auth/check-admin';
 import { createAdminClient }         from '@/lib/supabase/server';
 
 export async function GET() {
+  await requireAdmin();
   const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('referral_codes')
