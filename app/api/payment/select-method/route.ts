@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Rate limit: 10 pemilihan metode per user per 10 menit
-    const rl = rateLimit(`payment-select-method:${userId}`, 10, 10 * 60 * 1000);
+    const rl = await rateLimit(`payment-select-method:${userId}`, 10, 10 * 60 * 1000);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Terlalu banyak permintaan. Coba lagi nanti.' },
@@ -24,6 +24,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { orderId, methodId, bank } = await req.json();
+
+    const VALID_METHODS = [
+      'qris', 'gopay', 'shopeepay', 'dana',
+      'bri_va', 'bca_va', 'mandiri_va', 'bni_va', 'other_bank',
+      'alfamart', 'indomaret',
+    ];
+    if (!orderId || typeof orderId !== 'string') {
+      return NextResponse.json({ error: 'Order ID tidak valid' }, { status: 400 });
+    }
+    if (!methodId || !VALID_METHODS.includes(methodId)) {
+      return NextResponse.json({ error: 'Metode pembayaran tidak valid' }, { status: 400 });
+    }
 
     const supabase = await createAdminClient();
 
@@ -220,8 +232,10 @@ export async function POST(req: NextRequest) {
         payment_method:          methodId,
         admin_fee:               adminFee,
         total,
-        va_number:               vaNumber ?? null,
+        va_number:               vaNumber    ?? null,
         payment_code:            paymentCode ?? null,
+        qris_url:                qrisUrl     ?? null,
+        ewallet_url:             ewalletUrl  ?? null,
         midtrans_transaction_id: data.transaction_id,
       })
       .eq('order_id', orderId);

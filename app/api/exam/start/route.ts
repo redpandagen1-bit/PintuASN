@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server';
-import { createAdminClient } from '@/lib/supabase/server'; // ✅ GANTI INI
+import { createAdminClient } from '@/lib/supabase/server';
+import { getUserTier, canAccess } from '@/lib/supabase/queries';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -36,6 +37,15 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: 'Package not found or inactive' },
         { status: 404 }
+      );
+    }
+
+    // Check user's subscription tier against package requirement
+    const userTier = await getUserTier(userId);
+    if (!canAccess(userTier, pkg.tier)) {
+      return NextResponse.json(
+        { error: 'Subscription tidak mencukupi untuk paket ini' },
+        { status: 403 }
       );
     }
 

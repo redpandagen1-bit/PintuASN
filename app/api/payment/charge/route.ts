@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Rate limit: 5 order baru per user per 10 menit
-    const rl = rateLimit(`payment-charge:${userId}`, 5, 10 * 60 * 1000);
+    const rl = await rateLimit(`payment-charge:${userId}`, 5, 10 * 60 * 1000);
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Terlalu banyak permintaan. Coba lagi nanti.' },
