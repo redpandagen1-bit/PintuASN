@@ -3,7 +3,9 @@ import { requireAdmin }              from '@/lib/auth/check-admin';
 import { createAdminClient }         from '@/lib/supabase/server';
 
 export async function GET() {
-  await requireAdmin();
+  try { await requireAdmin(); } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from('banners')
@@ -15,7 +17,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  await requireAdmin();
+  try { await requireAdmin(); } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const supabase = await createAdminClient();
   const body = await req.json();
 
