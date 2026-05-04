@@ -33,8 +33,9 @@ export async function GET() {
     }
 
     return NextResponse.json({ profile });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('[GET /api/profile] unexpected error:', err);
+    return NextResponse.json({ error: 'Gagal mengambil profil. Silakan coba lagi.' }, { status: 500 });
   }
 }
 

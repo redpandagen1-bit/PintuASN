@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     if (error) {
       console.error(`[onboarding] update failed [${userId}]:`, error.message);
       return NextResponse.json(
-        { error: 'Database error', details: error.message },
+        { error: 'Gagal menyimpan data. Silakan coba lagi.' },
         { status: 500 }
       );
     }

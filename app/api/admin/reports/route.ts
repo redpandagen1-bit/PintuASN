@@ -41,6 +41,7 @@ export async function GET() {
       .from('question_reports')
       .select('*')
       .order('created_at', { ascending: false })
+      .limit(500)
 
     if (error) throw error
     return NextResponse.json({ reports: data ?? [] })
