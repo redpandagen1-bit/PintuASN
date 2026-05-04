@@ -4,7 +4,7 @@ import { useState } from 'react';
 import {
   User, Mail, Phone, CreditCard, LogOut,
   Camera, CheckCircle2, Building, Calendar, ChevronDown,
-  MapPin, Star, Save, X, Edit3,
+  MapPin, Star, Save, X, Edit3, Trash2, AlertTriangle,
 } from 'lucide-react';
 import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
@@ -77,6 +77,11 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
   const [activeTab, setActiveTab] = useState<ActiveTab>('profil');
   const [profile, setProfile] = useState(initialProfile);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deletionRequested, setDeletionRequested] = useState(
+    !!initialProfile.deletion_requested_at
+  );
 
   // Form state
   const dbToUiGender: Record<string, string> = { male: 'Pria', female: 'Wanita' };
@@ -130,6 +135,35 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
   const handleSignOut = async () => {
     await signOut();
     router.push('/sign-in');
+  };
+
+  const handleDeleteRequest = async () => {
+    setDeleteLoading(true);
+    try {
+      const res = await fetch('/api/account/delete-request', { method: 'POST' });
+      if (!res.ok) throw new Error((await res.json()).error || 'Gagal mengajukan permintaan');
+      setDeletionRequested(true);
+      setShowDeleteConfirm(false);
+      toast.success('Permintaan penghapusan akun berhasil diajukan. Akun akan dihapus dalam 30 hari kerja.');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleCancelDeleteRequest = async () => {
+    setDeleteLoading(true);
+    try {
+      const res = await fetch('/api/account/delete-request', { method: 'DELETE' });
+      if (!res.ok) throw new Error((await res.json()).error || 'Gagal membatalkan permintaan');
+      setDeletionRequested(false);
+      toast.success('Permintaan penghapusan akun dibatalkan.');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const tabs = [
@@ -234,6 +268,14 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
             <LogOut size={16} />
             Keluar
           </button>
+
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-400 hover:bg-red-50 hover:text-red-600 transition-all whitespace-nowrap flex-shrink-0"
+          >
+            <Trash2 size={16} />
+            Hapus Akun
+          </button>
         </div>
 
         {/* Form area */}
@@ -242,6 +284,24 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
           {/* ── TAB: PROFIL ── */}
           {activeTab === 'profil' && (
             <div className="space-y-6">
+              {deletionRequested && (
+                <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                  <AlertTriangle size={18} className="text-red-500 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-red-700">Permintaan Penghapusan Akun Aktif</p>
+                    <p className="text-xs text-red-600 mt-0.5">
+                      Akun Anda dijadwalkan dihapus dalam 30 hari kerja. Semua data akan dihapus permanen.
+                    </p>
+                    <button
+                      onClick={handleCancelDeleteRequest}
+                      disabled={deleteLoading}
+                      className="mt-2 text-xs font-semibold text-red-600 underline hover:text-red-800 disabled:opacity-50"
+                    >
+                      {deleteLoading ? 'Memproses...' : 'Batalkan permintaan penghapusan'}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div>
                 <h2 className="text-lg font-bold text-slate-800">Data Diri</h2>
                 <p className="text-sm text-slate-500 mt-0.5">Perbarui informasi data diri Anda.</p>
@@ -461,6 +521,43 @@ export default function ProfileContent({ initialProfile, initialStats }: Profile
 
         </div>
       </div>
+
+      {/* ── DELETE ACCOUNT MODAL ─────────────────────────────────── */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <Trash2 size={18} className="text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-800">Hapus Akun?</h3>
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Dengan mengajukan permintaan ini, akun dan seluruh data Anda (profil, riwayat tryout)
+              akan <strong>dihapus permanen dalam 30 hari kerja</strong>. Data transaksi
+              disimpan selama 5 tahun sesuai ketentuan hukum.
+            </p>
+            <p className="text-sm text-slate-600">
+              Anda dapat membatalkan permintaan ini kapan saja sebelum akun dihapus.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDeleteRequest}
+                disabled={deleteLoading}
+                className="flex-1 py-2.5 bg-red-500 rounded-xl text-sm font-bold text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                {deleteLoading ? 'Memproses...' : 'Ya, Hapus Akun'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

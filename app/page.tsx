@@ -952,18 +952,18 @@ export default function Home() {
           </div>
           <div className="footer-col">
             <h4>Platform</h4>
-            <a href="#">Fitur Unggulan</a>
-            <a href="#">Harga dan Paket</a>
-            <a href="#">Simulasi Gratis</a>
+            <a href="/#fitur">Fitur Unggulan</a>
+            <a href="/#paket">Harga dan Paket</a>
+            <a href="/sign-up">Simulasi Gratis</a>
             <a href="/blog">Blog</a>
-            <a href="#">FAQ</a>
+            <a href="/faq">FAQ</a>
           </div>
           <div className="footer-col">
             <h4>Bantuan</h4>
-            <a href="#">Cara Pembayaran</a>
-            <a href="#">Syarat dan Ketentuan</a>
-            <a href="#">Kebijakan Privasi</a>
-            <a href="#">Hubungi Admin (WA)</a>
+            <a href="/cara-pembayaran">Cara Pembayaran</a>
+            <a href="/syarat-ketentuan">Syarat dan Ketentuan</a>
+            <a href="/kebijakan-privasi">Kebijakan Privasi</a>
+            <a href="mailto:support@pintuasn.com">Hubungi Admin</a>
           </div>
         </div>
         <div className="footer-bottom">

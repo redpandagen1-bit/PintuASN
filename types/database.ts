@@ -34,6 +34,8 @@ export interface Profile {
   active_session_id?: string | null;
   // ─────────────────────────────────────────────────────────────
   onboarding_completed?: boolean;
+  deletion_requested_at?: string | null;
+  subscription_end?: string | null;
   created_at: string;
   updated_at: string;
 }
