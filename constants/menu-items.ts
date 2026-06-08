@@ -1,21 +1,9 @@
-import { 
-  LayoutDashboard, 
-  BarChart2, 
-  BookOpen, 
-  PlayCircle, 
-  History, 
-  ShoppingCart,
-  MessageCircle,
-  Zap,
-  Users,
-  Map
-} from 'lucide-react';
-
 export interface MenuItem {
   id: string;
   label: string;
   href: string;
-  icon: string;
+  icon: string;        // lucide icon name (untuk sidebar desktop)
+  iconFile: string;    // SVG filename di /images/icons/
   isActive?: boolean;
 }
 
@@ -25,43 +13,49 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: 'LayoutDashboard',
-    isActive: true
-  },  
+    iconFile: 'dashboard',
+    isActive: true,
+  },
   {
     id: 'statistik',
     label: 'Statistik',
     href: '/statistics',
     icon: 'BarChart2',
-    isActive: false
+    iconFile: 'statistik',
+    isActive: false,
   },
   {
     id: 'materi',
     label: 'Materi',
     href: '/materi',
     icon: 'BookOpen',
-    isActive: false
+    iconFile: 'materi',
+    isActive: false,
   },
   {
     id: 'daftar-tryout',
     label: 'Daftar Tryout',
     href: '/daftar-tryout',
     icon: 'ClipboardList',
-    isActive: true
+    iconFile: 'daftar_tryout',
+    isActive: true,
   },
   {
     id: 'riwayat',
     label: 'Riwayat & Pembahasan',
     href: '/history',
     icon: 'History',
-    isActive: true
+    iconFile: 'riwayat',
+    isActive: true,
   },
   {
     id: 'beli-paket',
     label: 'Beli Paket',
     href: '/beli-paket',
     icon: 'ShoppingCart',
-    isActive: false
-  }
+    iconFile: 'beli_paket',
+    isActive: false,
+  },
 ];
 
 export const SECONDARY_MENU_ITEMS: MenuItem[] = [
@@ -70,19 +64,21 @@ export const SECONDARY_MENU_ITEMS: MenuItem[] = [
     label: 'Event & Promo',
     href: '/events-promo',
     icon: 'Megaphone',
-    isActive: false
+    iconFile: 'event_promo',
+    isActive: false,
   },
   {
     id: 'grup',
     label: 'Grup',
     href: '/grup',
     icon: 'Users',
-    isActive: false
-  }
+    iconFile: 'grup',
+    isActive: false,
+  },
 ];
 
-// For Feature Grid (mobile) - excludes Dashboard
+// Untuk FeatureGrid mobile — exclude Dashboard
 export const FEATURE_GRID_ITEMS: MenuItem[] = [
-  ...MAIN_MENU_ITEMS.filter(item => item.id !== 'dashboard'),
-  ...SECONDARY_MENU_ITEMS
+  ...MAIN_MENU_ITEMS.filter((item) => item.id !== 'dashboard'),
+  ...SECONDARY_MENU_ITEMS,
 ];

@@ -1,0 +1,393 @@
+<svg width="100%" viewBox="0 0 690 830" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>PintuASN Custom Icon Set v2</title>
+<desc>Icon set untuk aplikasi PintuASN dengan brand navy #091426 dan gold #f9bd22</desc>
+
+<defs>
+  <mask id="text-gaps" maskUnits="userSpaceOnUse">
+    <rect x="0" y="0" width="690" height="830" fill="white"/>
+  </mask>
+  <!-- Gradient untuk nav bar -->
+  <linearGradient id="navGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" style="stop-color:#0d1e3a;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#091426;stop-opacity:1" />
+  </linearGradient>
+  <!-- Active pill glow -->
+  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="2" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <!-- Shadow for nav bar -->
+  <filter id="navShadow" x="-5%" y="-10%" width="110%" height="130%">
+    <feDropShadow dx="0" dy="-4" stdDeviation="8" flood-color="#091426" flood-opacity="0.18"/>
+  </filter>
+</defs>
+
+<!-- Background -->
+<rect width="680" height="820" fill="#f1f5fb" rx="12"/>
+
+<!-- Header -->
+<text x="340" y="36" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="700" fill="#091426" text-anchor="middle">PintuASN — Custom Icon Set v2</text>
+<text x="340" y="54" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">Brand: Navy #091426 · Gold #f9bd22</text>
+
+<!-- ─── SECTION: Menu Utama ─── -->
+<text x="40" y="82" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">MENU UTAMA</text>
+
+<!-- Dashboard — REVISI: kuning agak hitam (opacity 0.7) → kuning terang penuh -->
+<g transform="translate(40,92)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <!-- grid 2x2: semua kuning terang (#f9bd22 opacity 1) -->
+  <rect x="23" y="19" width="14" height="14" rx="2" fill="#f9bd22"/>
+  <rect x="41" y="19" width="14" height="14" rx="2" fill="#ffffff" opacity="0.4"/>
+  <rect x="23" y="37" width="14" height="14" rx="2" fill="#ffffff" opacity="0.4"/>
+  <!-- WAS: fill="#f9bd22" opacity="0.7" → NOW: opacity="1" -->
+  <rect x="41" y="37" width="14" height="14" rx="2" fill="#f9bd22" opacity="1"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Dashboard</text>
+</g>
+
+<!-- Statistik -->
+<g transform="translate(132,92)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <rect x="23" y="42" width="7" height="12" rx="1" fill="#ffffff" opacity="0.35"/>
+  <rect x="33" y="35" width="7" height="19" rx="1" fill="#f9bd22" opacity="0.8"/>
+  <rect x="43" y="27" width="7" height="27" rx="1" fill="#f9bd22"/>
+  <line x1="24" y1="44" x2="47" y2="29" stroke="#ffffff" stroke-width="1.2" opacity="0.5"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Statistik</text>
+</g>
+
+<!-- Materi — REVISI: kuning kanan halaman (opacity 0.85) → kuning terang -->
+<g transform="translate(224,92)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <!-- open book -->
+  <path d="M28 23 C28 23 33 21 40 23 L40 44 C33 42 28 44 28 44 Z" fill="#ffffff" opacity="0.9"/>
+  <!-- WAS: fill="#f9bd22" opacity="0.85" → NOW: opacity="1" kuning terang -->
+  <path d="M40 23 C40 23 47 21 52 23 L52 44 C47 42 40 44 40 44 Z" fill="#f9bd22" opacity="1"/>
+  <line x1="40" y1="23" x2="40" y2="44" stroke="#091426" stroke-width="0.8"/>
+  <path d="M28 44 Q40 47 52 44" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.5"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Materi</text>
+</g>
+
+<!-- Daftar Tryout -->
+<g transform="translate(316,92)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <rect x="25" y="23" width="30" height="28" rx="3" fill="#ffffff" opacity="0.12"/>
+  <rect x="25" y="23" width="30" height="28" rx="3" stroke="#ffffff" stroke-width="1.2" fill="none" opacity="0.7"/>
+  <rect x="33" y="19" width="14" height="7" rx="3" fill="#f9bd22"/>
+  <line x1="30" y1="32" x2="50" y2="32" stroke="#f9bd22" stroke-width="1.5"/>
+  <line x1="30" y1="38" x2="50" y2="38" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+  <line x1="30" y1="43" x2="43" y2="43" stroke="#ffffff" stroke-width="1" opacity="0.5"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="600" fill="#091426" text-anchor="middle">Daftar Tryout</text>
+</g>
+
+<!-- Riwayat -->
+<g transform="translate(408,92)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <circle cx="40" cy="36" r="13" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.7"/>
+  <circle cx="40" cy="36" r="1.5" fill="#f9bd22"/>
+  <line x1="40" y1="36" x2="40" y2="26" stroke="#f9bd22" stroke-width="2" stroke-linecap="round"/>
+  <line x1="40" y1="36" x2="47" y2="40" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+  <path d="M29 44 Q26 48 30 50" fill="none" stroke="#f9bd22" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Riwayat</text>
+</g>
+
+<!-- Beli Paket -->
+<g transform="translate(500,92)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <path d="M27 30 L28 50 L52 50 L53 30 Z" fill="#ffffff" opacity="0.12"/>
+  <path d="M27 30 L28 50 L52 50 L53 30 Z" stroke="#ffffff" stroke-width="1.3" fill="none" opacity="0.8"/>
+  <path d="M33 30 Q33 23 40 23 Q47 23 47 30" fill="none" stroke="#f9bd22" stroke-width="2"/>
+  <circle cx="40" cy="41" r="5" fill="#f9bd22"/>
+  <path d="M40 37.5 L41 40 L43.5 40 L41.5 41.5 L42.3 44 L40 42.5 L37.7 44 L38.5 41.5 L36.5 40 L39 40 Z" fill="#091426" opacity="0.9"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Beli Paket</text>
+</g>
+
+<!-- ─── SECTION: Lainnya ─── -->
+<text x="40" y="210" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">LAINNYA</text>
+
+<!-- Event & Promo -->
+<g transform="translate(40,220)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <path d="M26 31 L36 27 L36 45 L26 41 Z" fill="#ffffff" opacity="0.85"/>
+  <path d="M36 27 L51 21 L51 51 L36 45 Z" fill="#f9bd22" opacity="0.9"/>
+  <path d="M53 27 Q57 33 53 39" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+  <path d="M55 24 Q61 33 55 42" fill="none" stroke="#f9bd22" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+  <rect x="24" y="41" width="5" height="8" rx="2" fill="#ffffff" opacity="0.5"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="600" fill="#091426" text-anchor="middle">Event &amp; Promo</text>
+</g>
+
+<!-- Grup -->
+<g transform="translate(132,220)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <circle cx="33" cy="28" r="5" fill="#ffffff" opacity="0.9"/>
+  <path d="M24 49 Q24 39 33 39 Q42 39 42 49" fill="#ffffff" opacity="0.6"/>
+  <circle cx="47" cy="27" r="4.5" fill="#f9bd22"/>
+  <path d="M39 49 Q39 40 47 40 Q55 40 55 49" fill="#f9bd22" opacity="0.6"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Grup</text>
+</g>
+
+<!-- ─── SECTION: Upgrade Card Icons ─── -->
+<text x="40" y="342" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">UPGRADE CARD — FEATURE ICONS</text>
+
+<!-- Riwayat locked FREE -->
+<g transform="translate(40,352)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#e8edf5"/>
+  <rect x="29" y="33" width="22" height="18" rx="3" fill="#cbd5e1"/>
+  <path d="M33 33 Q33 24 40 24 Q47 24 47 33" fill="none" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="40" cy="41" r="2.5" fill="#94a3b8"/>
+  <line x1="40" y1="43" x2="40" y2="46" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Riwayat</text>
+  <text x="40" y="85" font-family="sans-serif" font-size="9" fill="#cbd5e1" text-anchor="middle">FREE</text>
+</g>
+
+<!-- Riwayat unlocked PREMIUM -->
+<g transform="translate(132,352)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#f9bd22"/>
+  <path d="M27 36 Q27 30 33 30 Q39 30 40 36 Q41 42 47 42 Q53 42 53 36 Q53 30 47 30 Q41 30 40 36 Q39 42 33 42 Q27 42 27 36 Z" fill="none" stroke="#091426" stroke-width="2.5"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Riwayat</text>
+  <text x="40" y="85" font-family="sans-serif" font-size="9" fill="#f9bd22" text-anchor="middle">PREMIUM</text>
+</g>
+
+<!-- Video SKD locked FREE -->
+<g transform="translate(224,352)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#e8edf5"/>
+  <rect x="24" y="22" width="32" height="28" rx="4" fill="#cbd5e1"/>
+  <path d="M35 28 L48 36 L35 44 Z" fill="#94a3b8"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Video SKD</text>
+  <text x="40" y="85" font-family="sans-serif" font-size="9" fill="#cbd5e1" text-anchor="middle">FREE</text>
+</g>
+
+<!-- Video SKD unlocked PREMIUM -->
+<g transform="translate(316,352)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <rect x="24" y="22" width="32" height="28" rx="4" fill="#ffffff" opacity="0.1"/>
+  <rect x="24" y="22" width="32" height="28" rx="4" stroke="#ffffff" stroke-width="1" fill="none" opacity="0.5"/>
+  <path d="M35 28 L48 36 L35 44 Z" fill="#f9bd22"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Video SKD</text>
+  <text x="40" y="85" font-family="sans-serif" font-size="9" fill="#f9bd22" text-anchor="middle">PREMIUM</text>
+</g>
+
+<!-- Analisis FREE locked — gembok seperti semula -->
+<g transform="translate(408,352)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#e8edf5"/>
+  <!-- lock body -->
+  <rect x="29" y="33" width="22" height="18" rx="3" fill="#cbd5e1"/>
+  <!-- lock shackle -->
+  <path d="M33 33 Q33 24 40 24 Q47 24 47 33" fill="none" stroke="#94a3b8" stroke-width="2"/>
+  <!-- keyhole -->
+  <circle cx="40" cy="41" r="2.5" fill="#94a3b8"/>
+  <line x1="40" y1="43" x2="40" y2="46" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Analisis</text>
+  <text x="40" y="85" font-family="sans-serif" font-size="9" fill="#cbd5e1" text-anchor="middle">FREE</text>
+</g>
+
+<!-- Analisis Pro PREMIUM -->
+<g transform="translate(500,352)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <path d="M27 46 L33 36 L39 40 L45 28 L53 24" fill="none" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" opacity="0.4"/>
+  <path d="M27 46 L33 36 L39 40 L45 28 L53 24" fill="none" stroke="#f9bd22" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="33" cy="36" r="2.5" fill="#f9bd22"/>
+  <circle cx="39" cy="40" r="2.5" fill="#f9bd22"/>
+  <circle cx="45" cy="28" r="2.5" fill="#f9bd22"/>
+  <rect x="43" y="44" width="16" height="9" rx="2" fill="#f9bd22"/>
+  <text x="51" y="51" font-family="sans-serif" font-size="7" font-weight="700" fill="#091426" text-anchor="middle">PRO</text>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Analisis</text>
+  <text x="40" y="85" font-family="sans-serif" font-size="9" fill="#f9bd22" text-anchor="middle">PREMIUM</text>
+</g>
+
+<!-- ─── SECTION: App & Brand Icons ─── -->
+<text x="40" y="472" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">APP ICONS &amp; BRAND</text>
+
+<!-- App icon 48px -->
+<g transform="translate(40,482)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="10" width="48" height="48" rx="12" fill="#091426"/>
+  <rect x="29" y="21" width="22" height="26" rx="3" fill="#f9bd22" opacity="0.15"/>
+  <rect x="29" y="21" width="22" height="26" rx="3" stroke="#f9bd22" stroke-width="1.5" fill="none"/>
+  <circle cx="45" cy="34" r="2" fill="#f9bd22"/>
+  <path d="M29 24 Q40 16 51 24" fill="#f9bd22" opacity="0.9"/>
+  <circle cx="35" cy="32" r="1.5" fill="#ffffff" opacity="0.6"/>
+  <circle cx="40" cy="29" r="1.5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="45" cy="32" r="1.5" fill="#f9bd22" opacity="0.4"/>
+  <text x="40" y="72" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">App Icon</text>
+  <text x="40" y="83" font-family="sans-serif" font-size="9" fill="#94a3b8" text-anchor="middle">48px</text>
+</g>
+
+<!-- Crown tier: Gratis -->
+<g transform="translate(132,482)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#f1f5f9"/>
+  <path d="M26 44 L27 28 L34 36 L40 22 L46 36 L53 28 L54 44 Z" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linejoin="round"/>
+  <line x1="26" y1="46" x2="54" y2="46" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Gratis</text>
+</g>
+
+<!-- Crown tier: Premium -->
+<g transform="translate(224,482)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#fef9ec"/>
+  <path d="M26 44 L27 28 L34 36 L40 22 L46 36 L53 28 L54 44 Z" fill="#f9bd22" stroke="#c8931a" stroke-width="1" stroke-linejoin="round"/>
+  <rect x="26" y="44" width="28" height="4" rx="1" fill="#c8931a" opacity="0.5"/>
+  <circle cx="40" cy="30" r="2.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="30" cy="37" r="1.5" fill="#ffffff" opacity="0.6"/>
+  <circle cx="50" cy="37" r="1.5" fill="#ffffff" opacity="0.6"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Premium</text>
+</g>
+
+<!-- Crown tier: Platinum — bg ungu, 3 crowns, kiri/kanan setengah, tengah unik -->
+<g transform="translate(316,482)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+
+  <!-- Background ungu muda (opacity setara krem Premium ~fef9ec) -->
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#ede9fe"/>
+
+  <!-- subtle shimmer/sheen di atas -->
+  <clipPath id="platBox">
+    <rect x="16" y="12" width="48" height="48" rx="10"/>
+  </clipPath>
+
+  <g clip-path="url(#platBox)">
+    <!-- Crown KIRI (kuning) — setengah terpotong -->
+    <g transform="translate(16,51)">
+      <path d="M-13,0 L-11,-17 L-4,-9 L0,-22 L4,-9 L11,-17 L13,0 Z"
+            fill="#f9bd22" stroke="#c8931a" stroke-width="1" stroke-linejoin="round"/>
+      <rect x="-13" y="0" width="26" height="4" rx="1.5" fill="#c8931a" opacity="0.5"/>
+      <circle cx="0" cy="-17" r="2" fill="#ffffff" opacity="0.8"/>
+    </g>
+
+    <!-- Crown TENGAH — desain unik: crown dengan 5 puncak bergradasi + inner glow -->
+    <!-- Base: 5-point crown, lebih lebar & tinggi, outline glow -->
+    <g transform="translate(40,51)">
+      <!-- Outer glow layer -->
+      <path d="M-14,1 L-12,-15 L-7,-8 L-4,-18 L0,-26 L4,-18 L7,-8 L12,-15 L14,1 Z"
+            fill="#a78bfa" opacity="0.35"/>
+      <!-- Crown utama 5 puncak -->
+      <path d="M-13,0 L-11,-14 L-6,-7 L-3.5,-17 L0,-25 L3.5,-17 L6,-7 L11,-14 L13,0 Z"
+            fill="#7c3aed" stroke="#5b21b6" stroke-width="0.8" stroke-linejoin="round"/>
+      <!-- Inner highlight (lighter purple di bagian atas crown) -->
+      <path d="M-8,-4 L-6,-12 L-2.5,-6 L0,-14 L2.5,-6 L6,-12 L8,-4 Z"
+            fill="#a78bfa" opacity="0.45"/>
+      <!-- Base bar dengan gradient feel -->
+      <rect x="-13" y="0" width="26" height="4.5" rx="2" fill="#4c1d95" opacity="0.7"/>
+      <rect x="-13" y="0" width="26" height="1.5" rx="1" fill="#a78bfa" opacity="0.4"/>
+      <!-- Gem puncak tengah: berlian shape -->
+      <path d="M0,-28 L3,-23 L0,-19 L-3,-23 Z" fill="#ddd6fe"/>
+      <path d="M0,-28 L3,-23 L0,-25 Z" fill="#ffffff" opacity="0.7"/>
+      <!-- Gem puncak kiri & kanan: bintang kecil -->
+      <path d="M-3.5,-20 L-2.5,-17.5 L-3.5,-15 L-4.5,-17.5 Z" fill="#c4b5fd" opacity="0.9"/>
+      <path d="M3.5,-20 L4.5,-17.5 L3.5,-15 L2.5,-17.5 Z"  fill="#c4b5fd" opacity="0.9"/>
+      <!-- Ornament: 3 dot aksen di base -->
+      <circle cx="-6"  cy="2" r="1.2" fill="#a78bfa" opacity="0.8"/>
+      <circle cx="0"   cy="2" r="1.2" fill="#ddd6fe" opacity="0.9"/>
+      <circle cx="6"   cy="2" r="1.2" fill="#a78bfa" opacity="0.8"/>
+    </g>
+
+    <!-- Crown KANAN (kuning) — setengah terpotong -->
+    <g transform="translate(64,51)">
+      <path d="M-13,0 L-11,-17 L-4,-9 L0,-22 L4,-9 L11,-17 L13,0 Z"
+            fill="#f9bd22" stroke="#c8931a" stroke-width="1" stroke-linejoin="round"/>
+      <rect x="-13" y="0" width="26" height="4" rx="1.5" fill="#c8931a" opacity="0.5"/>
+      <circle cx="0" cy="-17" r="2" fill="#ffffff" opacity="0.8"/>
+    </g>
+  </g>
+
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#4c1d95" text-anchor="middle">Platinum</text>
+</g>
+
+<!-- Notifikasi -->
+<g transform="translate(408,482)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <path d="M40 19 Q47 19 49 28 L50 38 L52 40 L28 40 L30 38 L31 28 Q33 19 40 19 Z" fill="#ffffff" opacity="0.9"/>
+  <path d="M37 40 Q37 44 40 44 Q43 44 43 40" fill="#ffffff" opacity="0.9"/>
+  <circle cx="48" cy="20" r="5" fill="#ba1a1a"/>
+  <text x="48" y="23.5" font-family="sans-serif" font-size="7" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Notifikasi</text>
+</g>
+
+<!-- Profil -->
+<g transform="translate(500,482)">
+  <rect width="80" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="16" y="12" width="48" height="48" rx="10" fill="#091426"/>
+  <circle cx="40" cy="30" r="9" fill="#f9bd22"/>
+  <circle cx="40" cy="28" r="4.5" fill="#091426" opacity="0.7"/>
+  <path d="M29 54 Q30 43 40 43 Q50 43 51 54" fill="#f9bd22" opacity="0.7"/>
+  <text x="40" y="74" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="600" fill="#091426" text-anchor="middle">Profil</text>
+</g>
+
+<!-- ─── SECTION: Bottom Navigation (Redesigned) ─── -->
+<text x="40" y="604" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#94a3b8">BOTTOM NAVIGATION (PWA MOBILE)</text>
+
+<!-- Nav bar container — redesigned: navy gelap, rounded lebih besar, shadow -->
+<rect x="40" y="614" width="600" height="78" rx="24" fill="url(#navGrad)" filter="url(#navShadow)"/>
+<!-- subtle top highlight line -->
+<rect x="40" y="614" width="600" height="1" rx="1" fill="#ffffff" opacity="0.08"/>
+
+<!-- ─── HOME active — pill highlight + ikon aktif ─── -->
+<g transform="translate(76,622)">
+  <!-- Active pill background -->
+  <rect x="-28" y="2" width="56" height="42" rx="14" fill="#f9bd22" opacity="0.15"/>
+  <!-- bottom indicator dot -->
+  <circle cx="0" cy="68" r="3" fill="#f9bd22"/>
+  <!-- House icon (aktif = kuning penuh) -->
+  <path d="M-12 22 L0 10 L12 22" fill="none" stroke="#f9bd22" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="-8" y="22" width="16" height="13" rx="2.5" fill="#f9bd22" opacity="0.25"/>
+  <path d="M-8 35 L-8 22 L8 22 L8 35" fill="none" stroke="#f9bd22" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="-3" y="26" width="6" height="9" rx="1.5" fill="#f9bd22"/>
+  <text x="0" y="56" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#f9bd22" text-anchor="middle">Home</text>
+</g>
+
+<!-- ─── STATISTIK nav — inactive ─── -->
+<g transform="translate(196,622)">
+  <!-- bar chart -->
+  <rect x="-7" y="22" width="5" height="13" rx="1.5" fill="#ffffff" opacity="0.35"/>
+  <rect x="0" y="17" width="5" height="18" rx="1.5" fill="#f9bd22" opacity="0.55"/>
+  <rect x="7" y="12" width="5" height="23" rx="1.5" fill="#ffffff" opacity="0.35"/>
+  <text x="0" y="56" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="500" fill="#94a3b8" text-anchor="middle">Statistik</text>
+</g>
+
+<!-- ─── ROADMAP — center FAB (dipertahankan, dipercantik) ─── -->
+<g transform="translate(316,614)">
+  <!-- FAB outer glow ring -->
+  <circle cx="0" cy="22" r="30" fill="#091426" stroke="#f9bd22" stroke-width="1.5" opacity="0.4"/>
+  <!-- FAB main circle -->
+  <circle cx="0" cy="22" r="26" fill="#f9bd22"/>
+  <!-- Map pin icon -->
+  <path d="M0 8 Q8 8 8 16 Q8 24 0 32 Q-8 24 -8 16 Q-8 8 0 8 Z" fill="#091426"/>
+  <circle cx="0" cy="16" r="4" fill="#f9bd22"/>
+  <text x="0" y="66" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="700" fill="#f9bd22" text-anchor="middle">Roadmap</text>
+</g>
+
+<!-- ─── MATERI nav — inactive ─── -->
+<g transform="translate(436,622)">
+  <!-- open book simplified -->
+  <path d="M-10 28 C-10 28 -5 26 0 28 L0 13 C-5 11 -10 13 -10 13 Z" fill="#ffffff" opacity="0.35"/>
+  <path d="M0 28 C0 28 5 26 10 28 L10 13 C5 11 0 13 0 13 Z" fill="#ffffff" opacity="0.35"/>
+  <line x1="0" y1="13" x2="0" y2="28" stroke="#ffffff" stroke-width="1" opacity="0.3"/>
+  <text x="0" y="56" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="500" fill="#94a3b8" text-anchor="middle">Materi</text>
+</g>
+
+<!-- ─── PROFIL nav — inactive ─── -->
+<g transform="translate(556,622)">
+  <!-- person icon -->
+  <circle cx="0" cy="15" r="7" fill="none" stroke="#ffffff" stroke-width="1.8" opacity="0.35"/>
+  <path d="M-11 35 Q-10 25 0 25 Q10 25 11 35" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.35"/>
+  <text x="0" y="56" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="500" fill="#94a3b8" text-anchor="middle">Profil</text>
+</g>
+
+<!-- ─── Footer note ─── -->
+<text x="340" y="716" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">Semua icon siap di-export sebagai SVG individual · stroke-linecap: round · brand PintuASN v2</text>
+
+</svg>

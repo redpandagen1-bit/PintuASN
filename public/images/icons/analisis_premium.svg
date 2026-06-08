@@ -1,0 +1,10 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="10" fill="#091426"/>
+  <path d="M11 34 L17 24 L23 28 L29 16 L37 12" fill="none" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" opacity="0.4"/>
+  <path d="M11 34 L17 24 L23 28 L29 16 L37 12" fill="none" stroke="#f9bd22" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="17" cy="24" r="2.5" fill="#f9bd22"/>
+  <circle cx="23" cy="28" r="2.5" fill="#f9bd22"/>
+  <circle cx="29" cy="16" r="2.5" fill="#f9bd22"/>
+  <rect x="30" y="32" width="14" height="9" rx="2" fill="#f9bd22"/>
+  <text x="37" y="39" font-family="sans-serif" font-size="6" font-weight="700" fill="#091426" text-anchor="middle">PRO</text>
+</svg>

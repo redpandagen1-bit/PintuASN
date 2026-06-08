@@ -7,8 +7,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  BookOpen, ClipboardList, History,
-  ShoppingCart, Megaphone, Users,
+  BookOpen, Users,
   ChevronRight, ArrowRight, Play, Clock,
   CheckCircle, BarChart2,
   Award, TrendingUp, FileText,
@@ -56,12 +55,12 @@ interface MobileDashboardProps {
 // ── Menu grid items (icons sama dengan sidebar desktop) ───────
 
 const MENU_ITEMS = [
-  { label: 'Materi',        href: '/materi',        Icon: BookOpen,   gold: false },
-  { label: 'Daftar Tryout', href: '/daftar-tryout', Icon: ClipboardList, gold: false },
-  { label: 'Riwayat',       href: '/history',       Icon: History,    gold: false },
-  { label: 'Beli Paket',    href: '/beli-paket',    Icon: ShoppingCart, gold: true },
-  { label: 'Event & Promo', href: '/events-promo',  Icon: Megaphone, gold: false },
-  { label: 'Grup',          href: '/roadmap',       Icon: Users,      gold: false },
+  { label: 'Materi',        href: '/materi',        iconFile: 'materi'       },
+  { label: 'Daftar Tryout', href: '/daftar-tryout', iconFile: 'daftar_tryout' },
+  { label: 'Riwayat',       href: '/history',       iconFile: 'riwayat'      },
+  { label: 'Beli Paket',    href: '/beli-paket',    iconFile: 'beli_paket'   },
+  { label: 'Event & Promo', href: '/events-promo',  iconFile: 'event_promo'  },
+  { label: 'Grup',          href: '/roadmap',       iconFile: 'grup'         },
 ] as const;
 
 // ── Tryout card constants (identik dengan MobileDaftarTryout) ─
@@ -207,15 +206,17 @@ export function MobileDashboard({
       {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
       <section>
         <div className="grid grid-cols-3">
-          {MENU_ITEMS.map(({ label, href, Icon, gold }) => (
+          {MENU_ITEMS.map(({ label, href, iconFile }) => (
             <Link key={label} href={href} className="flex flex-col items-center gap-2 py-3 group active-press">
-              <div className="w-14 h-14 rounded-2xl bg-white shadow-md3-sm flex items-center justify-center transition-all group-active:scale-95">
-                <Icon
-                  size={22}
-                  className={gold ? 'text-md-secondary' : 'text-md-primary'}
-                  strokeWidth={1.8}
-                />
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/images/icons/${iconFile}.svg`}
+                alt={label}
+                width={52}
+                height={52}
+                className="transition-all group-active:scale-95"
+                style={{ opacity: 0.85 }}
+              />
               <span className="text-[10px] font-bold text-md-primary text-center leading-tight"
                 style={{ fontFamily: 'var(--font-jakarta)' }}>
                 {label}

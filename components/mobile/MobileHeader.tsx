@@ -5,14 +5,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Bell } from 'lucide-react';
+import { AppIcon } from '@/components/shared/app-icon';
 
 interface MobileHeaderProps {
   userImageUrl?: string | null;
   userInitials?: string;
+  unreadCount?: number;
 }
 
-export function MobileHeader({ userImageUrl, userInitials = 'U' }: MobileHeaderProps) {
+export function MobileHeader({
+  userImageUrl,
+  userInitials = 'U',
+  unreadCount = 0,
+}: MobileHeaderProps) {
   return (
     <header className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-2.5 bg-md-surface-container-low">
       {/* Logo */}
@@ -27,17 +32,23 @@ export function MobileHeader({ userImageUrl, userInitials = 'U' }: MobileHeaderP
 
       {/* Right side: notifikasi + avatar */}
       <div className="flex items-center gap-2">
-        {/* Notification bell */}
+
+        {/* Notification bell — pakai AppIcon */}
         <button
-          className="w-8 h-8 rounded-xl bg-white flex items-center justify-center text-md-primary shadow-md3-sm active-press"
+          className="relative w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-md3-sm active-press"
           aria-label="Notifikasi"
         >
-          <Bell size={16} strokeWidth={1.8} />
+          <AppIcon name="notifikasi" size={24} />
+          {unreadCount > 0 && (
+            <span className="absolute top-0.5 right-0.5 min-w-[14px] h-[14px] bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white leading-none">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Avatar */}
         <Link href="/profile" className="active-press">
-          <div className="w-8 h-8 rounded-full overflow-hidden bg-md-surface-container-high border-2 border-md-secondary-container flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-md-surface-container-high border-2 border-md-secondary-container flex items-center justify-center flex-shrink-0">
             {userImageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -46,7 +57,10 @@ export function MobileHeader({ userImageUrl, userInitials = 'U' }: MobileHeaderP
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-xs font-black text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              <span
+                className="text-xs font-black text-md-primary"
+                style={{ fontFamily: 'var(--font-jakarta)' }}
+              >
                 {userInitials}
               </span>
             )}
