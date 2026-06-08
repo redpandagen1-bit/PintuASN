@@ -116,6 +116,7 @@ export interface ReviewChoice {
   id: string;
   label: string;
   content: string;
+  image_url?: string | null;
   is_answer: boolean;
   score?: number;
 }
@@ -127,6 +128,7 @@ export interface ReviewQuestion {
   content: string;
   image_url?: string | null;
   explanation?: string | null;
+  explanation_image_url?: string | null;
   topic?: string | null;
   difficulty: 'easy' | 'medium' | 'hard';
   choices: ReviewChoice[];

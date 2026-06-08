@@ -6,6 +6,9 @@ export function useAutoSave(
 ) {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  // true bila penyimpanan jawaban terakhir GAGAL (sesi kedaluwarsa / offline).
+  // Dipakai komponen exam untuk memberi peringatan ke user.
+  const [saveFailed, setSaveFailed] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const answersRef = useRef(answers);
   const isSavingRef = useRef(false);
@@ -40,10 +43,12 @@ export function useAutoSave(
       }
 
       setLastSaved(new Date());
+      setSaveFailed(false);
     } catch (error) {
       console.error('Auto-save failed:', error);
-      // Tidak toast di sini — silent fail untuk auto-save background
-      // User tidak perlu tahu setiap kali auto-save gagal
+      // Tandai gagal agar komponen exam bisa memperingatkan user
+      // (mis. sesi kedaluwarsa / koneksi putus → jawaban tidak tersimpan).
+      setSaveFailed(true);
     } finally {
       isSavingRef.current = false;
       setIsSaving(false);
@@ -91,5 +96,5 @@ export function useAutoSave(
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [attemptId]); // hanya depend on attemptId, answers diambil dari ref
 
-  return { isSaving, lastSaved };
+  return { isSaving, lastSaved, saveFailed };
 }

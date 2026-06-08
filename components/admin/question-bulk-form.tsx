@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Loader2, X, Save, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_LABEL } from '@/lib/upload-limits';
 
 interface QuestionBulkFormProps {
   packageId: string;
@@ -55,6 +56,40 @@ function getCategoryFromNumber(num: number): 'TWK' | 'TIU' | 'TKP' {
 /** Apakah choice dianggap "terisi" — ada text ATAU ada gambar */
 function isChoiceFilled(choice: { content: string; image_url?: string }): boolean {
   return !!(choice.content.trim() || choice.image_url);
+}
+
+/**
+ * Daftar field wajib yang belum terisi untuk sebuah soal yang SUDAH dimulai
+ * (punya teks/gambar soal). Dipakai untuk peringatan sebelum simpan.
+ * Mengembalikan [] jika soal sudah lengkap atau masih kosong total.
+ */
+function getMissingFields(draft: QuestionDraft): string[] {
+  const hasQuestion = !!(draft.content.trim() || draft.image_url);
+  if (!hasQuestion) return []; // soal kosong total — sengaja dilewati, bukan "merah"
+
+  const missing: string[] = [];
+
+  const emptyChoices = draft.choices.filter(c => !isChoiceFilled(c)).map(c => c.label);
+  if (emptyChoices.length > 0) missing.push(`pilihan ${emptyChoices.join(', ')} belum diisi`);
+
+  if (!draft.explanation.trim()) missing.push('teks Pembahasan kosong');
+
+  if (draft.category !== 'TKP') {
+    const correctCount = draft.choices.filter(c => c.is_answer).length;
+    if (correctCount !== 1) missing.push('jawaban benar belum dipilih');
+  } else {
+    const scores = draft.choices.map(c => c.score);
+    if (scores.some(s => s === null)) {
+      missing.push('skor (1-5) belum lengkap di semua pilihan');
+    } else {
+      const unique = new Set(scores.filter(s => s !== null));
+      if (unique.size !== 5 || !scores.every(s => s !== null && s >= 1 && s <= 5)) {
+        missing.push('skor harus 1-5 dan berbeda untuk tiap pilihan');
+      }
+    }
+  }
+
+  return missing;
 }
 
 /** Buat preview URL dari File tanpa menyimpan base64 ke state besar */
@@ -181,16 +216,6 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
     );
   }, [currentNumber, isLoading, makeEmptyDraft]);
 
-  // ── Auto explanation image — ikut gambar jawaban benar ──────────────
-  /**
-   * Ketika jawaban yang benar di-set dan pilihan tersebut punya image_url,
-   * otomatis set explanation_image_url ke gambar itu.
-   */
-  const getCorrectChoiceImageUrl = (fd: QuestionDraft): string => {
-    const correctChoice = fd.choices.find(c => c.is_answer);
-    return correctChoice?.image_url || '';
-  };
-
   // ── Progress calculation ─────────────────────────────────────────────
   const allDrafts = Object.values(draftsRef.current);
   const completedCount = allDrafts.filter(d => d.status === 'complete').length;
@@ -222,7 +247,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
   const handleQuestionImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('Ukuran file maksimal 5MB'); return; }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) { alert(`Ukuran file maksimal ${MAX_IMAGE_UPLOAD_LABEL}. Kompres gambar terlebih dahulu.`); return; }
     const key = `q${currentNumber}`;
     const preview = await createPreview(file);
     setImageFiles(prev => ({ ...prev, [key]: file }));
@@ -233,7 +258,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
   const handleChoiceImageChange = async (label: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('Ukuran file maksimal 5MB'); return; }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) { alert(`Ukuran file maksimal ${MAX_IMAGE_UPLOAD_LABEL}. Kompres gambar terlebih dahulu.`); return; }
     const key = `q${currentNumber}_${label}`;
     const preview = await createPreview(file);
     setImageFiles(prev => ({ ...prev, [key]: file }));
@@ -243,28 +268,15 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
       const updatedChoices = prev.choices.map(c =>
         c.label === label ? { ...c, image_url: preview } : c
       );
-      // Auto-update explanation_image_url jika ini jawaban yang benar
-      const isCorrect = prev.choices.find(c => c.label === label)?.is_answer;
-      return {
-        ...prev,
-        choices: updatedChoices,
-        explanation_image_url: isCorrect ? preview : prev.explanation_image_url,
-      };
+      return { ...prev, choices: updatedChoices };
     });
   };
 
   const handleCorrectAnswerChange = (label: string) => {
-    setFormData(prev => {
-      const updatedChoices = prev.choices.map(c => ({ ...c, is_answer: c.label === label }));
-      const correctChoice = updatedChoices.find(c => c.is_answer);
-      // Auto-set explanation_image_url ke gambar jawaban yang benar
-      const autoExplanationImage = correctChoice?.image_url || prev.explanation_image_url;
-      return {
-        ...prev,
-        choices: updatedChoices,
-        explanation_image_url: autoExplanationImage,
-      };
-    });
+    setFormData(prev => ({
+      ...prev,
+      choices: prev.choices.map(c => ({ ...c, is_answer: c.label === label })),
+    }));
   };
 
   const removeQuestionImage = () => {
@@ -278,18 +290,31 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
     const key = `q${currentNumber}_${label}`;
     setImageFiles(prev => { const n = { ...prev }; delete n[key]; return n; });
     setImagePreviews(prev => { const n = { ...prev }; delete n[key]; return n; });
-    setFormData(prev => {
-      const updatedChoices = prev.choices.map(c =>
+    setFormData(prev => ({
+      ...prev,
+      choices: prev.choices.map(c =>
         c.label === label ? { ...c, image_url: '' } : c
-      );
-      // Jika jawaban benar dihapus gambarnya, clear explanation_image_url
-      const wasCorrect = prev.choices.find(c => c.label === label)?.is_answer;
-      return {
-        ...prev,
-        choices: updatedChoices,
-        explanation_image_url: wasCorrect ? '' : prev.explanation_image_url,
-      };
-    });
+      ),
+    }));
+  };
+
+  // ── Explanation image handlers (manual upload — gambar/SVG pembahasan) ──
+  const handleExplanationImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) { alert(`Ukuran file maksimal ${MAX_IMAGE_UPLOAD_LABEL}. Kompres gambar terlebih dahulu.`); return; }
+    const key = `q${currentNumber}_explanation`;
+    const preview = await createPreview(file);
+    setImageFiles(prev => ({ ...prev, [key]: file }));
+    setImagePreviews(prev => ({ ...prev, [key]: preview }));
+    setFormData(prev => ({ ...prev, explanation_image_url: preview }));
+  };
+
+  const removeExplanationImage = () => {
+    const key = `q${currentNumber}_explanation`;
+    setImageFiles(prev => { const n = { ...prev }; delete n[key]; return n; });
+    setImagePreviews(prev => { const n = { ...prev }; delete n[key]; return n; });
+    setFormData(prev => ({ ...prev, explanation_image_url: '' }));
   };
 
   // ── Submit all ───────────────────────────────────────────────────────
@@ -301,8 +326,33 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
     };
     const completed = Object.values(allDraftsAfterSave).filter(d => d.status === 'complete');
 
-    if (completed.length === 0) { alert('Belum ada soal yang lengkap'); return; }
-    if (!confirm(`Simpan ${completed.length} soal lengkap ke database?`)) return;
+    // ── Peringatan soal "merah" (sudah dimulai tapi belum lengkap) ──────────
+    const incomplete = Object.values(allDraftsAfterSave)
+      .filter(d => d.status === 'incomplete')
+      .sort((a, b) => a.number - b.number);
+
+    if (incomplete.length > 0) {
+      const detail = incomplete
+        .map(d => `• Soal #${d.number} (${d.category}): ${getMissingFields(d).join(', ')}`)
+        .join('\n');
+
+      const lanjut = confirm(
+        `⚠️ Ada ${incomplete.length} soal BELUM LENGKAP dan TIDAK akan tersimpan:\n\n` +
+        `${detail}\n\n` +
+        (completed.length > 0
+          ? `Tetap simpan ${completed.length} soal yang sudah lengkap saja?\n(Tekan Batal untuk melengkapi soal di atas dulu.)`
+          : `Tidak ada soal lengkap untuk disimpan. Lengkapi dulu soal di atas.`)
+      );
+
+      // Batal, atau memang tidak ada yang lengkap → arahkan ke soal merah pertama
+      if (!lanjut || completed.length === 0) {
+        setCurrentNumber(incomplete[0].number);
+        return;
+      }
+    } else {
+      if (completed.length === 0) { alert('Belum ada soal yang lengkap untuk disimpan.'); return; }
+      if (!confirm(`Simpan ${completed.length} soal lengkap ke database?`)) return;
+    }
 
     setIsSaving(true);
     try {
@@ -316,6 +366,9 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
         if (res.ok) {
           const { url } = await res.json();
           uploadedUrls[key] = url;
+        } else {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(`Gagal upload gambar (${key}): ${data.error || 'kesalahan tidak diketahui'}`);
         }
       }
 
@@ -394,7 +447,6 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
 
   // Gambar preview untuk form yang sedang aktif
   const questionPreview = formData.image_url || '';
-  const explanationAutoImage = getCorrectChoiceImageUrl(formData);
 
   return (
     <div className="space-y-4">
@@ -487,9 +539,9 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
 
               {/* Question Image */}
               <div className="space-y-2">
-                <Label className="text-sm">Upload Gambar Soal (Optional)</Label>
+                <Label className="text-sm">Upload Gambar / SVG Soal (Optional)</Label>
                 <div className="flex items-start gap-3">
-                  <Input type="file" accept="image/*" onChange={handleQuestionImageChange} className="h-9" />
+                  <Input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg" onChange={handleQuestionImageChange} className="h-9" />
                   {questionPreview && (
                     <div className="relative">
                       <img src={questionPreview} alt="Preview" className="w-20 h-20 object-cover rounded border" />
@@ -542,7 +594,7 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
                               <div className="flex items-center gap-2">
                                 <Input
                                   type="file"
-                                  accept="image/*"
+                                  accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
                                   onChange={e => handleChoiceImageChange(choice.label, e)}
                                   className="text-xs h-8"
                                 />
@@ -604,37 +656,36 @@ export function QuestionBulkForm({ packageId, packageTitle }: QuestionBulkFormPr
                 />
               </div>
 
-              {/* Explanation Image — auto dari jawaban benar, tidak perlu upload ulang */}
-              {isTIU && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm">Gambar Pembahasan</Label>
-                    <span className="text-xs text-slate-400 flex items-center gap-1">
-                      <Info className="h-3 w-3" />
-                      Otomatis menggunakan gambar jawaban yang benar
-                    </span>
-                  </div>
-                  {explanationAutoImage ? (
-                    <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <img src={explanationAutoImage} alt="Auto explanation" className="w-16 h-16 object-cover rounded border" />
-                      <div>
-                        <p className="text-sm font-medium text-green-800">✅ Gambar otomatis dari jawaban benar</p>
-                        <p className="text-xs text-green-600">
-                          Jawaban: {formData.choices.find(c => c.is_answer)?.label || '-'}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                      <p className="text-sm text-slate-500">
-                        {formData.choices.some(c => c.is_answer)
-                          ? 'Jawaban benar belum memiliki gambar'
-                          : 'Belum ada jawaban benar yang dipilih'}
-                      </p>
+              {/* Explanation Image / SVG — upload manual (opsional) */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Gambar / SVG Pembahasan (Optional)</Label>
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    Lengkapi pembahasan dengan ilustrasi
+                  </span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
+                    onChange={handleExplanationImageChange}
+                    className="h-9"
+                  />
+                  {formData.explanation_image_url && (
+                    <div className="relative">
+                      <img
+                        src={formData.explanation_image_url}
+                        alt="Preview pembahasan"
+                        className="w-20 h-20 object-contain rounded border bg-white"
+                      />
+                      <Button type="button" variant="destructive" size="icon" className="absolute -top-1 -right-1 h-5 w-5" onClick={removeExplanationImage}>
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
                   )}
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
         </div>

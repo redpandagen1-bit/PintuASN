@@ -23,9 +23,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Attempt ID is required' }, { status: 400 });
     }
 
-    if (!answers || !Array.isArray(answers) || answers.length === 0) {
-      return NextResponse.json({ error: 'Answers are required' }, { status: 400 });
-    }
+    // Jawaban BOLEH kosong — ujian tetap bisa disubmit.
+    // Soal yang tidak dijawab dihitung tidak menambah skor (skor 0).
+    const answersList: { questionId: string; choiceId: string }[] = Array.isArray(answers) ? answers : [];
 
     const supabase = await createAdminClient();
 
@@ -45,22 +45,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Attempt already completed' }, { status: 400 });
     }
 
-    // Save answers
-    const answersToSave = answers.map((ans: { questionId: string; choiceId: string }) => ({
-      attempt_id: attemptId,
-      question_id: ans.questionId,
-      choice_id: ans.choiceId,
-      is_flagged: false,
-      answered_at: new Date().toISOString(),
-    }));
+    // Save answers — hanya jika ada. Jika kosong, lewati (skor akan 0).
+    if (answersList.length > 0) {
+      const answersToSave = answersList.map((ans) => ({
+        attempt_id: attemptId,
+        question_id: ans.questionId,
+        choice_id: ans.choiceId,
+        is_flagged: false,
+        answered_at: new Date().toISOString(),
+      }));
 
-    const { error: saveError } = await supabase
-      .from('attempt_answers')
-      .upsert(answersToSave, { onConflict: 'attempt_id,question_id' });
+      const { error: saveError } = await supabase
+        .from('attempt_answers')
+        .upsert(answersToSave, { onConflict: 'attempt_id,question_id' });
 
-    if (saveError) {
-      console.error('Submit: failed to save answers', saveError.code);
-      return NextResponse.json({ error: 'Failed to save answers' }, { status: 500 });
+      if (saveError) {
+        console.error('Submit: failed to save answers', saveError.code);
+        return NextResponse.json({ error: 'Failed to save answers' }, { status: 500 });
+      }
     }
 
     // Calculate scores via DB function

@@ -64,7 +64,7 @@ export function ExamInterface({
 
   const { timeLeft, isExpired } = useExamTimer(timeRemaining);
 
-  const { isSaving } = useAutoSave(attemptId, answers);
+  const { isSaving, saveFailed } = useAutoSave(attemptId, answers);
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,6 +78,42 @@ export function ExamInterface({
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
   const currentQuestion = questions[currentIndex];
+
+  // ── #5: Peringatkan saat jawaban gagal tersimpan (sesi/koneksi) ──────────
+  const prevSaveFailedRef = useRef(false);
+  useEffect(() => {
+    if (saveFailed && !prevSaveFailedRef.current) {
+      toast.error(
+        'Jawaban gagal tersimpan otomatis. Periksa koneksi internet & jangan tutup tab. Jika berlanjut, sesi mungkin perlu login ulang.',
+        { id: 'autosave-failed', duration: 6000 }
+      );
+    }
+    if (!saveFailed && prevSaveFailedRef.current) {
+      toast.success('Jawaban kembali tersimpan.', { id: 'autosave-failed', duration: 2500 });
+    }
+    prevSaveFailedRef.current = saveFailed;
+  }, [saveFailed]);
+
+  // ── #6: Deteksi ujian dibuka di banyak tab → peringatkan (cegah saling timpa) ──
+  const multiTabWarnedRef = useRef(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof BroadcastChannel === 'undefined') return;
+    const channel = new BroadcastChannel(`exam-tab-${attemptId}`);
+    const warn = () => {
+      if (multiTabWarnedRef.current) return;
+      multiTabWarnedRef.current = true;
+      toast.error(
+        'Ujian ini sedang terbuka di tab/perangkat lain. Gunakan SATU tab saja — jawaban bisa saling menimpa.',
+        { id: 'multi-tab', duration: 8000 }
+      );
+    };
+    channel.onmessage = (e) => {
+      if (e.data === 'ping') channel.postMessage('pong'); // beritahu tab baru bahwa tab ini aktif
+      if (e.data === 'ping' || e.data === 'pong') warn();
+    };
+    channel.postMessage('ping'); // sapa tab lain saat mount
+    return () => channel.close();
+  }, [attemptId]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -349,57 +385,87 @@ export function ExamInterface({
               </p>
             )}
 
-            {/* Question image */}
+            {/* Question image — kotak ternormalisasi (ramah SVG figural, ukuran tak ikut file) */}
             {currentQuestion?.image_url && (
-              <div className="mb-6">
+              <div className="mb-6 flex justify-center">
                 <img
                   src={currentQuestion.image_url}
                   alt="Gambar soal"
-                  className="max-w-full h-auto rounded-xl border border-slate-200 shadow-sm"
-                  style={{ maxHeight: '300px', objectFit: 'contain' }}
+                  className="rounded-xl border border-slate-200 bg-white shadow-sm p-3"
+                  style={{ width: '100%', maxWidth: 560, height: 'auto', maxHeight: 380, objectFit: 'contain' }}
                 />
               </div>
             )}
 
-            {/* Answer choices — fully clickable on all screen sizes */}
-            <div className="space-y-2 pb-4 md:pb-0">
-              {currentQuestion?.choices.map((choice, idx) => {
-                const isSelected = selectedAnswer === choice.id;
-                const choiceImageUrl = (choice as any).image_url as string | undefined;
-                const hasText = !!choice.content;
-                const hasImage = !!choiceImageUrl;
-
-                return (
-                  <button
-                    key={choice.id}
-                    onClick={() => handleAnswerSelect(choice.id)}
-                    className={cn(
-                      'w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-150 text-left active:scale-[0.99]',
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50 shadow-sm'
-                        : 'border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:bg-slate-50'
-                    )}
-                  >
-                    <span className={cn(
-                      'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2',
-                      isSelected
-                        ? 'bg-blue-500 text-white border-blue-500'
-                        : 'bg-slate-50 text-slate-400 border-slate-200'
-                    )}>
-                      {ANSWER_LABELS[idx]}
-                    </span>
-
-                    {/* Choice content */}
-                    <div className="flex flex-col gap-2 flex-1">
-                      {hasImage && (
-                        <img
-                          src={choiceImageUrl}
-                          alt={`Pilihan ${ANSWER_LABELS[idx]}`}
-                          className="max-w-full h-auto rounded-lg border border-slate-200"
-                          style={{ maxHeight: '160px', objectFit: 'contain' }}
-                        />
+            {/* Answer choices — figural (gambar) pakai grid 5 kolom seragam; teks tetap bertumpuk */}
+            {currentQuestion?.choices.some(c => !!(c as any).image_url) ? (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 pb-4 md:pb-0">
+                {currentQuestion?.choices.map((choice, idx) => {
+                  const isSelected = selectedAnswer === choice.id;
+                  const choiceImageUrl = (choice as any).image_url as string | undefined;
+                  const choiceLabel = choice.label ?? ANSWER_LABELS[idx];
+                  return (
+                    <button
+                      key={choice.id}
+                      onClick={() => handleAnswerSelect(choice.id)}
+                      className={cn(
+                        'flex flex-col items-center gap-1.5 rounded-xl border-2 p-1.5 sm:p-2 transition-all duration-150 active:scale-[0.97]',
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 shadow-sm'
+                          : 'border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:bg-slate-50'
                       )}
-                      {hasText && (
+                    >
+                      <span className={cn(
+                        'w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold border-2',
+                        isSelected
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'bg-slate-50 text-slate-400 border-slate-200'
+                      )}>
+                        {choiceLabel}
+                      </span>
+                      <div className="w-full aspect-square flex items-center justify-center bg-white rounded-lg overflow-hidden">
+                        {choiceImageUrl && (
+                          <img
+                            src={choiceImageUrl}
+                            alt={`Pilihan ${choiceLabel}`}
+                            className="w-full h-full"
+                            style={{ objectFit: 'contain' }}
+                          />
+                        )}
+                      </div>
+                      {choice.content && (
+                        <span className="text-[10px] leading-tight text-center text-slate-600 line-clamp-2">
+                          {choice.content}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-2 pb-4 md:pb-0">
+                {currentQuestion?.choices.map((choice, idx) => {
+                  const isSelected = selectedAnswer === choice.id;
+                  return (
+                    <button
+                      key={choice.id}
+                      onClick={() => handleAnswerSelect(choice.id)}
+                      className={cn(
+                        'w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-150 text-left active:scale-[0.99]',
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 shadow-sm'
+                          : 'border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:bg-slate-50'
+                      )}
+                    >
+                      <span className={cn(
+                        'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2',
+                        isSelected
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'bg-slate-50 text-slate-400 border-slate-200'
+                      )}>
+                        {choice.label ?? ANSWER_LABELS[idx]}
+                      </span>
+                      <div className="flex flex-col gap-2 flex-1">
                         <span className={cn(
                           'leading-snug font-normal',
                           textSize === 'sm' && 'text-xs',
@@ -409,12 +475,12 @@ export function ExamInterface({
                         )}>
                           {choice.content}
                         </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
           </div>
         </main>

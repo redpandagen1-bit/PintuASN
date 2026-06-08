@@ -23,10 +23,10 @@ export async function POST(request: NextRequest) {
     } = body;
 
 
-    // Validate required fields
-    if (!category || !content || !choices || choices.length !== 5) {
+    // Validate required fields — soal boleh berupa teks ATAU gambar/SVG (figural)
+    if (!category || (!content && !image_url) || !choices || choices.length !== 5) {
       return NextResponse.json(
-        { error: 'Category, content, and 5 choices are required' },
+        { error: 'Category, content atau gambar soal, dan 5 choices are required' },
         { status: 400 }
       );
     }

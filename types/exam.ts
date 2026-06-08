@@ -2,6 +2,9 @@ import { Question, Choice, Attempt } from './database';
 
 // Question dengan choices-nya (untuk ditampilkan di UI)
 export interface QuestionWithChoices extends Question {
+  // Field aktual dari query exam (questions.content / questions.image_url)
+  content?: string;
+  image_url?: string | null;
   choices: Choice[]; // HARUS 5 choices (A, B, C, D, E)
 }
 

@@ -172,7 +172,16 @@ export async function getAttemptById(attemptId: string) {
 
   return {
     attempt,
-    questions: packageQuestions.map((pq: any) => pq.questions).filter(Boolean),
+    // Urutkan pilihan berdasarkan label (A→E) agar urutan stabil & sesuai label tersimpan
+    questions: packageQuestions
+      .map((pq: any) => pq.questions)
+      .filter(Boolean)
+      .map((q: any) => ({
+        ...q,
+        choices: [...(q.choices ?? [])].sort((a: any, b: any) =>
+          String(a.label).localeCompare(String(b.label))
+        ),
+      })),
   };
 }
 
@@ -430,7 +439,7 @@ export async function getReviewData(attemptId: string) {
       .select(`
         position,
         questions!inner (
-          id, category, content, image_url, explanation, topic, difficulty,
+          id, category, content, image_url, explanation, explanation_image_url, topic, difficulty,
           choices ( id, label, content, image_url, is_answer, score )
         )
       `)
@@ -455,8 +464,12 @@ export async function getReviewData(attemptId: string) {
     return {
       position: index + 1, id: question.id, category: question.category,
       content: question.content, image_url: question.image_url ?? null,
-      explanation: question.explanation ?? null, topic: question.topic ?? null,
-      difficulty: question.difficulty ?? 'medium', choices: question.choices ?? [],
+      explanation: question.explanation ?? null, explanation_image_url: question.explanation_image_url ?? null,
+      topic: question.topic ?? null,
+      difficulty: question.difficulty ?? 'medium',
+      choices: [...(question.choices ?? [])].sort((a: any, b: any) =>
+        String(a.label).localeCompare(String(b.label))
+      ),
       userAnswer: userAnswer ?? null, isCorrect, score,
       userChoice: userChoice ?? null, correctChoice: correctChoice ?? null,
       isFlagged: userAnswer?.is_flagged ?? false,
@@ -495,7 +508,7 @@ export async function getReviewDataAdmin(attemptId: string, userId: string) {
       .select(`
         position,
         questions!inner (
-          id, category, content, image_url, explanation, topic, difficulty,
+          id, category, content, image_url, explanation, explanation_image_url, topic, difficulty,
           choices ( id, label, content, image_url, is_answer, score )
         )
       `)
@@ -520,8 +533,12 @@ export async function getReviewDataAdmin(attemptId: string, userId: string) {
     return {
       position: index + 1, id: question.id, category: question.category,
       content: question.content, image_url: question.image_url ?? null,
-      explanation: question.explanation ?? null, topic: question.topic ?? null,
-      difficulty: question.difficulty ?? 'medium', choices: question.choices ?? [],
+      explanation: question.explanation ?? null, explanation_image_url: question.explanation_image_url ?? null,
+      topic: question.topic ?? null,
+      difficulty: question.difficulty ?? 'medium',
+      choices: [...(question.choices ?? [])].sort((a: any, b: any) =>
+        String(a.label).localeCompare(String(b.label))
+      ),
       userAnswer: userAnswer ?? null, isCorrect, score,
       userChoice: userChoice ?? null, correctChoice: correctChoice ?? null,
       isFlagged: userAnswer?.is_flagged ?? false,

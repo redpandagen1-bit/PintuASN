@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, XCircle, AlertCircle, Info, ChevronDown } from 'lucide-react';
 import type { ReviewQuestion, ReviewChoice } from '@/types/database';
-import Image from 'next/image';
 
 interface ReviewQuestionCardProps {
   question: ReviewQuestion & { status?: 'benar' | 'salah' | 'kosong' };
@@ -109,19 +108,57 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
         {question.content}
       </div>
 
-      {/* Image */}
+      {/* Image — pakai <img> biasa agar SVG figural ikut tampil tanpa next/image */}
       {question.image_url && (
         <div className="flex justify-center mb-4">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={question.image_url} alt="Gambar soal"
-            width={500} height={250}
             className="max-w-full h-auto rounded-lg border border-slate-200 shadow-sm"
             style={{ maxHeight: '240px', objectFit: 'contain' }}
           />
         </div>
       )}
 
-      {/* Choices */}
+      {/* Choices — figural (gambar) pakai grid 5 kolom; lainnya tetap bertumpuk */}
+      {question.choices.some(c => c.image_url) ? (
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-5">
+          {question.choices.map((choice) => {
+            const isUserAnswer    = question.userChoice?.id === choice.id;
+            const isCorrectAnswer = question.correctChoice?.id === choice.id;
+            const isMaxScore      = question.category === 'TKP' && choice.score === 5;
+            const highlight = isCorrectAnswer || isMaxScore
+              ? 'border-green-400 bg-green-50'
+              : (isUserAnswer ? 'border-yellow-300 bg-yellow-50' : 'border-slate-200 bg-white');
+            return (
+              <div key={choice.id} className={cn('flex flex-col items-center gap-1.5 rounded-lg border-2 p-1.5', highlight)}>
+                <div className={getLabelStyling(choice)}>{choice.label}</div>
+                <div className="w-full aspect-square flex items-center justify-center bg-white rounded overflow-hidden">
+                  {choice.image_url && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={choice.image_url} alt={`Pilihan ${choice.label}`} className="w-full h-full" style={{ objectFit: 'contain' }} />
+                  )}
+                </div>
+                {question.category === 'TKP' && (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200">{choice.score ?? 1}pt</span>
+                )}
+                {isUserAnswer && (
+                  <span className={cn('text-[8px] font-bold px-1 py-0.5 rounded border text-center leading-tight',
+                    isCorrectAnswer || isMaxScore ? 'text-green-700 bg-green-100 border-green-200' : 'text-yellow-700 bg-yellow-100 border-yellow-200')}>
+                    Jawaban Anda
+                  </span>
+                )}
+                {isCorrectAnswer && !isUserAnswer && question.category !== 'TKP' && (
+                  <span className="text-[8px] font-bold px-1 py-0.5 rounded text-green-700 bg-green-100 border border-green-200">Kunci</span>
+                )}
+                {isMaxScore && !isUserAnswer && question.category === 'TKP' && (
+                  <span className="text-[8px] font-bold px-1 py-0.5 rounded text-green-700 bg-green-100 border border-green-200">Maks</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
       <div className="flex flex-col gap-2 mb-5">
         {question.choices.map((choice) => {
           const isUserAnswer    = question.userChoice?.id === choice.id;
@@ -130,13 +167,24 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
           return (
             <div key={choice.id} className={getChoiceStyling(choice)}>
               <div className={getLabelStyling(choice)}>{choice.label}</div>
-              <div className="flex-1 pt-0.5">
-                <p className={cn(
-                  'text-xs md:text-sm leading-relaxed',
-                  (isUserAnswer || isCorrectAnswer || isMaxScore) ? 'text-slate-800 font-semibold' : 'text-slate-600 font-medium'
-                )}>
-                  {choice.content}
-                </p>
+              <div className="flex-1 pt-0.5 space-y-2">
+                {choice.image_url && (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={choice.image_url}
+                    alt={`Pilihan ${choice.label}`}
+                    className="max-w-full h-auto rounded border border-slate-200 bg-white"
+                    style={{ maxHeight: '140px', objectFit: 'contain' }}
+                  />
+                )}
+                {choice.content && (
+                  <p className={cn(
+                    'text-xs md:text-sm leading-relaxed',
+                    (isUserAnswer || isCorrectAnswer || isMaxScore) ? 'text-slate-800 font-semibold' : 'text-slate-600 font-medium'
+                  )}>
+                    {choice.content}
+                  </p>
+                )}
               </div>
               <div className="flex flex-col gap-1 items-end flex-shrink-0 pt-0.5">
                 {question.category === 'TKP' && (
@@ -169,6 +217,7 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
           );
         })}
       </div>
+      )}
 
       {/* Discussion */}
       {question.explanation && (
@@ -190,6 +239,17 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
                 className="prose prose-sm max-w-none"
                 dangerouslySetInnerHTML={{ __html: question.explanation.replace(/\n/g, '<br />') }}
               />
+              {question.explanation_image_url && (
+                <div className="mt-3 flex justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={question.explanation_image_url}
+                    alt="Gambar pembahasan"
+                    className="max-w-full h-auto rounded-lg border border-slate-200 bg-white shadow-sm"
+                    style={{ maxHeight: '260px', objectFit: 'contain' }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

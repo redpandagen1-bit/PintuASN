@@ -49,18 +49,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check for existing in-progress attempt
+    // Jika sudah ada attempt yang sedang berjalan → LANJUTKAN (resume),
+    // jangan hapus. Mencegah kehilangan jawaban saat user/navigasi memicu
+    // "mulai" lagi padahal ujian masih berlangsung.
     const { data: existing } = await supabase
       .from('attempts')
-      .select('id')
+      .select('id, package_id, started_at, time_remaining')
       .eq('user_id', userId)
       .eq('package_id', packageId)
       .eq('status', 'in_progress')
       .single();
 
     if (existing) {
-      // Delete existing attempt so user always starts fresh (no resume)
-      await supabase.from('attempts').delete().eq('id', existing.id);
+      return NextResponse.json({
+        attemptId: existing.id,
+        packageId: existing.package_id,
+        startedAt: existing.started_at,
+        timeRemaining: existing.time_remaining,
+        resumed: true,
+      });
     }
 
     // Create new attempt

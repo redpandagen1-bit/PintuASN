@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { ArrowLeft, Loader2, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_LABEL } from '@/lib/upload-limits';
 
 interface QuestionManualFormProps {
   packageId: string;
@@ -72,8 +73,8 @@ export function QuestionManualForm({ packageId, packageTitle }: QuestionManualFo
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Ukuran file maksimal 5MB');
+      if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+        alert(`Ukuran file maksimal ${MAX_IMAGE_UPLOAD_LABEL}. Kompres gambar terlebih dahulu.`);
         return;
       }
       
@@ -277,18 +278,18 @@ export function QuestionManualForm({ packageId, packageTitle }: QuestionManualFo
 
             {/* Image Upload */}
             <div className="space-y-2">
-              <Label htmlFor="image">Upload Gambar (Optional)</Label>
+              <Label htmlFor="image">Upload Gambar / SVG (Optional)</Label>
               <div className="flex items-start gap-4">
                 <div className="flex-1">
                   <Input
                     id="image"
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml,.svg"
                     onChange={handleImageChange}
                     className="cursor-pointer"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    Format: JPG, PNG, WebP • Maksimal 5MB
+                    Format: JPG, PNG, WebP, SVG • Maksimal {MAX_IMAGE_UPLOAD_LABEL}
                   </p>
                 </div>
                 {imagePreview && (
