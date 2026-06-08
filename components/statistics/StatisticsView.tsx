@@ -34,9 +34,15 @@ interface RankingData {
   percentile: number;
 }
 
+interface ScoreBucket {
+  bucket: number;
+  peserta: number;
+}
+
 interface StatisticsViewProps {
   data: Attempt[];
   ranking?: RankingData | null;
+  distribution?: ScoreBucket[];
 }
 
 // ===== CONSTANTS =====
@@ -115,7 +121,7 @@ const GapProgress: React.FC<GapProgressProps> = ({ current, threshold, label, ma
 
 // ===== MAIN COMPONENT =====
 
-const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
+const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribution }) => {
   const stats = useMemo(() => {
     const completedAttempts = data.filter(attempt => attempt.status === 'completed');
     
@@ -155,9 +161,9 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
 
     const bestScore = Math.max(...completedAttempts.map(attempt => attempt.final_score));
 
+    // 10 tryout TERBARU, diurut kronologis (lama → baru) untuk grafik tren.
+    // data sudah DESC (terbaru dulu) → ambil 10 teratas lalu reverse.
     const trendData = completedAttempts
-      .slice()
-      .reverse()
       .slice(0, 10)
       .reverse()
       .map((attempt, index) => ({
@@ -169,15 +175,6 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
         tkp: attempt.score_tkp
       }));
 
-    const scoreDistribution = [];
-    const step = 50;
-    for (let i = 300; i <= 550; i += step) {
-      const count = completedAttempts.filter(
-        attempt => attempt.final_score >= i && attempt.final_score < i + step
-      ).length;
-      scoreDistribution.push({ x: i, y: count });
-    }
-
     const twkPassCount = completedAttempts.filter(attempt => attempt.score_twk >= THRESHOLD_TWK).length;
     const tiuPassCount = completedAttempts.filter(attempt => attempt.score_tiu >= THRESHOLD_TIU).length;
     const tkpPassCount = completedAttempts.filter(attempt => attempt.score_tkp >= THRESHOLD_TKP).length;
@@ -188,10 +185,8 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
       tkp: Math.round((tkpPassCount / completedAttempts.length) * 100)
     };
 
-    const recentAttempts = completedAttempts
-      .slice()
-      .reverse()
-      .slice(0, 5);
+    // 5 tryout TERBARU (data sudah DESC → ambil 5 teratas).
+    const recentAttempts = completedAttempts.slice(0, 5);
 
     const gapAnalysisData = [
       { subject: 'TWK', skorKamu: averageScores.twk, ambangBatas: THRESHOLD_TWK, fullMark: 150 },
@@ -205,12 +200,17 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
       averageScores,
       bestScore,
       trendData,
-      scoreDistribution,
       categoryPassRates,
       recentAttempts,
       gapAnalysisData
     };
   }, [data]);
+
+  // Distribusi skor SEMUA peserta (agregat lintas user dari RPC) — bukan attempt sendiri.
+  const distributionChart = useMemo(
+    () => (distribution ?? []).map(d => ({ x: d.bucket, y: d.peserta })),
+    [distribution]
+  );
 
   
 
@@ -449,7 +449,7 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
             />
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.scoreDistribution}>
+                <AreaChart data={distributionChart}>
                   <defs>
                     <linearGradient id="distGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
@@ -457,27 +457,34 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking }) => {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis 
-                    dataKey="x" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10 }} 
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
+                  <XAxis
+                    dataKey="x"
+                    type="number"
+                    domain={[0, 550]}
+                    ticks={[0, 150, 300, 450, 550]}
+                    axisLine={false}
+                    tickLine={false}
                     tick={{ fontSize: 10 }}
                   />
-                  <RechartsTooltip />
-                  <Area 
-                    type="monotone" 
-                    dataKey="y" 
-                    stroke="#6366f1" 
-                    fill="url(#distGradient)" 
-                    strokeWidth={2} 
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 10 }}
+                    allowDecimals={false}
                   />
-                  <ReferenceLine 
-                    x={stats.averageScores.final} 
+                  <RechartsTooltip
+                    formatter={((value: number) => [`${value} peserta`, 'Jumlah']) as never}
+                    labelFormatter={((label: number) => `Skor ${label}–${label + 49}`) as never}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="y"
+                    stroke="#6366f1"
+                    fill="url(#distGradient)"
+                    strokeWidth={2}
+                  />
+                  <ReferenceLine
+                    x={stats.averageScores.final}
                     stroke="#1e293b" 
                     strokeDasharray="3 3" 
                     label={{ 

@@ -15,22 +15,25 @@ export default async function StatisticsPage() {
 
   const supabase = await createAdminClient();
 
-  const { data: rankingData } = await supabase
-    .rpc('get_user_national_rank', { p_user_id: user.id });
+  const [{ data: rankingData }, { data: distributionData }] = await Promise.all([
+    supabase.rpc('get_user_national_rank', { p_user_id: user.id }),
+    supabase.rpc('get_score_distribution'),
+  ]);
 
-  const attempts = await getUserAttempts(user.id);
-  const ranking  = rankingData?.[0] || null;
+  const attempts     = await getUserAttempts(user.id);
+  const ranking      = rankingData?.[0] || null;
+  const distribution = distributionData || [];
 
   return (
     <>
       {/* ── Mobile ── */}
       <MobilePageWrapper>
-        <MobileStatistik data={attempts} ranking={ranking} />
+        <MobileStatistik data={attempts} ranking={ranking} distribution={distribution} />
       </MobilePageWrapper>
 
       {/* ── Desktop ── */}
       <div className="hidden md:block">
-        <StatisticsView data={attempts} ranking={ranking} />
+        <StatisticsView data={attempts} ranking={ranking} distribution={distribution} />
       </div>
     </>
   );

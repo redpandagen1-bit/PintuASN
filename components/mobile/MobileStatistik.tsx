@@ -5,7 +5,7 @@
 
 import Link from 'next/link';
 import {
-  AreaChart, Area, BarChart, Bar, Cell,
+  AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, ReferenceLine,
 } from 'recharts';
@@ -33,9 +33,15 @@ interface RankingData {
   percentile:         number;
 }
 
+interface ScoreBucket {
+  bucket:  number;
+  peserta: number;
+}
+
 interface MobileStatistikProps {
-  data:     Attempt[];
-  ranking?: RankingData | null;
+  data:          Attempt[];
+  ranking?:      RankingData | null;
+  distribution?: ScoreBucket[];
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -77,31 +83,9 @@ function TrenTooltip({ active, payload, label }: {
   );
 }
 
-// Custom tooltip for Distribusi chart
-function DistribusiTooltip({ active, payload }: {
-  active?: boolean;
-  payload?: { payload: { date: string; twk: number; tiu: number; tkp: number; skor: number; lulus: boolean } }[];
-}) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0].payload;
-  return (
-    <div className="bg-white rounded-xl shadow-md3-lg px-3 py-2 text-[11px] border border-md-outline-variant/10 min-w-[110px]">
-      <p className="font-bold text-md-primary mb-1.5">{d.date}</p>
-      <div className="space-y-0.5">
-        <p className="text-md-on-surface-variant">TWK: <span className="font-bold text-md-on-surface">{d.twk}</span></p>
-        <p className="text-md-on-surface-variant">TIU: <span className="font-bold text-md-on-surface">{d.tiu}</span></p>
-        <p className="text-md-on-surface-variant">TKP: <span className="font-bold text-md-on-surface">{d.tkp}</span></p>
-        <p className="border-t border-md-outline-variant/10 pt-1 mt-1 font-extrabold text-md-primary">
-          Total: {d.skor}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 // ── Component ─────────────────────────────────────────────────
 
-export function MobileStatistik({ data, ranking }: MobileStatistikProps) {
+export function MobileStatistik({ data, ranking, distribution }: MobileStatistikProps) {
   const completed = data.filter(a => a.status === 'completed');
   const passed    = completed.filter(a => a.is_passed);
   const scores    = completed.map(a => a.final_score).filter(Boolean);
@@ -123,8 +107,8 @@ export function MobileStatistik({ data, ranking }: MobileStatistikProps) {
   // Recent 5 (newest first for list)
   const recent5 = completed.slice(0, 5);
 
-  // Tren chart data — last 10 in chronological order
-  const trendRaw = completed.slice().reverse().slice(0, 10).reverse();
+  // Tren chart data — 10 TERBARU, kronologis (data sudah DESC → ambil 10 lalu reverse)
+  const trendRaw = completed.slice(0, 10).reverse();
   const trendData = trendRaw.map((a, i) => ({
     name:  `T-${String(i + 1).padStart(2, '0')}`,
     skor:  a.final_score,
@@ -136,17 +120,8 @@ export function MobileStatistik({ data, ranking }: MobileStatistikProps) {
     date:  formatDateShort(a.completed_at),
   }));
 
-  // Distribusi chart — all completed in chronological order
-  const distribusiData = completed.slice().reverse().map((a, i) => ({
-    name:  `T-${String(i + 1).padStart(2, '0')}`,
-    skor:  a.final_score,
-    twk:   a.score_twk,
-    tiu:   a.score_tiu,
-    tkp:   a.score_tkp,
-    lulus: a.is_passed,
-    date:  formatDateShort(a.completed_at),
-    fill:  a.is_passed ? '#10b981' : '#1e3a5f',
-  }));
+  // Distribusi skor SEMUA peserta (agregat lintas user dari RPC) — x: bucket, y: jumlah peserta
+  const distribusiData = (distribution ?? []).map(d => ({ x: d.bucket, y: d.peserta }));
 
   // Ranking display
   const rankDisplay      = ranking ? `#${ranking.user_rank.toLocaleString('id-ID')}` : '-';
@@ -424,37 +399,44 @@ export function MobileStatistik({ data, ranking }: MobileStatistikProps) {
       {/* ── Distribusi Skor Peserta ─────────────────────────────── */}
       {completed.length > 0 && (
         <section className="mx-4 mb-4">
-          <h2 className="text-sm font-bold text-md-primary mb-2 px-1"
+          <h2 className="text-sm font-bold text-md-primary mb-0.5 px-1"
             style={{ fontFamily: 'var(--font-jakarta)' }}>
             Distribusi Skor Peserta
           </h2>
+          <p className="text-[10px] text-md-on-surface-variant mb-2 px-1">
+            Posisi rata-rata skormu di antara semua peserta
+          </p>
           <div className="bg-white rounded-2xl p-4 shadow-md3-sm">
             {/* Keterangan */}
             <div className="flex items-center gap-4 mb-3">
               <span className="flex items-center gap-1.5 text-[10px] text-md-on-surface-variant">
-                <span className="w-3 h-3 rounded-sm bg-emerald-500 inline-block" />
-                Lulus
+                <span className="w-3 h-3 rounded-sm bg-indigo-400 inline-block" />
+                Jumlah peserta
               </span>
               <span className="flex items-center gap-1.5 text-[10px] text-md-on-surface-variant">
-                <span className="w-3 h-3 rounded-sm bg-md-primary inline-block" />
-                Tidak Lulus
-              </span>
-              <span className="flex items-center gap-1.5 text-[10px] text-md-on-surface-variant">
-                <span className="w-3 h-0.5 border-t-2 border-dashed border-rose-400 inline-block" />
-                Min. Lulus ({PASSING_TOTAL})
+                <span className="w-3 h-0.5 border-t-2 border-dashed border-md-primary inline-block" />
+                Rata-rata kamu ({avgScore})
               </span>
             </div>
 
             <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
+                <AreaChart
                   data={distribusiData}
-                  margin={{ top: 8, right: 4, left: -24, bottom: 0 }}
-                  barCategoryGap="20%"
+                  margin={{ top: 8, right: 8, left: -24, bottom: 0 }}
                 >
+                  <defs>
+                    <linearGradient id="mobileGradDist" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}   />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis
-                    dataKey="name"
+                    dataKey="x"
+                    type="number"
+                    domain={[0, 550]}
+                    ticks={[0, 150, 300, 450, 550]}
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#64748b', fontSize: 9, fontWeight: 600 }}
@@ -464,31 +446,27 @@ export function MobileStatistik({ data, ranking }: MobileStatistikProps) {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#64748b', fontSize: 9 }}
-                    domain={[0, 550]}
-                    ticks={[0, 150, 311, 450, 550]}
+                    allowDecimals={false}
                   />
-                  <RechartsTooltip content={<DistribusiTooltip />} />
-                  {/* Passing grade reference line */}
+                  <RechartsTooltip
+                    formatter={((value: number) => [`${value} peserta`, 'Jumlah']) as never}
+                    labelFormatter={((label: number) => `Skor ${label}–${label + 49}`) as never}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="y"
+                    stroke="#6366f1"
+                    strokeWidth={2}
+                    fill="url(#mobileGradDist)"
+                  />
                   <ReferenceLine
-                    y={PASSING_TOTAL}
-                    stroke="#f87171"
-                    strokeDasharray="4 4"
+                    x={avgScore}
+                    stroke="#1e3a5f"
+                    strokeDasharray="3 3"
                     strokeWidth={1.5}
-                    label={{
-                      position: 'insideTopRight',
-                      value: `Minimum ${PASSING_TOTAL}`,
-                      fill: '#f87171',
-                      fontSize: 9,
-                      fontWeight: 700,
-                      offset: 4,
-                    }}
+                    label={{ position: 'top', value: 'Kamu', fill: '#1e3a5f', fontSize: 10, fontWeight: 700 }}
                   />
-                  <Bar dataKey="skor" name="Skor Total" radius={[4, 4, 0, 0]}>
-                    {distribusiData.map((entry, i) => (
-                      <Cell key={i} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
 
