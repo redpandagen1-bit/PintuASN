@@ -24,6 +24,10 @@ import {
   Loader2,
   Info,
   LayoutGrid,
+  Check,
+  Flag,
+  Send,
+  CheckCircle2,
 } from 'lucide-react';
 import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
@@ -74,6 +78,20 @@ export function ExamInterface({
   const [isCancelling, setIsCancelling] = useState(false);
   const [showNavigatorSheet, setShowNavigatorSheet] = useState(false);
   const [textSize, setTextSize] = useState<'sm' | 'md' | 'lg'>('md');
+
+  // ── Laporkan soal (sama seperti halaman pembahasan) ──────────────────────
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportType, setReportType] = useState('');
+  const [reportNote, setReportNote] = useState('');
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportDone, setReportDone] = useState(false);
+
+  const closeReport = () => {
+    setReportOpen(false);
+    setReportType('');
+    setReportNote('');
+    setReportDone(false);
+  };
 
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
@@ -246,8 +264,30 @@ export function ExamInterface({
 
   const handleAnswerSelect = (choiceId: string) => {
     selectAnswer(currentQuestion.id, choiceId);
-    if (currentIndex < questions.length - 1) {
-      setTimeout(() => nextQuestion(), 400);
+  };
+
+  const handleReportSubmit = async () => {
+    if (!reportType || !currentQuestion) return;
+    setReportSubmitting(true);
+    try {
+      await fetch('/api/admin/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question_id: currentQuestion.id,
+          question_position: currentIndex + 1,
+          question_category: currentQuestion.category,
+          attempt_id: attemptId,
+          package_title: packageTitle,
+          report_type: reportType,
+          note: reportNote,
+        }),
+      });
+      setReportDone(true);
+    } catch {
+      // fail silently
+    } finally {
+      setReportSubmitting(false);
     }
   };
 
@@ -272,53 +312,105 @@ export function ExamInterface({
   return (
     <div className="flex flex-col h-screen bg-white overflow-hidden">
 
-      {/* ── MOBILE HEADER (hidden md+) ─────────────────────────────── */}
-      <header className="flex md:hidden flex-shrink-0 bg-slate-800 items-center px-3 gap-2 h-14 z-10">
-        {/* Cancel */}
-        <button
-          onClick={handleCancel}
-          className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg bg-slate-700/60 hover:bg-slate-700 transition"
-          aria-label="Batalkan ujian"
-        >
-          <X size={16} className="text-slate-300" />
-        </button>
-
-        {/* Soal counter + category */}
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <span className={cn(
-            'text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0',
-            categoryColor,
-          )}>
-            {currentQuestion?.category}
-          </span>
-          <span className="text-sm font-semibold text-slate-200 truncate">
-            Soal {currentIndex + 1}
-            <span className="text-slate-400 font-normal"> / {questions.length}</span>
-          </span>
+      {/* ── REPORT MODAL (Laporkan Soal) ───────────────────────────── */}
+      {reportOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Flag className="w-4 h-4 text-red-500" />
+                <span className="font-bold text-slate-800 text-sm">Laporkan Soal</span>
+                {currentQuestion && (
+                  <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-mono">
+                    No. {currentIndex + 1} · {currentQuestion.category}
+                  </span>
+                )}
+              </div>
+              <button onClick={closeReport} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                <X className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+            {reportDone ? (
+              <div className="p-8 text-center">
+                <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-7 h-7 text-green-500" />
+                </div>
+                <h3 className="font-bold text-slate-800 mb-1">Laporan Terkirim!</h3>
+                <p className="text-slate-500 text-sm mb-6">Terima kasih, laporan kamu akan kami tinjau segera.</p>
+                <button onClick={closeReport}
+                  className="px-6 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-bold hover:bg-slate-700 transition-colors">
+                  Tutup
+                </button>
+              </div>
+            ) : (
+              <div className="p-5 flex flex-col gap-4">
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2.5">Jenis Masalah *</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { val: 'soal_salah',       label: '❌ Soal salah / typo' },
+                      { val: 'jawaban_salah',    label: '🔑 Kunci jawaban salah' },
+                      { val: 'pembahasan_salah', label: '📖 Pembahasan keliru' },
+                      { val: 'gambar_rusak',     label: '🖼️ Gambar tidak muncul' },
+                      { val: 'lainnya',          label: '💬 Lainnya' },
+                    ].map((opt) => (
+                      <button key={opt.val} onClick={() => setReportType(opt.val)}
+                        className={cn(
+                          'text-left px-3 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all',
+                          reportType === opt.val
+                            ? 'border-red-400 bg-red-50 text-red-700'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                        )}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Keterangan Tambahan</p>
+                  <textarea
+                    value={reportNote}
+                    onChange={(e) => setReportNote(e.target.value)}
+                    placeholder="Jelaskan masalah yang kamu temukan..."
+                    rows={3}
+                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl resize-none outline-none focus:border-slate-400 bg-slate-50 text-slate-700"
+                  />
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={closeReport}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors">
+                    Batal
+                  </button>
+                  <button onClick={handleReportSubmit} disabled={!reportType || reportSubmitting}
+                    className={cn(
+                      'flex-1 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all',
+                      reportType && !reportSubmitting
+                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-sm'
+                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    )}>
+                    {reportSubmitting ? 'Mengirim...' : <><Send className="w-3.5 h-3.5" />Kirim Laporan</>}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+      )}
 
-        {/* Flag */}
-        <button
-          onClick={() => toggleFlag(currentQuestion?.id)}
-          aria-label={isFlagged ? 'Hapus tandai' : 'Tandai soal'}
-          className={cn(
-            'w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg transition',
-            isFlagged
-              ? 'bg-yellow-400/20 text-yellow-400'
-              : 'bg-slate-700/60 text-slate-400 hover:text-yellow-400'
-          )}
-        >
-          {isFlagged ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
-        </button>
+      {/* ── MOBILE HEADER (hidden md+) — judul paket + timer ───────── */}
+      <header className="flex md:hidden flex-shrink-0 bg-slate-800 items-center px-4 gap-2 h-14 z-10">
+        <h1 className="flex-1 min-w-0 text-sm font-bold text-white truncate">
+          {packageTitle}
+        </h1>
 
         {/* Timer */}
         <div className={cn(
-          'flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono font-bold text-sm flex-shrink-0',
+          'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono font-bold text-base flex-shrink-0',
           isTimeWarning
             ? 'bg-red-500/20 text-red-300 border border-red-500/40'
-            : 'bg-slate-700/60 text-slate-100'
+            : 'bg-slate-700/60 text-white'
         )}>
-          <Clock size={13} className={isTimeWarning ? 'animate-pulse' : ''} />
+          <Clock size={15} className={isTimeWarning ? 'animate-pulse' : ''} />
           <span>{formatTime(Math.floor(timeLeft))}</span>
         </div>
       </header>
@@ -326,16 +418,16 @@ export function ExamInterface({
       {/* ── DESKTOP HEADER (hidden mobile) ─────────────────────────── */}
       <header className="hidden md:flex flex-shrink-0 bg-slate-800 border-b border-slate-700 z-10">
         <div className="flex items-center justify-between px-6 py-3.5 w-full">
-          <h1 className="text-sm font-semibold text-slate-100 truncate max-w-xs">
+          <h1 className="text-xl font-bold text-white truncate max-w-sm">
             {packageTitle}
           </h1>
           <div className={cn(
-            'flex items-center gap-2 px-4 py-1.5 rounded-lg font-mono font-bold text-base',
+            'flex items-center gap-2.5 px-5 py-2 rounded-xl font-mono font-bold text-2xl tracking-wide',
             isTimeWarning
-              ? 'bg-red-500/20 text-red-300 border border-red-500/40'
-              : 'bg-slate-700 text-slate-100 border border-slate-600'
+              ? 'bg-red-500/20 text-red-300 border-2 border-red-500/50'
+              : 'bg-slate-700 text-white border-2 border-slate-600'
           )}>
-            <Clock className="w-4 h-4" />
+            <Clock className={cn('w-5 h-5', isTimeWarning && 'animate-pulse')} />
             <span>{formatTime(Math.floor(timeLeft))}</span>
             {isTimeWarning && (
               <span className="text-xs font-semibold text-red-300 animate-pulse ml-1">Segera Habis!</span>
@@ -359,7 +451,49 @@ export function ExamInterface({
         <main className="flex-1 overflow-y-auto bg-white">
           <div className="max-w-3xl mx-auto py-4 px-4 md:py-6 md:px-8">
 
-            {/* Question meta — desktop only (mobile shows in header) */}
+            {/* Meta + aksi — MOBILE (di atas soal): counter, tandai, laporkan, batal, selesai */}
+            <div className="flex md:hidden items-center gap-1.5 mb-4">
+              <span className={cn(
+                'text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0',
+                categoryColor
+              )}>
+                {currentQuestion?.category}
+              </span>
+              <span className="text-xs font-semibold text-slate-600 flex-1 min-w-0 truncate">
+                Soal {currentIndex + 1}<span className="text-slate-400 font-normal"> / {questions.length}</span>
+              </span>
+              <button
+                onClick={() => toggleFlag(currentQuestion?.id)}
+                aria-label={isFlagged ? 'Hapus tandai' : 'Tandai soal'}
+                className={cn(
+                  'w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg border transition',
+                  isFlagged ? 'bg-yellow-50 border-yellow-300 text-yellow-600' : 'border-slate-200 text-slate-400'
+                )}
+              >
+                {isFlagged ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
+              </button>
+              <button
+                onClick={() => setReportOpen(true)}
+                aria-label="Laporkan soal"
+                className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-300 transition"
+              >
+                <Flag size={15} />
+              </button>
+              <button
+                onClick={handleCancel}
+                className="px-2.5 h-8 flex-shrink-0 rounded-lg border-2 border-red-200 text-red-600 text-xs font-semibold"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => setShowSubmitDialog(true)}
+                className="px-2.5 h-8 flex-shrink-0 rounded-lg bg-slate-800 text-yellow-400 text-xs font-bold"
+              >
+                Selesai
+              </button>
+            </div>
+
+            {/* Meta + tandai — DESKTOP */}
             <div className="hidden md:flex items-center gap-3 mb-6">
               <span className={cn(
                 'text-xs font-bold px-3 py-1 rounded-full border tracking-wide',
@@ -371,16 +505,31 @@ export function ExamInterface({
                 Soal {currentIndex + 1}
                 <span className="text-slate-400"> / {questions.length}</span>
               </span>
+              <button
+                onClick={() => toggleFlag(currentQuestion?.id)}
+                title={isFlagged ? 'Hapus Tandai (F)' : 'Tandai Soal (F)'}
+                className={cn(
+                  'w-8 h-8 flex items-center justify-center rounded-lg border-2 transition-all',
+                  isFlagged
+                    ? 'border-yellow-400 bg-yellow-50 text-yellow-600'
+                    : 'border-slate-200 text-slate-400 hover:border-yellow-300 hover:text-yellow-600'
+                )}
+              >
+                {isFlagged ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+              </button>
             </div>
 
             {/* Question text */}
             {currentQuestion?.content && (
-              <p className={cn(
-                'text-slate-900 font-medium mb-5',
-                textSize === 'sm' && 'text-sm leading-7',
-                textSize === 'md' && 'text-base leading-7',
-                textSize === 'lg' && 'text-lg leading-8',
-              )}>
+              <p
+                className={cn(
+                  'text-slate-800 font-normal mb-5',
+                  textSize === 'sm' && 'text-sm leading-6',
+                  textSize === 'md' && 'text-base leading-7',
+                  textSize === 'lg' && 'text-lg leading-8',
+                )}
+                style={{ fontFamily: 'var(--font-jakarta)' }}
+              >
                 {currentQuestion.content}
               </p>
             )}
@@ -396,6 +545,13 @@ export function ExamInterface({
                 />
               </div>
             )}
+
+            {/* Pemisah + label area jawaban */}
+            <div className="border-t border-slate-100 pt-5 mb-3">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Pilih jawaban
+              </p>
+            </div>
 
             {/* Answer choices — figural (gambar) pakai grid 5 kolom seragam; teks tetap bertumpuk */}
             {currentQuestion?.choices.some(c => !!(c as any).image_url) ? (
@@ -451,42 +607,80 @@ export function ExamInterface({
                       key={choice.id}
                       onClick={() => handleAnswerSelect(choice.id)}
                       className={cn(
-                        'w-full flex items-start gap-3 px-4 py-3 rounded-xl border-2 transition-all duration-150 text-left active:scale-[0.99]',
+                        'w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl border-2 transition-all duration-150 text-left active:scale-[0.99]',
                         isSelected
-                          ? 'border-blue-500 bg-blue-50 shadow-sm'
-                          : 'border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:bg-slate-50'
+                          ? 'border-blue-500 bg-blue-50/70 shadow-sm ring-1 ring-blue-200'
+                          : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'
                       )}
                     >
                       <span className={cn(
-                        'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border-2',
+                        'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors',
                         isSelected
                           ? 'bg-blue-500 text-white border-blue-500'
-                          : 'bg-slate-50 text-slate-400 border-slate-200'
+                          : 'bg-white text-slate-500 border-slate-300'
                       )}>
                         {choice.label ?? ANSWER_LABELS[idx]}
                       </span>
-                      <div className="flex flex-col gap-2 flex-1">
-                        <span className={cn(
-                          'leading-snug font-normal',
+                      <span
+                        className={cn(
+                          'flex-1 leading-relaxed',
                           textSize === 'sm' && 'text-xs',
                           textSize === 'md' && 'text-sm',
                           textSize === 'lg' && 'text-base',
-                          isSelected ? 'text-blue-900' : 'text-slate-900'
-                        )}>
-                          {choice.content}
-                        </span>
-                      </div>
+                          isSelected ? 'text-blue-900 font-medium' : 'text-slate-700'
+                        )}
+                        style={{ fontFamily: 'var(--font-jakarta)' }}
+                      >
+                        {choice.content}
+                      </span>
+                      {isSelected && (
+                        <Check className="w-5 h-5 text-blue-500 flex-shrink-0" strokeWidth={3} />
+                      )}
                     </button>
                   );
                 })}
               </div>
             )}
 
+            {/* Navigasi bawah pilihan — DESKTOP: Sebelumnya | Laporkan | Selanjutnya */}
+            <div className="hidden md:flex items-center justify-between gap-3 mt-8 pt-5 border-t border-slate-100">
+              <button
+                onClick={prevQuestion}
+                disabled={currentIndex === 0}
+                className={cn(
+                  'flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all',
+                  currentIndex === 0
+                    ? 'border-slate-100 text-slate-300 cursor-not-allowed'
+                    : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                )}
+              >
+                <ChevronLeft className="w-4 h-4" /> Sebelumnya
+              </button>
+              <button
+                onClick={() => setReportOpen(true)}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all"
+              >
+                <Flag className="w-4 h-4" /> Laporkan
+              </button>
+              <button
+                onClick={nextQuestion}
+                disabled={currentIndex === questions.length - 1}
+                className={cn(
+                  'flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all',
+                  currentIndex === questions.length - 1
+                    ? 'border-slate-100 text-slate-300 cursor-not-allowed'
+                    : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                )}
+              >
+                Selanjutnya <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
           </div>
         </main>
 
         {/* ── DESKTOP SIDEBAR ─────────────────────────────────────── */}
-        <aside className="hidden md:flex flex-shrink-0 w-60 bg-white border-l border-slate-200 flex-col overflow-hidden shadow-sm">
+        <aside className="hidden md:flex flex-shrink-0 w-72 bg-white border-l border-slate-200 flex-col overflow-hidden shadow-sm">
 
           {/* Fixed top controls — tidak ikut scroll */}
           <div className="flex-shrink-0 p-4 space-y-3">
@@ -519,82 +713,64 @@ export function ExamInterface({
               </div>
             </div>
 
-            <div className="border-t border-slate-100" />
-
-            {/* Action buttons */}
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                Aksi
-              </p>
-              <div className="grid grid-cols-4 gap-1.5 mb-1.5">
-                <button
-                  onClick={prevQuestion}
-                  disabled={currentIndex === 0}
-                  title="Sebelumnya (←)"
-                  className={cn(
-                    'aspect-square rounded-lg flex items-center justify-center border-2 transition-all',
-                    currentIndex === 0
-                      ? 'border-slate-100 text-slate-300 cursor-not-allowed bg-slate-50'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
-                  )}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={nextQuestion}
-                  disabled={currentIndex === questions.length - 1}
-                  title="Selanjutnya (→)"
-                  className={cn(
-                    'aspect-square rounded-lg flex items-center justify-center border-2 transition-all',
-                    currentIndex === questions.length - 1
-                      ? 'border-slate-100 text-slate-300 cursor-not-allowed bg-slate-50'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
-                  )}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => toggleFlag(currentQuestion?.id)}
-                  title={isFlagged ? 'Hapus Tandai (F)' : 'Tandai Soal (F)'}
-                  className={cn(
-                    'aspect-square rounded-lg flex items-center justify-center border-2 transition-all',
-                    isFlagged
-                      ? 'border-yellow-400 bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
-                      : 'border-slate-200 text-slate-500 hover:border-yellow-300 hover:text-yellow-600 hover:bg-yellow-50'
-                  )}
-                >
-                  {isFlagged ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={handleCancel}
-                  title="Batalkan Ujian"
-                  className="aspect-square rounded-lg flex items-center justify-center border-2 border-slate-200 text-slate-500 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-all"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
+            {/* Navigasi soal (ikon) — di bawah Pilih Jawaban */}
+            <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => setShowSubmitDialog(true)}
-                disabled={isSubmitting}
-                className="w-full py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold hover:bg-slate-700 transition-all disabled:opacity-40"
+                onClick={prevQuestion}
+                disabled={currentIndex === 0}
+                title="Sebelumnya (←)"
+                className={cn(
+                  'flex items-center justify-center gap-1.5 py-2 rounded-lg border-2 text-xs font-semibold transition-all',
+                  currentIndex === 0
+                    ? 'border-slate-100 text-slate-300 cursor-not-allowed bg-slate-50'
+                    : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                )}
               >
-                {isSubmitting ? 'Mengirim...' : 'Submit Ujian'}
+                <ChevronLeft className="w-4 h-4" /> Sebelumnya
+              </button>
+              <button
+                onClick={nextQuestion}
+                disabled={currentIndex === questions.length - 1}
+                title="Selanjutnya (→)"
+                className={cn(
+                  'flex items-center justify-center gap-1.5 py-2 rounded-lg border-2 text-xs font-semibold transition-all',
+                  currentIndex === questions.length - 1
+                    ? 'border-slate-100 text-slate-300 cursor-not-allowed bg-slate-50'
+                    : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
+                )}
+              >
+                Selanjutnya <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
             <div className="border-t border-slate-100" />
 
-            <button
-              onClick={() => setShowLegendDialog(true)}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
-            >
-              <span className="font-semibold">Keterangan Warna</span>
-              <Info className="w-3.5 h-3.5" />
-            </button>
+            {/* Sudah selesai? — Batal + Selesai sejajar */}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                Sudah selesai?
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={handleCancel}
+                  disabled={isSubmitting}
+                  className="py-2.5 rounded-lg border-2 border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 hover:border-red-300 transition-all disabled:opacity-40"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => setShowSubmitDialog(true)}
+                  disabled={isSubmitting}
+                  className="py-2.5 rounded-lg bg-slate-800 text-yellow-400 text-sm font-bold hover:bg-slate-700 transition-all disabled:opacity-40 shadow-sm"
+                >
+                  {isSubmitting ? 'Mengirim...' : 'Selesai'}
+                </button>
+              </div>
+            </div>
 
             <div className="border-t border-slate-100" />
 
-            {/* Text size selector */}
+            {/* Ukuran Teks (sebelum Keterangan Warna) */}
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
                 Ukuran Teks
@@ -616,6 +792,17 @@ export function ExamInterface({
                 ))}
               </div>
             </div>
+
+            <div className="border-t border-slate-100" />
+
+            {/* Keterangan Warna (setelah Ukuran Teks) */}
+            <button
+              onClick={() => setShowLegendDialog(true)}
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-500 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 transition-all"
+            >
+              <span className="font-semibold">Keterangan Warna</span>
+              <Info className="w-3.5 h-3.5" />
+            </button>
 
             <div className="border-t border-slate-100" />
 
@@ -702,45 +889,44 @@ export function ExamInterface({
 
       {/* ── MOBILE BOTTOM BAR (hidden md+) ──────────────────────────── */}
       <div className="flex md:hidden flex-shrink-0 bg-white border-t border-slate-200 items-center px-3 py-2 gap-2 pb-safe">
-        {/* Prev */}
+        {/* Sebelumnya — kompak, dengan teks */}
         <button
           onClick={prevQuestion}
           disabled={currentIndex === 0}
           className={cn(
-            'w-11 h-11 flex items-center justify-center rounded-xl border-2 flex-shrink-0 transition-all',
+            'flex-shrink-0 h-11 px-3 flex items-center justify-center gap-1 rounded-xl border-2 text-xs font-semibold transition-all',
             currentIndex === 0
               ? 'border-slate-100 text-slate-300 bg-slate-50 cursor-not-allowed'
-              : 'border-slate-200 text-slate-600 active:scale-95'
+              : 'border-slate-200 text-slate-600 active:scale-[0.98]'
           )}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={16} /> Sebelumnya
         </button>
 
-        {/* Navigator trigger — center */}
+        {/* Navigator trigger — slate, dominan di tengah */}
         <button
           onClick={() => setShowNavigatorSheet(true)}
-          className="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl bg-slate-800 text-white text-sm font-semibold active:scale-[0.98] transition-all"
+          className="flex-1 min-w-0 h-12 flex items-center justify-center gap-2 rounded-xl bg-slate-800 text-white text-base font-semibold active:scale-[0.98] transition-all"
         >
-          <LayoutGrid size={15} />
+          <LayoutGrid size={18} />
           <span>
-            <span className="text-blue-300 font-bold">{answers.size}</span>
-            <span className="text-slate-400"> / {questions.length}</span>
-            <span className="ml-1">dijawab</span>
+            <span className="text-yellow-400 font-bold">{answers.size}</span>
+            <span className="text-slate-400">/{questions.length}</span>
           </span>
         </button>
 
-        {/* Next */}
+        {/* Selanjutnya — kompak, dengan teks */}
         <button
           onClick={nextQuestion}
           disabled={currentIndex === questions.length - 1}
           className={cn(
-            'w-11 h-11 flex items-center justify-center rounded-xl border-2 flex-shrink-0 transition-all',
+            'flex-shrink-0 h-11 px-3 flex items-center justify-center gap-1 rounded-xl border-2 text-xs font-semibold transition-all',
             currentIndex === questions.length - 1
               ? 'border-slate-100 text-slate-300 bg-slate-50 cursor-not-allowed'
-              : 'border-slate-200 text-slate-600 active:scale-95'
+              : 'border-slate-200 text-slate-600 active:scale-[0.98]'
           )}
         >
-          <ChevronRight size={20} />
+          Selanjutnya <ChevronRight size={16} />
         </button>
       </div>
 
@@ -806,7 +992,7 @@ export function ExamInterface({
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSubmitDialog(false)} disabled={isSubmitting}>Batal</Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Mengirim...</> : 'Submit Ujian'}
+              {isSubmitting ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Mengirim...</> : 'Ya, Selesai'}
             </Button>
           </DialogFooter>
         </DialogContent>

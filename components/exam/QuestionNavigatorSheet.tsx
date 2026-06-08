@@ -149,11 +149,11 @@ export function QuestionNavigatorSheet({
           <button
             onClick={onSubmit}
             disabled={isSubmitting}
-            className="w-full py-3 rounded-xl bg-slate-800 text-white text-sm font-bold disabled:opacity-40 active:scale-[0.98] transition-all"
+            className="w-full py-3 rounded-xl bg-slate-800 text-yellow-400 text-sm font-bold disabled:opacity-40 active:scale-[0.98] transition-all"
           >
             {isSubmitting
               ? <span className="flex items-center justify-center gap-2"><Loader2 size={14} className="animate-spin" />Mengirim...</span>
-              : 'Submit Ujian'
+              : 'Selesai'
             }
           </button>
         </div>
