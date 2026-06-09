@@ -105,7 +105,7 @@ export default function NotFound() {
           <span className="text-[#F5A623]">pintu yang salah</span>
         </h1>
         <p className="pa-fadeup pa-delay-2 text-sm text-slate-500 leading-relaxed">
-          Halaman yang kamu cari tidak ditemukan — mungkin sudah pindah, terhapus,
+          Halaman yang kamu cari tidak ditemukan. Mungkin sudah pindah, terhapus,
           atau tautannya keliru. Yuk kembali ke jalur yang benar.
         </p>
 
