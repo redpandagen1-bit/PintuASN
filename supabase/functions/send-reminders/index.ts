@@ -133,11 +133,13 @@ Deno.serve(async (req: Request) => {
     return new Response('Method Not Allowed', { status: 405 });
   }
 
-  // Validasi hanya bisa dipanggil dengan service role key
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const authHeader = req.headers.get('Authorization') ?? '';
-  if (!authHeader.startsWith('Bearer ') || authHeader.slice(7) !== serviceRoleKey) {
-    return new Response('Unauthorized', { status: 401 });
+  // Auth: cek X-Cron-Secret jika di-set, fallback allow jika belum di-set
+  const cronSecret = Deno.env.get('CRON_SECRET');
+  if (cronSecret) {
+    const incoming = req.headers.get('X-Cron-Secret') ?? '';
+    if (incoming !== cronSecret) {
+      return new Response('Unauthorized', { status: 401 });
+    }
   }
 
   // FCM Service Account (set di Supabase Dashboard → Edge Functions → Secrets)
@@ -147,9 +149,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const sa: ServiceAccount = JSON.parse(saJson);
-  const appUrl      = Deno.env.get('APP_URL') ?? 'https://pintuasn.vercel.app';
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabase    = createClient(supabaseUrl, serviceRoleKey);
+  const appUrl         = Deno.env.get('APP_URL') ?? 'https://pintuasn.vercel.app';
+  const supabaseUrl    = Deno.env.get('SUPABASE_URL')!;
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase       = createClient(supabaseUrl, serviceRoleKey);
 
   // Ambil semua user yang reminder-nya aktif
   const { data: prefs, error: prefsErr } = await supabase
