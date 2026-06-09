@@ -2,7 +2,7 @@
 
 import { Suspense }      from 'react';
 import { redirect }      from 'next/navigation';
-import { currentUser }  from '@clerk/nextjs/server';
+import { auth }          from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { BannerSlider, StatCard, MateriTabs } from '@/components/dashboard/user';
 import { FeatureGrid }   from '@/components/layout/FeatureGrid';
@@ -19,10 +19,9 @@ import { MobileDashboard }   from '@/components/mobile/MobileDashboard';
 // ─────────────────────────────────────────────────────────────
 
 async function DashboardContent() {
-  const user = await currentUser();
-  if (!user) redirect('/sign-in');
+  const { userId } = await auth();
+  if (!userId) redirect('/sign-in');
 
-  const userId = user.id;
   const supabase = await createAdminClient();
 
   const [

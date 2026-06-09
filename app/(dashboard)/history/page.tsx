@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { getAttemptHistory, getUserStats, getUserTier } from '@/lib/supabase/queries';
 import HistoryContent from './history-content';
 import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
@@ -14,12 +14,11 @@ async function HistoryPage({
     page?: string;
   }>;
 }) {
-  const user = await currentUser();
-  if (!user) {
+  const { userId } = await auth();
+  if (!userId) {
     throw new Error('User not found');
   }
 
-  const userId = user.id;
   const params = await searchParams;
 
   const sortBy   = (params.sort   as 'newest' | 'oldest' | 'highest_score') || 'newest';

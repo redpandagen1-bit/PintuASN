@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import {
   getAttemptById,
   getAttemptWithAnswers
@@ -13,8 +13,8 @@ export default async function ExamPage({
 }) {
   const { attemptId } = await params;
 
-  const user = await currentUser();
-  if (!user) {
+  const { userId } = await auth();
+  if (!userId) {
     redirect('/sign-in');
   }
 
@@ -31,7 +31,7 @@ export default async function ExamPage({
     notFound();
   }
 
-  if (attempt.user_id !== user.id) {
+  if (attempt.user_id !== userId) {
     redirect('/dashboard');
   }
 

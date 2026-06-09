@@ -3,7 +3,7 @@
 // ============================================================
 
 import { Suspense }     from 'react';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { getAllMaterials, getUserTier } from '@/lib/supabase/queries';
 import MateriPageClient from './materi-client';
 import { Skeleton }    from '@/components/ui/skeleton';
@@ -28,13 +28,13 @@ export interface Material {
 // ─────────────────────────────────────────────────────────────
 
 async function MateriContent() {
-  const user = await currentUser();
-  if (!user) throw new Error('User not found');
+  const { userId } = await auth();
+  if (!userId) throw new Error('User not found');
 
   // OPTIMASI: fetch semua materi + tier user secara paralel
   const [materials, userTier] = await Promise.all([
     getAllMaterials(),       // semua materi (tanpa filter tier)
-    getUserTier(user.id),   // tier user untuk cek akses di client
+    getUserTier(userId),    // tier user untuk cek akses di client
   ]);
 
   return (

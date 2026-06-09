@@ -1,5 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { getPackageById, getUserAttempts } from '@/lib/supabase/queries';
 import { ExamInstructionsModal } from '@/components/exam/exam-instructions-modal';
 import { MobilePageWrapper }    from '@/components/mobile/MobilePageWrapper';
@@ -35,13 +35,13 @@ export default async function PackageDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await currentUser();
-  if (!user) redirect('/sign-in');
+  const { userId } = await auth();
+  if (!userId) redirect('/sign-in');
 
   const packageData = await getPackageById(id);
   if (!packageData) notFound();
 
-  const attempts = await getUserAttempts(user.id);
+  const attempts = await getUserAttempts(userId);
   const activeAttempt = attempts.find(
     a => a.package_id === id && a.status === 'in_progress'
   );

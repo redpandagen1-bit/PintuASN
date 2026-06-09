@@ -1,20 +1,13 @@
 // components/mobile/MobilePageWrapper.tsx
-// Server component — wraps mobile content with sticky header
-// Usage: wrap the mobile section of any dashboard page
-
-import { currentUser } from '@clerk/nextjs/server';
+// Server component — wraps mobile content + bottom spacer.
+// Catatan: dulu memanggil currentUser() untuk menghitung inisial yang TIDAK
+// pernah dipakai → setiap halaman mobile boros 1 round-trip ke Clerk. Dihapus.
 
 interface MobilePageWrapperProps {
   children: React.ReactNode;
 }
 
-export async function MobilePageWrapper({ children }: MobilePageWrapperProps) {
-  const user = await currentUser();
-
-  const initials = user
-    ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || 'U'
-    : 'U';
-
+export function MobilePageWrapper({ children }: MobilePageWrapperProps) {
   return (
     <div className="md:hidden">
       {children}

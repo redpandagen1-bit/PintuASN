@@ -4,7 +4,7 @@
 
 import { Suspense }     from 'react';
 import { redirect }    from 'next/navigation';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import {
   getActivePackages,
@@ -20,10 +20,8 @@ import { MobileDaftarTryout } from '@/components/mobile/MobileDaftarTryout';
 // ─────────────────────────────────────────────────────────────
 
 async function DaftarTryoutContent() {
-  const user = await currentUser();
-  if (!user) redirect('/sign-in');
-
-  const userId = user.id;
+  const { userId } = await auth();
+  if (!userId) redirect('/sign-in');
 
   // OPTIMASI: semua fetch dijalankan paralel sekaligus
   const [packages, attempts, userTier] = await Promise.all([
