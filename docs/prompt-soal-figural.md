@@ -59,16 +59,43 @@ Satu **array JSON**. Tiap elemen = 1 soal, dengan struktur PERSIS:
 - Tanda tanya: `<text x='60' y='78' font-family='sans-serif' font-weight='700' font-size='56' fill='#111111' text-anchor='middle'>?</text>` (sesuaikan posisi ke tengah selnya).
 - **JANGAN tulis huruf A–E di dalam SVG pilihan** (label dipasang oleh aplikasi).
 - Set `viewBox` sesuai bentuk (tidak perlu set `width`/`height`):
-  - Soal 1×3 → `viewBox='0 0 360 120'` · 1×4 → `0 0 480 120` · 1×5 → `0 0 600 120`
-  - Soal 2×2 → `0 0 240 240` · 2×3 → `0 0 360 240` · 3×3 → `0 0 360 360`
-  - **Tiap pilihan A–E → `0 0 120 120`** (selalu 1 sel)
+  - Deret 1×3 → `viewBox='0 0 360 120'` · 1×4 → `0 0 480 120` · 1×5 → `0 0 600 120`
+  - Matriks 2×2 → `0 0 240 240` · 2×3 → `0 0 360 240` · 3×3 → `0 0 360 360`
+  - Analogi (bentuk1 → bentuk2 ⟹ bentuk3 → ?) → `0 0 560 120`
+  - Pencerminan (bentuk + garis cermin putus-putus) → `0 0 280 120`
+  - Lipatan kertas (3–4 tahap) → `0 0 600 160`
+  - Jaring-jaring kubus (stimulus) → `0 0 360 300`
+  - **Tiap pilihan A–E → `0 0 120 120`** (default 1 sel). Untuk tipe kompleks (kubus isometrik / gambar tersembunyi) boleh `0 0 140 140`, asalkan **seragam** untuk kelima pilihan.
   - `explanation_svg` (opsional) → `0 0 480 240`
 
-### VARIASI (agar tiap soal berbeda)
-Sebelum menggambar tiap soal, pilih SECARA ACAK: (a) bentuk grid, (b) 1–2 aturan transformasi
-[rotasi / pencerminan / tambah-kurang elemen / arsiran / ubah ukuran / pindah posisi / lengkapi simetri / gabung dua bentuk / pergeseran melingkar],
-(c) kosakata bentuk [garis, titik, panah, poligon, busur/lingkaran, bintang, grid titik, pola dadu, spiral, bentuk organik].
-Hindari pola paling klise; sertakan minimal satu twist. Sesuaikan jumlah aturan dengan kesulitan (mudah=1, sedang=1–2, sulit=2–3). Usahakan antar-soal dalam satu file tidak berpola sama.
+### TIPE SOAL FIGURAL (pilih & variasikan antar soal)
+Untuk tiap soal, pilih SATU tipe di bawah. **Jangan** memakai tipe yang sama dua kali berturut-turut; kalau `JUMLAH_SOAL ≥ 5`, usahakan mencakup beragam tipe. Tiap tipe menjelaskan cara menyusun `question_svg`, `content`, dan `choices`:
+
+1. **Serial / Deret** — `question_svg`: 3–5 sel berderet, sel terakhir berisi `?`. `content`: "Pilih gambar yang melanjutkan pola." `choices`: kandidat sel berikutnya.
+2. **Analogi** — `question_svg`: `bentuk1 → bentuk2  ⟹  bentuk3 → ?` (pakai panah `→` dari path, pemisah `⟹`/dua titik di tengah). `content`: "Gambar 1 berhubungan dengan gambar 2 seperti gambar 3 dengan …". `choices`: hasil analogi pada bentuk3.
+3. **Ketidaksamaan (yang berbeda)** — fokus pada KELIMA pilihan; empat mengikuti satu aturan, satu melanggar. `question_svg`: header netral sederhana (mis. tiga titik kecil `• • •`). `content`: "Pilih gambar yang TIDAK termasuk kelompok (berbeda pola)." `correct_answer`: gambar yang menyimpang.
+4. **Matriks 3×3** — `question_svg`: grid 3×3, satu sel (umumnya kanan-bawah) berisi `?`. `content`: "Lengkapi sel kosong pada matriks." `choices`: isi sel yang hilang.
+5. **Pencerminan** — `question_svg`: bentuk + **garis cermin putus-putus** (vertikal/horizontal/diagonal). `content`: "Pilih bayangan cermin dari gambar terhadap garis." `choices`: kandidat bayangan.
+6. **Rotasi** — `question_svg`: bentuk + indikator arah (panah lengkung). `content`: "Pilih hasil rotasi 90°/180° searah jarum jam." `choices`: bentuk dengan orientasi berbeda.
+7. **Lipatan & lubang kertas** — `question_svg`: urutan lipatan kertas lalu titik lubang (lingkaran kecil terisi). `content`: "Jika kertas dilipat lalu dilubangi seperti gambar, pola lubang saat dibuka adalah …". `choices`: pola lubang pada kertas terbuka (grid titik). *(sulit)*
+8. **Jaring-jaring kubus** — `question_svg`: jaring 2D dengan motif berbeda tiap sisi. `content`: "Kubus yang dapat dibentuk dari jaring berikut adalah …". `choices`: kubus isometrik (3 sisi tampak, pakai polygon). *(sulit)*
+9. **Penyusunan potongan** — `question_svg`: beberapa potongan terpisah. `content`: "Bangun yang tersusun dari semua potongan adalah …". `choices`: bangun gabungan.
+10. **Penyelesaian / simetri** — `question_svg`: bentuk separuh atau pola tak lengkap dengan `?`. `content`: "Lengkapi gambar agar simetris / sesuai pola." `choices`: bagian pelengkap.
+11. **Gambar tersembunyi** — `question_svg`: satu bentuk target kecil di kotak atas. `content`: "Pada gambar manakah bentuk di atas tersembunyi seutuhnya?" `choices`: 5 gambar kompleks; jawaban = yang memuat target utuh.
+
+> Hindari tipe "hitung jumlah bentuk" (jawabannya angka, lebih cocok soal teks/CSV — bukan figural gambar).
+
+### ATURAN TRANSFORMASI (campur 1–3 sesuai kesulitan)
+rotasi (45°/90°/135°/180°) · pencerminan (horizontal/vertikal/diagonal) · translasi/pergeseran · penambahan atau pengurangan elemen · perubahan ukuran (membesar/mengecil bertahap) · perubahan jumlah elemen (deret aritmetik/Fibonacci) · perubahan isian (kosong → terisi → bersilang) · perubahan arsiran/tekstur · perputaran melingkar elemen di dalam bentuk · perpindahan posisi titik/penanda · overlay/gabungan dua bentuk · substitusi bentuk mengikuti pola · perubahan orientasi panah · perubahan jumlah sisi poligon · simetri putar.
+- Mudah = 1 aturan · Sedang = 1–2 aturan · Sulit = 2–3 aturan, dengan minimal satu twist tak terduga.
+
+### KOSAKATA BENTUK (variasikan antar soal)
+garis lurus & diagonal · panah · segitiga · persegi · persegi panjang · jajar genjang · trapesium · belah ketupat · segi lima/enam · lingkaran · setengah lingkaran · busur · elips · bintang (4/5/6 sudut) · titik/bulatan terisi · grid titik & pola dadu · arsiran garis · spiral · bentuk "L"/"T"/"Z" · tanda plus/silang · gabungan/overlay bentuk · bentuk organik bebas.
+
+### VARIASI ANTAR-SOAL DALAM SATU FILE
+- Jika `JUMLAH_SOAL > 1`: setiap nomor memakai **tipe, aturan transformasi, dan kosakata bentuk yang berbeda** — jangan monoton.
+- Hindari pola paling klise; selalu sisipkan minimal satu twist agar kreatif.
+- Sebar tingkat kesulitan transformasi sesuai `TINGKAT`, dan jaga agar tetap logis & berjawaban tunggal.
 
 ### SYARAT KUALITAS
 - Logika konsisten & terbukti; tepat satu jawaban benar.
