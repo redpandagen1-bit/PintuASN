@@ -2,7 +2,8 @@
 // lib/supabase/queries.ts
 // ============================================================
 
-import { createAdminClient } from './server';
+import { unstable_cache } from 'next/cache';
+import { createAdminClient, createCacheClient } from './server';
 import type { Profile, Package, Attempt } from '@/types/database';
 import { PASSING_GRADES } from '@/constants/exam';
 
@@ -57,42 +58,58 @@ export async function getUserTier(
 // PACKAGES
 // ─────────────────────────────────────────────────────────────
 
-export async function getActivePackages(): Promise<Package[]> {
-  const supabase = await createAdminClient();
-  const { data, error } = await supabase
-    .from('packages').select('*')
-    .eq('is_active', true).eq('is_deleted', false)
-    .order('created_at', { ascending: false });
-  if (error) throw new Error(`Failed to fetch packages: ${error.message}`);
-  return data ?? [];
-}
+// CACHED (Fase 2): data publik & global, jarang berubah. Di-cache via Next.js
+// Data Cache (gratis, bawaan). Invalidasi otomatis lewat revalidateTag('packages')
+// di route admin saat paket diubah. revalidate 300s sebagai fallback.
+export const getActivePackages = unstable_cache(
+  async (): Promise<Package[]> => {
+    const supabase = createCacheClient();
+    const { data, error } = await supabase
+      .from('packages').select('*')
+      .eq('is_active', true).eq('is_deleted', false)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(`Failed to fetch packages: ${error.message}`);
+    return (data ?? []) as unknown as Package[];
+  },
+  ['active-packages'],
+  { tags: ['packages'], revalidate: 300 },
+);
 
-export async function getPackageById(packageId: string): Promise<Package> {
-  const supabase = await createAdminClient();
-  const { data, error } = await supabase
-    .from('packages').select('*').eq('id', packageId).single();
-  if (error) {
-    if (error.code === 'PGRST116') throw new Error('Package not found');
-    throw new Error(`Failed to fetch package: ${error.message}`);
-  }
-  return data;
-}
+export const getPackageById = unstable_cache(
+  async (packageId: string): Promise<Package> => {
+    const supabase = createCacheClient();
+    const { data, error } = await supabase
+      .from('packages').select('*').eq('id', packageId).single();
+    if (error) {
+      if (error.code === 'PGRST116') throw new Error('Package not found');
+      throw new Error(`Failed to fetch package: ${error.message}`);
+    }
+    return data as unknown as Package;
+  },
+  ['package-by-id'],
+  { tags: ['packages'], revalidate: 300 },
+);
 
 // ─────────────────────────────────────────────────────────────
 // MATERIALS
 // ─────────────────────────────────────────────────────────────
 
-export async function getAllMaterials() {
-  const supabase = await createAdminClient();
-  const { data, error } = await supabase
-    .from('materials')
-    .select('id, title, category, type, tier, content_url, duration_minutes')
-    .eq('is_active', true).eq('is_deleted', false)
-    .order('order_index', { ascending: true })
-    .order('created_at',  { ascending: false });
-  if (error) throw new Error(`Failed to fetch materials: ${error.message}`);
-  return data ?? [];
-}
+// CACHED (Fase 2): materi publik & global. Invalidasi via revalidateTag('materials').
+export const getAllMaterials = unstable_cache(
+  async () => {
+    const supabase = createCacheClient();
+    const { data, error } = await supabase
+      .from('materials')
+      .select('id, title, category, type, tier, content_url, duration_minutes')
+      .eq('is_active', true).eq('is_deleted', false)
+      .order('order_index', { ascending: true })
+      .order('created_at',  { ascending: false });
+    if (error) throw new Error(`Failed to fetch materials: ${error.message}`);
+    return data ?? [];
+  },
+  ['all-materials'],
+  { tags: ['materials'], revalidate: 300 },
+);
 
 // ─────────────────────────────────────────────────────────────
 // PACKAGE QUESTIONS

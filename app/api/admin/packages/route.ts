@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { requireAdmin } from '@/lib/auth/check-admin';
 import { createAdminClient } from '@/lib/supabase/server';
 
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest) {
 
     if (pkgError) throw pkgError;
 
+    revalidateTag('packages');
     return NextResponse.json({ package: pkg }, { status: 201 });
   } catch (error: any) {
     console.error('Create package error:', error);

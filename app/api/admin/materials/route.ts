@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { checkIsAdmin } from '@/lib/auth/check-admin';
@@ -64,6 +65,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) throw error;
+    revalidateTag('materials');
     return NextResponse.json({ material }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

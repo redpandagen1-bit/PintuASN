@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/server';
 import { checkIsAdmin } from '@/lib/auth/check-admin';
 
@@ -44,6 +45,7 @@ export async function PATCH(
     if (error) throw error;
     if (!material) return NextResponse.json({ error: 'Materi tidak ditemukan' }, { status: 404 });
 
+    revalidateTag('materials');
     return NextResponse.json({ material });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -68,6 +70,7 @@ export async function DELETE(
       .eq('id', id);
 
     if (error) throw error;
+    revalidateTag('materials');
     return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

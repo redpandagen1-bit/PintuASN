@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { requireAdmin } from '@/lib/auth/check-admin';
 import { createAdminClient } from '@/lib/supabase/server';
 
@@ -82,6 +83,7 @@ export async function PATCH(
 
     if (error) throw error;
 
+    revalidateTag('packages');
     return NextResponse.json({ package: data });
   } catch (error: any) {
     console.error('Update package error:', error);
@@ -124,6 +126,7 @@ export async function DELETE(
 
     if (error) throw error;
 
+    revalidateTag('packages');
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Delete package error:', error);
