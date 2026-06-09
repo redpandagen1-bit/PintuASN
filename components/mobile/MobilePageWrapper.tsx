@@ -18,8 +18,8 @@ export async function MobilePageWrapper({ children }: MobilePageWrapperProps) {
   return (
     <div className="md:hidden">
       {children}
-      {/* Spacer bawah — BottomNav ~66px + 16px breathing room = 82px ≈ h-20 */}
-      <div className="h-20" />
+      {/* Spacer bawah — BottomNav 58px + breathing room (FAB melayang ke atas, tak makan ruang konten) */}
+      <div className="h-[72px]" />
     </div>
   );
 }
