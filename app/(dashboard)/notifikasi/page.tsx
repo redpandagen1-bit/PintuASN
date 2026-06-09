@@ -37,17 +37,17 @@ export default function NotifikasiPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#1B2B5E] px-4 py-3.5 flex items-center gap-3 shadow-sm">
+      <div className="sticky top-0 z-10 bg-slate-800 px-4 py-3.5 flex items-center gap-3 shadow-sm">
         <Link href="/dashboard" className="p-1 -ml-1 rounded-lg hover:bg-white/10 transition-colors">
           <ChevronLeft className="w-5 h-5 text-white" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-base font-extrabold text-white leading-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
-            Notifikasi
+          <h1 className="text-base font-extrabold leading-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
+            <span className="text-white">Notifi</span><span className="text-yellow-400">kasi</span>
           </h1>
-          <p className="text-[11px] text-white/55">Info & pengingat untukmu</p>
+          <p className="text-[11px] text-white/55">Info &amp; pengingat untukmu</p>
         </div>
-        <Bell className="w-5 h-5 text-[#F5A623]" />
+        <Bell className="w-5 h-5 text-yellow-400" />
       </div>
 
       {/* List */}
