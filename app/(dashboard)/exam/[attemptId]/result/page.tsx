@@ -47,6 +47,18 @@ async function getResultData(attemptId: string, userId: string) {
 
   const packageRank = (higherScoresCount || 0) + 1;
 
+  // Total soal per kategori (untuk menghitung "belum dijawab" di donut akurasi)
+  const { data: pkgCats } = await supabase
+    .from('package_questions')
+    .select('questions ( category )')
+    .eq('package_id', attempt.package_id);
+
+  const categoryTotals = { TWK: 0, TIU: 0, TKP: 0 };
+  (pkgCats || []).forEach((r: any) => {
+    const c = r.questions?.category as 'TWK' | 'TIU' | 'TKP' | undefined;
+    if (c && categoryTotals[c] !== undefined) categoryTotals[c] += 1;
+  });
+
   const { data: attemptHistory } = await supabase
     .from('attempts')
     .select('final_score, score_twk, score_tiu, score_tkp, completed_at')
@@ -123,6 +135,7 @@ async function getResultData(attemptId: string, userId: string) {
     attemptHistory: attemptHistory || [],
     lastThreeAttempts: attemptHistory?.slice(-3) || [],
     answers: answersWithCorrect,
+    categoryTotals,
   };
 }
 
@@ -170,6 +183,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
           answers={data.answers}
           duration={duration}
           subscriptionTier={subscriptionTier}
+          categoryTotals={data.categoryTotals}
         />
       </MobilePageWrapper>
       <div className="hidden md:block">
@@ -187,6 +201,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
           userId={userId}
           userRankInLeaderboard={userRankInLeaderboard}
           subscriptionTier={subscriptionTier}
+          categoryTotals={data.categoryTotals}
         />
       </div>
     </>

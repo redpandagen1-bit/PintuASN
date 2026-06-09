@@ -97,6 +97,39 @@ export function ExamInterface({
   const hasSubmittedRef = useRef(false);
   const currentQuestion = questions[currentIndex];
 
+  // ── Pencatatan waktu per soal (akumulasi detik tiap soal) ───────────────
+  // Murni hitung selisih Date.now() saat pindah soal — tanpa timer/loop.
+  const timeSpentRef = useRef<Map<string, number>>(new Map());
+  const qStartRef = useRef<number>(Date.now());
+  const prevIndexRef = useRef<number>(currentIndex);
+
+  // Akumulasi waktu soal sebelumnya saat berpindah soal
+  useEffect(() => {
+    const now = Date.now();
+    const prevQ = questions[prevIndexRef.current];
+    if (prevQ) {
+      const delta = Math.round((now - qStartRef.current) / 1000);
+      if (delta > 0 && delta < 3600) {
+        timeSpentRef.current.set(prevQ.id, (timeSpentRef.current.get(prevQ.id) || 0) + delta);
+      }
+    }
+    qStartRef.current = now;
+    prevIndexRef.current = currentIndex;
+  }, [currentIndex, questions]);
+
+  // Flush waktu soal yang sedang dibuka (dipanggil sebelum submit)
+  const flushCurrentQuestionTime = () => {
+    const now = Date.now();
+    const curQ = questions[prevIndexRef.current];
+    if (curQ) {
+      const delta = Math.round((now - qStartRef.current) / 1000);
+      if (delta > 0 && delta < 3600) {
+        timeSpentRef.current.set(curQ.id, (timeSpentRef.current.get(curQ.id) || 0) + delta);
+      }
+    }
+    qStartRef.current = now;
+  };
+
   // ── #5: Peringatkan saat jawaban gagal tersimpan (sesi/koneksi) ──────────
   const prevSaveFailedRef = useRef(false);
   useEffect(() => {
@@ -239,9 +272,11 @@ export function ExamInterface({
     const toastId = toast.loading('Mengirim ujian...');
     setIsSubmitting(true);
     try {
+      flushCurrentQuestionTime();
       const answersArray = Array.from(answers.entries()).map(([questionId, choiceId]) => ({
         questionId,
         choiceId,
+        timeSpent: timeSpentRef.current.get(questionId) || 0,
       }));
       const response = await fetch('/api/exam/submit', {
         method: 'POST',

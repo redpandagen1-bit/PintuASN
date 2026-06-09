@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     // Jawaban BOLEH kosong — ujian tetap bisa disubmit.
     // Soal yang tidak dijawab dihitung tidak menambah skor (skor 0).
-    const answersList: { questionId: string; choiceId: string }[] = Array.isArray(answers) ? answers : [];
+    const answersList: { questionId: string; choiceId: string; timeSpent?: number }[] = Array.isArray(answers) ? answers : [];
 
     const supabase = await createAdminClient();
 
@@ -53,6 +53,7 @@ export async function POST(req: Request) {
         choice_id: ans.choiceId,
         is_flagged: false,
         answered_at: new Date().toISOString(),
+        time_spent_seconds: typeof ans.timeSpent === 'number' ? ans.timeSpent : null,
       }));
 
       const { error: saveError } = await supabase

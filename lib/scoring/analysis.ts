@@ -84,6 +84,58 @@ export function getWrongAnalysis(answers: AnswerData[]): WrongAnalysis {
 }
 
 /**
+ * Ringkasan jawaban TWK & TIU: benar / salah / belum dijawab (kosong).
+ * TKP tidak punya benar-salah (dinilai 1–5) sehingga dikecualikan.
+ */
+export interface AccuracyDonut {
+  benar: number;
+  salah: number;
+  kosong: number;
+  akurasi: number; // % benar dari yang dijawab
+}
+
+export function getAccuracyDonut(
+  answers: AnswerData[],
+  totalTwkTiu: number,
+): AccuracyDonut {
+  const benar = answers.filter(a => a.is_correct === true).length;
+  const salah = answers.filter(a => a.is_correct === false).length;
+  const dijawab = benar + salah;
+  const kosong = Math.max(totalTwkTiu - dijawab, 0);
+  const akurasi = dijawab > 0 ? Math.round((benar / dijawab) * 100) : 0;
+  return { benar, salah, kosong, akurasi };
+}
+
+/**
+ * Rata-rata waktu pengerjaan per soal untuk tiap kategori (pacing).
+ * Hanya menghitung soal yang punya data waktu (time_spent_seconds > 0).
+ */
+export interface PacingItem {
+  category: 'TWK' | 'TIU' | 'TKP';
+  avgSeconds: number;
+  totalSeconds: number;
+  count: number;
+}
+
+export function getPacing(answers: AnswerData[]): { items: PacingItem[]; hasData: boolean } {
+  const cats: Array<'TWK' | 'TIU' | 'TKP'> = ['TWK', 'TIU', 'TKP'];
+  const items = cats.map((category) => {
+    const inCat = answers.filter(
+      a => a.questions?.category === category && (a.time_spent_seconds ?? 0) > 0,
+    );
+    const totalSeconds = inCat.reduce((s, a) => s + (a.time_spent_seconds || 0), 0);
+    const count = inCat.length;
+    return {
+      category,
+      avgSeconds: count > 0 ? Math.round(totalSeconds / count) : 0,
+      totalSeconds,
+      count,
+    };
+  });
+  return { items, hasData: items.some(i => i.count > 0) };
+}
+
+/**
  * Hitung persentil user dibandingkan seluruh peserta.
  * Semakin tinggi persentil, semakin baik posisi user.
  */

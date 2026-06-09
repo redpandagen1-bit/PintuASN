@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { getSlowestQuestions, getWrongAnalysis, calcPercentile } from '@/lib/scoring/analysis';
+import { getSlowestQuestions, getWrongAnalysis, calcPercentile, getAccuracyDonut, getPacing } from '@/lib/scoring/analysis';
 import {
   Trophy, Clock, CheckCircle2, XCircle, AlertCircle,
   RotateCcw, Eye, ArrowLeft, TrendingUp, BookOpen,
@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, Cell,
+  ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie,
 } from 'recharts';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
@@ -70,6 +70,7 @@ interface ResultClientProps {
   userId: string;
   userRankInLeaderboard?: number;
   subscriptionTier: SubscriptionTier;
+  categoryTotals?: { TWK: number; TIU: number; TKP: number };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -177,7 +178,7 @@ export default function ResultClient({
   attemptId, attempt, packageInfo, leaderboard,
   packageRank, totalParticipants, attemptHistory,
   lastThreeAttempts, answers, duration, userId,
-  subscriptionTier,
+  subscriptionTier, categoryTotals,
 }: ResultClientProps) {
   const isPlatinum  = subscriptionTier === 'platinum';
   const isPassed    = attempt.is_passed;
@@ -217,6 +218,19 @@ export default function ResultClient({
     { label: 'TIU', score: scoreTIU, min: TIU_CONFIG.PASSING_GRADE, max: TIU_CONFIG.MAX_SCORE },
     { label: 'TKP', score: scoreTKP, min: TKP_CONFIG.PASSING_GRADE, max: TKP_CONFIG.MAX_SCORE },
   ];
+
+  /* donut akurasi (TWK + TIU) */
+  const totalTwkTiu = (categoryTotals?.TWK ?? 0) + (categoryTotals?.TIU ?? 0);
+  const donut = useMemo(() => getAccuracyDonut(answers, totalTwkTiu), [answers, totalTwkTiu]);
+  const donutData = [
+    { name: 'Benar', value: donut.benar, color: '#10b981' },
+    { name: 'Salah', value: donut.salah, color: '#f43f5e' },
+    { name: 'Belum dijawab', value: donut.kosong, color: '#e2e8f0' },
+  ].filter(d => d.value > 0);
+
+  /* pacing waktu per kategori */
+  const pacing = useMemo(() => getPacing(answers), [answers]);
+  const pacingData = pacing.items.map(i => ({ name: i.category, detik: i.avgSeconds, count: i.count }));
 
   const completedDate = attempt.completed_at
     ? new Date(attempt.completed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -358,6 +372,85 @@ export default function ResultClient({
 
       {/* ══ ANALYTICS ══════════════════════════════════════════════════════ */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+        {/* Ringkasan Jawaban — donut besar (semua tier) */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 md:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <h3 className="font-bold text-slate-800 text-sm">Ringkasan Jawaban Kamu</h3>
+          </div>
+          <p className="text-xs text-slate-400 mb-4">
+            Benar, salah, &amp; belum dijawab untuk soal <b>TWK &amp; TIU</b>. (TKP dinilai skala 1–5, dihitung terpisah.)
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <div className="relative h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={68} outerRadius={100} paddingAngle={2} stroke="none">
+                    {donutData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,.08)', fontSize: 12 }}
+                    formatter={(v) => [`${v ?? 0} soal`, '']}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-4xl font-extrabold text-slate-800 leading-none">{donut.akurasi}%</span>
+                <span className="text-[11px] text-slate-400 font-semibold mt-1">Akurasi</span>
+              </div>
+            </div>
+            <div className="space-y-2.5">
+              {[
+                { label: 'Benar',          value: donut.benar,  color: '#10b981' },
+                { label: 'Salah',          value: donut.salah,  color: '#f43f5e' },
+                { label: 'Belum dijawab',  value: donut.kosong, color: '#94a3b8' },
+              ].map((d) => (
+                <div key={d.label} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                  <span className="flex-1 text-sm font-semibold text-slate-600">{d.label}</span>
+                  <span className="text-lg font-extrabold text-slate-800">{d.value}</span>
+                  <span className="text-xs text-slate-400">soal</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Kecepatan Mengerjakan — pacing waktu per kategori (platinum only) */}
+        <LockedSection
+          locked={!isPlatinum}
+          icon={<Timer className="h-4 w-4 text-violet-500" />}
+          title="Kecepatan Mengerjakan"
+        >
+          <p className="text-xs text-slate-400 mb-4">
+            Rata-rata waktu yang kamu habiskan untuk <b>tiap soal</b> di setiap materi.
+          </p>
+          {pacing.hasData ? (
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={pacingData} barSize={56}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 12, fontWeight: 600 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11 }} width={34} tickFormatter={(v) => `${v}d`} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,.08)', fontSize: 12 }}
+                    formatter={(v) => [`${v ?? 0} detik/soal`, 'Rata-rata']}
+                  />
+                  <Bar dataKey="detik" radius={[6, 6, 0, 0]}>
+                    {pacingData.map((_, i) => <Cell key={i} fill={['#38bdf8', '#34d399', '#a78bfa'][i]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-32 flex flex-col items-center justify-center text-center">
+              <Timer className="h-8 w-8 text-slate-200 mb-2" />
+              <p className="text-slate-400 text-sm">Data waktu belum tersedia untuk percobaan ini.</p>
+              <p className="text-slate-300 text-xs mt-1">Kerjakan tryout baru agar kecepatanmu terekam.</p>
+            </div>
+          )}
+        </LockedSection>
 
         {/* Row 1: Progress chart + Leaderboard */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

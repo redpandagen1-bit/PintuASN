@@ -11,11 +11,11 @@ import {
 } from 'lucide-react';
 import {
   BarChart, Bar, Cell, XAxis, YAxis, Tooltip as RechartsTooltip,
-  ResponsiveContainer, LineChart, Line, CartesianGrid,
+  ResponsiveContainer, LineChart, Line, CartesianGrid, PieChart, Pie,
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
-import { getSlowestQuestions, getWrongAnalysis, calcPercentile } from '@/lib/scoring/analysis';
+import { getSlowestQuestions, getWrongAnalysis, calcPercentile, getAccuracyDonut, getPacing } from '@/lib/scoring/analysis';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 
 // ── Types ─────────────────────────────────────────────────────
@@ -67,6 +67,7 @@ interface MobileHasilSimulasiProps {
   answers:            AnswerData[];
   duration:           number;
   subscriptionTier:   SubscriptionTier;
+  categoryTotals?:    { TWK: number; TIU: number; TKP: number };
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -156,6 +157,7 @@ export function MobileHasilSimulasi({
   answers,
   duration,
   subscriptionTier,
+  categoryTotals,
 }: MobileHasilSimulasiProps) {
   const isPlatinum = subscriptionTier === 'platinum';
   const score      = finalScore ?? 0;
@@ -183,6 +185,19 @@ export function MobileHasilSimulasi({
     { name: 'TIU',  salah: wrongAnalysis.byCategory.TIU, color: '#34d399' },
     { name: 'TKP*', salah: wrongAnalysis.byCategory.TKP, color: '#a78bfa' },
   ];
+
+  // Donut akurasi (TWK + TIU)
+  const totalTwkTiu = (categoryTotals?.TWK ?? 0) + (categoryTotals?.TIU ?? 0);
+  const donut = useMemo(() => getAccuracyDonut(answers, totalTwkTiu), [answers, totalTwkTiu]);
+  const donutData = [
+    { name: 'Benar',         value: donut.benar,  color: '#10b981' },
+    { name: 'Salah',         value: donut.salah,  color: '#f43f5e' },
+    { name: 'Belum dijawab', value: donut.kosong, color: '#cbd5e1' },
+  ].filter(d => d.value > 0);
+
+  // Pacing waktu per kategori
+  const pacing = useMemo(() => getPacing(answers), [answers]);
+  const pacingData = pacing.items.map(i => ({ name: i.category, detik: i.avgSeconds }));
 
   // Time analysis
   const slowestQuestions = useMemo(
@@ -335,6 +350,84 @@ export function MobileHasilSimulasi({
           <Clock size={12} />
           <span>Durasi: <span className="font-bold text-slate-600">{duration} menit</span></span>
         </div>
+      </div>
+
+      {/* ── Ringkasan Jawaban — donut (semua tier) ────────────── */}
+      <div className="px-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+          <div className="flex items-center gap-2 mb-0.5">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <h3 className="font-bold text-slate-800 text-sm" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              Ringkasan Jawaban Kamu
+            </h3>
+          </div>
+          <p className="text-[10px] text-slate-400 mb-3">
+            Benar, salah, &amp; belum dijawab (TWK &amp; TIU). TKP dinilai terpisah (skala 1–5).
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="relative w-32 h-32 flex-shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={donutData} dataKey="value" nameKey="name" innerRadius={42} outerRadius={62} paddingAngle={2} stroke="none">
+                    {donutData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                  <RechartsTooltip formatter={((v: number) => [`${v} soal`, '']) as never} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-2xl font-extrabold text-slate-800 leading-none" style={{ fontFamily: 'var(--font-jakarta)' }}>{donut.akurasi}%</span>
+                <span className="text-[9px] text-slate-400 font-semibold mt-0.5">Akurasi</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-1.5">
+              {[
+                { label: 'Benar',         value: donut.benar,  color: '#10b981' },
+                { label: 'Salah',         value: donut.salah,  color: '#f43f5e' },
+                { label: 'Belum dijawab', value: donut.kosong, color: '#94a3b8' },
+              ].map((d) => (
+                <div key={d.label} className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-100">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                  <span className="flex-1 text-xs font-semibold text-slate-600">{d.label}</span>
+                  <span className="text-sm font-extrabold text-slate-800">{d.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Kecepatan Mengerjakan — pacing (platinum only) ────── */}
+      <div className="px-4">
+        <LockedSection
+          locked={!isPlatinum}
+          icon={<Clock className="h-4 w-4 text-violet-500" />}
+          title="Kecepatan Mengerjakan"
+        >
+          <p className="text-[10px] text-slate-400 mb-3">
+            Rata-rata waktu untuk tiap soal di setiap materi.
+          </p>
+          {pacing.hasData ? (
+            <div className="h-36">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={pacingData} barSize={44}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 600 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 9 }} width={30} tickFormatter={(v) => `${v}d`} />
+                  <RechartsTooltip formatter={((v: number) => [`${v} detik/soal`, 'Rata-rata']) as never} />
+                  <Bar dataKey="detik" radius={[6, 6, 0, 0]}>
+                    {pacingData.map((_, i) => <Cell key={i} fill={['#38bdf8', '#34d399', '#a78bfa'][i]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-24 flex flex-col items-center justify-center text-center">
+              <Clock className="h-7 w-7 text-slate-200 mb-1.5" />
+              <p className="text-slate-400 text-xs">Data waktu belum tersedia.</p>
+              <p className="text-slate-300 text-[10px] mt-0.5">Kerjakan tryout baru agar terekam.</p>
+            </div>
+          )}
+        </LockedSection>
       </div>
 
       {/* ── Tren Skor — Platinum only ─────────────────────────── */}
