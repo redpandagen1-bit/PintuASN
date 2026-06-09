@@ -281,16 +281,15 @@ export function MobileEventPromo({ events }: MobileEventPromoProps) {
 
       {/* ── Header ────────────────────────────────────────────── */}
       <div className="px-4 pt-4">
-        <div className="flex items-center gap-2 mb-0.5">
-          <Megaphone size={18} className="text-emerald-600" />
-          <h1 className="text-xl font-extrabold text-slate-900"
+        <div className="bg-slate-800 rounded-2xl px-5 py-4">
+          <h1 className="text-xl font-extrabold mb-0.5"
             style={{ fontFamily: 'var(--font-jakarta)' }}>
-            Event &amp; Promo
+            <span className="text-white">Event &amp; </span><span className="text-yellow-400">Promo</span>
           </h1>
+          <p className="text-slate-300 text-xs">
+            Dapatkan penawaran terbaik untuk persiapan SKD kamu. Jangan sampai kehabisan!
+          </p>
         </div>
-        <p className="text-slate-500 text-xs">
-          Dapatkan penawaran terbaik untuk persiapan SKD kamu. Jangan sampai kehabisan!
-        </p>
       </div>
 
       {/* ── Empty state ───────────────────────────────────────── */}

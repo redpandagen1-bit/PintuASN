@@ -102,12 +102,11 @@ export default function EventsPromoPage() {
 
       {/* ── Desktop ── */}
       <div className="hidden md:block max-w-4xl mx-auto px-4 pt-4 pb-8 md:py-8 space-y-6 md:space-y-8">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Megaphone size={22} className="text-emerald-600" />
-            <h1 className="text-2xl font-bold text-slate-900">Event &amp; Promo</h1>
-          </div>
-          <p className="text-slate-500 text-sm">
+        <div className="bg-slate-800 rounded-2xl px-6 py-5">
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-jakarta)' }}>
+            <span className="text-white">Event &amp; </span><span className="text-yellow-400">Promo</span>
+          </h1>
+          <p className="text-slate-300 text-sm mt-1">
             Dapatkan penawaran terbaik untuk persiapan SKD kamu. Jangan sampai kehabisan!
           </p>
         </div>

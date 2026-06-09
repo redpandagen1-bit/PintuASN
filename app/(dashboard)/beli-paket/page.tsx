@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { MobileHeader }      from '@/components/mobile/MobileHeader';
 import { MobilePaketBelajar } from '@/components/mobile/MobilePaketBelajar';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 import {
@@ -638,10 +637,6 @@ export default function BeliPaketPage() {
       .finally(() => setTierLoading(false));
   }, []);
 
-  const userInitials = user
-    ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || 'U'
-    : 'U';
-
   const handleMobileSelectPkg = useCallback(async (tier: SubscriptionTier) => {
     const pkg = PACKAGES.find(p => p.id === tier);
     if (!pkg || pkg.isFree) { router.push('/dashboard'); return; }
@@ -660,7 +655,6 @@ export default function BeliPaketPage() {
     <>
       {/* ── Mobile ─────────────────────────────────────────────── */}
       <div className="md:hidden">
-        <MobileHeader userImageUrl={user?.imageUrl ?? null} userInitials={userInitials} />
         {tierLoading
           ? <div className="flex items-center justify-center py-24"><Loader2 size={28} className="animate-spin text-md-primary" /></div>
           : <MobilePaketBelajar userTier={userTier} onSelectPkg={handleMobileSelectPkg} />
@@ -669,10 +663,14 @@ export default function BeliPaketPage() {
 
       {/* ── Desktop ────────────────────────────────────────────── */}
       <div className="hidden md:block min-h-screen bg-slate-50 pt-10 pb-10 px-4">
-      <div className="text-center mb-7">
-        <h1 className="text-lg font-bold text-slate-900 mb-1">Paket Belajar</h1>
-        <p className="text-slate-500 text-sm max-w-md mx-auto">Pilih paket terbaik untuk persiapan SKD CPNS 2026.</p>
-        {error && <div className="mt-3 inline-block bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-2 rounded-lg">{error}</div>}
+      <div className="max-w-5xl mx-auto mb-7">
+        <div className="bg-slate-800 rounded-2xl px-6 py-5 text-center">
+          <h1 className="text-xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-jakarta)' }}>
+            <span className="text-white">Paket </span><span className="text-yellow-400">Belajar</span>
+          </h1>
+          <p className="text-slate-300 text-sm max-w-md mx-auto">Pilih paket terbaik untuk persiapan SKD CPNS 2026.</p>
+        </div>
+        {error && <div className="mt-3 text-center"><span className="inline-block bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-2 rounded-lg">{error}</span></div>}
       </div>
 
       <div className="max-w-5xl mx-auto mb-6">

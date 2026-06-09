@@ -399,16 +399,18 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
   ];
 
   return (
-    <main className="px-4 pt-16 pb-28">
+    <main className="px-4 pt-4 pb-28">
 
       {/* ── Page Headline ─────────────────────────────────────── */}
-      <section className="mb-5 pt-2">
-        <h1 className="text-xl font-extrabold text-slate-900 mb-1 tracking-tight">
-          Paket Belajar
-        </h1>
-        <p className="text-slate-500 text-sm">
-          Pilih paket terbaik untuk persiapan SKD CPNS 2026.
-        </p>
+      <section className="mb-5">
+        <div className="bg-slate-800 rounded-2xl px-5 py-4">
+          <h1 className="text-xl font-extrabold mb-0.5 tracking-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
+            <span className="text-white">Paket </span><span className="text-yellow-400">Belajar</span>
+          </h1>
+          <p className="text-slate-300 text-sm">
+            Pilih paket terbaik untuk persiapan SKD CPNS 2026.
+          </p>
+        </div>
       </section>
 
       {/* ── Tabs ──────────────────────────────────────────────── */}
