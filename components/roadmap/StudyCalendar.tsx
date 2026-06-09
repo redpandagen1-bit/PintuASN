@@ -9,6 +9,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Bell, BellOff, CalendarDays, Check, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ReminderPreference } from '@/types/roadmap';
+import { subscribeToPush, unsubscribeFromPush } from '@/lib/firebase/subscribe';
 
 // ─── Types ───────────────────────────────────────────────────
 type ScheduleMode = 1 | 2 | 3 | 4 | 'custom';
@@ -151,8 +152,9 @@ export function StudyCalendar({
   const [customDays,   setCustomDays]   = useState<number[]>(
     savedPreference?.customDays ?? [1, 3, 5],
   );
-  const [saving, setSaving] = useState(false);
-  const [saved,  setSaved]  = useState(false);
+  const [saving,      setSaving]      = useState(false);
+  const [saved,       setSaved]       = useState(false);
+  const [pushDenied,  setPushDenied]  = useState(false);
 
   const toggleCustomDay = (day: number) =>
     setCustomDays(prev =>
@@ -164,7 +166,21 @@ export function StudyCalendar({
   const handleSave = useCallback(async () => {
     if (!onSavePreference) return;
     setSaving(true);
+    setPushDenied(false);
     try {
+      // ── Push notification subscribe / unsubscribe ──────────
+      if (reminderOn) {
+        const token = await subscribeToPush();
+        if (token === null && typeof window !== 'undefined' && 'Notification' in window) {
+          // Izin ditolak atau browser tidak support
+          if (Notification.permission === 'denied') {
+            setPushDenied(true);
+          }
+        }
+      } else {
+        await unsubscribeFromPush();
+      }
+
       await onSavePreference({
         enabled:      reminderOn,
         intervalDays: scheduleMode === 'custom' ? null : scheduleMode,
@@ -461,7 +477,7 @@ export function StudyCalendar({
                   <p className="text-xs font-bold text-slate-700">
                     {reminderOn ? 'Pengingat aktif' : 'Pengingat nonaktif'}
                   </p>
-                  <p className="text-[10px] text-slate-400">Via Email &amp; Notifikasi</p>
+                  <p className="text-[10px] text-slate-400">Via Notifikasi Push</p>
                 </div>
               </div>
               <button
@@ -482,6 +498,14 @@ export function StudyCalendar({
               </button>
             </div>
           </div>
+
+          {/* Push permission denied warning */}
+          {pushDenied && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-2.5 text-[11px] text-amber-700 leading-relaxed">
+              <span className="font-bold">Notifikasi diblokir.</span>{' '}
+              Aktifkan izin notifikasi di pengaturan browser, lalu simpan ulang.
+            </div>
+          )}
 
           {/* Save button */}
           {onSavePreference && (
