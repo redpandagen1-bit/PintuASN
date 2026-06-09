@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Upload, Loader2, AlertCircle, Info, CheckCircle2, SkipForward, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Download, Upload, Loader2, AlertCircle, Info, CheckCircle2, SkipForward } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface CSVUploadFormProps {
@@ -110,16 +110,10 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div className="flex-1">
+        <div>
           <h1 className="text-3xl font-bold text-slate-900">Upload Soal CSV</h1>
           <p className="text-slate-600 mt-1">Paket: {packageTitle}</p>
         </div>
-        <Link href={`/admin/packages/${packageId}/questions/upload-figural`}>
-          <Button variant="outline" className="gap-2">
-            <ImageIcon className="h-4 w-4" />
-            Soal Figural (SVG)
-          </Button>
-        </Link>
       </div>
 
       {/* Panduan */}

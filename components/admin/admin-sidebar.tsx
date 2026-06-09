@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -32,7 +33,7 @@ const menuItems = [
 ];
 
 // ✅ PINDAHKAN SidebarContent KELUAR dari component utama
-function SidebarContent({ pathname }: { pathname: string }) {
+function SidebarContent({ pathname, pendingReports }: { pathname: string; pendingReports: number }) {
   return (
     <div className="flex flex-col h-full">
       <div className="p-6 border-b">
@@ -44,7 +45,8 @@ function SidebarContent({ pathname }: { pathname: string }) {
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-          
+          const showDot = item.href === '/admin/masukan' && pendingReports > 0;
+
           return (
             <Link key={item.href} href={item.href}>
               <div
@@ -57,6 +59,14 @@ function SidebarContent({ pathname }: { pathname: string }) {
               >
                 <Icon className="h-5 w-5" />
                 <span className="font-medium">{item.label}</span>
+                {showDot && (
+                  <span
+                    className="ml-auto flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold"
+                    title={`${pendingReports} laporan baru`}
+                  >
+                    {pendingReports > 9 ? '9+' : pendingReports}
+                  </span>
+                )}
               </div>
             </Link>
           );
@@ -77,12 +87,24 @@ function SidebarContent({ pathname }: { pathname: string }) {
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const [pendingReports, setPendingReports] = useState(0);
+
+  // Hitung laporan baru (status pending) untuk badge Masukan.
+  // Re-fetch saat pindah halaman → badge ikut update setelah laporan diproses.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin/reports?countOnly=1')
+      .then((r) => (r.ok ? r.json() : { pending: 0 }))
+      .then((d) => { if (!cancelled) setPendingReports(d.pending ?? 0); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [pathname]);
 
   return (
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col">
-        <SidebarContent pathname={pathname} />
+        <SidebarContent pathname={pathname} pendingReports={pendingReports} />
       </aside>
 
       {/* Mobile Sidebar */}
@@ -94,7 +116,7 @@ export function AdminSidebar() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
-            <SidebarContent pathname={pathname} />
+            <SidebarContent pathname={pathname} pendingReports={pendingReports} />
           </SheetContent>
         </Sheet>
       </div>

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Upload, Edit, Settings } from 'lucide-react';
+import { ArrowLeft, Upload, Edit, Settings, Image as ImageIcon } from 'lucide-react';
 import { PackageEditDialog } from '@/components/admin/package-edit-dialog';
 
 interface PackageDetailHeaderProps {
@@ -48,6 +48,12 @@ export function PackageDetailHeader({ packageData, questions }: PackageDetailHea
             <Button className="gap-2">
               <Edit className="h-4 w-4" />
               Edit Soal Paket
+            </Button>
+          </Link>
+          <Link href={`/admin/packages/${packageData.id}/questions/upload-figural`}>
+            <Button variant="outline" className="gap-2">
+              <ImageIcon className="h-4 w-4" />
+              Soal Figural
             </Button>
           </Link>
           <Link href={`/admin/packages/${packageData.id}/questions/upload`}>

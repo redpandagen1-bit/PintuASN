@@ -29,13 +29,23 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET — admin ambil semua laporan
-export async function GET() {
+// GET — admin ambil semua laporan, atau hanya hitung laporan baru (?countOnly=1)
+export async function GET(req: NextRequest) {
   try {
     const isAdmin = await checkIsAdmin()
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const supabase = await createAdminClient()
+
+    // Mode ringan untuk badge sidebar: hanya jumlah laporan status 'pending'
+    const { searchParams } = new URL(req.url)
+    if (searchParams.get('countOnly')) {
+      const { count } = await supabase
+        .from('question_reports')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending')
+      return NextResponse.json({ pending: count ?? 0 })
+    }
 
     const { data, error } = await supabase
       .from('question_reports')
