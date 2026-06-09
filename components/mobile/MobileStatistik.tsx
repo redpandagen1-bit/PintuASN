@@ -83,10 +83,21 @@ function TrenTooltip({ active, payload, label }: {
   );
 }
 
+// Placeholder saat belum ada data
+function EmptyHint({ className }: { className?: string }) {
+  return (
+    <div className={cn('flex flex-col items-center justify-center text-center px-4', className)}>
+      <BarChart2 size={26} className="text-slate-300 mb-2" />
+      <p className="text-xs font-semibold text-slate-500">Kerjakan soal untuk menampilkan data</p>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────
 
 export function MobileStatistik({ data, ranking, distribution }: MobileStatistikProps) {
   const completed = data.filter(a => a.status === 'completed');
+  const hasData   = completed.length > 0;
   const passed    = completed.filter(a => a.is_passed);
   const scores    = completed.map(a => a.final_score).filter(Boolean);
   const bestScore = scores.length ? Math.max(...scores) : 0;
@@ -210,19 +221,37 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
         </div>
       </section>
 
-      {/* ── Tren Performa — AreaChart (like desktop) ───────────── */}
-      {trendData.length > 0 && (
-        <section className="mx-4 mb-4 bg-white rounded-2xl p-4 shadow-md3-sm">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-sm font-bold text-md-primary"
-              style={{ fontFamily: 'var(--font-jakarta)' }}>
-              Tren Performa Skor
-            </h2>
+      {/* ── Empty-state banner (user baru / belum mengerjakan) ──── */}
+      {!hasData && (
+        <section className="mx-4 mb-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center flex-shrink-0">
+              <Target size={18} className="text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-800">Belum ada data statistik</p>
+              <p className="text-xs text-slate-500 mt-0.5">Kerjakan soal untuk menampilkan data.</p>
+            </div>
           </div>
-          <p className="text-[10px] text-md-on-surface-variant mb-3">
-            Perbandingan skor vs rata-rata kamu
-          </p>
+        </section>
+      )}
+
+      {/* ── Tren Performa — AreaChart (like desktop) ───────────── */}
+      <section className="mx-4 mb-4 bg-white rounded-2xl p-4 shadow-md3-sm">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-bold text-md-primary"
+            style={{ fontFamily: 'var(--font-jakarta)' }}>
+            Tren Performa Skor
+          </h2>
+        </div>
+        <p className="text-[10px] text-md-on-surface-variant mb-3">
+          Perbandingan skor vs rata-rata kamu
+        </p>
+        {!hasData ? (
+          <EmptyHint className="h-40" />
+        ) : (
+          <>
           {/* Legend */}
           <div className="flex gap-3 mb-3">
             <span className="flex items-center gap-1 text-[10px] text-md-on-surface-variant">
@@ -283,8 +312,9 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </section>
-      )}
+          </>
+        )}
+      </section>
 
       {/* ── Peringkat Nasional ──────────────────────────────────── */}
       <section className="mx-4 mb-4 bg-md-primary rounded-2xl p-5 text-white relative overflow-hidden shadow-md3-lg">
@@ -397,8 +427,7 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
       </section>
 
       {/* ── Distribusi Skor Peserta ─────────────────────────────── */}
-      {completed.length > 0 && (
-        <section className="mx-4 mb-4">
+      <section className="mx-4 mb-4">
           <h2 className="text-sm font-bold text-md-primary mb-0.5 px-1"
             style={{ fontFamily: 'var(--font-jakarta)' }}>
             Distribusi Skor Peserta
@@ -407,6 +436,10 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
             Posisi rata-rata skormu di antara semua peserta
           </p>
           <div className="bg-white rounded-2xl p-4 shadow-md3-sm">
+            {!hasData ? (
+              <EmptyHint className="h-44" />
+            ) : (
+            <>
             {/* Keterangan */}
             <div className="flex items-center gap-4 mb-3">
               <span className="flex items-center gap-1.5 text-[10px] text-md-on-surface-variant">
@@ -491,9 +524,10 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
                 }
               </p>
             </div>
+            </>
+            )}
           </div>
-        </section>
-      )}
+      </section>
 
       {/* ── Distribusi Per Kategori ─────────────────────────────── */}
       <section className="mx-4 mb-4">
@@ -529,18 +563,24 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
       </section>
 
       {/* ── 5 Tryout Terakhir ───────────────────────────────────── */}
-      {completed.length > 0 && (
-        <section className="mx-4 mb-4">
+      <section className="mx-4 mb-4">
           <div className="flex justify-between items-center mb-2 px-1">
             <h2 className="text-sm font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
               5 Tryout Terakhir
             </h2>
-            <Link href="/history"
-              className="text-[10px] font-black text-md-secondary uppercase tracking-widest flex items-center gap-0.5 active-press">
-              Lihat Semua <ChevronRight size={11} />
-            </Link>
+            {hasData && (
+              <Link href="/history"
+                className="text-[10px] font-black text-md-secondary uppercase tracking-widest flex items-center gap-0.5 active-press">
+                Lihat Semua <ChevronRight size={11} />
+              </Link>
+            )}
           </div>
 
+          {!hasData ? (
+            <div className="bg-white rounded-2xl p-4 shadow-md3-sm">
+              <EmptyHint className="h-24" />
+            </div>
+          ) : (
           <div className="space-y-2.5">
             {recent5.map(a => (
               <Link key={a.id} href={`/exam/${a.id}/result`} className="block active-press">
@@ -591,8 +631,8 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
               </Link>
             ))}
           </div>
-        </section>
-      )}
+          )}
+      </section>
 
     </main>
   );

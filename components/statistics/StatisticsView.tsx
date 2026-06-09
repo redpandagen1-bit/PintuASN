@@ -89,6 +89,14 @@ const SectionHeader: React.FC<{ title: string; subtitle: string }> = ({ title, s
   </div>
 );
 
+// Placeholder saat belum ada data
+const EmptyData: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={`flex flex-col items-center justify-center text-center ${className ?? ''}`}>
+    <BarChart2 className="w-8 h-8 text-slate-300 mb-2" />
+    <p className="text-sm font-semibold text-slate-500">Kerjakan soal untuk menampilkan data</p>
+  </div>
+);
+
 interface GapProgressProps {
   current: number;
   threshold: number;
@@ -214,7 +222,9 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
 
   
 
-  const percentileText = ranking 
+  const hasData = stats.totalAttempts > 0;
+
+  const percentileText = ranking
     ? `Anda lebih unggul dari ${Math.round((1 - (ranking.user_rank / ranking.total_users)) * 100)}% peserta lain.`
     : 'Belum ada data peringkat';
 
@@ -244,6 +254,19 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
             <BarChart2 className="w-10 h-10 text-yellow-400" />
           </div>
         </div>
+
+        {/* Empty-state banner (user baru / belum mengerjakan) */}
+        {!hasData && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 md:p-5 mb-6 md:mb-8 flex items-center gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-100 flex-shrink-0">
+              <Target className="w-5 h-5 text-yellow-600" />
+            </div>
+            <div>
+              <p className="text-sm md:text-base font-bold text-slate-800">Belum ada data statistik</p>
+              <p className="text-xs md:text-sm text-slate-500 mt-0.5">Kerjakan soal untuk menampilkan data.</p>
+            </div>
+          </div>
+        )}
 
         {/* 1. Summary Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -292,6 +315,9 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
               </div>
             </div>
             <div className="h-[300px] w-full">
+              {!hasData ? (
+                <EmptyData className="h-full" />
+              ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.trendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
@@ -331,10 +357,11 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
                     stroke="#cbd5e1" 
                     strokeWidth={2} 
                     strokeDasharray="5 5" 
-                    fill="transparent" 
+                    fill="transparent"
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
 
@@ -448,6 +475,9 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
               subtitle="Posisi kamu dalam kurva peserta" 
             />
             <div className="h-[250px]">
+              {!hasData ? (
+                <EmptyData className="h-full" />
+              ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={distributionChart}>
                   <defs>
@@ -492,11 +522,12 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
                       value: 'Kamu', 
                       fill: '#1e293b', 
                       fontSize: 12, 
-                      fontWeight: 'bold' 
-                    }} 
+                      fontWeight: 'bold'
+                    }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -506,6 +537,10 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
           <div className="px-5 py-4 border-b border-slate-100">
             <h2 className="text-base font-bold text-slate-800">5 Tryout Terakhir</h2>
           </div>
+
+          {!hasData && (
+            <EmptyData className="py-12" />
+          )}
 
           {/* Mobile: card list */}
           <div className="md:hidden divide-y divide-slate-100">
