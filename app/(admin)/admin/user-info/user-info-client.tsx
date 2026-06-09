@@ -6,6 +6,7 @@ import {
   ImageIcon, Link2, Link2Off, Upload, X, Save,
   Ticket, Plus, Trash2, Copy, Check, RefreshCw,
   ChevronDown, ChevronUp, Eye, EyeOff, Info,
+  Megaphone, Send, Loader2,
 } from 'lucide-react';
 import { Button }   from '@/components/ui/button';
 import { Input }    from '@/components/ui/input';
@@ -97,6 +98,61 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
     name: '', code: generateCode(), discount_type: 'percent',
     discount_value: '10', max_uses: '', is_active: true, expired_at: '',
   });
+
+  // ── broadcast state ───────────────────────────────────────
+  const [bcTitle,   setBcTitle]   = useState('');
+  const [bcBody,    setBcBody]    = useState('');
+  const [bcLink,    setBcLink]    = useState('');
+  const [bcSending, setBcSending] = useState(false);
+  const [bcResult,  setBcResult]  = useState<string | null>(null);
+  const [bcError,   setBcError]   = useState<string | null>(null);
+  const [bcHistory, setBcHistory] = useState<{
+    id: string; title: string; body: string | null;
+    recipient_count: number; created_at: string;
+  }[]>([]);
+
+  const loadBroadcastHistory = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/broadcast');
+      if (res.ok) {
+        const data = await res.json();
+        setBcHistory(data.broadcasts ?? []);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  React.useEffect(() => { loadBroadcastHistory(); }, [loadBroadcastHistory]);
+
+  const sendBroadcast = async () => {
+    setBcError(null);
+    setBcResult(null);
+    const title = bcTitle.trim();
+    if (!title) { setBcError('Judul wajib diisi.'); return; }
+    if (title.length > 120) { setBcError('Judul maksimal 120 karakter.'); return; }
+
+    setBcSending(true);
+    try {
+      const res = await fetch('/api/admin/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          body: bcBody.trim() || null,
+          link: bcLink.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setBcError(data.error || 'Gagal mengirim broadcast.'); return; }
+      setBcResult(`Terkirim ke ${data.recipientCount} pengguna.`);
+      setBcTitle(''); setBcBody(''); setBcLink('');
+      loadBroadcastHistory();
+      setTimeout(() => setBcResult(null), 4000);
+    } catch {
+      setBcError('Terjadi kesalahan jaringan.');
+    } finally {
+      setBcSending(false);
+    }
+  };
 
   // ── banner handlers ───────────────────────────────────────
   const openEditBanner = (b: Banner) => {
@@ -242,8 +298,101 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Pengaturan Platform</h1>
-        <p className="text-slate-500 text-sm mt-1">Kelola banner dashboard dan kode referral.</p>
+        <p className="text-slate-500 text-sm mt-1">Broadcast info, kelola banner dashboard, dan kode referral.</p>
       </div>
+
+      {/* ══════════════ SECTION: BROADCAST ══════════════ */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+            <Megaphone size={16} className="text-amber-600" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">Broadcast Informasi</h2>
+            <p className="text-xs text-slate-500">Kirim notifikasi ke seluruh pengguna. Muncul di lonceng notifikasi mereka.</p>
+          </div>
+        </div>
+
+        <Card className="border border-slate-200">
+          <CardContent className="p-5 space-y-4">
+            {/* Judul */}
+            <div className="space-y-1.5">
+              <Label htmlFor="bc-title">Judul <span className="text-red-500">*</span></Label>
+              <Input
+                id="bc-title"
+                placeholder="cth. Maintenance Server Minggu Ini"
+                value={bcTitle}
+                maxLength={120}
+                onChange={(e) => setBcTitle(e.target.value)}
+              />
+              <p className="text-[11px] text-slate-400 text-right">{bcTitle.length}/120</p>
+            </div>
+
+            {/* Isi */}
+            <div className="space-y-1.5">
+              <Label htmlFor="bc-body">Isi Pesan (opsional)</Label>
+              <textarea
+                id="bc-body"
+                placeholder="Tulis detail informasi yang ingin disampaikan ke semua pengguna…"
+                value={bcBody}
+                onChange={(e) => setBcBody(e.target.value)}
+                rows={3}
+                className="flex w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 resize-none"
+              />
+            </div>
+
+            {/* Link */}
+            <div className="space-y-1.5">
+              <Label htmlFor="bc-link">Link Tujuan (opsional)</Label>
+              <Input
+                id="bc-link"
+                placeholder="cth. /packages atau /roadmap"
+                value={bcLink}
+                onChange={(e) => setBcLink(e.target.value)}
+              />
+              <p className="text-[11px] text-slate-400">Jika diisi, notifikasi bisa diklik untuk menuju halaman ini.</p>
+            </div>
+
+            {bcError && (
+              <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">{bcError}</div>
+            )}
+            {bcResult && (
+              <div className="rounded-md bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700 flex items-center gap-1.5">
+                <Check size={13} /> {bcResult}
+              </div>
+            )}
+
+            <Button onClick={sendBroadcast} disabled={bcSending || !bcTitle.trim()} className="w-full sm:w-auto">
+              {bcSending
+                ? <><Loader2 size={15} className="mr-1.5 animate-spin" /> Mengirim…</>
+                : <><Send size={15} className="mr-1.5" /> Kirim ke Semua Pengguna</>}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Riwayat broadcast */}
+        {bcHistory.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Riwayat Broadcast</p>
+            {bcHistory.map((b) => (
+              <Card key={b.id} className="border border-slate-200">
+                <CardContent className="px-4 py-3 flex items-start gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 flex-shrink-0">
+                    <Megaphone size={14} className="text-amber-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-800 truncate">{b.title}</p>
+                    {b.body && <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{b.body}</p>}
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      {formatDate(b.created_at)} · {b.recipient_count} penerima
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* ══════════════ SECTION: BANNER ══════════════ */}
       <section className="space-y-4">

@@ -15,12 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AppIcon } from '@/components/shared/app-icon';
-
-const NOTIFICATIONS = [
-  { id: '1', title: 'Tryout Baru Tersedia', message: 'Paket tryout CPNS 2026 batch 2 sudah tersedia!', time: '5 menit lalu', isRead: false, link: '/dashboard' },
-  { id: '2', title: 'Skor Tryout Anda', message: 'Selamat! Anda mendapat skor 450 pada tryout terakhir.', time: '2 jam lalu', isRead: false, link: '/statistics' },
-  { id: '3', title: 'Materi Baru Ditambahkan', message: 'Materi TWK: Pancasila dan UUD 1945 telah ditambahkan.', time: '1 hari lalu', isRead: true, link: '/materi' },
-];
+import { useNotifications, formatRelativeTime } from '@/hooks/use-notifications';
 
 type Tier = 'free' | 'premium' | 'platinum';
 
@@ -35,13 +30,12 @@ export function Navbar() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const router = useRouter();
-  const [notifications, setNotifications] = useState(NOTIFICATIONS);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<Tier>('free');
 
   const firstName    = user?.firstName || 'Pengguna';
   const userInitials = user?.firstName ? user.firstName.slice(0, 2).toUpperCase() : 'U';
-  const unreadCount  = notifications.filter((n) => !n.isRead).length;
   const tierConfig   = TIER_CONFIG[subscriptionTier];
 
   useEffect(() => {
@@ -53,9 +47,7 @@ export function Navbar() {
       .catch(() => {});
   }, []);
 
-  const handleSignOut  = async () => { await signOut(); router.push('/sign-in'); };
-  const markAsRead     = (id: string) => setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
-  const markAllAsRead  = () => setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const handleSignOut = async () => { await signOut(); router.push('/sign-in'); };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -94,10 +86,12 @@ export function Navbar() {
             <DropdownMenu open={notificationOpen} onOpenChange={setNotificationOpen}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all"
+                  className={`relative p-2 rounded-lg hover:bg-slate-100 transition-all ${
+                    unreadCount > 0 ? 'text-yellow-500 hover:text-yellow-600' : 'text-slate-500 hover:text-slate-800'
+                  }`}
                   aria-label="Notifications"
                 >
-                  <AppIcon name="notifikasi" size={22} />
+                  <Bell size={22} strokeWidth={1.9} className={unreadCount > 0 ? 'fill-yellow-400/20' : ''} />
                   {unreadCount > 0 && (
                     <span className="absolute top-1 right-1 min-w-[16px] h-[16px] bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-bold text-white">
                       {unreadCount > 9 ? '9+' : unreadCount}
@@ -130,33 +124,41 @@ export function Navbar() {
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-100">
-                      {notifications.map((notif) => (
-                        <Link
-                          key={notif.id}
-                          href={notif.link}
-                          onClick={() => { markAsRead(notif.id); setNotificationOpen(false); }}
-                          className={`block px-4 py-3 hover:bg-slate-50 transition-colors ${!notif.isRead ? 'bg-blue-50/40' : ''}`}
-                        >
-                          <div className="flex items-start gap-2.5">
-                            <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${!notif.isRead ? 'bg-blue-500' : 'bg-transparent'}`} />
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-sm text-slate-800 ${!notif.isRead ? 'font-bold' : 'font-medium'}`}>
-                                {notif.title}
-                              </p>
-                              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                              <p className="text-xs text-slate-400 mt-1">{notif.time}</p>
+                      {notifications.map((notif) => {
+                        const Wrapper = notif.link ? Link : 'div';
+                        const wrapperProps = notif.link
+                          ? { href: notif.link }
+                          : {};
+                        return (
+                          <Wrapper
+                            key={notif.id}
+                            {...(wrapperProps as { href: string })}
+                            onClick={() => { markAsRead(notif.id); setNotificationOpen(false); }}
+                            className={`block px-4 py-3 hover:bg-slate-50 transition-colors ${notif.link ? 'cursor-pointer' : ''} ${!notif.is_read ? 'bg-blue-50/40' : ''}`}
+                          >
+                            <div className="flex items-start gap-2.5">
+                              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${!notif.is_read ? 'bg-blue-500' : 'bg-transparent'}`} />
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm text-slate-800 ${!notif.is_read ? 'font-bold' : 'font-medium'}`}>
+                                  {notif.title}
+                                </p>
+                                {notif.body && (
+                                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notif.body}</p>
+                                )}
+                                <p className="text-xs text-slate-400 mt-1">{formatRelativeTime(notif.created_at)}</p>
+                              </div>
+                              {!notif.is_read && (
+                                <button
+                                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); markAsRead(notif.id); }}
+                                  className="p-1 rounded hover:bg-slate-200 text-slate-400 flex-shrink-0"
+                                >
+                                  <Check size={12} />
+                                </button>
+                              )}
                             </div>
-                            {!notif.isRead && (
-                              <button
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); markAsRead(notif.id); }}
-                                className="p-1 rounded hover:bg-slate-200 text-slate-400 flex-shrink-0"
-                              >
-                                <Check size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </Link>
-                      ))}
+                          </Wrapper>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

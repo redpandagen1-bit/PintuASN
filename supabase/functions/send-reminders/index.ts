@@ -190,24 +190,39 @@ Deno.serve(async (req: Request) => {
   const deadIds: string[] = [];
   const now       = new Date().toISOString();
 
+  let inApp = 0;
+
   for (const pref of dueUsers) {
+    // 1. Selalu buat notifikasi in-app (muncul di bell, walau tanpa device token)
+    const { error: notifErr } = await supabase.from('notifications').insert({
+      user_id: pref.user_id,
+      type:    'reminder',
+      title:   '🎯 Waktunya Latihan SKD!',
+      body:    'Jangan lewatkan sesi belajar hari ini. Konsistensi adalah kunci kelulusan!',
+      link:    '/roadmap',
+    });
+    if (!notifErr) inApp++;
+
+    // 2. Kirim push FCM ke semua device user (jika ada)
     const { data: tokens } = await supabase
       .from('device_tokens')
       .select('id, token')
       .eq('user_id', pref.user_id);
 
-    if (!tokens || tokens.length === 0) { skipped++; continue; }
-
-    for (const dt of tokens as { id: string; token: string }[]) {
-      const result = await sendFCM(dt.token, sa.project_id, accessToken, appUrl);
-      if (result.ok) {
-        sent++;
-      } else if (result.status === 404 || result.status === 410) {
-        deadIds.push(dt.id); // token expired / unregistered
+    if (tokens && tokens.length > 0) {
+      for (const dt of tokens as { id: string; token: string }[]) {
+        const result = await sendFCM(dt.token, sa.project_id, accessToken, appUrl);
+        if (result.ok) {
+          sent++;
+        } else if (result.status === 404 || result.status === 410) {
+          deadIds.push(dt.id); // token expired / unregistered
+        }
       }
+    } else {
+      skipped++;
     }
 
-    // Perbarui last_notif_at
+    // 3. Perbarui last_notif_at
     await supabase
       .from('user_reminder_preferences')
       .update({ last_notif_at: now })
@@ -222,6 +237,7 @@ Deno.serve(async (req: Request) => {
   return new Response(
     JSON.stringify({
       sent,
+      inApp,
       skipped,
       deadCleaned: deadIds.length,
       dueUsers:    dueUsers.length,
