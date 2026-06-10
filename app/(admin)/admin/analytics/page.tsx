@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 import {
   Users, TrendingUp, CreditCard, BookOpen,
   FileQuestion, Package, CheckCircle, XCircle,
-  BarChart3, Award, Percent, Tag,
+  BarChart3, Award, Percent, Tag, Download, Smartphone,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -46,6 +46,7 @@ async function getAnalytics() {
     avgScores, topPackagesByAttempt,
     totalQuestions, publishedQuestions, questionsByCategory,
     totalMaterials, packagesByTier, materialViews,
+    pwaTotal, pwaIos, pwaAndroid, pwaDesktop,
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_deleted', false),
     supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', startOfMonth),
@@ -75,6 +76,10 @@ async function getAnalytics() {
     supabase.from('materials').select('*', { count: 'exact', head: true }).eq('is_active', true).eq('is_deleted', false),
     supabase.from('packages').select('tier').eq('is_active', true).eq('is_deleted', false),
     supabase.from('material_views').select('*', { count: 'exact', head: true }),
+    supabase.from('pwa_installs').select('*', { count: 'exact', head: true }),
+    supabase.from('pwa_installs').select('*', { count: 'exact', head: true }).eq('platform', 'ios'),
+    supabase.from('pwa_installs').select('*', { count: 'exact', head: true }).eq('platform', 'android'),
+    supabase.from('pwa_installs').select('*', { count: 'exact', head: true }).eq('platform', 'desktop'),
   ]);
 
   // ── process ──────────────────────────────────────────────
@@ -142,6 +147,7 @@ async function getAnalytics() {
     revenue: { total: totalRevenueVal, thisMonth: revenueThisMonthVal, lastMonth: revenueLastMonthVal, growth: revenueGrowth, txSuccess: txSuccess.count ?? 0, txPending: txPending.count ?? 0, txFailed: txFailed.count ?? 0, topPackages: topPkgRev, referralCodes: referralCodesList, totalDiscountGiven, totalOrdersWithRef: ordersWithReferral.data?.length ?? 0 },
     attempts: { total: totalAttempts.count ?? 0, completed: completedAttempts.count ?? 0, abandoned: abandonedAttempts.count ?? 0, passed: passedAttempts.count ?? 0, avgTWK, avgTIU, avgTKP, avgFinal, topPackages: topPkgs },
     content:  { totalQuestions: totalQuestions.count ?? 0, publishedQuestions: publishedQuestions.count ?? 0, questionsByCategory: catMap, totalMaterials: totalMaterials.count ?? 0, totalPackages: totalPackagesCount, pkgTiers: pkgTierMap, materialViews: materialViews.count ?? 0 },
+    pwa:      { total: pwaTotal.count ?? 0, ios: pwaIos.count ?? 0, android: pwaAndroid.count ?? 0, desktop: pwaDesktop.count ?? 0 },
   };
 }
 
@@ -203,6 +209,22 @@ export default async function AnalyticsPage() {
         </h1>
         <p className="text-slate-500 mt-1 text-sm">Data diperbarui setiap 1 jam</p>
       </div>
+
+      {/* ── PWA INSTALL ── */}
+      <section>
+        <SectionTitle>📲 Aplikasi Terpasang (PWA)</SectionTitle>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="Total Terpasang" value={fmt(d.pwa.total)} sub="perangkat unik (standalone)" icon={Download}   color="text-sky-600"     bg="bg-sky-50" />
+          <StatCard label="iOS"             value={fmt(d.pwa.ios)}                                       icon={Smartphone} color="text-slate-700"   bg="bg-slate-100" />
+          <StatCard label="Android"         value={fmt(d.pwa.android)}                                   icon={Smartphone} color="text-emerald-600" bg="bg-emerald-50" />
+          <StatCard label="Desktop"         value={fmt(d.pwa.desktop)}                                   icon={Smartphone} color="text-violet-600"  bg="bg-violet-50" />
+        </div>
+        <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+          Dihitung dari perangkat unik yang membuka aplikasi dalam mode terpasang (standalone), termasuk iOS.
+          Catatan: install iOS terhitung saat aplikasi pertama kali dibuka dari layar utama (bukan saat dipasang),
+          dan uninstall tidak terlacak.
+        </p>
+      </section>
 
       {/* ── USERS ── */}
       <section>

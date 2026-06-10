@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { idID } from '@clerk/localizations';
 import { Toaster } from 'sonner';
 import { ServiceWorkerRegister } from '@/components/shared/sw-register';
+import { PwaTracker } from '@/components/shared/pwa-tracker';
 import './globals.css';
 
 const inter = Inter({
@@ -77,6 +78,7 @@ export default function RootLayout({
         <body className={`${inter.className} tap-none overscroll-none`}>
           {children}
           <ServiceWorkerRegister />
+          <PwaTracker />
           <Toaster position="top-right" richColors />
         </body>
       </html>
