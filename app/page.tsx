@@ -96,7 +96,7 @@ html{scroll-behavior:smooth}
 .lp-logo .gold{color:var(--gold)}
 .lp-logo-img{height:30px;width:auto;display:block}
 .lp-links{display:flex;align-items:center;gap:30px;list-style:none}
-.lp-links a{color:var(--s600);text-decoration:none;font-size:14px;font-weight:600;position:relative;transition:.2s}
+.lp-links a{color:var(--s600);text-decoration:none;font-size:14px;font-weight:700;position:relative;transition:.2s}
 .lp-links a::after{content:'';position:absolute;left:0;bottom:-5px;width:0;height:2px;background:var(--gold);transition:width .25s}
 .lp-links a:hover{color:var(--navy)}
 .lp-links a:hover::after{width:100%}
@@ -605,6 +605,7 @@ export default function Home() {
           <li><a href="#fitur">Fitur</a></li>
           <li><a href="#paket">Paket</a></li>
           <li><a href="#faq">FAQ</a></li>
+          <li><a href="/install">Download Aplikasi</a></li>
           <li><a href="/blog">Blog</a></li>
         </ul>
         <div className="lp-nav-cta">
@@ -620,6 +621,7 @@ export default function Home() {
           <a href="#fitur" onClick={() => setMenuOpen(false)}>Fitur</a>
           <a href="#paket" onClick={() => setMenuOpen(false)}>Paket</a>
           <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+          <a href="/install" onClick={() => setMenuOpen(false)}>Download Aplikasi</a>
           <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
           <a href="/sign-in" onClick={() => setMenuOpen(false)}>Masuk</a>
           <a href="/sign-up" className="btn-gold" onClick={() => setMenuOpen(false)}>Daftar Gratis</a>
