@@ -257,11 +257,24 @@ export async function getAttemptHistory(
     filteredData = filteredData.filter(a =>
       a.score_twk < PASSING_GRADES.TWK || a.score_tiu < PASSING_GRADES.TIU || a.score_tkp < PASSING_GRADES.TKP);
 
+  // Fetch 3 most-recent attempt IDs (by completed_at) regardless of current sort/filter.
+  // Used by the client to determine lock status accurately even when sorting by score/oldest.
+  const { data: recentRows } = await supabase
+    .from('attempts')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(3);
+
+  const recentThreeIds = (recentRows ?? []).map((r: { id: string }) => r.id);
+
   return {
-    attempts:    filteredData as (Attempt & { packages: Package })[],
-    totalCount:  count ?? 0,
-    totalPages:  Math.ceil((count ?? 0) / limit),
-    currentPage: page,
+    attempts:      filteredData as (Attempt & { packages: Package })[],
+    totalCount:    count ?? 0,
+    totalPages:    Math.ceil((count ?? 0) / limit),
+    currentPage:   page,
+    recentThreeIds,
   };
 }
 
@@ -293,8 +306,11 @@ export type UserStats = {
   recentAttempts: Attempt[];
 };
 export type AttemptHistoryData = {
-  attempts: (Attempt & { packages: Package })[];
-  totalCount: number; totalPages: number; currentPage: number;
+  attempts:      (Attempt & { packages: Package })[];
+  totalCount:    number;
+  totalPages:    number;
+  currentPage:   number;
+  recentThreeIds: string[];
 };
 
 // ─────────────────────────────────────────────────────────────

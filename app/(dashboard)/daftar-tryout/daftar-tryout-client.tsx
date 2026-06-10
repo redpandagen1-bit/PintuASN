@@ -7,11 +7,12 @@
 import { useState, useMemo }        from 'react';
 import Link                         from 'next/link';
 import { Lock, TrendingUp, Search, X,
-         BookOpen, Clock, Users, ChevronRight } from 'lucide-react';
+         BookOpen, Clock, Users, ChevronRight,
+         Star, BarChart2 } from 'lucide-react';
 import { UpgradeModal }             from '@/components/shared/upgrade-modal';
 import TryoutFilterTabs             from '@/components/dashboard/user/TryoutFilterTabs';
+import { ReviewsPopup }             from '@/components/shared/ReviewsPopup';
 
-// ✅ Import dari subscription-utils — AMAN untuk Client Component
 import { canAccess }                from '@/lib/subscription-utils';
 import type { SubscriptionTier }    from '@/lib/subscription-utils';
 
@@ -47,16 +48,6 @@ const TIER_MAP: Record<TierFilter, string> = {
   'Semua': '', 'Gratis': 'free', 'Premium': 'premium', 'Platinum': 'platinum',
 };
 
-const DIFFICULTY_LABEL: Record<string, string> = {
-  easy: 'Mudah', medium: 'Sedang', hard: 'Sulit',
-};
-
-const DIFFICULTY_COLOR: Record<string, string> = {
-  easy:   'bg-emerald-100 text-emerald-700',
-  medium: 'bg-yellow-100  text-yellow-700',
-  hard:   'bg-red-100     text-red-700',
-};
-
 const TIER_BADGE: Record<string, { label: string; className: string }> = {
   free:     { label: 'Gratis',   className: 'bg-emerald-500 text-white' },
   premium:  { label: 'Premium',  className: 'bg-blue-500 text-white' },
@@ -78,70 +69,93 @@ function PackageCard({
   userTier:         SubscriptionTier;
   onLocked:         (title: string, tier: 'premium' | 'platinum') => void;
 }) {
+  const [reviewOpen, setReviewOpen] = useState(false);
+
   const contentTier = (pkg.tier ?? 'free') as SubscriptionTier;
   const accessible  = canAccess(userTier, contentTier);
   const tierBadge   = TIER_BADGE[contentTier] ?? TIER_BADGE.free;
-  const diffLabel   = DIFFICULTY_LABEL[pkg.difficulty] ?? pkg.difficulty;
-  const diffColor   = DIFFICULTY_COLOR[pkg.difficulty] ?? 'bg-slate-100 text-slate-600';
 
   return (
-    <div className="relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col">
+    <>
+      <div className="relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col">
 
-      {/* Badge tier */}
-      <div className="absolute top-3 right-3 z-10">
-        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${tierBadge.className}`}>
-          {tierBadge.label}
-        </span>
-      </div>
-
-      <div className="p-5 flex-1 flex flex-col">
-        {/* Judul */}
-        <h3 className={`font-bold text-sm leading-snug mb-3 pr-16 ${accessible ? 'text-slate-800' : 'text-slate-500'}`}>
-          {pkg.title}
-        </h3>
-
-        {/* Difficulty */}
-        <div className="mb-3">
-          <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg ${diffColor}`}>
-            {diffLabel}
+        {/* Badge tier */}
+        <div className="absolute top-3 right-3 z-10">
+          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${tierBadge.className}`}>
+            {tierBadge.label}
           </span>
         </div>
 
-        {/* Info */}
-        <div className="space-y-1.5 mb-4 flex-1">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <BookOpen size={13} className="text-slate-400" />
-            <span>{pkg.total_questions ?? 110} Soal</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Clock size={13} className="text-slate-400" />
-            <span>{pkg.duration_minutes ?? 100} Menit</span>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Users size={13} className="text-slate-400" />
-            <span>{pkg.completedUsersCount} Peserta</span>
-          </div>
-        </div>
+        <div className="p-5 flex-1 flex flex-col">
+          {/* Judul */}
+          <h3 className={`font-bold text-sm leading-snug mb-2 pr-16 ${accessible ? 'text-slate-800' : 'text-slate-500'}`}>
+            {pkg.title}
+          </h3>
 
-        {/* CTA */}
-        {accessible ? (
-          <Link href={`/packages/${pkg.id}`}>
-            <button className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5">
-              {hasActiveAttempt ? 'Lanjutkan Tryout' : 'Mulai Tryout'}
-              <ChevronRight size={13} />
-            </button>
-          </Link>
-        ) : (
+          {/* Ulasan link */}
           <button
-            onClick={() => onLocked(pkg.title, contentTier as 'premium' | 'platinum')}
-            className="w-full py-2.5 rounded-xl bg-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-300 transition-colors flex items-center justify-center gap-1.5"
+            onClick={() => setReviewOpen(true)}
+            className="flex items-center gap-1 mb-3 text-[11px] text-slate-500 hover:text-yellow-600 transition-colors group"
           >
-            <Lock size={13} />
-            Buka dengan {contentTier === 'platinum' ? 'Platinum' : 'Premium'}
+            <Star size={11} className="text-yellow-400 fill-yellow-400 group-hover:scale-110 transition-transform" />
+            <span className="underline underline-offset-2">Lihat ulasan</span>
           </button>
-        )}
+
+          {/* Info — horizontal */}
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
+            <span className="flex items-center gap-1 text-xs text-slate-500">
+              <BookOpen size={12} className="text-slate-400" />
+              {pkg.total_questions ?? 110} Soal
+            </span>
+            <span className="w-px h-3 bg-slate-200 flex-shrink-0" />
+            <span className="flex items-center gap-1 text-xs text-slate-500">
+              <Clock size={12} className="text-slate-400" />
+              {pkg.duration_minutes ?? 100} Mnt
+            </span>
+            <span className="w-px h-3 bg-slate-200 flex-shrink-0" />
+            <span className="flex items-center gap-1 text-xs text-slate-500">
+              <Users size={12} className="text-slate-400" />
+              {pkg.completedUsersCount} Peserta
+            </span>
+          </div>
+
+          {/* CTA */}
+          {accessible ? (
+            <div className="flex gap-2 mt-auto">
+              <Link href={`/packages/${pkg.id}`} className="flex-1">
+                <button className="w-full py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-700 transition-colors flex items-center justify-center gap-1.5">
+                  {hasActiveAttempt ? 'Lanjutkan Tryout' : 'Mulai Tryout'}
+                  <ChevronRight size={13} />
+                </button>
+              </Link>
+              <Link href={`/packages/${pkg.id}/stats`}>
+                <button
+                  title="Lihat Data Paket"
+                  className="px-3 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center"
+                >
+                  <BarChart2 size={15} />
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <button
+              onClick={() => onLocked(pkg.title, contentTier as 'premium' | 'platinum')}
+              className="w-full mt-auto py-2.5 rounded-xl bg-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-300 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Lock size={13} />
+              Buka dengan {contentTier === 'platinum' ? 'Platinum' : 'Premium'}
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+
+      <ReviewsPopup
+        packageId={pkg.id}
+        packageTitle={pkg.title}
+        isOpen={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+      />
+    </>
   );
 }
 

@@ -1,265 +1,511 @@
 'use client';
-import { useEffect, useState } from 'react'
-import Image from 'next/image';
 
-const examSVG = `<svg viewBox="0 0 420 370" width="100%" style="max-width:620px;filter:drop-shadow(0 24px 64px rgba(0,0,0,0.11));border-radius:16px;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
-  <rect width="420" height="370" rx="14" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
-  <rect width="420" height="44" rx="14" fill="#1e293b"/>
-  <rect y="24" width="420" height="20" fill="#1e293b"/>
-  <circle cx="20" cy="22" r="5" fill="#ef4444"/>
-  <circle cx="34" cy="22" r="5" fill="#f59e0b"/>
-  <circle cx="48" cy="22" r="5" fill="#22c55e"/>
-  <rect x="66" y="13" width="288" height="18" rx="5" fill="rgba(255,255,255,0.07)"/>
-  <text x="210" y="25" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.4)" text-anchor="middle">pintuasn.com/ujian/sesi-1</text>
-  <rect x="360" y="10" width="50" height="24" rx="6" fill="#0077B6"/>
-  <text x="385" y="25" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">12:47</text>
-  <rect y="44" width="420" height="36" fill="#f8fafc"/>
-  <rect y="79" width="420" height="1" fill="#e2e8f0"/>
-  <text x="20" y="67" font-family="sans-serif" font-size="11" font-weight="700" fill="#1e293b">TWK: Wawasan Kebangsaan</text>
-  <text x="320" y="67" font-family="sans-serif" font-size="11" fill="#94a3b8">Soal 15/30</text>
-  <rect x="0" y="79" width="420" height="3" fill="#f1f5f9"/>
-  <rect x="0" y="79" width="210" height="3" fill="#0077B6"/>
-  <rect x="16" y="92" width="388" height="72" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="28" y="110" font-family="sans-serif" font-size="10" font-weight="700" fill="#0077B6">Soal No. 15</text>
-  <text x="28" y="126" font-family="sans-serif" font-size="10.5" fill="#334155">Contoh penerapan nilai Pancasila sila ke-3</text>
-  <text x="28" y="141" font-family="sans-serif" font-size="10.5" fill="#334155">dalam kehidupan berbangsa adalah...</text>
-  <text x="28" y="156" font-family="sans-serif" font-size="9.5" fill="#94a3b8">Pilih jawaban yang paling tepat</text>
-  <rect x="16" y="172" width="388" height="26" rx="7" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
-  <text x="34" y="189" font-family="sans-serif" font-size="10" font-weight="700" fill="#0077B6">A</text>
-  <text x="48" y="189" font-family="sans-serif" font-size="10" fill="#ffffff">Menjaga persatuan dan kesatuan bangsa</text>
-  <rect x="16" y="202" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="34" y="219" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">B</text>
-  <text x="48" y="219" font-family="sans-serif" font-size="10" fill="#475569">Mengutamakan kepentingan pribadi</text>
-  <rect x="16" y="232" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="34" y="249" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">C</text>
-  <text x="48" y="249" font-family="sans-serif" font-size="10" fill="#475569">Bermusyawarah untuk golongan sendiri</text>
-  <rect x="16" y="262" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="34" y="279" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">D</text>
-  <text x="48" y="279" font-family="sans-serif" font-size="10" fill="#475569">Mendahulukan hak daripada kewajiban</text>
-  <rect x="16" y="292" width="388" height="26" rx="7" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="34" y="309" font-family="sans-serif" font-size="10" font-weight="700" fill="#94a3b8">E</text>
-  <text x="48" y="309" font-family="sans-serif" font-size="10" fill="#475569">Menghormati perbedaan suku dan budaya</text>
-  <rect y="329" width="420" height="41" fill="#f8fafc"/>
-  <rect y="329" width="420" height="1" fill="#e2e8f0"/>
-  <rect x="16" y="339" width="70" height="22" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
-  <text x="51" y="354" font-family="sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Sebelum</text>
-  <rect x="334" y="339" width="70" height="22" rx="6" fill="#1e293b"/>
-  <text x="369" y="354" font-family="sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">Berikut</text>
-  <g transform="translate(100,347)">
-    <rect x="0" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
-    <rect x="11" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
-    <rect x="22" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
-    <rect x="33" y="0" width="8" height="8" rx="2" fill="#22c55e"/>
-    <rect x="44" y="0" width="8" height="8" rx="2" fill="#0077B6"/>
-    <rect x="55" y="0" width="8" height="8" rx="2" fill="#e2e8f0"/>
-    <rect x="66" y="0" width="8" height="8" rx="2" fill="#e2e8f0"/>
-    <rect x="77" y="0" width="8" height="8" rx="2" fill="#e2e8f0"/>
-    <text x="98" y="9" font-family="sans-serif" font-size="9" fill="#94a3b8">+21</text>
-  </g>
-</svg>`;
+import { useEffect, useState, type CSSProperties } from 'react';
 
-const dashboardSVG = `<svg viewBox="0 0 860 430" width="100%" xmlns="http://www.w3.org/2000/svg" style="background:#f1f5f9;display:block">
-  <defs>
-    <linearGradient id="upGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1e293b"/>
-      <stop offset="100%" stop-color="#334155"/>
-    </linearGradient>
-    <clipPath id="sideClip"><rect width="200" height="430" rx="0"/></clipPath>
-  </defs>
-  <rect x="0" y="0" width="860" height="44" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
-  <g transform="translate(8,5) scale(0.082)">
-    <path fill="#eea32f" d="M388.22,214.06h-14.5l-1.5,1.5v200.3h-47c.4-1.03-1-2.22-1-2.5v-198.31c-4.4-1.54-8.91-.91-13.51-1-1.52-.03-2.89.72-2.49-1.49l37.98-42.98c3.06-1.58,4.59.38,6.53,2.49,6.53,7.09,12.55,14.82,18.96,22.02,4.04,4.54,12.58,11.94,15.57,16.42.84,1.26,1.24,1.92.96,3.54Z"/>
-    <path fill="#26a1ac" d="M372.22,181.09c-1.71.42-1.99-.66-3-1.49-6.91-5.76-12.97-15.07-19.45-21.52l-3-1.01-14,17.09-7.54,6.95c-.25-6.81.3-13.71.04-20.53-1.05-27.43-5.7-52.36-24.06-73.87-34.8-40.79-93.09-53.39-139.33-23.32-5.72,3.72-10.73,10.09-17.1,11.84l-40.55-23.48c16.3-19.17,37.69-34.03,61.47-42.49,68.91-24.51,142.66,1.02,182.35,61.64,21.53,32.89,25.64,71.61,24.17,110.21Z"/>
-    <path fill="#183f65" d="M50.22,235.04c-.1-2.21-.59-10.52.94-11.55,1.76-1.17,9.8-.64,12.05.56.09-1.61-.91-2.81-1.04-4.45-1.05-14.01,2.27-28.01,1.09-42.05-.09-1.02-.44-3.45-1.55-3.45h-22c-.51,0-4.67,3.52-7.24,3.82-9.37,1.07-11.66-13.63-2.7-14.79,5.83-.75,7.3,3.45,8.89,3.63.77.09,2.54-.71,4-.7,12.1.04,25.16-.63,37.1,0,1.73.09,2.91.16,4.45,1.05v-6s-20.99-1-20.99-1V39.23l136.83,75.09.12,206.19c.65,3.85,2.48,16.48.05,18.93-16.05,9.25-32.3,18.18-48.32,27.47-19.92,11.56-41.19,22.91-61,34.97-5.53,3.37-13.15,9.33-18.4,11.95-1.51.76-9.46,3.85-10.28,3.03l1-107.89h-16.5c-.85,0-2.3,4.79-7.95,3.98-11.43-1.64-7.12-17.74,2.5-14.54,1.79.59,4.16,3.57,4.45,3.57h38.5v-6.99h-34v-13.99h13v-25.97l-20-1c.13-3.64-.17-7.35,0-10.99,3.56-.57,19.15,1.17,20.56-.94l.44-7.06h-14Z"/>
-  </g>
-  <text x="42" y="26" font-family="sans-serif" font-size="11" font-weight="800" fill="#1e293b">PintuASN</text>
-  <text x="210" y="20" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b">Halo, Yan!</text>
-  <text x="210" y="33" font-family="sans-serif" font-size="9" fill="#94a3b8">Semangat Belajar!</text>
-  <rect x="700" y="10" width="76" height="24" rx="7" fill="#1e293b"/>
-  <text x="738" y="26" font-family="sans-serif" font-size="9" font-weight="700" fill="#f3c305" text-anchor="middle">Roadmap</text>
-  <circle cx="820" cy="22" r="14" fill="#0077B6"/>
-  <text x="820" y="27" font-family="sans-serif" font-size="10" font-weight="800" fill="#ffffff" text-anchor="middle">YA</text>
-  <text x="836" y="18" font-family="sans-serif" font-size="8" font-weight="600" fill="#1e293b">Yan</text>
-  <text x="836" y="28" font-family="sans-serif" font-size="7" fill="#94a3b8">Member Gratis</text>
-  <rect x="8" y="52" width="188" height="372" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.8"/>
-  <text x="22" y="74" font-family="sans-serif" font-size="8" font-weight="700" fill="#94a3b8" letter-spacing="1.2">MENU UTAMA</text>
-  <rect x="26" y="82" width="4" height="4" rx="0.8" fill="#94a3b8"/>
-  <rect x="31" y="82" width="4" height="4" rx="0.8" fill="#94a3b8"/>
-  <rect x="26" y="87" width="4" height="4" rx="0.8" fill="#94a3b8"/>
-  <rect x="31" y="87" width="4" height="4" rx="0.8" fill="#94a3b8"/>
-  <text x="42" y="91" font-family="sans-serif" font-size="10" fill="#475569">Dashboard</text>
-  <rect x="14" y="100" width="170" height="22" rx="7" fill="#1e293b"/>
-  <rect x="26" y="108" width="3" height="7" rx="0.5" fill="#f3c305"/>
-  <rect x="30" y="106" width="3" height="9" rx="0.5" fill="#f3c305"/>
-  <rect x="34" y="110" width="3" height="5" rx="0.5" fill="#f3c305"/>
-  <text x="44" y="115" font-family="sans-serif" font-size="10" font-weight="700" fill="#f3c305">Statistik</text>
-  <circle cx="178" cy="111" r="3" fill="#d5b30d"/>
-  <path d="M 26,128 L 26,137 Q 30.5,135 35,137 L 35,128 Z" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linejoin="round"/>
-  <line x1="30.5" y1="128" x2="30.5" y2="136.5" stroke="#94a3b8" stroke-width="0.8"/>
-  <text x="42" y="137" font-family="sans-serif" font-size="10" fill="#475569">Materi</text>
-  <circle cx="30" cy="155" r="5.5" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
-  <path d="M 28.2,152.5 L 33,155 L 28.2,157.5 Z" fill="#94a3b8"/>
-  <text x="42" y="159" font-family="sans-serif" font-size="10" fill="#475569">Daftar Tryout</text>
-  <circle cx="30" cy="175" r="5.5" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
-  <line x1="30" y1="170.5" x2="30" y2="175" stroke="#94a3b8" stroke-width="1.1"/>
-  <line x1="30" y1="175" x2="33" y2="177" stroke="#94a3b8" stroke-width="1.1"/>
-  <text x="42" y="179" font-family="sans-serif" font-size="10" fill="#475569">Riwayat &amp; Pembahasan</text>
-  <path d="M 24,194 L 26,194 L 28.5,201 L 36,201 L 37.5,197 L 28.5,197" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="30" cy="203.5" r="1.3" fill="#94a3b8"/>
-  <circle cx="35" cy="203.5" r="1.3" fill="#94a3b8"/>
-  <text x="42" y="202" font-family="sans-serif" font-size="10" fill="#475569">Beli Paket</text>
-  <line x1="18" y1="214" x2="186" y2="214" stroke="#f1f5f9" stroke-width="1"/>
-  <text x="22" y="228" font-family="sans-serif" font-size="8" font-weight="700" fill="#94a3b8" letter-spacing="1.2">LAINNYA</text>
-  <path d="M 34,235 L 27.5,243 L 31.5,243 L 27,251 L 37,241 L 32.5,241 Z" fill="none" stroke="#94a3b8" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"/>
-  <text x="42" y="245" font-family="sans-serif" font-size="10" fill="#475569">Event &amp; Promo</text>
-  <circle cx="28.5" cy="264" r="3.5" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
-  <path d="M 23,274 Q 23,269 28.5,269 Q 34,269 34,274" fill="none" stroke="#94a3b8" stroke-width="1.1"/>
-  <circle cx="35.5" cy="264" r="2.8" fill="none" stroke="#94a3b8" stroke-width="0.9"/>
-  <path d="M 33.5,274 Q 33.5,271 37.5,271" fill="none" stroke="#94a3b8" stroke-width="0.9"/>
-  <text x="42" y="270" font-family="sans-serif" font-size="10" fill="#475569">Grup</text>
-  <rect x="14" y="284" width="172" height="122" rx="14" fill="#f8fafc" stroke="#e2e8f0" stroke-width="0.8"/>
-  <rect x="22" y="294" width="48" height="48" rx="12" fill="#0077B6"/>
-  <text x="46" y="326" font-family="sans-serif" font-size="22" font-weight="800" fill="#ffffff" text-anchor="middle">P</text>
-  <text x="22" y="360" font-family="sans-serif" font-size="13" font-weight="800" fill="#1e293b">PintuASN</text>
-  <text x="22" y="375" font-family="sans-serif" font-size="9" fill="#94a3b8">Simulasi CAT SKD CPNS</text>
-  <text x="22" y="388" font-family="sans-serif" font-size="9" fill="#94a3b8">Terpercaya di Indonesia</text>
-  <text x="102" y="422" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">© 2026 PintuASN. v1.0.0</text>
-  <rect x="206" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
-  <rect x="218" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
-  <text x="231" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">📄</text>
-  <text x="250" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Total Tryout</text>
-  <text x="250" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">3</text>
-  <text x="250" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">Paket Selesai</text>
-  <rect x="366" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
-  <rect x="378" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
-  <text x="391" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">🏆</text>
-  <text x="412" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Skor Tertinggi</text>
-  <text x="412" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">68</text>
-  <text x="412" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">dari 550</text>
-  <rect x="526" y="52" width="152" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
-  <rect x="538" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
-  <text x="551" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">📈</text>
-  <text x="572" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Rata-rata Skor</text>
-  <text x="572" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">23</text>
-  <text x="572" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">Stabil</text>
-  <rect x="686" y="52" width="162" height="76" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
-  <rect x="698" y="62" width="26" height="26" rx="7" fill="#1e293b"/>
-  <text x="711" y="79" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">✓</text>
-  <text x="732" y="72" font-family="sans-serif" font-size="9" fill="#94a3b8">Tingkat Kelulusan</text>
-  <text x="732" y="98" font-family="sans-serif" font-size="18" font-weight="800" fill="#1e293b">0%</text>
-  <text x="732" y="114" font-family="sans-serif" font-size="8" fill="#94a3b8">Passing Grade</text>
-  <rect x="206" y="138" width="472" height="196" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
-  <text x="224" y="158" font-family="sans-serif" font-size="11" font-weight="700" fill="#1e293b">Tren Performa Skor</text>
-  <text x="224" y="171" font-family="sans-serif" font-size="9" fill="#94a3b8">Perbandingan skor Anda vs Rata-rata</text>
-  <circle cx="572" cy="155" r="4" fill="#1e293b"/>
-  <text x="580" y="159" font-family="sans-serif" font-size="8" fill="#475569">Skor Kamu</text>
-  <circle cx="630" cy="155" r="4" fill="#cbd5e1"/>
-  <text x="638" y="159" font-family="sans-serif" font-size="8" fill="#475569">Rata-rata</text>
-  <text x="224" y="314" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">0</text>
-  <text x="224" y="285" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">150</text>
-  <text x="224" y="254" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">300</text>
-  <text x="224" y="225" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">450</text>
-  <text x="224" y="196" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="end">550</text>
-  <line x1="230" y1="311" x2="662" y2="311" stroke="#f1f5f9" stroke-width="1"/>
-  <line x1="230" y1="282" x2="662" y2="282" stroke="#f1f5f9" stroke-width="1"/>
-  <line x1="230" y1="253" x2="662" y2="253" stroke="#f1f5f9" stroke-width="1"/>
-  <line x1="230" y1="224" x2="662" y2="224" stroke="#f1f5f9" stroke-width="1"/>
-  <line x1="230" y1="193" x2="662" y2="193" stroke="#f1f5f9" stroke-width="1"/>
-  <path d="M 270,305 Q 340,302 410,306 Q 480,302 550,305 Q 610,302 650,305" fill="none" stroke="#1e293b" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M 270,305 Q 340,303 410,305 Q 480,303 550,305 Q 610,303 650,305" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
-  <text x="270" y="323" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">TO-1</text>
-  <text x="410" y="323" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">TO-2</text>
-  <text x="550" y="323" font-family="sans-serif" font-size="8" fill="#94a3b8" text-anchor="middle">TO-3</text>
-  <rect x="686" y="138" width="162" height="196" rx="10" fill="#1e293b"/>
-  <text x="704" y="160" font-family="sans-serif" font-size="10" font-weight="700" fill="rgba(255,255,255,0.85)">Peringkat Nasional</text>
-  <rect x="818" y="146" width="22" height="22" rx="6" fill="rgba(0,119,182,0.12)"/>
-  <text x="829" y="161" font-family="sans-serif" font-size="12" fill="#0077B6" text-anchor="middle">🏆</text>
-  <text x="704" y="192" font-family="sans-serif" font-size="26" font-weight="800" fill="#0077B6">#4</text>
-  <text x="738" y="192" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.45)">/ 5 user</text>
-  <text x="704" y="212" font-family="sans-serif" font-size="9" fill="rgba(255,255,255,0.55)">Rata-rata Anda</text>
-  <text x="836" y="212" font-family="sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="end">23</text>
-  <rect x="704" y="218" width="132" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>
-  <rect x="704" y="218" width="40" height="4" rx="2" fill="#3b82f6"/>
-  <text x="704" y="234" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.4)">Anda lebih unggul dari 20%</text>
-  <text x="704" y="244" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.4)">peserta lain.</text>
-  <line x1="704" y1="254" x2="836" y2="254" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-  <text x="704" y="267" font-family="sans-serif" font-size="9" font-weight="700" fill="rgba(255,255,255,0.75)">Distribusi Per Kategori</text>
-  <text x="704" y="283" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)">Wawasan</text>
-  <text x="836" y="283" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="end">0% Lulus</text>
-  <rect x="704" y="287" width="132" height="3" rx="1" fill="rgba(255,255,255,0.1)"/>
-  <text x="704" y="301" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)">Intelegensia</text>
-  <text x="836" y="301" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="end">0% Lulus</text>
-  <rect x="704" y="305" width="132" height="3" rx="1" fill="rgba(255,255,255,0.1)"/>
-  <text x="704" y="319" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)">Karakteristik</text>
-  <text x="836" y="319" font-family="sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="end">0% Lulus</text>
-  <rect x="704" y="323" width="132" height="3" rx="1" fill="rgba(255,255,255,0.1)"/>
-  <rect x="206" y="344" width="310" height="78" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
-  <text x="224" y="364" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b">Gap Nilai Minimum (Passing Grade)</text>
-  <text x="224" y="376" font-family="sans-serif" font-size="8" fill="#94a3b8">Posisi skor rata-rata kamu vs Ambang Batas</text>
-  <text x="224" y="393" font-family="sans-serif" font-size="8" fill="#475569">TWK</text>
-  <rect x="248" y="386" width="90" height="6" rx="3" fill="#e2e8f0"/>
-  <rect x="248" y="386" width="18" height="6" rx="3" fill="#ef4444"/>
-  <text x="224" y="407" font-family="sans-serif" font-size="8" fill="#475569">TIU</text>
-  <rect x="248" y="400" width="90" height="6" rx="3" fill="#e2e8f0"/>
-  <rect x="248" y="400" width="12" height="6" rx="3" fill="#ef4444"/>
-  <rect x="524" y="344" width="324" height="78" rx="10" fill="#ffffff" stroke="#e8edf2" stroke-width="0.5"/>
-  <text x="542" y="364" font-family="sans-serif" font-size="10" font-weight="700" fill="#1e293b">Distribusi Skor Peserta</text>
-  <text x="542" y="376" font-family="sans-serif" font-size="8" fill="#94a3b8">Posisi kamu dalam kurva peserta</text>
-  <path d="M 548,410 Q 580,395 620,388 Q 660,395 700,390 Q 730,398 760,406 Q 790,402 820,405" fill="none" stroke="#6366f1" stroke-width="1.5"/>
-  <path d="M 548,410 Q 580,395 620,388 Q 660,395 700,390 Q 730,398 760,406 Q 790,402 820,405 L 820,415 L 548,415 Z" fill="rgba(99,102,241,0.08)"/>
-</svg>`;
+// ── Data konten (dipertahankan dari versi lama) ───────────────
+const TICKER = [
+  ['✓', 'Simulasi 99% mirip BKN'], ['⏱', 'Analisis waktu per soal'],
+  ['📊', 'Analitik performa mendalam'], ['🏆', 'Ranking nasional real-time'],
+  ['🗺', 'Roadmap belajar bertahap'], ['📖', 'Pembahasan detail setiap soal'],
+  ['📈', 'Progress tracking visual'], ['🔒', 'Pembayaran aman Midtrans'],
+];
+
+const STATS = [
+  { target: '12186', label: 'Pengguna aktif terdaftar' },
+  { target: '871',   label: 'Bank soal terverifikasi' },
+  { target: '3204',  label: 'Sesi tryout diselesaikan' },
+  { target: '4.9',   label: 'Rating rata-rata pengguna' },
+];
+
+const PAINS = [
+  { icon: '🤯', title: 'Buta Sistem CAT BKN', desc: 'Panik melihat interface ujian asli. Banyak peserta gagal fokus karena kaget dengan sistem CAT dan manajemen waktu yang buruk saat hari H.' },
+  { icon: '📉', title: 'Belajar Tanpa Data', desc: 'Mengerjakan ribuan soal secara acak tanpa tahu letak kelemahan sesungguhnya, apakah di TWK, penalaran TIU, atau karakteristik TKP.' },
+  { icon: '⏱️', title: 'Tidak Sadar Pemborosan Waktu', desc: 'Tanpa analisis waktu per soal, kamu tidak tahu soal mana yang menyedot waktu terlalu banyak sehingga soal mudah pun tidak sempat dikerjakan.' },
+];
+
+const FEATURES = [
+  { icon: '💻', title: 'Simulasi 99% Mirip BKN', desc: 'Rasakan ujian asli sebelum hari H. UI/UX, timer per subtes, dan mekanisme penilaian dibuat persis sistem CAT SSCASN BKN.',
+    bullets: ['Antarmuka & timer identik CAT BKN', 'Penilaian TWK, TIU, TKP otomatis', 'Latihan anti-grogi sebelum ujian'] },
+  { icon: '⏱️', title: 'Analisis Waktu per Soal', badge: 'Eksklusif', desc: 'Tahu persis ke mana waktumu habis. Fitur eksklusif yang merekam durasi pengerjaan tiap soal untuk strategi yang lebih tajam.',
+    bullets: ['Rekam detik pengerjaan tiap soal', 'Deteksi soal "pemborosan waktu"', 'Rekomendasi strategi pengerjaan'] },
+  { icon: '📊', title: 'Analitik Performa Mendalam', desc: 'Ubah data latihan jadi keputusan belajar. Lihat tren skor dan titik lemahmu dengan dashboard analitik yang detail.',
+    bullets: ['Tren skor & gap passing grade', 'Analisis kelemahan per subtes', 'Distribusi skor nasional'] },
+  { icon: '🏆', title: 'Peringkat Nasional', desc: 'Ukur kemampuanmu secara nyata. Ketahui posisimu di antara ribuan peserta se-Indonesia lewat leaderboard real-time.',
+    bullets: ['Posisimu vs ribuan peserta', 'Leaderboard live & per paket', 'Update otomatis tiap tryout'] },
+  { icon: '🗺️', title: 'Roadmap Belajar Bertahap', desc: 'Tidak lagi bingung mulai dari mana. Jalur belajar terstruktur dengan target jelas di setiap tahap menuju kelulusan.',
+    bullets: ['9 fase belajar terstruktur', 'Syarat & indikator selesai tiap step', 'Rekomendasi langkah berikutnya'] },
+  { icon: '📖', title: 'Review Soal dan Pembahasan', desc: 'Bukan sekadar kunci jawaban. Pahami konsep di balik tiap soal dengan pembahasan lengkap dan filter materi.',
+    bullets: ['Pembahasan detail tiap soal', 'Filter benar/salah & per materi', 'Pahami konsep, bukan hafal kunci'] },
+];
+
+const STEPS = [
+  { n: '01', title: 'Daftar Akun Gratis', desc: 'Buat akun dalam 30 detik. Langsung akses dashboard, roadmap, dan tryout pertamamu tanpa kartu kredit.' },
+  { n: '02', title: 'Kerjakan Tryout', desc: 'Rasakan sensasi ujian asli dengan timer dan antarmuka identik BKN. TWK, TIU, TKP dalam satu sesi penuh.' },
+  { n: '03', title: 'Analisis dan Tingkatkan', desc: 'Dapatkan skor, analitik mendalam, analisis waktu per soal, review pembahasan, dan posisi ranking nasional.' },
+];
+
+const FAQS = [
+  { q: 'Apakah simulasi benar-benar mirip sistem BKN?', a: 'Ya! Kami merancang UI/UX, peletakan tombol, ukuran font, hingga sistem timer persis seperti aplikasi CAT BKN. Saat ujian asli, kamu sudah tidak canggung dan bisa fokus penuh pada soal.' },
+  { q: 'Apa itu fitur Analisis Waktu per Soal?', a: 'Fitur eksklusif PintuASN yang merekam berapa detik kamu habiskan untuk tiap soal. Dari data ini, kamu bisa tahu soal mana yang menjadi "pemborosan waktu" dan memperbaiki strategi pengerjaan di sesi berikutnya.' },
+  { q: 'Apakah soal-soalnya update sesuai kisi-kisi terbaru?', a: 'Tentu. Tim akademik kami terus memperbarui bank soal setiap bulan mengikuti Peraturan Menteri PANRB terbaru dan tren soal CPNS tahun-tahun sebelumnya, termasuk soal berstandar HOTS.' },
+  { q: 'Bagaimana cara pembayaran paket Premium/Platinum?', a: 'Kami menerima QRIS, GoPay, OVO, ShopeePay, Transfer Bank (VA BCA, BNI, Mandiri, BRI), hingga Alfamart/Indomaret. Semua diproses melalui Midtrans yang aman dan terenkripsi.' },
+  { q: 'Saya daftar gratis, apakah wajib upgrade?', a: 'Tidak wajib sama sekali. Paket Gratis agar kamu bisa mencoba sistem dan kualitas soal tanpa komitmen apapun. Upgrade bisa kapan saja ketika kamu merasa siap dan membutuhkan fitur lebih lengkap.' },
+];
+
+const CSS = `
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --white:#fff; --s50:#f8fafc; --s100:#f1f5f9; --s200:#e2e8f0; --s300:#cbd5e1;
+  --s400:#94a3b8; --s500:#64748b; --s600:#475569; --s700:#334155; --s800:#1e293b; --s900:#0f172a;
+  --navy:#1e293b; --navy-d:#0f172a; --navy-l:#334155;
+  --gold:#0ea5e9; --gold-d:#0284c7; --gold-l:#e0f2fe; --sky-l:#38bdf8;
+  --yellow:#f5b700; --yellow-d:var(--yellow-d);
+  --font:'Plus Jakarta Sans',var(--font-jakarta),sans-serif;
+}
+html{scroll-behavior:smooth}
+.lp{font-family:var(--font);background:#fff;color:var(--s800);overflow-x:clip}
+.lp section{position:relative}
+
+/* ── keyframes ── */
+@keyframes lp-floatA{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-16px) rotate(-1.5deg)}}
+@keyframes lp-floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes lp-fadeup{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:translateY(0)}}
+@keyframes lp-fadein{from{opacity:0}to{opacity:1}}
+@keyframes lp-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes lp-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes lp-drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-30px)}}
+@keyframes lp-drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-34px,28px)}}
+@keyframes lp-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.7;transform:scale(1.12)}}
+@keyframes lp-spin{to{transform:rotate(360deg)}}
+@keyframes lp-shimmer{to{background-position:200% center}}
+@keyframes lp-grow{from{height:8%}to{height:var(--h)}}
+@keyframes lp-draw{to{stroke-dashoffset:0}}
+@keyframes lp-bar{from{width:0}}
+@keyframes lp-slidedown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── reveal on scroll ── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── navbar ── */
+.lp-nav{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:space-between;
+  padding:16px 28px;transition:.3s;background:rgba(255,255,255,0);}
+.lp-nav.scrolled{background:rgba(255,255,255,.85);backdrop-filter:blur(12px);box-shadow:0 4px 24px rgba(30,41,59,.07);padding:11px 28px}
+.lp-logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;color:var(--navy);text-decoration:none;letter-spacing:-.3px}
+.lp-logo .badge{width:34px;height:34px;border-radius:10px;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 6px 16px rgba(30,41,59,.25)}
+.lp-logo .gold{color:var(--gold)}
+.lp-logo-img{height:30px;width:auto;display:block}
+.lp-links{display:flex;align-items:center;gap:30px;list-style:none}
+.lp-links a{color:var(--s600);text-decoration:none;font-size:14px;font-weight:600;position:relative;transition:.2s}
+.lp-links a::after{content:'';position:absolute;left:0;bottom:-5px;width:0;height:2px;background:var(--gold);transition:width .25s}
+.lp-links a:hover{color:var(--navy)}
+.lp-links a:hover::after{width:100%}
+.lp-nav-cta{display:flex;align-items:center;gap:12px}
+.btn-ghost{color:var(--navy);font-weight:700;font-size:14px;text-decoration:none;padding:9px 14px;border-radius:10px;transition:.2s}
+.btn-ghost:hover{background:var(--s100)}
+.btn-gold{background:var(--gold);color:#fff;font-weight:800;font-size:14px;text-decoration:none;padding:10px 20px;border-radius:11px;
+  box-shadow:0 8px 22px rgba(14,165,233,.32);transition:.25s}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(14,165,233,.45)}
+.lp-burger{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
+.lp-burger span{width:24px;height:2.5px;background:var(--navy);border-radius:2px;transition:.3s}
+.lp-mobile{display:none}
+
+/* ── hero ── */
+.hero{min-height:100svh;display:grid;place-items:center;padding:104px 28px 72px;background:linear-gradient(180deg,#fff 0%,var(--s50) 100%);overflow:hidden}
+.hero::before{content:'';position:absolute;width:480px;height:480px;border-radius:50%;
+  background:radial-gradient(circle,rgba(30,41,59,.16),transparent 65%);
+  left:var(--mx,70%);top:var(--my,30%);transform:translate(-50%,-50%);pointer-events:none;transition:left .25s,top .25s;z-index:0}
+.hero-blob{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;z-index:0}
+.hero-grid{position:relative;z-index:2;width:100%;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+.hero h1{font-size:clamp(34px,5vw,56px);font-weight:800;line-height:1.08;letter-spacing:-1.2px;color:var(--navy)}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,var(--gold),var(--yellow),var(--gold));background-size:200% auto;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:lp-shimmer 4s linear infinite}
+.hero-sub{font-size:clamp(15px,1.6vw,18px);color:var(--s500);line-height:1.65;margin:22px 0 30px;max-width:540px}
+.hero-sub strong{color:var(--navy);font-weight:700}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap}
+.cta-big{padding:15px 30px;border-radius:13px;font-weight:800;font-size:15px;text-decoration:none;transition:.25s;display:inline-flex;align-items:center;gap:8px}
+.cta-y{background:var(--gold);color:#fff;box-shadow:0 12px 30px rgba(14,165,233,.36)}
+.cta-y:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 18px 40px rgba(14,165,233,.48)}
+.cta-o{background:#fff;color:var(--navy);border:1.5px solid var(--s200)}
+.cta-o:hover{border-color:var(--navy);transform:translateY(-3px)}
+.proof{display:flex;align-items:center;gap:14px;margin-top:34px}
+.avatars{display:flex}
+.avatars .av{position:relative;width:40px;height:40px;border-radius:50%;border:2.5px solid #fff;margin-left:-11px;
+  box-shadow:0 2px 8px rgba(0,0,0,.14);overflow:hidden;background:var(--navy);transition:transform .2s}
+.avatars .av:first-child{margin-left:0}
+.avatars .av:hover{transform:translateY(-3px) scale(1.06);z-index:2}
+.avatars .av img{width:100%;height:100%;object-fit:cover;display:block}
+.avatars .av .ini{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+.stars{color:var(--yellow);font-size:14px;letter-spacing:2px}
+.proof p{font-size:13px;color:var(--s500);margin-top:2px}
+.proof p strong{color:var(--navy)}
+
+/* ── hero mock ── */
+.mock{position:relative;animation:lp-fadein .9s .3s ease both}
+.mock-card{background:#fff;border:1px solid var(--s200);border-radius:18px;box-shadow:0 30px 70px rgba(30,41,59,.18);overflow:hidden;animation:lp-floatA 6s ease-in-out infinite}
+.mock-bar{background:var(--navy);padding:10px 14px;display:flex;align-items:center;gap:7px}
+.mock-bar i{width:9px;height:9px;border-radius:50%;display:block}
+.mock-url{flex:1;text-align:center;font-size:9px;color:rgba(255,255,255,.4);font-family:monospace}
+/* exam header (mirip exam page asli) */
+.exam-top{background:var(--navy);padding:9px 14px 11px;display:flex;align-items:center;gap:9px;border-top:1px solid rgba(255,255,255,.06)}
+.exam-cat{font-size:9px;font-weight:800;color:var(--sky-l);border:1px solid rgba(14,165,233,.55);border-radius:50px;padding:2px 9px;flex-shrink:0}
+.exam-title{flex:1;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exam-timer{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--yellow);background:rgba(245,183,0,.18);padding:3px 9px;border-radius:7px;flex-shrink:0;animation:lp-pulse 2s infinite}
+.exam-sub{padding:11px 14px 0}
+.exam-subrow{display:flex;justify-content:space-between;font-size:9.5px;color:var(--s400);margin-bottom:6px}
+.mock-prog{height:6px;background:var(--s100);border-radius:4px;overflow:hidden}
+.mock-prog i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--gold),var(--yellow));border-radius:4px;animation:lp-bar 1.4s ease both}
+.mock-body{padding:14px}
+.mock-q{background:var(--s50);border:1px solid var(--s100);border-radius:10px;padding:11px 12px;margin-bottom:12px}
+.mock-q b{font-size:9px;color:var(--gold-d);font-weight:800;letter-spacing:.3px}
+.mock-q p{font-size:11px;color:var(--s700);margin-top:4px;line-height:1.45}
+.mock-opt{display:flex;align-items:center;gap:10px;border:1.5px solid var(--s200);border-radius:11px;padding:9px 11px;margin-bottom:8px;font-size:10.5px;color:var(--s600);transition:.2s}
+.mock-opt .lt{flex-shrink:0;width:22px;height:22px;border-radius:50%;border:2px solid var(--s300);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--s500)}
+.mock-opt .tx{flex:1}
+.mock-opt .ck{color:var(--gold);font-weight:800;font-size:12px}
+.mock-opt.on{border-color:var(--gold);background:rgba(14,165,233,.07);color:#075985;font-weight:600}
+.mock-opt.on .lt{background:var(--gold);border-color:var(--gold);color:#fff}
+.exam-nav{display:flex;justify-content:space-between;gap:8px;margin-top:13px}
+.exam-nav button{flex:1;font-size:10px;font-weight:800;padding:9px;border-radius:9px;border:1px solid var(--s200);background:#fff;color:var(--s500);cursor:default}
+.exam-nav .next{background:var(--gold);border-color:var(--gold);color:#fff}
+.float-badge{position:absolute;background:#fff;border:1px solid var(--s200);border-radius:14px;padding:10px 14px;
+  box-shadow:0 14px 34px rgba(30,41,59,.16);display:flex;align-items:center;gap:10px;z-index:3;animation:lp-floatB 5s ease-in-out infinite}
+.float-badge.b1{top:-22px;right:-16px}
+.float-badge.b2{bottom:-18px;left:-18px;background:var(--navy);animation-delay:1s}
+.float-badge .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+
+/* ── ticker ── */
+.ticker{background:var(--navy);overflow:hidden;padding:15px 0;white-space:nowrap;position:relative}
+.ticker-track{display:inline-flex;gap:42px;animation:lp-ticker 28s linear infinite}
+.ticker-item{display:inline-flex;align-items:center;gap:9px;color:rgba(255,255,255,.85);font-size:14px;font-weight:600}
+.ticker-dot{width:6px;height:6px;border-radius:50%;background:var(--sky-l);display:block;flex-shrink:0}
+
+/* ── stats ── */
+.stats{background:linear-gradient(135deg,var(--navy),var(--navy-d));padding:54px 28px}
+.stats-inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat-num{font-size:clamp(30px,4vw,46px);font-weight:800;color:var(--sky-l);line-height:1;letter-spacing:-1px;display:block}
+.stat-label{font-size:12.5px;color:rgba(255,255,255,.6);margin-top:8px;font-weight:500}
+
+/* ── generic section ── */
+.sec{padding:84px 28px}
+.sec-in{max-width:1140px;margin:0 auto}
+.sec-head{text-align:center;max-width:640px;margin:0 auto 50px}
+.tag{display:inline-flex;align-items:center;gap:7px;background:var(--gold-l);color:var(--gold-d);font-size:12px;font-weight:800;
+  padding:6px 14px;border-radius:50px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:16px}
+.sec-title{font-size:clamp(26px,3.4vw,38px);font-weight:800;color:var(--navy);line-height:1.15;letter-spacing:-.8px}
+.sec-sub{font-size:15.5px;color:var(--s500);line-height:1.6;margin-top:14px}
+
+/* ── pain cards ── */
+.pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.pain-card{background:#fff;border:1px solid var(--s200);border-radius:18px;padding:30px 26px;transition:.3s;will-change:transform}
+.pain-card:hover{transform:translateY(-6px);box-shadow:0 22px 50px rgba(30,41,59,.1);border-color:var(--gold)}
+.pain-ico{width:56px;height:56px;border-radius:15px;background:var(--gold-l);display:flex;align-items:center;justify-content:center;font-size:27px;margin-bottom:18px}
+.pain-no{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:11px;background:var(--gold-l);color:var(--gold-d);font-size:14px;font-weight:800;margin-bottom:16px}
+.pain-card h3{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:9px}
+.pain-card p{font-size:14px;color:var(--s500);line-height:1.6}
+
+/* ── showcase ── */
+.showcase{background:linear-gradient(160deg,var(--navy),var(--navy-d));padding:84px 28px}
+.showcase .tag{background:rgba(14,165,233,.16);color:var(--sky-l)}
+.showcase .sec-title{color:#fff}
+.showcase .sec-sub{color:rgba(255,255,255,.55)}
+.browser{max-width:920px;margin:0 auto;background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;
+  box-shadow:0 40px 90px rgba(0,0,0,.4);animation:lp-floatB 6s ease-in-out infinite}
+.browser-bar{background:rgba(255,255,255,.04);padding:11px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,255,255,.06)}
+.dash{padding:22px;display:grid;grid-template-columns:1.4fr 1fr;gap:16px;background:#0f172a}
+.dash-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px}
+.dash-card h5{font-size:11px;color:rgba(255,255,255,.55);font-weight:700;margin-bottom:3px}
+.dash-card .big{font-size:22px;font-weight:800;color:#fff}
+.dash-card .big span{font-size:11px;color:var(--sky-l)}
+.bars{display:flex;align-items:flex-end;gap:10px;height:96px;margin-top:14px}
+.bars i{flex:1;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#0ea5e9,#0284c7);animation:lp-grow 1.1s ease both}
+.bars i:nth-child(odd){background:linear-gradient(180deg,#64748b,#475569)}
+.tiles{display:grid;grid-template-rows:repeat(3,1fr);gap:12px}
+.tile{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.tile .l{font-size:11px;color:rgba(255,255,255,.6)}
+.tile .v{font-size:15px;font-weight:800;color:var(--sky-l)}
+
+/* ── showcase: 2 layar (statistik + hasil) ── */
+.showcase-stack{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.screen{background:#0f172a;border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;box-shadow:0 36px 80px rgba(0,0,0,.45);animation:lp-floatB 6s ease-in-out infinite}
+.screen.s2{animation-delay:1.3s}
+.scr-cap{text-align:center;font-size:11px;font-weight:700;color:rgba(255,255,255,.45);margin-top:12px}
+.scr-body{padding:18px}
+.scr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.scr-title{font-size:13px;font-weight:800;color:#fff}
+.scr-tag{font-size:9px;font-weight:800;color:var(--sky-l);background:rgba(14,165,233,.16);padding:3px 10px;border-radius:50px}
+.scr-tag.pass{color:#34d399;background:rgba(52,211,153,.16)}
+/* trend chart */
+.trend-wrap{height:118px;margin-bottom:16px}
+.trend-svg{width:100%;height:100%;overflow:visible}
+.trend-line{fill:none;stroke:var(--sky-l);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:600;stroke-dashoffset:600;animation:lp-draw 1.9s ease forwards .2s}
+.trend-dot{fill:#fff;stroke:var(--sky-l);stroke-width:2;opacity:0;animation:lp-fadein .4s ease forwards}
+/* category bars */
+.catbar{margin-bottom:11px}
+.catbar-top{display:flex;justify-content:space-between;font-size:10.5px;color:rgba(255,255,255,.6);margin-bottom:5px}
+.catbar-top b{color:#fff;font-weight:700}
+.catbar-track{height:8px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden}
+.catbar-fill{height:100%;border-radius:5px;width:0;animation:lp-bar 1.4s cubic-bezier(.2,.7,.2,1) forwards .3s}
+/* donut */
+.donut-row{display:flex;align-items:center;gap:18px;margin-bottom:16px}
+.donut{position:relative;width:118px;height:118px;flex-shrink:0}
+.donut svg{width:100%;height:100%}
+.donut circle{fill:none;stroke-width:15;transform-origin:center;stroke-dasharray:0 264;animation:lp-arc 1.1s ease forwards}
+@keyframes lp-arc{to{stroke-dasharray:var(--seg) var(--gap)}}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-center b{font-size:26px;font-weight:800;color:#fff;line-height:1}
+.donut-center span{font-size:9px;color:rgba(255,255,255,.5);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:9px}
+.lg{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.65)}
+.lg i{width:10px;height:10px;border-radius:3px;display:block;flex-shrink:0}
+.lg b{margin-left:auto;color:#fff;font-weight:800}
+.pace-title{font-size:9.5px;color:rgba(255,255,255,.5);font-weight:800;margin-bottom:9px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── features ── */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.feat-card{position:relative;background:#fff;border:1px solid var(--s200);border-radius:18px;padding:28px 24px;transition:transform .15s ease,box-shadow .3s,border-color .3s;will-change:transform;transform-style:preserve-3d}
+.feat-card:hover{box-shadow:0 26px 56px rgba(30,41,59,.13);border-color:var(--gold)}
+.feat-ico{width:54px;height:54px;border-radius:15px;background:linear-gradient(135deg,var(--navy),var(--navy-l));color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:25px;margin-bottom:17px;box-shadow:0 10px 24px rgba(30,41,59,.2)}
+.feat-card h3{font-size:17px;font-weight:800;color:var(--navy);margin-bottom:8px}
+.feat-card p{font-size:13.5px;color:var(--s500);line-height:1.6}
+.feat-badge{position:absolute;top:18px;right:18px;background:var(--gold);color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:50px;text-transform:uppercase;letter-spacing:.4px}
+
+/* ── feature stacking cards (scroll-driven, ala AYOCPNS) ── */
+.feat-stack{max-width:980px;margin:0 auto}
+.feat-panel{position:sticky;margin-bottom:30px}
+.feat-card2{position:relative;background:#fff;border:1px solid var(--s200);border-radius:26px;box-shadow:0 30px 70px rgba(30,41,59,.16);display:grid;grid-template-columns:1.05fr 1fr;gap:42px;padding:44px;align-items:center;overflow:hidden;min-height:440px}
+.fc-num{position:absolute;top:26px;right:38px;font-size:78px;font-weight:800;color:var(--s100);line-height:1;letter-spacing:-3px;z-index:0}
+.fc-text{position:relative;z-index:1}
+.fc-icon{width:58px;height:58px;border-radius:17px;background:linear-gradient(135deg,var(--navy),var(--navy-l));color:var(--sky-l);display:flex;align-items:center;justify-content:center;font-size:27px;margin-bottom:18px;box-shadow:0 10px 24px rgba(30,41,59,.2)}
+.fc-badge{display:inline-block;background:var(--yellow);color:#1e293b;font-size:11px;font-weight:800;padding:4px 12px;border-radius:50px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px}
+.fc-text h3{font-size:26px;font-weight:800;color:var(--navy);margin-bottom:12px;letter-spacing:-.5px;line-height:1.15}
+.fc-text p{font-size:15px;color:var(--s500);line-height:1.65}
+.fc-bullets{list-style:none;margin-top:20px;display:flex;flex-direction:column;gap:11px}
+.fc-bullets li{display:flex;align-items:flex-start;gap:11px;font-size:14px;color:var(--s700);font-weight:600;line-height:1.4}
+.fc-bullets .ck{flex-shrink:0;width:21px;height:21px;border-radius:50%;background:rgba(14,165,233,.14);color:var(--gold);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.fc-demo{position:relative;background:var(--s50);border:1px solid var(--s100);border-radius:20px;height:330px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:24px}
+/* demo 0 — simulasi exam */
+.d-exam{width:100%;max-width:260px;background:#fff;border:1px solid var(--s200);border-radius:13px;overflow:hidden;box-shadow:0 10px 26px rgba(30,41,59,.1)}
+.d-exam .eh{background:var(--navy);padding:9px 12px;display:flex;justify-content:space-between;align-items:center}
+.d-exam .cat{font-size:9px;font-weight:800;color:var(--sky-l);border:1px solid rgba(14,165,233,.5);padding:2px 8px;border-radius:50px}
+.d-exam .tm{font-size:10px;font-weight:800;color:var(--yellow);background:rgba(245,183,0,.16);padding:2px 8px;border-radius:6px}
+.d-exam .opt{display:flex;align-items:center;gap:9px;margin:8px 10px;padding:8px 10px;border:1.5px solid var(--s200);border-radius:9px;font-size:10px;color:var(--s600)}
+.d-exam .opt .lt{width:18px;height:18px;border-radius:50%;border:2px solid var(--s300);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--s400);flex-shrink:0}
+.feat-card2.active .d-exam .opt.sel{border-color:var(--gold);background:rgba(14,165,233,.07);color:#075985;transition:.45s .55s}
+.feat-card2.active .d-exam .opt.sel .lt{background:var(--gold);border-color:var(--gold);color:#fff;transition:.45s .55s}
+/* demo 1 — bars waktu */
+.d-bars{display:flex;align-items:flex-end;gap:11px;height:160px}
+.d-bars .bar{position:relative;width:24px;border-radius:7px 7px 0 0;background:var(--sky-l);height:8%;transition:height 1s cubic-bezier(.2,.7,.2,1)}
+.d-bars .bar.warn{background:var(--yellow)}
+.d-bars .bar .wlbl{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:800;color:var(--yellow-d);white-space:nowrap}
+.feat-card2.active .d-bars .bar{height:var(--h)}
+/* demo 2 — analitik chart */
+.d-chart{width:100%;height:150px;position:relative}
+.d-chart svg{width:100%;height:100%;overflow:visible}
+.d-chart .ln{fill:none;stroke:var(--sky-l);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:420;stroke-dashoffset:420}
+.d-chart .area{opacity:0}
+.feat-card2.active .d-chart .ln{animation:lp-draw 1.6s ease forwards .3s}
+.feat-card2.active .d-chart .area{opacity:1;transition:opacity .8s ease .9s}
+.d-chart .up{position:absolute;top:4px;right:6px;font-size:11px;font-weight:800;color:var(--yellow-d);background:rgba(245,183,0,.16);padding:3px 9px;border-radius:50px}
+/* demo 3 — peringkat */
+.d-rank{width:100%;max-width:240px}
+.d-rank .row{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--s200);border-radius:10px;padding:9px 12px;margin-bottom:8px;opacity:0;transform:translateY(12px)}
+.feat-card2.active .d-rank .row{opacity:1;transform:none;transition:.5s ease}
+.d-rank .row.you{border-color:var(--gold);background:rgba(14,165,233,.07)}
+.d-rank .rk{font-size:12px;font-weight:800;color:var(--s400);width:26px}
+.d-rank .row.you .rk{color:var(--gold)}
+.d-rank .nm{flex:1;font-size:11px;font-weight:700;color:var(--s700)}
+.d-rank .row.you .nm{color:var(--navy)}
+.d-rank .sc{font-size:11px;font-weight:800;color:var(--navy)}
+/* demo 4 — roadmap */
+.d-road{position:relative;display:flex;align-items:center;justify-content:space-between;width:100%;max-width:280px;padding:0 4px}
+.d-road .line{position:absolute;left:18px;right:18px;top:50%;height:3px;background:var(--s200);transform:translateY(-50%)}
+.d-road .prog{position:absolute;left:18px;top:50%;height:3px;background:var(--sky-l);width:0;transform:translateY(-50%);border-radius:3px}
+.feat-card2.active .d-road .prog{width:58%;transition:width 1.3s ease .3s}
+.d-road .node{position:relative;z-index:1;width:36px;height:36px;border-radius:50%;background:#fff;border:2px solid var(--s200);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--s400)}
+.feat-card2.active .d-road .node.done{background:var(--sky-l);border-color:var(--sky-l);color:#fff;transition:.4s}
+.d-road .node.cur{border-color:var(--yellow);color:var(--yellow-d)}
+.feat-card2.active .d-road .node.cur{box-shadow:0 0 0 5px rgba(245,183,0,.22);transition:.4s .8s}
+/* demo 5 — review */
+.d-rev{width:100%;max-width:260px}
+.d-rev .ro{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1.5px solid var(--s200);border-radius:10px;padding:9px 12px;margin-bottom:8px;font-size:10.5px;color:var(--s600)}
+.d-rev .ro.ok{border-color:#10b981;background:#ecfdf5;color:#065f46}
+.d-rev .ro.no{border-color:#fb7185;background:#fff1f2;color:#9f1239}
+.d-rev .pemb{background:var(--navy);color:rgba(255,255,255,.85);border-radius:11px;padding:11px 13px;font-size:10.5px;line-height:1.5;opacity:0;transform:translateY(12px)}
+.feat-card2.active .d-rev .pemb{opacity:1;transform:none;transition:.55s ease .6s}
+.d-rev .pemb b{color:var(--sky-l)}
+
+/* ── steps ── */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;position:relative}
+.step{background:#fff;border:1px solid var(--s200);border-radius:18px;padding:30px 26px;transition:.3s}
+.step:hover{transform:translateY(-6px);box-shadow:0 22px 50px rgba(30,41,59,.1)}
+.step-n{font-size:42px;font-weight:800;color:var(--gold-l);line-height:1;letter-spacing:-2px;-webkit-text-stroke:1.5px var(--gold);margin-bottom:14px}
+.step h3{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:9px}
+.step p{font-size:14px;color:var(--s500);line-height:1.6}
+
+/* ── pricing ── */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch}
+.pcard{position:relative;border-radius:20px;padding:30px 26px;display:flex;flex-direction:column;transition:.3s}
+.pcard:hover{transform:translateY(-8px)}
+.pcard.free{background:#fff;border:1px solid var(--s200)}
+.pcard.prem{background:linear-gradient(160deg,var(--navy),var(--navy-d));box-shadow:0 28px 64px rgba(30,41,59,.4);transform:scale(1.03)}
+.pcard.prem:hover{transform:scale(1.03) translateY(-8px)}
+.pcard.plat{background:linear-gradient(160deg,#3b0764,#1a0533);box-shadow:0 28px 64px rgba(59,7,100,.5);border:1px solid rgba(167,139,250,.3)}
+.pop{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;padding:5px 15px;border-radius:50px;white-space:nowrap}
+.pop.g{background:var(--gold);color:#fff}
+.pop.n{background:#fff;color:var(--navy)}
+.p-iconrow{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.p-iconbox{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.p-name{font-size:19px;font-weight:800}
+.p-period{font-size:12px}
+.p-orig{font-size:14px;text-decoration:line-through;margin-bottom:2px}
+.p-amount{font-size:32px;font-weight:800;letter-spacing:-1px}
+.p-desc{font-size:13px;line-height:1.5;padding-bottom:18px;margin-bottom:18px}
+.p-feats{list-style:none;display:flex;flex-direction:column;gap:11px;flex:1;margin-bottom:22px}
+.p-feats li{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.4}
+.chk{flex-shrink:0;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;margin-top:1px}
+.p-btn{text-align:center;padding:13px;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none;transition:.25s}
+.p-btn:hover{transform:translateY(-2px)}
+.pay-note{text-align:center;margin-top:34px;font-size:13px;color:var(--s400)}
+
+/* ── faq ── */
+.faq-in{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.faq-item{background:#fff;border:1px solid var(--s200);border-radius:14px;overflow:hidden;transition:.25s}
+.faq-item:hover{border-color:var(--gold)}
+.faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 22px;background:none;border:none;cursor:pointer;text-align:left}
+.faq-q{font-size:15px;font-weight:700;color:var(--navy)}
+.faq-chev{color:var(--gold);font-size:12px;transition:transform .3s;flex-shrink:0}
+.faq-btn.open .faq-chev{transform:rotate(180deg)}
+.faq-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.faq-body p{padding:0 22px 20px;font-size:14px;color:var(--s500);line-height:1.65}
+
+/* ── final cta ── */
+.final{background:linear-gradient(135deg,var(--navy),var(--navy-d));padding:90px 28px;text-align:center;overflow:hidden}
+.final-in{position:relative;z-index:2;max-width:680px;margin:0 auto}
+.final-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(14,165,233,.15);border:1px solid rgba(14,165,233,.4);
+  border-radius:50px;padding:7px 17px;font-size:13px;font-weight:700;color:var(--sky-l);margin-bottom:24px}
+.final .cta-y{background:#fff;color:#1e293b;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+.final .cta-y:hover{box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.final h2{font-size:clamp(28px,4vw,44px);font-weight:800;color:#fff;line-height:1.15;letter-spacing:-1px;margin-bottom:16px}
+.final p{font-size:16px;color:rgba(255,255,255,.6);margin-bottom:30px}
+.final .sub{margin-top:18px;font-size:13px;color:rgba(255,255,255,.35)}
+
+/* ── footer ── */
+.lp-footer{background:#fff;border-top:1px solid var(--s100);padding:48px 28px 22px}
+.foot-grid{max-width:1100px;margin:0 auto 28px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px}
+.foot-col h4{font-size:12px;font-weight:800;color:var(--navy);margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px}
+.foot-col a{display:block;font-size:14px;color:var(--s500);text-decoration:none;margin-bottom:10px;transition:.2s}
+.foot-col a:hover{color:var(--gold-d)}
+.foot-bottom{max-width:1100px;margin:0 auto;border-top:1px solid var(--s100);padding-top:16px;display:flex;justify-content:space-between;align-items:center}
+.foot-bottom p{font-size:13px;color:var(--s400)}
+.social{display:flex;gap:8px;margin-top:14px}
+.social div{width:34px;height:34px;border-radius:9px;background:var(--s100);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:.2s}
+.social div:hover{background:var(--gold-l);transform:translateY(-2px)}
+
+/* ── responsive ── */
+@media(max-width:880px){
+  .hero-grid,.dash,.showcase-stack{grid-template-columns:1fr}
+  .pain-grid,.feat-grid,.steps,.price-grid{grid-template-columns:1fr}
+  .feat-card2{grid-template-columns:1fr;padding:24px;gap:20px}
+  .fc-num{display:none}
+  .fc-demo{height:200px}
+  .stats-inner{grid-template-columns:repeat(2,1fr);gap:30px}
+  .foot-grid{grid-template-columns:1fr 1fr;gap:30px}
+  .pcard.prem{transform:none}.pcard.prem:hover{transform:translateY(-8px)}
+  .hero-right{display:flex;justify-content:center;margin-top:20px}
+  .lp-links,.lp-nav-cta{display:none}
+  .lp-burger{display:flex}
+  .lp-mobile{display:block;position:fixed;top:60px;left:0;right:0;z-index:55;background:#fff;border-bottom:1px solid var(--s200);
+    padding:16px 24px;box-shadow:0 12px 30px rgba(30,41,59,.1);animation:lp-slidedown .25s ease}
+  .lp-mobile a{display:block;padding:12px 0;color:var(--s700);font-weight:700;text-decoration:none;border-bottom:1px solid var(--s100)}
+  .lp-mobile .btn-gold{display:block;text-align:center;margin-top:14px;border-bottom:none}
+}
+@media(max-width:560px){
+  .foot-grid{grid-template-columns:1fr}.foot-bottom{flex-direction:column;gap:8px;text-align:center}
+  .sec{padding:60px 20px}.hero{padding:120px 20px 56px}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important}
+  .reveal{opacity:1 !important;transform:none !important}
+  .hero::before{display:none}
+}
+`;
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const nav = document.getElementById('navbar');
-    const handleScroll = () => nav?.classList.toggle('scrolled', window.scrollY > 40);
-    window.addEventListener('scroll', handleScroll);
+    const nav = document.getElementById('lp-nav');
+    const onScroll = () => nav?.classList.toggle('scrolled', window.scrollY > 40);
+    window.addEventListener('scroll', onScroll);
 
-    const handleResize = () => { if (window.innerWidth > 768) setMenuOpen(false); };
-    window.addEventListener('resize', handleResize);
+    const onResize = () => { if (window.innerWidth > 880) setMenuOpen(false); };
+    window.addEventListener('resize', onResize);
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    // reveal
+    const io = new IntersectionObserver((es) => {
+      es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-    function animateCount(el: Element) {
-      const target = parseFloat((el as HTMLElement).dataset.target || '0');
-      const isDecimal = String((el as HTMLElement).dataset.target).includes('.');
-      const duration = 1800;
+    // counter
+    const count = (el: HTMLElement) => {
+      const t = parseFloat(el.dataset.target || '0');
+      const dec = String(el.dataset.target).includes('.');
       const start = performance.now();
-      const run = (t: number) => {
-        const p = Math.min((t - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - p, 3);
-        (el as HTMLElement).textContent = isDecimal
-          ? (target * eased).toFixed(1)
-          : Math.floor(target * eased).toLocaleString('id-ID');
+      const run = (now: number) => {
+        const p = Math.min((now - start) / 1800, 1);
+        const e = 1 - Math.pow(1 - p, 3);
+        el.textContent = dec ? (t * e).toFixed(1) : Math.floor(t * e).toLocaleString('id-ID');
         if (p < 1) requestAnimationFrame(run);
-        else (el as HTMLElement).textContent = isDecimal ? target.toFixed(1) : target.toLocaleString('id-ID');
+        else el.textContent = dec ? t.toFixed(1) : t.toLocaleString('id-ID');
       };
       requestAnimationFrame(run);
-    }
-
-    const statObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.querySelectorAll('[data-target]').forEach(animateCount);
-          statObs.unobserve(e.target);
-        }
-      });
+    };
+    const statIo = new IntersectionObserver((es) => {
+      es.forEach(e => { if (e.isIntersecting) { e.target.querySelectorAll<HTMLElement>('[data-target]').forEach(count); statIo.unobserve(e.target); } });
     }, { threshold: 0.3 });
     const sb = document.querySelector('.stats-inner');
-    if (sb) statObs.observe(sb);
+    if (sb) statIo.observe(sb);
+
+    // hero cursor glow
+    const hero = document.getElementById('hero');
+    const onHeroMove = (ev: MouseEvent) => {
+      const r = hero!.getBoundingClientRect();
+      hero!.style.setProperty('--mx', `${ev.clientX - r.left}px`);
+      hero!.style.setProperty('--my', `${ev.clientY - r.top}px`);
+    };
+    hero?.addEventListener('mousemove', onHeroMove);
+
+    // tilt 3D on feature cards
+    const tilts = Array.from(document.querySelectorAll<HTMLElement>('.tilt'));
+    const handlers: { el: HTMLElement; move: (e: MouseEvent) => void; leave: () => void }[] = [];
+    tilts.forEach(el => {
+      const move = (ev: MouseEvent) => {
+        const r = el.getBoundingClientRect();
+        const x = (ev.clientX - r.left) / r.width - 0.5;
+        const y = (ev.clientY - r.top) / r.height - 0.5;
+        el.style.transform = `perspective(800px) rotateY(${x * 7}deg) rotateX(${-y * 7}deg) translateY(-6px)`;
+      };
+      const leave = () => { el.style.transform = ''; };
+      el.addEventListener('mousemove', move);
+      el.addEventListener('mouseleave', leave);
+      handlers.push({ el, move, leave });
+    });
+
+    // trigger animasi internal kartu fitur saat masuk viewport
+    const featIo = new IntersectionObserver((es) => {
+      es.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+    }, { threshold: 0.45 });
+    document.querySelectorAll('.feat-card2').forEach(el => featIo.observe(el));
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleResize);
-      observer.disconnect();
-      statObs.disconnect();
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      io.disconnect(); statIo.disconnect(); featIo.disconnect();
+      hero?.removeEventListener('mousemove', onHeroMove);
+      handlers.forEach(h => { h.el.removeEventListener('mousemove', h.move); h.el.removeEventListener('mouseleave', h.leave); });
     };
   }, []);
 
@@ -268,392 +514,193 @@ export default function Home() {
     return () => { document.body.style.overflow = ''; };
   }, [menuOpen]);
 
-  function toggleFaq(btn: HTMLElement) {
+  const toggleFaq = (btn: HTMLElement) => {
     const body = btn.nextElementSibling as HTMLElement;
     const isOpen = btn.classList.contains('open');
     document.querySelectorAll('.faq-btn.open').forEach(b => {
       b.classList.remove('open');
       (b.nextElementSibling as HTMLElement).style.maxHeight = '0';
     });
-    if (!isOpen) { btn.classList.add('open'); body.style.maxHeight = body.scrollHeight + 'px'; }
-  }
+    if (!isOpen) { btn.classList.add('open'); body.style.maxHeight = `${body.scrollHeight}px`; }
+  };
+
+  // Animasi demo di dalam tiap kartu fitur (slate + sky + sedikit kuning)
+  const renderDemo = (i: number) => {
+    switch (i) {
+      case 0: return (
+        <div className="d-exam">
+          <div className="eh"><span className="cat">TWK</span><span className="tm">⏱ 12:47</span></div>
+          <div className="opt"><span className="lt">A</span>Mengutamakan kepentingan pribadi</div>
+          <div className="opt sel"><span className="lt">B</span>Menjaga persatuan bangsa</div>
+          <div className="opt"><span className="lt">C</span>Musyawarah untuk golongan</div>
+        </div>
+      );
+      case 1: return (
+        <div className="d-bars">
+          {[[42, false], [60, false], [48, false], [95, true], [55, false], [70, false]].map(([h, w], k) => (
+            <div key={k} className={`bar${w ? ' warn' : ''}`} style={{ ['--h' as string]: `${h}%`, transitionDelay: `${0.3 + k * 0.08}s` } as CSSProperties}>
+              {w ? <span className="wlbl">⚠ 92 dtk</span> : null}
+            </div>
+          ))}
+        </div>
+      );
+      case 2: return (
+        <div className="d-chart">
+          <span className="up">▲ +18%</span>
+          <svg viewBox="0 0 240 120" preserveAspectRatio="none">
+            <defs><linearGradient id="dcg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#38bdf8" stopOpacity="0.3" /><stop offset="1" stopColor="#38bdf8" stopOpacity="0" /></linearGradient></defs>
+            <path className="area" d="M8,96 L50,74 L92,82 L134,50 L176,58 L232,22 L232,120 L8,120 Z" fill="url(#dcg)" />
+            <path className="ln" d="M8,96 L50,74 L92,82 L134,50 L176,58 L232,22" />
+          </svg>
+        </div>
+      );
+      case 3: return (
+        <div className="d-rank">
+          {[['#4', 'Andi P.', '548'], ['#5', 'Sari W.', '546'], ['#6', 'Kamu', '545'], ['#7', 'Budi R.', '542']].map(([rk, nm, sc], k) => (
+            <div key={k} className={`row${nm === 'Kamu' ? ' you' : ''}`} style={{ transitionDelay: `${0.2 + k * 0.12}s` }}>
+              <span className="rk">{rk}</span><span className="nm">{nm}</span><span className="sc">{sc}</span>
+            </div>
+          ))}
+        </div>
+      );
+      case 4: return (
+        <div className="d-road">
+          <span className="line" /><span className="prog" />
+          {['✓', '✓', '✓', '4', '5'].map((t, k) => (
+            <div key={k} className={`node ${k < 3 ? 'done' : k === 3 ? 'cur' : ''}`} style={{ transitionDelay: `${0.3 + k * 0.18}s` }}>{t}</div>
+          ))}
+        </div>
+      );
+      case 5: return (
+        <div className="d-rev">
+          <div className="ro no"><span>A. Mengutamakan diri sendiri</span><span>✗</span></div>
+          <div className="ro ok"><span>B. Menjaga persatuan bangsa</span><span>✓</span></div>
+          <div className="pemb"><b>Pembahasan:</b> Sila ke-3 menekankan persatuan & kesatuan, sehingga jawaban B paling tepat.</div>
+        </div>
+      );
+      default: return null;
+    }
+  };
 
   return (
-    <>
+    <div className="lp">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          "name": "PintuASN",
-          "url": "https://pintuasn.com",
-          "logo": "https://pintuasn.com/images/Logo.svg",
-          "description": "Platform simulasi CAT SKD CPNS terpercaya di Indonesia",
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "reviewCount": "12186"
-          }
-        })}}
+          '@context': 'https://schema.org', '@type': 'Organization', name: 'PintuASN',
+          url: 'https://pintuasn.com', logo: 'https://pintuasn.com/images/Logo.svg',
+          description: 'Platform simulasi CAT SKD CPNS terpercaya di Indonesia',
+          aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '12186' },
+        }) }}
       />
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        *{margin:0;padding:0;box-sizing:border-box}
-        :root{
-          --white:#ffffff;
-          --s50:#f8fafc;
-          --s100:#f1f5f9;
-          --s200:#e2e8f0;
-          --s400:#94a3b8;
-          --s600:#475569;
-          --s800:#1e293b;
-          --s900:#0f172a;
-          --y:#0077B6;
-          --yl:#EFF6FF;
-          --yd:#005A8E;
-          --font-d:'Plus Jakarta Sans',sans-serif;
-          --font-b:'Plus Jakarta Sans',sans-serif;
-        }
-        html{scroll-behavior:smooth}
-        body{font-family:var(--font-b);background:#fff;color:var(--s800);overflow-x:hidden}
-
-        @keyframes floatY{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(-2deg)}}
-        @keyframes floatY2{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-        @keyframes fadeSlideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
-        @keyframes scrollticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-        @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-
-        .hero-title{animation:fadeSlideUp .8s ease both}
-        .hero-sub{animation:fadeSlideUp .8s .15s ease both}
-        .hero-cta{animation:fadeSlideUp .8s .3s ease both}
-        .hero-proof{animation:fadeSlideUp .8s .45s ease both}
-        .hero-mockup{animation:fadeIn .9s .3s ease both}
-        .mockup-float{animation:floatY 5s ease-in-out infinite}
-        .mockup-float2{animation:floatY2 4.5s ease-in-out infinite .5s}
-
-        .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
-        .reveal.visible{opacity:1;transform:translateY(0)}
-
-        nav{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(255,255,255,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--s100);transition:box-shadow .3s}
-        nav.scrolled{box-shadow:0 4px 24px rgba(0,0,0,0.07)}
-        .nav-inner{max-width:1180px;margin:0 auto;padding:0 28px;height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-        .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-d);font-weight:800;font-size:21px;color:var(--s900);text-decoration:none}
-        .logo-badge{width:34px;height:34px;background:var(--y);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
-        .nav-links{display:flex;gap:28px;list-style:none}
-        .nav-links a{font-size:14px;font-weight:600;color:var(--s600);text-decoration:none;transition:color .2s}
-        .nav-links a:hover{color:var(--s900)}
-        .nav-btns{display:flex;gap:10px;align-items:center}
-        .btn-ghost{padding:8px 18px;font-size:14px;font-weight:600;color:var(--s800);border:1.5px solid var(--s200);border-radius:9px;text-decoration:none;transition:all .2s;background:transparent}
-        .btn-ghost:hover{border-color:var(--s800);background:var(--s50)}
-        .btn-primary{padding:9px 20px;font-size:14px;font-weight:700;color:#fff;background:var(--y);border-radius:9px;text-decoration:none;transition:all .2s}
-        .btn-primary:hover{background:var(--yd);transform:translateY(-1px)}
-
-        .hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;border:none;background:transparent;z-index:300;border-radius:8px;transition:background .2s}
-        .hamburger:hover{background:var(--s100)}
-        .hamburger span{display:block;width:22px;height:2px;background:var(--s800);border-radius:2px;transition:all .3s ease}
-        .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-        .hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
-        .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-
-        .mobile-menu{display:none;position:fixed;top:68px;left:0;right:0;bottom:0;background:#fff;z-index:150;flex-direction:column;padding:8px 20px 24px;overflow-y:auto;animation:slideDown .25s ease both}
-        .mobile-menu.open{display:flex}
-        .mobile-menu-links{display:flex;flex-direction:column}
-        .mobile-menu-links a{font-size:16px;font-weight:600;color:var(--s800);text-decoration:none;padding:16px 4px;border-bottom:1px solid var(--s100);display:flex;align-items:center;justify-content:space-between;transition:color .2s}
-        .mobile-menu-links a:hover{color:var(--y)}
-        .mobile-menu-links a::after{content:'›';font-size:20px;color:var(--s400)}
-        .mobile-menu-btns{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-        .mobile-menu-btns a{text-align:center;padding:13px 20px;font-size:15px;font-weight:700;border-radius:10px;text-decoration:none;transition:all .2s}
-        .mobile-menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:140;top:68px}
-        .mobile-menu-overlay.open{display:block}
-
-        .hero{min-height:100vh;display:flex;align-items:center;padding:120px 28px 80px;background:#fff;position:relative;overflow:hidden}
-        .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(0,119,182,.08) 0%,transparent 70%);pointer-events:none}
-        .hero-grid{max-width:1180px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1.2fr;gap:50px;align-items:center}
-        .hero-label{display:inline-flex;align-items:center;gap:8px;background:var(--yl);border:1px solid rgba(0,119,182,.35);border-radius:50px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--yd);margin-bottom:24px}
-        .hero-label-dot{width:7px;height:7px;border-radius:50%;background:var(--y);animation:pulse 1.8s ease infinite}
-        .hero-heading{font-family:var(--font-d);font-weight:800;font-size:clamp(34px,4.5vw,54px);line-height:1.13;color:var(--s900);margin-bottom:22px;letter-spacing:-1px}
-        .hero-heading em{font-style:normal;color:var(--y);position:relative;display:inline-block}
-        .hero-heading em::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:3px;background:var(--y);border-radius:2px;opacity:.35}
-        .hero-subtext{font-size:17px;line-height:1.75;color:var(--s600);margin-bottom:38px;max-width:480px}
-        .hero-cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px}
-        .cta-big{padding:14px 30px;font-size:16px;font-weight:700;border-radius:11px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
-        .cta-yellow{background:var(--y);color:#fff;box-shadow:0 4px 20px rgba(0,119,182,.3)}
-        .cta-yellow:hover{background:var(--yd);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,119,182,.35)}
-        .cta-outline{background:transparent;color:var(--s800);border:1.5px solid var(--s200)}
-        .cta-outline:hover{border-color:var(--s800);background:var(--s50)}
-        .hero-proof{display:flex;align-items:center;gap:14px}
-        .proof-avatars{display:flex}
-        .proof-avatar{width:33px;height:33px;border-radius:50%;border:2.5px solid #fff;margin-left:-10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
-        .proof-avatar:first-child{margin-left:0}
-        .proof-text{font-size:13.5px;color:var(--s600)}
-        .proof-text strong{color:var(--s900)}
-        .stars{color:var(--y);letter-spacing:2px;font-size:13px}
-        .hero-right{position:relative;display:flex;justify-content:center;align-items:center}
-        .mockup-wrap{position:relative;width:100%}
-
-        .ticker-wrap{background:var(--s50);border-top:1px solid var(--s100);border-bottom:1px solid var(--s100);padding:14px 0;overflow:hidden;position:relative}
-        .ticker-wrap::before,.ticker-wrap::after{content:'';position:absolute;top:0;bottom:0;width:80px;z-index:2;pointer-events:none}
-        .ticker-wrap::before{left:0;background:linear-gradient(90deg,var(--s50),transparent)}
-        .ticker-wrap::after{right:0;background:linear-gradient(270deg,var(--s50),transparent)}
-        .ticker-track{display:flex;gap:0;animation:scrollticker 28s linear infinite;width:max-content}
-        .ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 24px;font-size:13px;font-weight:600;color:var(--s600);white-space:nowrap;border-right:1px solid var(--s200)}
-        .ticker-dot{width:20px;height:20px;border-radius:6px;background:var(--s800);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
-
-        .stats-bar{background:var(--s800);padding:40px 28px}
-        .stats-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
-        .stat-item{padding:8px;border-right:1px solid rgba(255,255,255,.06)}
-        .stat-item:last-child{border-right:none}
-        .stat-num{font-family:var(--font-d);font-size:38px;font-weight:800;color:var(--y);display:block;line-height:1}
-        .stat-label{font-size:13px;color:rgba(255,255,255,.5);margin-top:6px;font-weight:500}
-
-        section{padding:96px 28px}
-        .section-inner{max-width:1180px;margin:0 auto}
-        .section-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--yd);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px}
-        .section-tag::before{content:'';display:inline-block;width:18px;height:2px;background:var(--y);border-radius:2px}
-        .section-title{font-family:var(--font-d);font-size:clamp(26px,3.5vw,40px);font-weight:800;color:var(--s900);line-height:1.2;margin-bottom:16px;letter-spacing:-.5px}
-        .section-sub{font-size:17px;color:var(--s600);line-height:1.7;max-width:560px}
-        .section-head{margin-bottom:60px}
-
-        .pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-        .pain-card{background:#fff;border:1px solid var(--s100);border-radius:18px;padding:36px 28px;transition:transform .3s,box-shadow .3s}
-        .pain-card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(0,0,0,.07)}
-        .pain-icon-wrap{width:54px;height:54px;border-radius:13px;background:var(--s800);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:20px}
-        .pain-card h3{font-family:var(--font-d);font-size:17px;color:var(--s900);margin-bottom:10px}
-        .pain-card p{font-size:14px;color:var(--s600);line-height:1.75}
-
-        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-        .feat-card{background:var(--s50);border:1px solid var(--s100);border-radius:16px;padding:28px;transition:all .3s;cursor:default}
-        .feat-card:hover{background:#fff;border-color:rgba(0,119,182,.45);box-shadow:0 8px 32px rgba(0,119,182,.1)}
-        .feat-icon{width:48px;height:48px;border-radius:12px;background:var(--s800);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:18px}
-        .feat-card h3{font-size:15px;font-weight:700;color:var(--s900);margin-bottom:8px}
-        .feat-card p{font-size:13.5px;color:var(--s600);line-height:1.7}
-        .feat-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;background:var(--yl);color:var(--yd);border:1px solid rgba(0,119,182,.3);border-radius:50px;padding:3px 10px;margin-bottom:10px}
-
-        .showcase-bg{background:var(--s800);padding:96px 28px;position:relative;overflow:hidden}
-        .showcase-bg::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(0,119,182,.05) 0%,transparent 60%);pointer-events:none}
-        .showcase-header{text-align:center;margin-bottom:56px}
-        .browser-frame{background:#0f172a;border:1px solid rgba(255,255,255,.07);border-radius:14px;overflow:hidden;max-width:880px;margin:0 auto;box-shadow:0 40px 100px rgba(0,0,0,.5)}
-        .browser-bar{height:40px;background:rgba(255,255,255,.05);display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid rgba(255,255,255,.06)}
-        .browser-dot{width:10px;height:10px;border-radius:50%}
-        .browser-url{flex:1;background:rgba(255,255,255,.05);border-radius:5px;height:22px;margin:0 12px;display:flex;align-items:center;padding:0 10px}
-        .browser-content{overflow-x:auto;-webkit-overflow-scrolling:touch}
-
-        .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative}
-        .steps-grid::after{content:'';position:absolute;top:44px;left:calc(16.67% + 24px);right:calc(16.67% + 24px);height:2px;background:repeating-linear-gradient(90deg,var(--y) 0,var(--y) 8px,transparent 8px,transparent 18px)}
-        .step{text-align:center;padding:0 24px}
-        .step-num{width:88px;height:88px;border-radius:50%;border:2px solid var(--s200);background:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-family:var(--font-d);font-size:32px;font-weight:800;color:var(--s800);position:relative;z-index:1;transition:all .3s}
-        .step:hover .step-num{background:var(--s800);color:var(--y);border-color:var(--s800)}
-        .step h3{font-weight:700;font-size:17px;color:var(--s900);margin-bottom:10px}
-        .step p{font-size:14px;color:var(--s600);line-height:1.7}
-
-        .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1000px;margin:0 auto;align-items:start}
-        .price-card{border-radius:20px;padding:36px 28px;display:flex;flex-direction:column;position:relative}
-        .price-icon-row{display:flex;align-items:center;gap:14px;margin-bottom:20px}
-        .price-icon-box{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
-        .price-name{font-family:var(--font-d);font-weight:800;font-size:20px}
-        .price-period{font-size:13px;margin-top:2px}
-        .price-amount{font-family:var(--font-d);font-weight:800;font-size:34px;margin-bottom:4px;line-height:1.1}
-        .price-original{font-size:14px;text-decoration:line-through;margin-bottom:2px}
-        .price-desc{font-size:13px;padding-bottom:16px;margin-bottom:16px}
-        .price-features{list-style:none;margin-bottom:24px;flex:1}
-        .price-features li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;margin-bottom:10px;line-height:1.45}
-        .chk{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
-        .price-btn{display:flex;align-items:center;justify-content:center;padding:14px 20px;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;transition:all .2s;gap:6px;margin-top:auto}
-        .price-btn:hover{opacity:.9;transform:translateY(-1px)}
-        .pop-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;padding:4px 16px;border-radius:50px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-
-        .faq-inner{max-width:720px;margin:0 auto}
-        .faq-item{border-bottom:1px solid var(--s100)}
-        .faq-btn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:22px 0;background:none;border:none;cursor:pointer;text-align:left;gap:16px;font-family:var(--font-b)}
-        .faq-q{font-size:16px;font-weight:600;color:var(--s900);transition:color .2s}
-        .faq-btn.open .faq-q{color:var(--yd)}
-        .faq-chev{width:22px;height:22px;border-radius:50%;background:var(--s100);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;color:var(--s600);font-size:11px}
-        .faq-btn.open .faq-chev{background:var(--y);color:#fff;transform:rotate(180deg)}
-        .faq-body{overflow:hidden;transition:max-height .4s ease}
-        .faq-body p{padding-bottom:20px;font-size:15px;color:var(--s600);line-height:1.78}
-
-        .final-cta{background:var(--s800);padding:100px 28px;text-align:center;position:relative;overflow:hidden}
-        .final-cta::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(0,119,182,.02) 0,rgba(0,119,182,.02) 1px,transparent 1px,transparent 8px);pointer-events:none}
-        .final-cta-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
-        .final-cta h2{font-family:var(--font-d);font-size:clamp(28px,4vw,46px);color:#fff;font-weight:800;line-height:1.2;margin-bottom:18px;letter-spacing:-.5px}
-        .final-cta p{font-size:17px;color:rgba(255,255,255,.5);margin-bottom:38px;line-height:1.7}
-
-        footer{background:#fff;border-top:1px solid var(--s100);padding:32px 28px 16px}
-        .footer-grid{max-width:1100px;margin:0 auto 24px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px}
-        .footer-col h4{font-size:12px;font-weight:700;color:var(--s900);margin-bottom:16px;text-transform:uppercase;letter-spacing:.8px}
-        .footer-col a{display:block;font-size:14px;color:var(--s600);text-decoration:none;margin-bottom:10px;transition:color .2s}
-        .footer-col a:hover{color:var(--y)}
-        .footer-bottom{max-width:1100px;margin:0 auto;border-top:1px solid var(--s100);padding-top:14px;display:flex;justify-content:space-between;align-items:center}
-        .footer-bottom p{font-size:13px;color:var(--s400)}
-        .social-row{display:flex;gap:10px}
-        .social-btn{width:34px;height:34px;border-radius:8px;background:var(--s100);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:background .2s}
-        .social-btn:hover{background:var(--s200)}
-
-        @media(max-width:768px){
-          .nav-links{display:none}
-          .nav-inner{padding:0 16px;height:60px;gap:0;justify-content:flex-start}
-          .nav-btns{display:flex;gap:6px;align-items:center;margin-left:auto;margin-right:8px}
-          .btn-ghost{padding:5px 13px;font-size:12px;font-weight:600;border-radius:8px;white-space:nowrap;line-height:1.4}
-          .btn-primary{padding:5px 13px;font-size:12px;font-weight:700;border-radius:8px;white-space:nowrap;line-height:1.4}
-          .hamburger{display:flex}
-          .hero{padding:100px 20px 60px;min-height:auto}
-          .hero::before{display:none}
-          .hero-grid{grid-template-columns:1fr;gap:32px;text-align:center;}
-          .hero-right{order:-1}
-          .hero-subtext{max-width:100%;font-size:15px;margin-bottom:28px}
-          .hero-heading{font-size:clamp(28px,7vw,40px);margin-bottom:16px}
-          .hero-cta-row{justify-content:center;gap:10px}
-          .cta-big{padding:12px 22px;font-size:15px}
-          .hero-proof{justify-content:center}
-          .mockup-badge-top{display:none!important}
-          .mockup-badge-bottom{display:none!important}
-          .ticker-wrap{padding:10px 0}
-          .ticker-item{font-size:12px;padding:0 16px}
-          .stats-bar{padding:28px 20px}
-          .stats-inner{grid-template-columns:repeat(2,1fr);gap:0;}
-          .stat-item{padding:16px 8px;border-right:none;border-bottom:1px solid rgba(255,255,255,.06);}
-          .stat-item:nth-child(odd){border-right:1px solid rgba(255,255,255,.06)}
-          .stat-item:nth-child(3),.stat-item:nth-child(4){border-bottom:none}
-          .stat-num{font-size:30px}
-          .stat-label{font-size:12px}
-          section{padding:56px 20px}
-          .section-head{margin-bottom:36px}
-          .section-title{font-size:clamp(22px,6vw,32px)}
-          .section-sub{font-size:15px}
-          .pain-grid{grid-template-columns:1fr;gap:16px}
-          .pain-card{padding:24px 20px}
-          .pain-card h3{font-size:15px}
-          .showcase-bg{padding:56px 20px}
-          .showcase-header{margin-bottom:32px}
-          .browser-frame{border-radius:10px}
-          .browser-content{overflow-x:auto;-webkit-overflow-scrolling:touch}
-          .features-grid{grid-template-columns:1fr;gap:14px}
-          .feat-card{padding:20px}
-          .steps-grid{grid-template-columns:1fr;gap:0;}
-          .steps-grid::after{display:none}
-          .step{padding:0;display:grid;grid-template-columns:72px 1fr;gap:16px;text-align:left;align-items:start;padding:20px 0;border-bottom:1px solid var(--s100);}
-          .step:last-child{border-bottom:none}
-          .step-num{width:56px;height:56px;font-size:22px;margin:0;}
-          .step-content{padding-top:4px}
-          .step h3{font-size:15px;margin-bottom:6px}
-          .step p{font-size:13px}
-          .pricing-grid{grid-template-columns:1fr;gap:16px;padding:0 4px;}
-          .price-card{margin:0!important;padding:28px 24px;}
-          .pop-badge{top:-11px;font-size:11px;}
-          .price-amount{font-size:28px}
-          .faq-q{font-size:14px}
-          .faq-btn{padding:18px 0}
-          .final-cta{padding:64px 20px}
-          .final-cta p{font-size:15px;margin-bottom:28px}
-          .cta-big.cta-yellow{font-size:15px;padding:13px 24px}
-          footer{padding:28px 20px 16px}
-          .footer-grid{grid-template-columns:1fr;gap:28px;margin-bottom:20px;}
-          .footer-bottom{flex-direction:column;gap:8px;text-align:center;}
-          .footer-col h4{margin-bottom:10px}
-          .footer-col a{margin-bottom:8px}
-        }
-
-        @media(min-width:769px) and (max-width:1024px){
-          .hero-grid{grid-template-columns:1fr 1fr;gap:32px}
-          .pain-grid{grid-template-columns:1fr 1fr;gap:16px}
-          .features-grid{grid-template-columns:repeat(2,1fr)}
-          .pricing-grid{grid-template-columns:1fr;max-width:480px}
-          .stats-inner{grid-template-columns:repeat(2,1fr)}
-          .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ── NAVBAR ── */}
-      <nav id="navbar">
-        <div className="nav-inner">
-          <a href="#" className="logo">
-            <Image src="/images/logo-navbar.svg" width={95} height={95} style={{borderRadius:'9px'}} alt="Logo PintuASN" priority />
-          </a>
-          <ul className="nav-links">
-            <li><a href="#fitur">Fitur</a></li>
-            <li><a href="#cara-kerja">Cara Kerja</a></li>
-            <li><a href="#paket">Paket</a></li>
-            <li><a href="/blog">Blog</a></li>
-            <li><a href="#faq">FAQ</a></li>
-          </ul>
-          <div className="nav-btns">
-            <a href="/sign-in" className="btn-ghost">Masuk</a>
-            <a href="/sign-up" className="btn-primary">Daftar Gratis</a>
-          </div>
-          <button
-            className={`hamburger ${menuOpen ? 'open' : ''}`}
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={menuOpen}
-          >
-            <span></span><span></span><span></span>
-          </button>
+      <nav className="lp-nav" id="lp-nav">
+        <a href="#hero" className="lp-logo" aria-label="PintuASN">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/logo-navbar-sky.svg" alt="PintuASN" className="lp-logo-img" />
+        </a>
+        <ul className="lp-links">
+          <li><a href="#fitur">Fitur</a></li>
+          <li><a href="#paket">Paket</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="/blog">Blog</a></li>
+        </ul>
+        <div className="lp-nav-cta">
+          <a href="/sign-in" className="btn-ghost">Masuk</a>
+          <a href="/sign-up" className="btn-gold">Daftar Gratis</a>
         </div>
+        <button className="lp-burger" aria-label="Menu" onClick={() => setMenuOpen(v => !v)}>
+          <span /><span /><span />
+        </button>
       </nav>
-
-      <div className={`mobile-menu-overlay ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(false)} />
-
       {menuOpen && (
-        <div className="mobile-menu open">
-          <div className="mobile-menu-links">
-            <a href="#fitur" onClick={() => setMenuOpen(false)}>Fitur</a>
-            <a href="#cara-kerja" onClick={() => setMenuOpen(false)}>Cara Kerja</a>
-            <a href="#paket" onClick={() => setMenuOpen(false)}>Paket</a>
-            <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
-            <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
-          </div>
-          <div className="mobile-menu-btns">
-            <a href="/sign-in" className="btn-ghost" onClick={() => setMenuOpen(false)}>Masuk</a>
-            <a href="/sign-up" className="btn-primary" onClick={() => setMenuOpen(false)}>Daftar Gratis →</a>
-          </div>
+        <div className="lp-mobile">
+          <a href="#fitur" onClick={() => setMenuOpen(false)}>Fitur</a>
+          <a href="#paket" onClick={() => setMenuOpen(false)}>Paket</a>
+          <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
+          <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
+          <a href="/sign-in" onClick={() => setMenuOpen(false)}>Masuk</a>
+          <a href="/sign-up" className="btn-gold" onClick={() => setMenuOpen(false)}>Daftar Gratis</a>
         </div>
       )}
 
       {/* ── HERO ── */}
       <section className="hero" id="hero">
+        <div className="hero-blob lp-drift1" style={{ width: 320, height: 320, background: 'rgba(30,41,59,.12)', top: -60, left: -40 }} />
+        <div className="hero-blob lp-drift2" style={{ width: 360, height: 360, background: 'rgba(245,183,0,.16)', bottom: -80, right: -50 }} />
         <div className="hero-grid">
           <div>
-            <h1 className="hero-heading hero-title">
-              Lulus SKD CPNS Bukan Soal <em>Keberuntungan</em>
-            </h1>
-            <p className="hero-subtext hero-sub">
-              Rasakan pengalaman ujian sesungguhnya dengan simulasi CAT <strong>99% identik sistem BKN</strong>. Analitik mendalam, roadmap terstruktur, ranking nasional dalam satu platform.
+            <h1 className="reveal">Lulus SKD <span style={{ color: 'var(--gold)' }}>CPNS</span> Bukan Soal <em>Keberuntungan</em></h1>
+            <p className="hero-sub reveal" style={{ transitionDelay: '.1s' }}>
+              Tempa dirimu dengan simulasi CAT yang <strong>99% identik sistem BKN</strong>, dan biarkan analitik mendalam, roadmap terstruktur, dan ranking nasional menuntun setiap langkahmu menuju NIP impian.
             </p>
-            <div className="hero-cta-row hero-cta">
-              <a href="/sign-up" className="cta-big cta-yellow">Coba Gratis Sekarang</a>
-              <a href="#fitur" className="cta-big cta-outline">Lihat Fitur</a>
+            <div className="cta-row reveal" style={{ transitionDelay: '.2s' }}>
+              <a href="/sign-up" className="cta-big cta-y">Coba Gratis Sekarang</a>
+              <a href="#fitur" className="cta-big cta-o">Lihat Fitur</a>
             </div>
-            <div className="hero-proof hero-proof">
-              <div className="proof-avatars">
-                <div className="proof-avatar" style={{background:'#7C5C3E'}}>BU</div>
-                <div className="proof-avatar" style={{background:'#A0724A'}}>SW</div>
-                <div className="proof-avatar" style={{background:'#5E4533'}}>AR</div>
-                <div className="proof-avatar" style={{background:'#9B6B4A'}}>DN</div>
-                <div className="proof-avatar" style={{background:'#6B4226'}}>FN</div>
+            <div className="proof reveal" style={{ transitionDelay: '.3s' }}>
+              <div className="avatars">
+                {[['BU', '#7C5C3E', 'u1'], ['SW', '#A0724A', 'u2'], ['AR', '#5E4533', 'u3'], ['DN', '#9B6B4A', 'u4'], ['FN', '#6B4226', 'u5']].map(([t, c, file]) => (
+                  <div key={t} className="av" style={{ background: c }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={`/images/avatars/${file}.jpg`} alt={`Pengguna ${t}`} loading="lazy" />
+                  </div>
+                ))}
               </div>
               <div>
                 <div className="stars">★★★★★</div>
-                <p className="proof-text"><strong>12.000+</strong> pejuang NIP bergabung</p>
+                <p><strong>12.000+</strong> pejuang NIP bergabung</p>
               </div>
             </div>
           </div>
-          <div className="hero-right hero-mockup">
-            <div className="mockup-wrap">
-              <div className="mockup-float" dangerouslySetInnerHTML={{__html: examSVG}} />
-              <div className="mockup-badge-top mockup-float2" style={{position:'absolute',top:'-20px',right:'-18px',background:'#fff',border:'1px solid #e2e8f0',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.08)',display:'flex',alignItems:'center',gap:'10px',zIndex:2}}>
-                <div style={{width:'36px',height:'36px',background:'#1e293b',borderRadius:'9px',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>📊</div>
-                <div>
-                  <div style={{fontSize:'11px',fontWeight:700,color:'#1e293b'}}>Skor TWK</div>
-                  <div style={{fontSize:'16px',fontWeight:800,color:'#16a34a'}}>85 <span style={{fontSize:'10px',color:'#94a3b8'}}>/ 150</span></div>
+
+          {/* hero mock */}
+          <div className="hero-right">
+            <div className="mock">
+              <div className="mock-card">
+                <div className="mock-bar">
+                  <i style={{ background: '#ef4444' }} /><i style={{ background: '#f59e0b' }} /><i style={{ background: '#22c55e' }} />
+                  <span className="mock-url">pintuasn.com/exam/sesi-1</span>
+                </div>
+                <div className="exam-top">
+                  <span className="exam-cat">TWK</span>
+                  <span className="exam-title">Wawasan Kebangsaan</span>
+                  <span className="exam-timer">⏱ 12:47</span>
+                </div>
+                <div className="exam-sub">
+                  <div className="exam-subrow"><span>Soal 15 dari 30</span><span>50%</span></div>
+                  <div className="mock-prog"><i /></div>
+                </div>
+                <div className="mock-body">
+                  <div className="mock-q">
+                    <b>SOAL NO. 15</b>
+                    <p>Contoh penerapan nilai Pancasila sila ke-3 dalam kehidupan berbangsa adalah...</p>
+                  </div>
+                  <div className="mock-opt on"><span className="lt">A</span><span className="tx">Menjaga persatuan dan kesatuan bangsa</span><span className="ck">✓</span></div>
+                  <div className="mock-opt"><span className="lt">B</span><span className="tx">Mengutamakan kepentingan pribadi</span></div>
+                  <div className="mock-opt"><span className="lt">C</span><span className="tx">Bermusyawarah untuk golongan sendiri</span></div>
+                  <div className="mock-opt"><span className="lt">D</span><span className="tx">Mendahulukan hak daripada kewajiban</span></div>
+                  <div className="mock-opt"><span className="lt">E</span><span className="tx">Menonjolkan kepentingan kelompok</span></div>
+                  <div className="exam-nav">
+                    <button>← Sebelumnya</button>
+                    <button className="next">Selanjutnya →</button>
+                  </div>
                 </div>
               </div>
-              <div className="mockup-badge-bottom mockup-float2" style={{position:'absolute',bottom:'-10px',left:'-18px',background:'#1e293b',borderRadius:'12px',padding:'10px 14px',boxShadow:'0 8px 24px rgba(0,0,0,0.18)',display:'flex',alignItems:'center',gap:'10px',zIndex:2,animationDelay:'1.2s'}}>
-                <div style={{fontSize:'20px'}}>🏆</div>
+              <div className="float-badge b1">
+                <div className="ico" style={{ background: 'var(--navy)', color: '#fff' }}>📊</div>
                 <div>
-                  <div style={{fontSize:'10px',color:'rgba(255,255,255,0.45)',fontWeight:600}}>Peringkat Nasional</div>
-                  <div style={{fontSize:'15px',fontWeight:800,color:'#0077B6'}}>#247 <span style={{fontSize:'10px',color:'rgba(255,255,255,0.35)'}}>dari 12.842</span></div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--navy)' }}>Skor TWK</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}>85 <span style={{ fontSize: 10, color: 'var(--s400)' }}>/ 150</span></div>
+                </div>
+              </div>
+              <div className="float-badge b2">
+                <div style={{ fontSize: 20 }}>🏆</div>
+                <div>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>Peringkat Nasional</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--sky-l)' }}>#247 <span style={{ fontSize: 10, color: 'rgba(255,255,255,.4)' }}>dari 12.842</span></div>
                 </div>
               </div>
             </div>
@@ -662,257 +709,171 @@ export default function Home() {
       </section>
 
       {/* ── TICKER ── */}
-      <div className="ticker-wrap">
+      <div className="ticker">
         <div className="ticker-track">
-          {[
-            ['✓','Simulasi 99% mirip BKN'],['⏱','Analisis waktu per soal'],
-            ['📊','Analitik performa mendalam'],['🏆','Ranking nasional real-time'],
-            ['🗺','Roadmap belajar bertahap'],['📖','Pembahasan detail setiap soal'],
-            ['📈','Progress tracking visual'],['🔒','Pembayaran aman Midtrans'],
-            ['✓','Simulasi 99% mirip BKN'],['⏱','Analisis waktu per soal'],
-            ['📊','Analitik performa mendalam'],['🏆','Ranking nasional real-time'],
-            ['🗺','Roadmap belajar bertahap'],['📖','Pembahasan detail setiap soal'],
-            ['📈','Progress tracking visual'],['🔒','Pembayaran aman Midtrans'],
-          ].map(([icon, text], i) => (
-            <div key={i} className="ticker-item">
-              <div className="ticker-dot">{icon}</div> {text}
-            </div>
+          {[...TICKER, ...TICKER].map(([, tx], i) => (
+            <div key={i} className="ticker-item"><span className="ticker-dot" />{tx}</div>
           ))}
         </div>
       </div>
 
       {/* ── STATS ── */}
-      <div className="stats-bar">
+      <div className="stats">
         <div className="stats-inner">
-          <div className="stat-item reveal"><span className="stat-num" data-target="12186">0</span><div className="stat-label">Pengguna aktif terdaftar</div></div>
-          <div className="stat-item reveal" style={{transitionDelay:'.1s'}}><span className="stat-num" data-target="871">0</span><div className="stat-label">Bank soal terverifikasi</div></div>
-          <div className="stat-item reveal" style={{transitionDelay:'.2s'}}><span className="stat-num" data-target="3204">0</span><div className="stat-label">Sesi tryout diselesaikan</div></div>
-          <div className="stat-item reveal" style={{transitionDelay:'.3s'}}><span className="stat-num" data-target="4.9">0</span><div className="stat-label">Rating rata-rata pengguna</div></div>
+          {STATS.map((s, i) => (
+            <div key={s.label} className="reveal" style={{ transitionDelay: `${i * 0.08}s` }}>
+              <span className="stat-num" data-target={s.target}>0</span>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* ── PAIN POINTS ── */}
-      <section style={{background:'var(--s50)'}}>
-        <div className="section-inner">
-          <div className="section-head reveal" style={{textAlign:'center'}}>
-            <div className="section-tag" style={{justifyContent:'center'}}>Masalah Nyata</div>
-            <h2 className="section-title">Mengapa Banyak yang Gagal di SKD?</h2>
-            <p className="section-sub" style={{margin:'0 auto'}}>Bukan karena kurang pintar, tapi karena strategi dan persiapan yang salah sasaran.</p>
+      {/* ── PAIN ── */}
+      <section className="sec" style={{ background: 'var(--s50)' }}>
+        <div className="sec-in">
+          <div className="sec-head reveal">
+            <div className="tag">Masalah Nyata</div>
+            <h2 className="sec-title">Mengapa Banyak yang Gagal di SKD?</h2>
+            <p className="sec-sub">Bukan karena kurang pintar, tapi karena strategi dan persiapan yang salah sasaran.</p>
           </div>
           <div className="pain-grid">
-            <div className="pain-card reveal">
-              <div className="pain-icon-wrap">🤯</div>
-              <h3>Buta Sistem CAT BKN</h3>
-              <p>Panik melihat interface ujian asli. Banyak peserta gagal fokus karena kaget dengan sistem CAT dan manajemen waktu yang buruk saat hari H.</p>
-            </div>
-            <div className="pain-card reveal" style={{transitionDelay:'.12s'}}>
-              <div className="pain-icon-wrap">📉</div>
-              <h3>Belajar Tanpa Data</h3>
-              <p>Mengerjakan ribuan soal secara acak tanpa tahu letak kelemahan sesungguhnya, apakah di TWK, penalaran TIU, atau karakteristik TKP.</p>
-            </div>
-            <div className="pain-card reveal" style={{transitionDelay:'.24s'}}>
-              <div className="pain-icon-wrap">⏱️</div>
-              <h3>Tidak Sadar Pemborosan Waktu</h3>
-              <p>Tanpa analisis waktu per soal, kamu tidak tahu soal mana yang menyedot waktu terlalu banyak sehingga soal mudah pun tidak sempat dikerjakan.</p>
-            </div>
+            {PAINS.map((p, i) => (
+              <div key={p.title} className="pain-card reveal" style={{ transitionDelay: `${i * 0.12}s` }}>
+                <span className="pain-no">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{p.title}</h3>
+                <p>{p.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── APP SHOWCASE ── */}
-      <section className="showcase-bg">
-        <div className="showcase-header reveal">
-          <div className="section-tag" style={{justifyContent:'center',color:'rgba(0,119,182,.8)'}}>Dashboard Performa</div>
-          <h2 className="section-title" style={{color:'#fff',textAlign:'center'}}>Lihat Progressmu dalam Satu Layar</h2>
-          <p className="section-sub" style={{textAlign:'center',margin:'0 auto',color:'rgba(255,255,255,.5)'}}>Analitik mendalam yang mengubah data latihan menjadi keputusan belajar yang tepat.</p>
+      {/* ── SHOWCASE ── */}
+      <section className="showcase">
+        <div className="sec-head reveal">
+          <div className="tag">Dashboard Performa</div>
+          <h2 className="sec-title">Lihat Progressmu dalam Satu Layar</h2>
+          <p className="sec-sub" style={{ margin: '14px auto 0' }}>Analitik mendalam yang mengubah data latihan menjadi keputusan belajar yang tepat.</p>
         </div>
-        <div className="reveal" style={{transitionDelay:'.15s'}}>
-          <div className="browser-frame mockup-float2">
-            <div className="browser-bar">
-              <div className="browser-dot" style={{background:'#ef4444'}}></div>
-              <div className="browser-dot" style={{background:'#f59e0b'}}></div>
-              <div className="browser-dot" style={{background:'#22c55e'}}></div>
-              <div className="browser-url">
-                <span style={{fontSize:'11px',color:'rgba(255,255,255,.3)',fontFamily:'monospace'}}>pintuasn.com/statistics</span>
+        <div className="showcase-stack reveal" style={{ transitionDelay: '.15s' }}>
+
+          {/* ── Layar 1: Statistik ── */}
+          <div>
+            <div className="screen">
+              <div className="browser-bar">
+                <i style={{ width: 9, height: 9, borderRadius: '50%', background: '#ef4444', display: 'block' }} />
+                <i style={{ width: 9, height: 9, borderRadius: '50%', background: '#f59e0b', display: 'block' }} />
+                <i style={{ width: 9, height: 9, borderRadius: '50%', background: '#22c55e', display: 'block' }} />
+                <span className="mock-url" style={{ marginLeft: 8 }}>pintuasn.com/statistics</span>
+              </div>
+              <div className="scr-body">
+                <div className="scr-head"><span className="scr-title">📊 Tren Performa Skor</span><span className="scr-tag">Rata-rata 438</span></div>
+                <div className="trend-wrap">
+                  <svg className="trend-svg" viewBox="0 0 280 110" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    {[28, 55, 82].map((y) => <line key={y} x1="0" y1={y} x2="280" y2={y} stroke="rgba(255,255,255,.06)" strokeWidth="1" />)}
+                    <path d="M10,86 L55,70 L100,76 L145,50 L190,58 L235,32 L272,18 L272,110 L10,110 Z" fill="url(#trendGrad)" opacity="0" style={{ animation: 'lp-fadein 1s ease forwards .8s' }} />
+                    <path className="trend-line" d="M10,86 L55,70 L100,76 L145,50 L190,58 L235,32 L272,18" />
+                    {[[10, 86], [55, 70], [100, 76], [145, 50], [190, 58], [235, 32], [272, 18]].map(([x, y], i) => (
+                      <circle key={i} className="trend-dot" cx={x} cy={y} r="3.5" style={{ animationDelay: `${0.4 + i * 0.18}s` }} />
+                    ))}
+                  </svg>
+                </div>
+                {[
+                  ['TWK', '128 / 150', 85, '#38bdf8'],
+                  ['TIU', '152 / 175', 88, '#34d399'],
+                  ['TKP', '198 / 225', 74, '#fbbf24'],
+                ].map(([k, v, w, c]) => (
+                  <div className="catbar" key={k as string}>
+                    <div className="catbar-top"><span>{k}</span><b>{v}</b></div>
+                    <div className="catbar-track"><div className="catbar-fill" style={{ ['--w' as string]: `${w}%`, width: `${w}%`, background: c as string } as CSSProperties} /></div>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="browser-content" dangerouslySetInnerHTML={{__html: dashboardSVG}} />
+            <p className="scr-cap">Halaman Statistik</p>
           </div>
+
+          {/* ── Layar 2: Hasil Simulasi ── */}
+          <div>
+            <div className="screen s2">
+              <div className="browser-bar">
+                <i style={{ width: 9, height: 9, borderRadius: '50%', background: '#ef4444', display: 'block' }} />
+                <i style={{ width: 9, height: 9, borderRadius: '50%', background: '#f59e0b', display: 'block' }} />
+                <i style={{ width: 9, height: 9, borderRadius: '50%', background: '#22c55e', display: 'block' }} />
+                <span className="mock-url" style={{ marginLeft: 8 }}>pintuasn.com/exam/hasil</span>
+              </div>
+              <div className="scr-body">
+                <div className="scr-head"><span className="scr-title">🎯 Ringkasan Jawaban Kamu</span><span className="scr-tag pass">LULUS</span></div>
+                <div className="donut-row">
+                  <div className="donut">
+                    <svg viewBox="0 0 120 120">
+                      {[
+                        { seg: 206, gap: 58, rot: -90, color: '#34d399', d: '.15s' },
+                        { seg: 42, gap: 222, rot: 190.8, color: '#fb7185', d: '.55s' },
+                        { seg: 16, gap: 248, rot: 248.4, color: '#64748b', d: '.85s' },
+                      ].map((s, i) => (
+                        <circle key={i} cx="60" cy="60" r="42"
+                          style={{ stroke: s.color, transform: `rotate(${s.rot}deg)`, animationDelay: s.d, ['--seg' as string]: `${s.seg}`, ['--gap' as string]: `${s.gap}` } as CSSProperties} />
+                      ))}
+                    </svg>
+                    <div className="donut-center"><b>78%</b><span>Akurasi</span></div>
+                  </div>
+                  <div className="donut-legend">
+                    <div className="lg"><i style={{ background: '#34d399' }} />Benar <b>86</b></div>
+                    <div className="lg"><i style={{ background: '#fb7185' }} />Salah <b>18</b></div>
+                    <div className="lg"><i style={{ background: '#64748b' }} />Kosong <b>6</b></div>
+                  </div>
+                </div>
+                <div className="pace-title">⏱ Kecepatan Mengerjakan (detik/soal)</div>
+                {[
+                  ['TWK', '42 dtk', 64, '#38bdf8'],
+                  ['TIU', '55 dtk', 84, '#34d399'],
+                  ['TKP', '38 dtk', 58, '#fbbf24'],
+                ].map(([k, v, w, c]) => (
+                  <div className="catbar" key={k as string}>
+                    <div className="catbar-top"><span>{k}</span><b>{v}</b></div>
+                    <div className="catbar-track"><div className="catbar-fill" style={{ ['--w' as string]: `${w}%`, width: `${w}%`, background: c as string } as CSSProperties} /></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p className="scr-cap">Halaman Hasil Simulasi</p>
+          </div>
+
         </div>
       </section>
 
       {/* ── FEATURES ── */}
-      <section style={{background:'#fff'}} id="fitur">
-        <div className="section-inner">
-          <div className="section-head reveal">
-            <div className="section-tag">Fitur Unggulan</div>
-            <h2 className="section-title">Senjata Rahasiamu<br />Menuju NIP 2026</h2>
-            <p className="section-sub">Dirancang khusus untuk mereplikasi kondisi ujian asli dan menutup setiap celah kelemahanmu.</p>
+      <section className="sec" id="fitur" style={{ background: 'var(--s50)' }}>
+        <div className="sec-in">
+          <div className="sec-head reveal">
+            <div className="tag">Fitur Unggulan</div>
+            <h2 className="sec-title">Senjata Rahasiamu Menuju NIP 2026</h2>
+            <p className="sec-sub">Setiap fitur dirancang dengan presisi untuk memangkas waktu belajarmu dan memaksimalkan peluang lolos SKD CPNS 2026.</p>
           </div>
-          <div className="features-grid">
-            <div className="feat-card reveal"><div className="feat-icon">💻</div><h3>Simulasi 99% Mirip BKN</h3><p>UI/UX, sistem timer per subtes, dan mekanisme penilaian persis sistem CAT SSCASN BKN. Atasi grogi sebelum hari H.</p></div>
-            <div className="feat-card reveal" style={{transitionDelay:'.08s'}}><div className="feat-icon">⏱️</div><div className="feat-badge">Eksklusif</div><h3>Analisis Waktu per Soal</h3><p>Ketahui berapa detik kamu habiskan tiap soal. Identifikasi soal "time waster" dan perbaiki strategi pengerjaan.</p></div>
-            <div className="feat-card reveal" style={{transitionDelay:'.16s'}}><div className="feat-icon">📊</div><h3>Analitik Performa Mendalam</h3><p>Tren skor, gap passing grade, distribusi nasional, dan analisis kelemahan detail per subtes TWK, TIU, TKP berbasis data.</p></div>
-            <div className="feat-card reveal" style={{transitionDelay:'.24s'}}><div className="feat-icon">🏆</div><h3>Peringkat Nasional</h3><p>Ukur kemampuan real-time. Ketahui posisimu vs ribuan peserta lain di seluruh Indonesia dengan leaderboard live.</p></div>
-            <div className="feat-card reveal" style={{transitionDelay:'.32s'}}><div className="feat-icon">🗺️</div><h3>Roadmap Belajar Bertahap</h3><p>Fase belajar terstruktur: setiap step ada syarat, CTA, dan indikator selesai. Tidak lagi bingung mulai dari mana.</p></div>
-            <div className="feat-card reveal" style={{transitionDelay:'.4s'}}><div className="feat-icon">📖</div><h3>Review Soal dan Pembahasan</h3><p>Bukan cuma kunci jawaban. Review detail tiap soal benar/salahmu dengan filter materi yang komprehensif dan terstruktur.</p></div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section style={{background:'var(--s50)'}} id="cara-kerja">
-        <div className="section-inner">
-          <div className="section-head reveal" style={{textAlign:'center'}}>
-            <div className="section-tag" style={{justifyContent:'center'}}>Cara Kerja</div>
-            <h2 className="section-title">3 Langkah Mulai Persiapan</h2>
-            <p className="section-sub" style={{margin:'0 auto'}}>Sistem kami dirancang agar kamu bisa langsung fokus belajar tanpa setup rumit.</p>
-          </div>
-          <div className="steps-grid">
-            <div className="step reveal">
-              <div className="step-num">1</div>
-              <div className="step-content"><h3>Daftar Akun Gratis</h3><p>Buat akun dalam 30 detik. Langsung akses dashboard, roadmap, dan tryout pertamamu tanpa kartu kredit.</p></div>
-            </div>
-            <div className="step reveal" style={{transitionDelay:'.2s'}}>
-              <div className="step-num">2</div>
-              <div className="step-content"><h3>Kerjakan Tryout</h3><p>Rasakan sensasi ujian asli dengan timer dan antarmuka identik BKN. TWK, TIU, TKP dalam satu sesi penuh.</p></div>
-            </div>
-            <div className="step reveal" style={{transitionDelay:'.4s'}}>
-              <div className="step-num">3</div>
-              <div className="step-content"><h3>Analisis dan Tingkatkan</h3><p>Dapatkan skor, analitik mendalam, analisis waktu per soal, review pembahasan, dan posisi ranking nasional.</p></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRICING ── */}
-      <section style={{background:'#fff'}} id="paket">
-        <div className="section-inner">
-          <div className="section-head reveal" style={{textAlign:'center'}}>
-            <div className="section-tag" style={{justifyContent:'center'}}>Paket Belajar</div>
-            <h2 className="section-title">Pilih Paketmu</h2>
-            <p className="section-sub" style={{margin:'0 auto'}}>Investasi terbaik untuk lolos SKD CPNS 2026. Akses penuh hingga hari ujian selesai.</p>
-          </div>
-
-          <div className="pricing-grid">
-
-            {/* ── FREE ── */}
-            <div className="price-card reveal" style={{background:'#fff',border:'1px solid #e2e8f0'}}>
-              <div className="price-icon-row">
-                <div className="price-icon-box" style={{background:'#f1f5f9'}}>🛡️</div>
-                <div>
-                  <div className="price-name" style={{color:'#0f172a'}}>Gratis</div>
-                  <div className="price-period" style={{color:'#94a3b8'}}>Selamanya</div>
-                </div>
-              </div>
-              <div className="price-amount" style={{color:'#0f172a'}}>Gratis</div>
-              <div className="price-desc" style={{color:'#94a3b8',borderBottom:'1px solid #f1f5f9'}}>
-                Cocok untuk mencoba fitur dasar simulasi SKD
-              </div>
-              <ul className="price-features">
-                <li><span className="chk" style={{background:'#dcfce7',color:'#16a34a'}}>✓</span><span style={{color:'#334155'}}>Tryout paket gratis</span></li>
-                <li><span className="chk" style={{background:'#dcfce7',color:'#16a34a'}}>✓</span><span style={{color:'#334155'}}>Akses Roadmap pembelajaran</span></li>
-                <li><span className="chk" style={{background:'#dcfce7',color:'#16a34a'}}>✓</span><span style={{color:'#334155'}}>Akses materi dasar</span></li>
-                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Tryout paket premium</span></li>
-                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Latihan Soal SKD / Mini Try Out</span></li>
-                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Review soal + pembahasan lengkap</span></li>
-                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Statistik & analisis performa</span></li>
-                <li><span className="chk" style={{background:'#f1f5f9',color:'#94a3b8'}}>✗</span><span style={{color:'#94a3b8',textDecoration:'line-through'}}>Peringkat nasional</span></li>
-              </ul>
-              <a href="/sign-up" className="price-btn" style={{border:'1.5px solid #cbd5e1',color:'#475569'}}>
-                Pakai Gratis
-              </a>
-            </div>
-
-            {/* ── PREMIUM ── */}
-            <div className="price-card reveal" style={{background:'#1d4ed8',boxShadow:'0 24px 64px rgba(29,78,216,.35)',transitionDelay:'.1s'}}>
-              <div className="pop-badge" style={{background:'#fff',color:'#1d4ed8'}}>⚡ Populer</div>
-              <div className="price-icon-row">
-                <div className="price-icon-box" style={{background:'rgba(255,255,255,0.15)'}}>⚡</div>
-                <div>
-                  <div className="price-name" style={{color:'#fff'}}>Premium</div>
-                  <div className="price-period" style={{color:'rgba(255,255,255,.55)'}}>Hingga November 2026</div>
-                </div>
-              </div>
-              <div className="price-original" style={{color:'rgba(255,255,255,.4)'}}>Rp 200.000</div>
-              <div className="price-amount" style={{color:'#fff'}}>Rp 99.000</div>
-              <div className="price-desc" style={{color:'rgba(255,255,255,.55)',borderBottom:'1px solid rgba(255,255,255,.12)'}}>
-                Akses penuh untuk persiapan SKD CPNS 2026
-              </div>
-              <ul className="price-features">
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Tryout paket gratis & premium</span></li>
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Latihan Soal SKD / Mini Try Out (TWK, TIU, TKP)</span></li>
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Review soal + pembahasan lengkap</span></li>
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Materi SKD lengkap (TWK, TIU, TKP)</span></li>
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Akses Riwayat (3 terbaru)</span></li>
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Statistik & analisis performa</span></li>
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Peringkat nasional</span></li>
-                <li><span className="chk" style={{background:'rgba(255,255,255,.2)',color:'#fff'}}>✓</span><span style={{color:'rgba(255,255,255,.9)'}}>Leaderboard paket</span></li>
-              </ul>
-              <a href="/sign-up?plan=premium" className="price-btn" style={{background:'#fff',color:'#1d4ed8'}}>
-                Mulai Premium →
-              </a>
-            </div>
-
-            {/* ── PLATINUM ── */}
-            <div className="price-card reveal" style={{background:'#0f172a',boxShadow:'0 24px 64px rgba(15,23,42,.25)',transitionDelay:'.2s'}}>
-              <div className="pop-badge" style={{background:'#7c3aed',color:'#fff'}}>👑 Terlengkap</div>
-              <div className="price-icon-row">
-                <div className="price-icon-box" style={{background:'rgba(124,58,237,0.25)'}}>👑</div>
-                <div>
-                  <div className="price-name" style={{color:'#fff'}}>Platinum</div>
-                  <div className="price-period" style={{color:'rgba(255,255,255,.45)'}}>Masa aktif 1 tahun</div>
-                </div>
-              </div>
-              <div className="price-original" style={{color:'rgba(255,255,255,.35)'}}>Rp 349.000</div>
-              <div className="price-amount" style={{color:'#fff'}}>Rp 119.000</div>
-              <div className="price-desc" style={{color:'rgba(255,255,255,.45)',borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                Paket lengkap dengan fitur eksklusif dan prioritas
-              </div>
-              <ul className="price-features">
-                <li><span className="chk" style={{background:'rgba(124,58,237,0.4)',color:'#c4b5fd'}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Semua fitur Premium</span></li>
-                <li><span className="chk" style={{background:'rgba(124,58,237,0.4)',color:'#c4b5fd'}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Akses Riwayat tidak terbatas</span></li>
-                <li><span className="chk" style={{background:'rgba(124,58,237,0.4)',color:'#c4b5fd'}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Tryout paket platinum eksklusif</span></li>
-                <li><span className="chk" style={{background:'rgba(124,58,237,0.4)',color:'#c4b5fd'}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Materi platinum + video series SKD</span></li>
-                <li><span className="chk" style={{background:'rgba(124,58,237,0.4)',color:'#c4b5fd'}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Analisis soal dengan waktu terlama</span></li>
-                <li><span className="chk" style={{background:'rgba(124,58,237,0.4)',color:'#c4b5fd'}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Laporan perkembangan belajar</span></li>
-                <li><span className="chk" style={{background:'rgba(124,58,237,0.4)',color:'#c4b5fd'}}>✓</span><span style={{color:'rgba(255,255,255,.85)'}}>Masa aktif 1 tahun</span></li>
-              </ul>
-              <a href="/sign-up?plan=platinum" className="price-btn" style={{background:'#7c3aed',color:'#fff'}}>
-                Mulai Platinum →
-              </a>
-            </div>
-
-          </div>
-
-          <div className="reveal" style={{textAlign:'center',marginTop:'32px',fontSize:'13px',color:'#94a3b8',transitionDelay:'.3s'}}>
-            🔒 Pembayaran aman via Midtrans · QRIS · GoPay · Transfer Bank · Alfamart/Indomaret
-          </div>
-        </div>
-      </section>
-
-      {/* ── FAQ ── */}
-      <section style={{background:'var(--s50)'}} id="faq">
-        <div className="section-inner">
-          <div className="section-head reveal" style={{textAlign:'center'}}>
-            <div className="section-tag" style={{justifyContent:'center'}}>FAQ</div>
-            <h2 className="section-title">Pertanyaan yang Sering Diajukan</h2>
-          </div>
-          <div className="faq-inner">
-            {[
-              { q: 'Apakah simulasi benar-benar mirip sistem BKN?', a: 'Ya! Kami merancang UI/UX, peletakan tombol, ukuran font, hingga sistem timer persis seperti aplikasi CAT BKN. Saat ujian asli, kamu sudah tidak canggung dan bisa fokus penuh pada soal.' },
-              { q: 'Apa itu fitur Analisis Waktu per Soal?', a: 'Fitur eksklusif PintuASN yang merekam berapa detik kamu habiskan untuk tiap soal. Dari data ini, kamu bisa tahu soal mana yang menjadi "pemborosan waktu" dan memperbaiki strategi pengerjaan di sesi berikutnya.' },
-              { q: 'Apakah soal-soalnya update sesuai kisi-kisi terbaru?', a: 'Tentu. Tim akademik kami terus memperbarui bank soal setiap bulan mengikuti Peraturan Menteri PANRB terbaru dan tren soal CPNS tahun-tahun sebelumnya, termasuk soal berstandar HOTS.' },
-              { q: 'Bagaimana cara pembayaran paket Premium/Platinum?', a: 'Kami menerima QRIS, GoPay, OVO, ShopeePay, Transfer Bank (VA BCA, BNI, Mandiri, BRI), hingga Alfamart/Indomaret. Semua diproses melalui Midtrans yang aman dan terenkripsi.' },
-              { q: 'Saya daftar gratis, apakah wajib upgrade?', a: 'Tidak wajib sama sekali. Paket Gratis agar kamu bisa mencoba sistem dan kualitas soal tanpa komitmen apapun. Upgrade bisa kapan saja ketika kamu merasa siap dan membutuhkan fitur lebih lengkap.' },
-            ].map((item, i) => (
-              <div key={i} className="faq-item reveal" style={{transitionDelay:`${i * 0.05}s`}}>
-                <button className="faq-btn" onClick={(e) => toggleFaq(e.currentTarget)}>
-                  <span className="faq-q">{item.q}</span>
-                  <span className="faq-chev">▼</span>
-                </button>
-                <div className="faq-body" style={{maxHeight:'0'}}>
-                  <p>{item.a}</p>
+          <div className="feat-stack">
+            {FEATURES.map((f, i) => (
+              <div key={f.title} className="feat-panel" style={{ top: `${88 + i * 14}px`, zIndex: i + 1 }}>
+                <div className="feat-card2">
+                  <span className="fc-num">{String(i + 1).padStart(2, '0')}</span>
+                  <div className="fc-text">
+                    {f.badge && <span className="fc-badge">{f.badge}</span>}
+                    <h3>{f.title}</h3>
+                    <p>{f.desc}</p>
+                    <ul className="fc-bullets">
+                      {f.bullets.map((b) => (
+                        <li key={b}><span className="ck">✓</span>{b}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="fc-demo">{renderDemo(i)}</div>
                 </div>
               </div>
             ))}
@@ -920,37 +881,146 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FINAL CTA ── */}
-      <section className="final-cta">
-        <div className="final-cta-inner reveal">
-          <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'rgba(0,119,182,.12)',border:'1px solid rgba(0,119,182,.25)',borderRadius:'50px',padding:'6px 16px',fontSize:'13px',fontWeight:600,color:'var(--y)',marginBottom:'24px'}}>
-            ⏰ Pendaftaran CPNS 2026 semakin dekat
+      {/* ── HOW IT WORKS ── */}
+      <section className="sec" id="cara-kerja" style={{ background: 'var(--s50)' }}>
+        <div className="sec-in">
+          <div className="sec-head reveal">
+            <div className="tag">Cara Kerja</div>
+            <h2 className="sec-title">3 Langkah Mulai Persiapan</h2>
           </div>
+          <div className="steps">
+            {STEPS.map((s, i) => (
+              <div key={s.n} className="step reveal" style={{ transitionDelay: `${i * 0.12}s` }}>
+                <div className="step-n">{s.n}</div>
+                <h3>{s.title}</h3>
+                <p>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING ── */}
+      <section className="sec" id="paket" style={{ background: '#fff' }}>
+        <div className="sec-in">
+          <div className="sec-head reveal">
+            <div className="tag">Paket Belajar</div>
+            <h2 className="sec-title">Pilih Paketmu</h2>
+            <p className="sec-sub">Investasi terbaik untuk lolos SKD CPNS 2026. Akses penuh hingga hari ujian selesai.</p>
+          </div>
+          <div className="price-grid">
+
+            {/* FREE */}
+            <div className="pcard free reveal">
+              <div className="p-iconrow">
+                <div className="p-iconbox" style={{ background: 'var(--s100)' }}>🛡️</div>
+                <div><div className="p-name" style={{ color: 'var(--navy)' }}>Gratis</div><div className="p-period" style={{ color: 'var(--s400)' }}>Selamanya</div></div>
+              </div>
+              <div className="p-amount" style={{ color: 'var(--navy)' }}>Gratis</div>
+              <div className="p-desc" style={{ color: 'var(--s400)', borderBottom: '1px solid var(--s100)' }}>Cocok untuk mencoba fitur dasar simulasi SKD</div>
+              <ul className="p-feats">
+                {[['Tryout paket gratis', 1], ['Akses Roadmap pembelajaran', 1], ['Akses materi dasar', 1],
+                  ['Tryout paket premium', 0], ['Latihan Soal SKD / Mini Try Out', 0], ['Review soal + pembahasan lengkap', 0],
+                  ['Statistik & analisis performa', 0], ['Peringkat nasional', 0]].map(([t, ok]) => (
+                  <li key={t as string}>
+                    <span className="chk" style={ok ? { background: '#dcfce7', color: '#16a34a' } : { background: 'var(--s100)', color: 'var(--s400)' }}>{ok ? '✓' : '✗'}</span>
+                    <span style={ok ? { color: 'var(--s700)' } : { color: 'var(--s400)', textDecoration: 'line-through' }}>{t}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="/sign-up" className="p-btn" style={{ border: '1.5px solid var(--s300)', color: 'var(--s600)' }}>Pakai Gratis</a>
+            </div>
+
+            {/* PREMIUM */}
+            <div className="pcard prem reveal" style={{ transitionDelay: '.1s' }}>
+              <div className="pop g">⚡ Populer</div>
+              <div className="p-iconrow">
+                <div className="p-iconbox" style={{ background: 'rgba(14,165,233,.18)' }}>⚡</div>
+                <div><div className="p-name" style={{ color: '#fff' }}>Premium</div><div className="p-period" style={{ color: 'rgba(255,255,255,.55)' }}>Hingga November 2026</div></div>
+              </div>
+              <div className="p-orig" style={{ color: 'rgba(255,255,255,.4)' }}>Rp 200.000</div>
+              <div className="p-amount" style={{ color: 'var(--sky-l)' }}>Rp 99.000</div>
+              <div className="p-desc" style={{ color: 'rgba(255,255,255,.55)', borderBottom: '1px solid rgba(255,255,255,.12)' }}>Akses penuh untuk persiapan SKD CPNS 2026</div>
+              <ul className="p-feats">
+                {['Tryout paket gratis & premium', 'Latihan Soal SKD / Mini Try Out (TWK, TIU, TKP)', 'Review soal + pembahasan lengkap',
+                  'Materi SKD lengkap (TWK, TIU, TKP)', 'Akses Riwayat (3 terbaru)', 'Statistik & analisis performa',
+                  'Peringkat nasional', 'Leaderboard paket'].map(t => (
+                  <li key={t}><span className="chk" style={{ background: 'rgba(14,165,233,.25)', color: '#fff' }}>✓</span><span style={{ color: 'rgba(255,255,255,.9)' }}>{t}</span></li>
+                ))}
+              </ul>
+              <a href="/sign-up?plan=premium" className="p-btn" style={{ background: 'var(--gold)', color: '#fff' }}>Mulai Premium →</a>
+            </div>
+
+            {/* PLATINUM */}
+            <div className="pcard plat reveal" style={{ transitionDelay: '.2s' }}>
+              <div className="pop n">👑 Terlengkap</div>
+              <div className="p-iconrow">
+                <div className="p-iconbox" style={{ background: 'rgba(167,139,250,.2)' }}>👑</div>
+                <div><div className="p-name" style={{ color: '#fff' }}>Platinum</div><div className="p-period" style={{ color: 'rgba(255,255,255,.45)' }}>Masa aktif 1 tahun</div></div>
+              </div>
+              <div className="p-orig" style={{ color: 'rgba(255,255,255,.35)' }}>Rp 349.000</div>
+              <div className="p-amount" style={{ color: '#c4b5fd' }}>Rp 119.000</div>
+              <div className="p-desc" style={{ color: 'rgba(255,255,255,.45)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>Paket lengkap dengan fitur eksklusif dan prioritas</div>
+              <ul className="p-feats">
+                {['Semua fitur Premium', 'Akses Riwayat tidak terbatas', 'Tryout paket platinum eksklusif',
+                  'Materi platinum + video series SKD', 'Analisis soal dengan waktu terlama', 'Laporan perkembangan belajar',
+                  'Masa aktif 1 tahun'].map(t => (
+                  <li key={t}><span className="chk" style={{ background: 'rgba(167,139,250,.28)', color: '#fff' }}>✓</span><span style={{ color: 'rgba(255,255,255,.85)' }}>{t}</span></li>
+                ))}
+              </ul>
+              <a href="/sign-up?plan=platinum" className="p-btn" style={{ background: '#7c3aed', color: '#fff', border: '1px solid #7c3aed' }}>Mulai Platinum →</a>
+            </div>
+
+          </div>
+          <div className="pay-note reveal" style={{ transitionDelay: '.3s' }}>🔒 Pembayaran aman via Midtrans · QRIS · GoPay · Transfer Bank · Alfamart/Indomaret</div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="sec" id="faq" style={{ background: 'var(--s50)' }}>
+        <div className="sec-in">
+          <div className="sec-head reveal">
+            <div className="tag">FAQ</div>
+            <h2 className="sec-title">Pertanyaan yang Sering Diajukan</h2>
+          </div>
+          <div className="faq-in">
+            {FAQS.map((item, i) => (
+              <div key={i} className="faq-item reveal" style={{ transitionDelay: `${i * 0.05}s` }}>
+                <button className="faq-btn" onClick={(e) => toggleFaq(e.currentTarget)}>
+                  <span className="faq-q">{item.q}</span>
+                  <span className="faq-chev">▼</span>
+                </button>
+                <div className="faq-body" style={{ maxHeight: 0 }}><p>{item.a}</p></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="final">
+        <div className="hero-blob lp-drift1" style={{ width: 300, height: 300, background: 'rgba(255,255,255,.08)', top: -50, left: '20%' }} />
+        <div className="final-in reveal">
+          <div className="final-pill">⏰ Pendaftaran CPNS 2026 semakin dekat</div>
           <h2>Pesaingmu Sudah Mulai.<br />Kamu Kapan?</h2>
           <p>Jangan biarkan kursi ASN impianmu diambil orang lain hanya karena kurang persiapan.</p>
-          <a href="/sign-up" className="cta-big cta-yellow" style={{fontSize:'17px',padding:'16px 38px',display:'inline-flex'}}>
-            Mulai Perjalanan ASN-mu Sekarang
-          </a>
-          <p style={{marginTop:'20px',fontSize:'13px',color:'rgba(255,255,255,.3)'}}>Gratis selamanya · Tanpa kartu kredit</p>
+          <a href="/sign-up" className="cta-big cta-y" style={{ fontSize: 17, padding: '16px 38px' }}>Mulai Perjalanan ASN-mu Sekarang</a>
+          <p className="sub">Gratis selamanya · Tanpa kartu kredit</p>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer>
-        <div className="footer-grid">
+      <footer className="lp-footer">
+        <div className="foot-grid">
           <div>
-            <a href="#" className="logo" style={{textDecoration:'none'}}>
-              <div className="logo-badge">🎓</div>
-              PintuASN
+            <a href="#hero" className="lp-logo" aria-label="PintuASN">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/logo-navbar-sky.svg" alt="PintuASN" className="lp-logo-img" />
             </a>
-            <p style={{fontSize:'14px',color:'#64748b',lineHeight:'1.6',marginTop:'8px',maxWidth:'280px'}}>Platform simulasi CAT SKD CPNS paling akurat di Indonesia. Partner terpercaya menuju NIP impianmu 2026.</p>
-            <div className="social-row" style={{marginTop:'10px'}}>
-              <div className="social-btn">📸</div>
-              <div className="social-btn">🎵</div>
-              <div className="social-btn">▶️</div>
-            </div>
+            <p style={{ fontSize: 14, color: 'var(--s500)', lineHeight: 1.6, marginTop: 10, maxWidth: 280 }}>Platform simulasi CAT SKD CPNS paling akurat di Indonesia. Partner terpercaya menuju NIP impianmu 2026.</p>
+            <div className="social"><div>📸</div><div>🎵</div><div>▶️</div></div>
           </div>
-          <div className="footer-col">
+          <div className="foot-col">
             <h4>Platform</h4>
             <a href="/#fitur">Fitur Unggulan</a>
             <a href="/#paket">Harga dan Paket</a>
@@ -958,7 +1028,7 @@ export default function Home() {
             <a href="/blog">Blog</a>
             <a href="/faq">FAQ</a>
           </div>
-          <div className="footer-col">
+          <div className="foot-col">
             <h4>Bantuan</h4>
             <a href="/cara-pembayaran">Cara Pembayaran</a>
             <a href="/syarat-ketentuan">Syarat dan Ketentuan</a>
@@ -966,11 +1036,11 @@ export default function Home() {
             <a href="mailto:support@pintuasn.com">Hubungi Admin</a>
           </div>
         </div>
-        <div className="footer-bottom">
+        <div className="foot-bottom">
           <p>© 2026 PintuASN. All rights reserved.</p>
           <p>support@pintuasn.com</p>
         </div>
       </footer>
-    </>
+    </div>
   );
 }

@@ -69,10 +69,10 @@ export function MobileRiwayat({
 
   // ── Helpers ─────────────────────────────────────────────────
 
-  const isFree = userTier !== 'platinum';
+  const isPlatinum = userTier === 'platinum';
 
-  const isLocked = (globalIndex: number) =>
-    isFree && globalIndex >= FREE_HISTORY_LIMIT;
+  const isLocked = (attemptId: string) =>
+    !isPlatinum && !initialHistory.recentThreeIds.includes(attemptId);
 
   const updateURL = (newSort: SortOption, newFilter: FilterOption, newPage = 1) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -90,8 +90,7 @@ export function MobileRiwayat({
   };
 
   const { attempts, totalCount, currentPage, totalPages } = initialHistory;
-  const pageOffset  = (currentPage - 1) * 20;
-  const lockedCount = isFree ? Math.max(0, totalCount - FREE_HISTORY_LIMIT) : 0;
+  const lockedCount = isPlatinum ? 0 : Math.max(0, totalCount - FREE_HISTORY_LIMIT);
 
   // ── Empty state ──────────────────────────────────────────────
 
@@ -247,11 +246,11 @@ export function MobileRiwayat({
 
         {/* ── Attempt List ─────────────────────────────────────── */}
         <div className="px-4 space-y-3">
-          {attempts.map((attempt, idx) => (
+          {attempts.map((attempt) => (
             <AttemptHistoryCard
               key={attempt.id}
               attempt={attempt}
-              isLocked={isLocked(pageOffset + idx)}
+              isLocked={isLocked(attempt.id)}
             />
           ))}
         </div>

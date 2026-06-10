@@ -58,7 +58,7 @@ export function Navbar() {
           <div className="flex items-center gap-16">
             <Link href="/dashboard" className="flex items-center group">
               <Image
-                src="/images/logo-navbar.svg"
+                src="/images/logo-navbar-sky.svg"
                 alt="PintuASN"
                 width={90}
                 height={28}
@@ -68,7 +68,7 @@ export function Navbar() {
               />
             </Link>
             <div className="hidden md:flex flex-col">
-              <p className="text-sm font-bold text-slate-800 leading-tight">Halo, {firstName}! 👋</p>
+              <p className="text-sm font-bold text-slate-800 leading-tight">Halo, {firstName}!</p>
               <p className="text-xs text-slate-500">Semangat Belajar!</p>
             </div>
             <Link href="/roadmap">

@@ -22,7 +22,7 @@ export function MobileHeader({
     <header className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-2.5 bg-md-surface-container-low">
       {/* Logo */}
       <Image
-        src="/images/logo-navbar.svg"
+        src="/images/logo-navbar-sky.svg"
         alt="PintuASN"
         width={100}
         height={28}

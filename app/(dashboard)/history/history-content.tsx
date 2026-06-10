@@ -60,7 +60,9 @@ export default function HistoryContent({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const isLocked = (globalIndex: number) => globalIndex >= FREE_HISTORY_LIMIT;
+  const isPlatinum = userTier === 'platinum';
+  const isLocked = (attemptId: string) =>
+    !isPlatinum && !initialHistory.recentThreeIds.includes(attemptId);
 
   const updateURL = (newSort: string, newFilter: string, newPage: number = 1) => {
     const params = new URLSearchParams(searchParams);
@@ -158,8 +160,7 @@ export default function HistoryContent({
     return items;
   };
 
-  const lockedCount = Math.max(0, initialHistory.totalCount - FREE_HISTORY_LIMIT);
-  const pageOffset = (initialHistory.currentPage - 1) * 20;
+  const lockedCount = isPlatinum ? 0 : Math.max(0, initialHistory.totalCount - FREE_HISTORY_LIMIT);
 
   // ── EMPTY STATE ──────────────────────────────────────────────────────────
   if (initialHistory.attempts.length === 0) {
@@ -281,17 +282,13 @@ export default function HistoryContent({
 
         {/* ── ATTEMPTS LIST ─────────────────────────────────────────────── */}
         <div className="space-y-3">
-          {initialHistory.attempts.map((attempt, idx) => {
-            const globalIndex = pageOffset + idx;
-            const locked = isLocked(globalIndex);
-            return (
-              <AttemptHistoryCard
-                key={attempt.id}
-                attempt={attempt}
-                isLocked={locked}
-              />
-            );
-          })}
+          {initialHistory.attempts.map((attempt) => (
+            <AttemptHistoryCard
+              key={attempt.id}
+              attempt={attempt}
+              isLocked={isLocked(attempt.id)}
+            />
+          ))}
         </div>
 
         {/* ── PAGINATION ────────────────────────────────────────────────── */}

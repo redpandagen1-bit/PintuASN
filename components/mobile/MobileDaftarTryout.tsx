@@ -1,18 +1,19 @@
 'use client';
 
 // components/mobile/MobileDaftarTryout.tsx
-// Mobile-only daftar tryout — compact list, feature-parity with desktop
 
 import { useState, useMemo }     from 'react';
 import Link                      from 'next/link';
 import {
   Search, X, BookOpen, Clock, Users,
   ChevronRight, ArrowRight, Zap, Crown,
+  Star, BarChart2,
 } from 'lucide-react';
 import { cn }                    from '@/lib/utils';
 import { canAccess }             from '@/lib/subscription-utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 import { UpgradeModal }          from '@/components/shared/upgrade-modal';
+import { ReviewsPopup }          from '@/components/shared/ReviewsPopup';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -44,19 +45,10 @@ const TIER_MAP: Record<TierFilter, string> = {
   Semua: '', Gratis: 'free', Premium: 'premium', Platinum: 'platinum',
 };
 
-const DIFFICULTY_BADGE: Record<string, string> = {
-  easy:   'bg-emerald-100 text-emerald-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  hard:   'bg-red-100 text-red-700',
-};
-const DIFFICULTY_LABEL: Record<string, string> = {
-  easy: 'Mudah', medium: 'Sedang', hard: 'Sulit',
-};
-
-const TIER_BADGE: Record<string, { label: string; cls: string; dot: string }> = {
-  free:     { label: 'Gratis',   cls: 'bg-emerald-500 text-white',   dot: 'bg-emerald-500'  },
-  premium:  { label: 'Premium',  cls: 'bg-blue-500 text-white',      dot: 'bg-blue-500'     },
-  platinum: { label: 'Platinum', cls: 'bg-purple-500 text-white',    dot: 'bg-purple-500'   },
+const TIER_BADGE: Record<string, { label: string; cls: string }> = {
+  free:     { label: 'Gratis',   cls: 'bg-emerald-500 text-white'  },
+  premium:  { label: 'Premium',  cls: 'bg-blue-500 text-white'     },
+  platinum: { label: 'Platinum', cls: 'bg-purple-500 text-white'   },
 };
 
 function fmtCount(n: number): string {
@@ -77,20 +69,19 @@ function TryoutCard({
   userTier:         SubscriptionTier;
   onLocked:         (title: string, tier: 'premium' | 'platinum') => void;
 }) {
+  const [reviewOpen, setReviewOpen] = useState(false);
   const contentTier = (pkg.tier ?? 'free') as SubscriptionTier;
-  const accessible  = canAccess(userTier, contentTier);   // ✅ correct order
+  const accessible  = canAccess(userTier, contentTier);
   const badge       = TIER_BADGE[contentTier] ?? TIER_BADGE.free;
-  const diffBadge   = DIFFICULTY_BADGE[pkg.difficulty] ?? 'bg-slate-100 text-slate-600';
-  const diffLabel   = DIFFICULTY_LABEL[pkg.difficulty] ?? pkg.difficulty;
 
   return (
-    <div className={cn(
-      'bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden',
-      !accessible && 'opacity-90',
-    )}>
-      {/* Top row: tier badge + difficulty */}
-      <div className="flex items-center justify-between px-3 pt-3 pb-1">
-        <div className="flex items-center gap-1.5">
+    <>
+      <div className={cn(
+        'bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden',
+        !accessible && 'opacity-90',
+      )}>
+        {/* Top row: tier badge */}
+        <div className="flex items-center justify-between px-3 pt-3 pb-1">
           <span className={cn('text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full', badge.cls)}>
             {badge.label}
           </span>
@@ -100,66 +91,93 @@ function TryoutCard({
             </span>
           )}
         </div>
-        <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-lg', diffBadge)}>
-          {diffLabel}
-        </span>
-      </div>
 
-      {/* Title */}
-      <div className="px-3 pb-2">
-        <h3 className={cn(
-          'text-sm font-bold leading-snug',
-          accessible ? 'text-slate-800' : 'text-slate-500',
-        )}>
-          {pkg.title}
-        </h3>
-      </div>
+        {/* Title */}
+        <div className="px-3 pb-1">
+          <h3 className={cn(
+            'text-sm font-bold leading-snug',
+            accessible ? 'text-slate-800' : 'text-slate-500',
+          )}>
+            {pkg.title}
+          </h3>
+        </div>
 
-      {/* Meta row */}
-      <div className="flex items-center gap-3 px-3 pb-2.5 text-[11px] text-slate-400 font-medium">
-        <span className="flex items-center gap-1">
-          <BookOpen size={11} />
-          {pkg.total_questions ?? 110}
-        </span>
-        <span className="flex items-center gap-1">
-          <Clock size={11} />
-          {pkg.duration_minutes ?? 100} mnt
-        </span>
-        <span className="flex items-center gap-1">
-          <Users size={11} />
-          {fmtCount(pkg.completedUsersCount)} peserta
-        </span>
-      </div>
+        {/* Ulasan link */}
+        <div className="px-3 pb-2">
+          <button
+            onClick={() => setReviewOpen(true)}
+            className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-yellow-600 transition-colors"
+          >
+            <Star size={10} className="text-yellow-400 fill-yellow-400" />
+            <span className="underline underline-offset-1">Lihat ulasan</span>
+          </button>
+        </div>
 
-      {/* CTA */}
-      <div className="px-3 pb-3">
-        {accessible ? (
-          <Link href={`/packages/${pkg.id}`}>
-            <button className={cn(
-              'w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors',
-              hasActiveAttempt
-                ? 'bg-amber-400 text-slate-900 hover:bg-amber-500'
-                : 'bg-slate-900 text-white hover:bg-slate-700',
-            )}>
-              {hasActiveAttempt
-                ? <><ArrowRight size={12} />Lanjutkan Tryout</>
-                : <><ChevronRight size={12} />Mulai Tryout</>
+        {/* Meta row — horizontal */}
+        <div className="flex items-center gap-2.5 px-3 pb-2.5 text-[10px] text-slate-400 font-medium flex-wrap">
+          <span className="flex items-center gap-0.5">
+            <BookOpen size={10} />
+            {pkg.total_questions ?? 110}
+          </span>
+          <span className="w-px h-2.5 bg-slate-200" />
+          <span className="flex items-center gap-0.5">
+            <Clock size={10} />
+            {pkg.duration_minutes ?? 100} mnt
+          </span>
+          <span className="w-px h-2.5 bg-slate-200" />
+          <span className="flex items-center gap-0.5">
+            <Users size={10} />
+            {fmtCount(pkg.completedUsersCount)}
+          </span>
+        </div>
+
+        {/* CTA */}
+        <div className="px-3 pb-3">
+          {accessible ? (
+            <div className="flex gap-1.5">
+              <Link href={`/packages/${pkg.id}`} className="flex-1">
+                <button className={cn(
+                  'w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition-colors',
+                  hasActiveAttempt
+                    ? 'bg-amber-400 text-slate-900 hover:bg-amber-500'
+                    : 'bg-slate-900 text-white hover:bg-slate-700',
+                )}>
+                  {hasActiveAttempt
+                    ? <><ArrowRight size={11} />Lanjutkan</>
+                    : <><ChevronRight size={11} />Mulai</>
+                  }
+                </button>
+              </Link>
+              <Link href={`/packages/${pkg.id}/stats`}>
+                <button
+                  title="Lihat Data"
+                  className="px-2.5 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center justify-center"
+                >
+                  <BarChart2 size={13} />
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <button
+              onClick={() => onLocked(pkg.title, contentTier as 'premium' | 'platinum')}
+              className="w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+            >
+              {contentTier === 'platinum'
+                ? <><Crown size={11} />Buka Platinum</>
+                : <><Zap size={11} />Buka Premium</>
               }
             </button>
-          </Link>
-        ) : (
-          <button
-            onClick={() => onLocked(pkg.title, contentTier as 'premium' | 'platinum')}
-            className="w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-          >
-            {contentTier === 'platinum'
-              ? <><Crown size={11} />Buka dengan Platinum</>
-              : <><Zap size={11} />Buka dengan Premium</>
-            }
-          </button>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+
+      <ReviewsPopup
+        packageId={pkg.id}
+        packageTitle={pkg.title}
+        isOpen={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+      />
+    </>
   );
 }
 
@@ -202,10 +220,8 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
       />
 
       <main>
-
-        {/* ── Header + Search (dark bg, rounded) ──────────────── */}
+        {/* ── Header + Search ──────────────── */}
         <div className="bg-slate-800 mx-4 mt-2 rounded-2xl px-4 pt-4 pb-4">
-          {/* Title */}
           <div className="mb-3">
             <h1 className="text-xl font-extrabold text-white leading-tight">
               Daftar <span className="text-yellow-400">Tryout</span>
@@ -222,8 +238,6 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
               </span>
             </p>
           </div>
-
-          {/* Search — compact */}
           <div className="relative">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -244,7 +258,7 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
           </div>
         </div>
 
-        {/* ── Filter Pills ────────────────────────────────────── */}
+        {/* ── Filter Pills ──────────────────── */}
         <div className="flex gap-2 overflow-x-auto py-2.5 px-4 scrollbar-hide bg-white border-b border-slate-100">
           {TIER_FILTERS.map(f => (
             <button
@@ -266,37 +280,35 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
         </div>
 
         <div className="px-4 pt-3">
-
-        {/* ── Cards ───────────────────────────────────────────── */}
-        {filtered.length === 0 ? (
-          <div className="text-center py-16 flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-              {search
-                ? <Search size={20} className="text-slate-400" />
-                : <BookOpen size={20} className="text-slate-400" />
-              }
+          {filtered.length === 0 ? (
+            <div className="text-center py-16 flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                {search
+                  ? <Search size={20} className="text-slate-400" />
+                  : <BookOpen size={20} className="text-slate-400" />
+                }
+              </div>
+              <p className="text-sm font-semibold text-slate-600">
+                {search ? `Tidak ditemukan "${search}"` : `Tidak ada paket ${tierFilter !== 'Semua' ? tierFilter : ''}`}
+              </p>
+              <p className="text-xs text-slate-400">
+                {search ? 'Coba kata kunci lain.' : 'Coba filter lain.'}
+              </p>
             </div>
-            <p className="text-sm font-semibold text-slate-600">
-              {search ? `Tidak ditemukan "${search}"` : `Tidak ada paket ${tierFilter !== 'Semua' ? tierFilter : ''}`}
-            </p>
-            <p className="text-xs text-slate-400">
-              {search ? 'Coba kata kunci lain.' : 'Coba filter lain.'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {filtered.map(pkg => (
-              <TryoutCard
-                key={pkg.id}
-                pkg={pkg}
-                hasActiveAttempt={activeSet.has(pkg.id)}
-                userTier={userTier}
-                onLocked={handleLocked}
-              />
-            ))}
-          </div>
-        )}
-        </div>{/* /px-4 pt-3 */}
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {filtered.map(pkg => (
+                <TryoutCard
+                  key={pkg.id}
+                  pkg={pkg}
+                  hasActiveAttempt={activeSet.has(pkg.id)}
+                  userTier={userTier}
+                  onLocked={handleLocked}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
     </>
   );

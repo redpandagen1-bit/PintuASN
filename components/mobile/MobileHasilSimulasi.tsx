@@ -3,8 +3,9 @@
 // components/mobile/MobileHasilSimulasi.tsx
 // Mobile exam result — mirrors desktop features, mobile-optimised
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ReviewFormModal } from '@/components/shared/ReviewFormModal';
 import {
   CheckCircle2, XCircle, Trophy, Clock, TrendingUp,
   AlertTriangle, Timer, Lock, BookOpen, Eye, RotateCcw,
@@ -159,6 +160,23 @@ export function MobileHasilSimulasi({
   subscriptionTier,
   categoryTotals,
 }: MobileHasilSimulasiProps) {
+  const [reviewOpen, setReviewOpen] = useState(false);
+  useEffect(() => {
+    if (!packageId) return;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/packages/${packageId}/reviews/status?attempt_id=${attemptId}`
+        );
+        const { reviewed } = await res.json();
+        if (!reviewed) setReviewOpen(true);
+      } catch {
+        setReviewOpen(true);
+      }
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [attemptId, packageId]);
+
   const isPlatinum = subscriptionTier === 'platinum';
   const score      = finalScore ?? 0;
   const scoreTWK   = scoreTwk  ?? 0;
@@ -219,6 +237,7 @@ export function MobileHasilSimulasi({
     : '-';
 
   return (
+    <>
     <main className="pb-16 space-y-4">
 
       {/* ── Hero — dark bg matching desktop ───────────────────── */}
@@ -771,5 +790,16 @@ export function MobileHasilSimulasi({
       </div>
 
     </main>
+
+    {packageId && packageTitle && (
+      <ReviewFormModal
+        packageId={packageId}
+        packageTitle={packageTitle}
+        attemptId={attemptId}
+        isOpen={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+      />
+    )}
+    </>
   );
 }

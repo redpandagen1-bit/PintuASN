@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getSlowestQuestions, getWrongAnalysis, calcPercentile, getAccuracyDonut, getPacing } from '@/lib/scoring/analysis';
 import {
@@ -8,6 +8,7 @@ import {
   RotateCcw, Eye, ArrowLeft, TrendingUp, BookOpen,
   GraduationCap, Timer, AlertTriangle, Lock,
 } from 'lucide-react';
+import { ReviewFormModal } from '@/components/shared/ReviewFormModal';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie,
@@ -180,6 +181,24 @@ export default function ResultClient({
   lastThreeAttempts, answers, duration, userId,
   subscriptionTier, categoryTotals,
 }: ResultClientProps) {
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  useEffect(() => {
+    if (!packageInfo?.id) return;
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/packages/${packageInfo.id}/reviews/status?attempt_id=${attemptId}`
+        );
+        const { reviewed } = await res.json();
+        if (!reviewed) setReviewOpen(true);
+      } catch {
+        setReviewOpen(true);
+      }
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [attemptId, packageInfo?.id]);
+
   const isPlatinum  = subscriptionTier === 'platinum';
   const isPassed    = attempt.is_passed;
   const finalScore  = attempt.final_score  || 0;
@@ -737,6 +756,17 @@ export default function ResultClient({
         </div>
 
       </div>
+
+      {/* Review popup — muncul 2.5 detik setelah halaman dimuat */}
+      {packageInfo && (
+        <ReviewFormModal
+          packageId={packageInfo.id}
+          packageTitle={packageInfo.title ?? ''}
+          attemptId={attemptId}
+          isOpen={reviewOpen}
+          onClose={() => setReviewOpen(false)}
+        />
+      )}
     </div>
   );
 }
