@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   ArrowLeft, Share, Plus, MoreVertical, ShieldCheck,
   Smartphone, CheckCircle2, Sparkles, Zap, RefreshCw,
-  Download, Info,
+  Download, Info, ChevronDown,
 } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/use-pwa-install';
 
@@ -17,6 +17,7 @@ export default function InstallPage() {
   const [tab, setTab] = useState<Platform>('android');
   const [mounted, setMounted] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
   // Sinkronkan tab dengan platform terdeteksi (sekali, saat terdeteksi)
   useEffect(() => {
@@ -55,6 +56,24 @@ export default function InstallPage() {
   // Tombol install 1-klik hanya muncul di Android yang promptnya benar-benar siap
   const showInstallButton = tab === 'android' && promptReady && !isInstalled;
 
+  const stepsList = (
+    <ol className="space-y-4">
+      {steps.map((s, i) => (
+        <li key={i} className="flex items-start gap-3">
+          <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
+            {i + 1}
+          </span>
+          <div>
+            <p className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span className="text-sky-500">{s.icon}</span> {s.title}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">{s.desc}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Top bar */}
@@ -84,7 +103,7 @@ export default function InstallPage() {
 
         {/* Sudah terpasang */}
         {mounted && isInstalled && (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 md:p-5 mb-8 flex items-start gap-3">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 md:p-5 mb-6 flex items-start gap-3 max-w-xl mx-auto">
             <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center">
               <CheckCircle2 size={18} />
             </div>
@@ -94,45 +113,6 @@ export default function InstallPage() {
             </div>
           </div>
         )}
-
-        {/* Notice: impostor / belum di store */}
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 md:p-5 mb-8">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center">
-              <ShieldCheck size={18} />
-            </div>
-            <div className="text-sm leading-relaxed">
-              <p className="font-bold text-amber-900 mb-1">
-                Aplikasi resmi PintuASN hanya tersedia di sini
-              </p>
-              <p className="text-amber-800">
-                PintuASN belum merilis aplikasi di Google Play Store maupun App Store. Untuk sekarang,
-                PintuASN hadir sebagai aplikasi web (PWA) yang bisa langsung kamu tambahkan ke layar
-                utama ringan, tanpa unduhan besar, dan otomatis selalu versi terbaru.
-              </p>
-              <p className="text-amber-800 mt-2">
-                Jika kamu menemukan aplikasi bernama &ldquo;PintuASN&rdquo; di Google Play, itu{' '}
-                <span className="font-bold">bukan rilisan resmi kami</span>. Demi keamanan akun dan datamu,
-                pasang PintuASN hanya melalui <span className="font-bold">pintuasn.com</span> mengikuti
-                langkah di bawah. Begitu aplikasi resmi tersedia, kami akan mengumumkannya langsung di situs ini.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Perks */}
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          {[
-            { icon: <Zap size={18} />, label: 'Ringan & cepat' },
-            { icon: <RefreshCw size={18} />, label: 'Selalu terbaru' },
-            { icon: <Sparkles size={18} />, label: 'Tanpa store' },
-          ].map((p) => (
-            <div key={p.label} className="rounded-xl bg-white border border-slate-100 shadow-sm py-3 px-2 text-center">
-              <div className="text-sky-500 flex justify-center mb-1">{p.icon}</div>
-              <p className="text-[11px] md:text-xs font-semibold text-slate-600">{p.label}</p>
-            </div>
-          ))}
-        </div>
 
         {/* Platform tabs */}
         <div className="flex gap-2 mb-5 p-1 bg-slate-100 rounded-xl w-full max-w-xs mx-auto">
@@ -172,39 +152,82 @@ export default function InstallPage() {
               {installing ? 'Memasang…' : 'Install Sekarang'}
             </button>
             <p className="text-center text-[11px] text-slate-400 mt-2">
-              Akan muncul dialog konfirmasi resmi dari browser. Atau ikuti langkah manual di bawah.
+              Akan muncul dialog konfirmasi resmi dari browser.
             </p>
           </div>
         )}
 
         {/* Steps */}
-        <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 md:p-6 max-w-xl mx-auto">
-          <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <Smartphone size={18} className="text-sky-500" />
-            {showInstallButton ? 'Atau pasang manual di Android' : `Cara pasang di ${tab === 'ios' ? 'iPhone / iPad' : 'Android'}`}
-          </h2>
-          <ol className="space-y-4">
-            {steps.map((s, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold">
-                  {i + 1}
+        <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 md:p-6 max-w-xl mx-auto mb-8">
+          {showInstallButton ? (
+            <>
+              <button
+                onClick={() => setManualOpen((o) => !o)}
+                className="w-full flex items-center justify-between gap-2 text-base font-bold text-slate-800"
+                aria-expanded={manualOpen}
+              >
+                <span className="flex items-center gap-2">
+                  <Smartphone size={18} className="text-sky-500" />
+                  Atau pasang manual di Android
                 </span>
-                <div>
-                  <p className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <span className="text-sky-500">{s.icon}</span> {s.title}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5">{s.desc}</p>
+                <ChevronDown size={18} className={`text-slate-400 transition-transform ${manualOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {manualOpen && <div className="mt-4">{stepsList}</div>}
+            </>
+          ) : (
+            <>
+              <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <Smartphone size={18} className="text-sky-500" />
+                Cara pasang di {tab === 'ios' ? 'iPhone / iPad' : 'Android'}
+              </h2>
+              {stepsList}
+              {tab === 'ios' && (
+                <div className="mt-5 rounded-xl bg-sky-50 border border-sky-100 p-3 text-xs text-sky-800">
+                  Menu &ldquo;Add to Home Screen&rdquo; hanya muncul di <span className="font-bold">Safari</span>.
+                  Kalau kamu memakai Chrome di iPhone, buka menu lalu pilih &ldquo;Open in Safari&rdquo; dulu.
                 </div>
-              </li>
-            ))}
-          </ol>
-
-          {tab === 'ios' && (
-            <div className="mt-5 rounded-xl bg-sky-50 border border-sky-100 p-3 text-xs text-sky-800">
-              Menu &ldquo;Add to Home Screen&rdquo; hanya muncul di <span className="font-bold">Safari</span>.
-              Kalau kamu memakai Chrome di iPhone, buka menu lalu pilih &ldquo;Open in Safari&rdquo; dulu.
-            </div>
+              )}
+            </>
           )}
+        </div>
+
+        {/* Notice: impostor / belum di store */}
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 md:p-5 mb-8">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center">
+              <ShieldCheck size={18} />
+            </div>
+            <div className="text-sm leading-relaxed">
+              <p className="font-bold text-amber-900 mb-1">
+                Aplikasi resmi PintuASN hanya tersedia di sini
+              </p>
+              <p className="text-amber-800">
+                PintuASN belum merilis aplikasi di Google Play Store maupun App Store. Untuk sekarang,
+                PintuASN hadir sebagai aplikasi web (PWA) yang bisa langsung kamu tambahkan ke layar
+                utama ringan, tanpa unduhan besar, dan otomatis selalu versi terbaru.
+              </p>
+              <p className="text-amber-800 mt-2">
+                Jika kamu menemukan aplikasi bernama &ldquo;PintuASN&rdquo; di Google Play, itu{' '}
+                <span className="font-bold">bukan rilisan resmi kami</span>. Demi keamanan akun dan datamu,
+                pasang PintuASN hanya melalui <span className="font-bold">pintuasn.com</span> mengikuti
+                langkah di atas. Begitu aplikasi resmi tersedia, kami akan mengumumkannya langsung di situs ini.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Perks */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { icon: <Zap size={18} />, label: 'Ringan & cepat' },
+            { icon: <RefreshCw size={18} />, label: 'Selalu terbaru' },
+            { icon: <Sparkles size={18} />, label: 'Tanpa store' },
+          ].map((p) => (
+            <div key={p.label} className="rounded-xl bg-white border border-slate-100 shadow-sm py-3 px-2 text-center">
+              <div className="text-sky-500 flex justify-center mb-1">{p.icon}</div>
+              <p className="text-[11px] md:text-xs font-semibold text-slate-600">{p.label}</p>
+            </div>
+          ))}
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-6">
