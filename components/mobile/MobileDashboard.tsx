@@ -60,7 +60,7 @@ const MENU_ITEMS = [
   { label: 'Riwayat',       href: '/history',       iconFile: 'riwayat'      },
   { label: 'Beli Paket',    href: '/beli-paket',    iconFile: 'beli_paket'   },
   { label: 'Event & Promo', href: '/events-promo',  iconFile: 'event_promo'  },
-  { label: 'Grup',          href: '/roadmap',       iconFile: 'grup'         },
+  { label: 'Grup',          href: 'https://wa.me/6285190868980?text=halo%20admin%20pintuASN%2C%20saya%20ingin%20join%20grup', iconFile: 'grup' },
 ] as const;
 
 // ── Tryout card constants (identik dengan MobileDaftarTryout) ─
@@ -206,23 +206,36 @@ export function MobileDashboard({
       {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
       <section>
         <div className="grid grid-cols-3">
-          {MENU_ITEMS.map(({ label, href, iconFile }) => (
-            <Link key={label} href={href} className="flex flex-col items-center gap-2 py-3 group active-press">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/images/icons/${iconFile}.svg`}
-                alt={label}
-                width={52}
-                height={52}
-                className="transition-all group-active:scale-95"
-                style={{ opacity: 0.85 }}
-              />
-              <span className="text-[10px] font-bold text-md-primary text-center leading-tight"
-                style={{ fontFamily: 'var(--font-jakarta)' }}>
-                {label}
-              </span>
-            </Link>
-          ))}
+          {MENU_ITEMS.map(({ label, href, iconFile }) => {
+            const external = href.startsWith('http');
+            const inner = (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/images/icons/${iconFile}.svg`}
+                  alt={label}
+                  width={52}
+                  height={52}
+                  className="transition-all group-active:scale-95"
+                  style={{ opacity: 0.85 }}
+                />
+                <span className="text-[10px] font-bold text-md-primary text-center leading-tight"
+                  style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  {label}
+                </span>
+              </>
+            );
+            const cls = 'flex flex-col items-center gap-2 py-3 group active-press';
+            return external ? (
+              <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={cls}>
+                {inner}
+              </a>
+            ) : (
+              <Link key={label} href={href} className={cls}>
+                {inner}
+              </Link>
+            );
+          })}
         </div>
       </section>
 
