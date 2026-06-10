@@ -41,8 +41,8 @@ export default async function ProfilePage() {
       .single();
 
     if (createError) {
-      console.error('Auto-create profile error:', createError);
-      throw new Error('Gagal membuat profil. Silakan coba lagi.');
+      console.error('Auto-create profile error:', createError.code, createError.message, createError.details);
+      throw new Error(`Gagal membuat profil: ${createError.message || createError.code || 'Unknown error'}`);
     }
 
     profile = newProfile;

@@ -33,7 +33,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="bg-[#f8f9ff] min-h-screen">
+    <div className="bg-slate-50 min-h-screen">
       {/* Desktop navbar — fixed, hidden on mobile */}
       <div className="hidden md:block">
         <Navbar />

@@ -77,7 +77,7 @@ export function InstallPWAButton() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
-                    Tap tombol <Share size={14} className="text-blue-500" />
+                    Tap tombol <Share size={14} className="text-sky-500" />
                   </p>
                   <p className="text-xs text-slate-500">Tombol Share ada di bagian bawah layar Safari</p>
                 </div>

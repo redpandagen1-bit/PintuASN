@@ -14,7 +14,7 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
 
   const getCategoryBadge = (category: string) => {
     switch (category) {
-      case 'TWK': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'TWK': return 'bg-sky-100 text-sky-700 border-sky-200';
       case 'TIU': return 'bg-green-100 text-green-700 border-green-200';
       case 'TKP': return 'bg-purple-100 text-purple-700 border-purple-200';
       default:    return 'bg-slate-100 text-slate-600 border-slate-200';

@@ -51,7 +51,7 @@ export function QuestionDisplay({
               variant="secondary"
               className={cn(
                 "text-sm font-semibold px-3 py-1",
-                question.category === 'TWK' && 'bg-blue-100 text-blue-800 border-blue-300',
+                question.category === 'TWK' && 'bg-sky-100 text-sky-800 border-sky-300',
                 question.category === 'TIU' && 'bg-green-100 text-green-800 border-green-300',
                 question.category === 'TKP' && 'bg-purple-100 text-purple-800 border-purple-300'
               )}
@@ -114,9 +114,9 @@ export function QuestionDisplay({
                       className={cn(
                         "flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
                         "hover:border-slate-300 hover:bg-slate-50",
-                        "focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200",
+                        "focus-within:border-sky-500 focus-within:ring-2 focus-within:ring-sky-200",
                         selectedAnswer === choice.id
-                          ? "border-blue-600 bg-blue-50"
+                          ? "border-sky-600 bg-sky-50"
                           : "border-slate-200 bg-white"
                       )}
                     >

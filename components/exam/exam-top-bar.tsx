@@ -63,7 +63,7 @@ export function ExamTopBar({
             <Button
               onClick={onSubmit}
               disabled={isSaving}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-sky-600 hover:bg-sky-700 text-white"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
               Submit Ujian
@@ -102,7 +102,7 @@ export function ExamTopBar({
                 onClick={onSubmit}
                 disabled={isSaving}
                 size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-sky-600 hover:bg-sky-700 text-white"
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Submit

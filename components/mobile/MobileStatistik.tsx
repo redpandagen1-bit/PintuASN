@@ -144,7 +144,7 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
 
   // Gap analysis data
   const gapItems = [
-    { key: 'TWK', avg: avgTwk, threshold: THRESHOLD_TWK, max: MAX_TWK, color: 'bg-blue-500'    },
+    { key: 'TWK', avg: avgTwk, threshold: THRESHOLD_TWK, max: MAX_TWK, color: 'bg-sky-500'     },
     { key: 'TIU', avg: avgTiu, threshold: THRESHOLD_TIU, max: MAX_TIU, color: 'bg-emerald-500' },
     { key: 'TKP', avg: avgTkp, threshold: THRESHOLD_TKP, max: MAX_TKP, color: 'bg-amber-500'   },
   ];
@@ -156,7 +156,7 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
       <section className="mx-4 mt-4 mb-4 bg-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-4">
         {/* Decorative blobs */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
 
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-3">
@@ -268,8 +268,8 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
               <AreaChart data={trendData} margin={{ top: 8, right: 4, left: -28, bottom: 0 }}>
                 <defs>
                   <linearGradient id="mobileGradSkor" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#1e3a5f" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#1e3a5f" stopOpacity={0}    />
+                    <stop offset="5%"  stopColor="#0ea5e9" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -292,12 +292,12 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
                   type="monotone"
                   dataKey="skor"
                   name="Skor Kamu"
-                  stroke="#1e3a5f"
+                  stroke="#0ea5e9"
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#mobileGradSkor)"
-                  dot={{ r: 3, fill: '#1e3a5f', strokeWidth: 0 }}
-                  activeDot={{ r: 5, fill: '#1e3a5f' }}
+                  dot={{ r: 3, fill: '#0ea5e9', strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#0ea5e9' }}
                 />
                 <Area
                   type="monotone"
@@ -494,10 +494,10 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
                   />
                   <ReferenceLine
                     x={avgScore}
-                    stroke="#1e3a5f"
+                    stroke="#0ea5e9"
                     strokeDasharray="3 3"
                     strokeWidth={1.5}
-                    label={{ position: 'top', value: 'Kamu', fill: '#1e3a5f', fontSize: 10, fontWeight: 700 }}
+                    label={{ position: 'top', value: 'Kamu', fill: '#0ea5e9', fontSize: 10, fontWeight: 700 }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -537,7 +537,7 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
         </h2>
         <div className="bg-white rounded-2xl p-4 shadow-md3-sm space-y-4">
           {[
-            { key: 'TWK', value: avgTwk, max: MAX_TWK, threshold: THRESHOLD_TWK, color: 'bg-blue-500'    },
+            { key: 'TWK', value: avgTwk, max: MAX_TWK, threshold: THRESHOLD_TWK, color: 'bg-sky-500'     },
             { key: 'TIU', value: avgTiu, max: MAX_TIU, threshold: THRESHOLD_TIU, color: 'bg-emerald-500' },
             { key: 'TKP', value: avgTkp, max: MAX_TKP, threshold: THRESHOLD_TKP, color: 'bg-amber-500'   },
           ].map(({ key, value, max, color }) => {

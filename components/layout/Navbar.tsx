@@ -110,7 +110,7 @@ export function Navbar() {
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllAsRead}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-xs text-sky-600 hover:text-sky-700 font-medium"
                     >
                       Tandai semua dibaca
                     </button>
@@ -134,10 +134,10 @@ export function Navbar() {
                             key={notif.id}
                             {...(wrapperProps as { href: string })}
                             onClick={() => { markAsRead(notif.id); setNotificationOpen(false); }}
-                            className={`block px-4 py-3 hover:bg-slate-50 transition-colors ${notif.link ? 'cursor-pointer' : ''} ${!notif.is_read ? 'bg-blue-50/40' : ''}`}
+                            className={`block px-4 py-3 hover:bg-slate-50 transition-colors ${notif.link ? 'cursor-pointer' : ''} ${!notif.is_read ? 'bg-sky-50/40' : ''}`}
                           >
                             <div className="flex items-start gap-2.5">
-                              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${!notif.is_read ? 'bg-blue-500' : 'bg-transparent'}`} />
+                              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${!notif.is_read ? 'bg-sky-500' : 'bg-transparent'}`} />
                               <div className="flex-1 min-w-0">
                                 <p className={`text-sm text-slate-800 ${!notif.is_read ? 'font-bold' : 'font-medium'}`}>
                                   {notif.title}

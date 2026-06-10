@@ -98,7 +98,7 @@ export default async function BlogPage({
 
         *{margin:0;padding:0;box-sizing:border-box}
         :root{
-          --y:#0077B6;--yd:#005A8E;--yl:#EFF6FF;
+          --y:#0ea5e9;--yd:#0369a1;--yl:#f0f9ff;
           --s50:#f8fafc;--s100:#f1f5f9;--s200:#e2e8f0;
           --s400:#94a3b8;--s600:#475569;--s800:#1e293b;--s900:#0f172a;
           --font:'Plus Jakarta Sans',sans-serif;

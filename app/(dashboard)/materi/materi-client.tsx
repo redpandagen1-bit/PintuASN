@@ -354,7 +354,7 @@ export default function MateriPageClient({ materials, userTier }: MateriPageClie
               { icon: Users,         value: '1000+',                                     label: 'Pelajar'      },
             ].map(({ icon: Icon, value, label }) => (
               <div key={label} className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4 flex-1 md:w-28 text-center">
-                <div className="text-yellow-400 mb-1 flex justify-center"><Icon size={20} /></div>
+                <div className="text-sky-500 mb-1 flex justify-center"><Icon size={20} /></div>
                 <div className="text-xl font-black text-white">{value}</div>
                 <div className="text-[11px] text-slate-300">{label}</div>
               </div>

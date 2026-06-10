@@ -82,7 +82,7 @@ function getGoogleDriveEmbedUrl(url: string): string | null {
 
 function TierBadge({ tier }: { tier: 'premium' | 'platinum' }) {
   if (tier === 'premium') return (
-    <span className="flex items-center gap-1 text-[10px] font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
+    <span className="flex items-center gap-1 text-[10px] font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
       <Star size={8} fill="currentColor" /> Premium
     </span>
   );
@@ -303,20 +303,20 @@ export default function MateriTabs({ materials, userTier }: MateriTabsProps) {
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left group ${
                     accessible
                       ? 'bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm cursor-pointer'
-                      : 'bg-slate-50 border-slate-200 hover:border-blue-200 cursor-pointer'
+                      : 'bg-slate-50 border-slate-200 hover:border-sky-200 cursor-pointer'
                   }`}
                 >
                   {/* Kiri: ikon + judul */}
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       !accessible
-                        ? 'bg-blue-50'
+                        ? 'bg-sky-50'
                         : item.type === 'pdf'
                         ? 'bg-orange-50'
                         : 'bg-slate-100'
                     }`}>
                       {!accessible
-                        ? <Lock size={14} className="text-blue-500" />
+                        ? <Lock size={14} className="text-sky-500" />
                         : item.type === 'pdf'
                         ? <FileIcon size={14} className="text-orange-500" />
                         : <PlayCircle size={14} className="text-slate-600" />

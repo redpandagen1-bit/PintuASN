@@ -339,7 +339,7 @@ export function ExamInterface({
   const selectedAnswer = answers.get(currentQuestion?.id);
 
   const categoryColor = {
-    TWK: 'bg-blue-100 text-blue-700 border-blue-200',
+    TWK: 'bg-sky-100 text-sky-700 border-sky-200',
     TIU: 'bg-green-100 text-green-700 border-green-200',
     TKP: 'bg-purple-100 text-purple-700 border-purple-200',
   }[currentQuestion?.category] || 'bg-slate-100 text-slate-700 border-slate-200';
@@ -602,14 +602,14 @@ export function ExamInterface({
                       className={cn(
                         'flex flex-col items-center gap-1.5 rounded-xl border-2 p-1.5 sm:p-2 transition-all duration-150 active:scale-[0.97]',
                         isSelected
-                          ? 'border-blue-500 bg-blue-50 shadow-sm'
-                          : 'border-slate-200 bg-white shadow-sm hover:border-blue-300 hover:bg-slate-50'
+                          ? 'border-sky-500 bg-sky-50 shadow-sm'
+                          : 'border-slate-200 bg-white shadow-sm hover:border-sky-300 hover:bg-slate-50'
                       )}
                     >
                       <span className={cn(
                         'w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold border-2',
                         isSelected
-                          ? 'bg-blue-500 text-white border-blue-500'
+                          ? 'bg-sky-500 text-white border-sky-500'
                           : 'bg-slate-50 text-slate-400 border-slate-200'
                       )}>
                         {choiceLabel}
@@ -644,14 +644,14 @@ export function ExamInterface({
                       className={cn(
                         'w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl border-2 transition-all duration-150 text-left active:scale-[0.99]',
                         isSelected
-                          ? 'border-blue-500 bg-blue-50/70 shadow-sm ring-1 ring-blue-200'
-                          : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50'
+                          ? 'border-sky-500 bg-sky-50/70 shadow-sm ring-1 ring-sky-200'
+                          : 'border-slate-200 bg-white hover:border-sky-300 hover:bg-slate-50'
                       )}
                     >
                       <span className={cn(
                         'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors',
                         isSelected
-                          ? 'bg-blue-500 text-white border-blue-500'
+                          ? 'bg-sky-500 text-white border-sky-500'
                           : 'bg-white text-slate-500 border-slate-300'
                       )}>
                         {choice.label ?? ANSWER_LABELS[idx]}
@@ -662,14 +662,14 @@ export function ExamInterface({
                           textSize === 'sm' && 'text-xs',
                           textSize === 'md' && 'text-sm',
                           textSize === 'lg' && 'text-base',
-                          isSelected ? 'text-blue-900 font-medium' : 'text-slate-700'
+                          isSelected ? 'text-sky-900 font-medium' : 'text-slate-700'
                         )}
                         style={{ fontFamily: 'var(--font-jakarta)' }}
                       >
                         {choice.content}
                       </span>
                       {isSelected && (
-                        <Check className="w-5 h-5 text-blue-500 flex-shrink-0" strokeWidth={3} />
+                        <Check className="w-5 h-5 text-sky-500 flex-shrink-0" strokeWidth={3} />
                       )}
                     </button>
                   );
@@ -737,8 +737,8 @@ export function ExamInterface({
                       className={cn(
                         'aspect-square rounded-lg text-sm font-bold border-2 transition-all duration-150',
                         isSelected
-                          ? 'bg-blue-500 text-white border-blue-500 shadow scale-105'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50'
+                          ? 'bg-sky-500 text-white border-sky-500 shadow scale-105'
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-sky-300 hover:text-sky-600 hover:bg-sky-50'
                       )}
                     >
                       {label}
@@ -866,9 +866,9 @@ export function ExamInterface({
                     aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
                     className={cn(
                       'aspect-square rounded text-[11px] font-semibold transition-all',
-                      isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
+                      isCurrent && 'border-2 border-sky-500 bg-sky-50 text-sky-700',
                       !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
-                      !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white hover:bg-blue-600',
+                      !isCurrent && !isMarked && isAnswered && 'bg-sky-500 text-white hover:bg-sky-600',
                       !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                     )}
                   >
@@ -989,8 +989,8 @@ export function ExamInterface({
           </DialogHeader>
           <div className="space-y-3 py-1">
             {[
-              { cls: 'border-2 border-blue-500 bg-blue-50', label: 'Soal yang sedang dibuka' },
-              { cls: 'bg-blue-500', label: 'Sudah dijawab' },
+              { cls: 'border-2 border-sky-500 bg-sky-50', label: 'Soal yang sedang dibuka' },
+              { cls: 'bg-sky-500', label: 'Sudah dijawab' },
               { cls: 'bg-yellow-400', label: 'Ditandai untuk review' },
               { cls: 'bg-slate-100 border border-slate-300', label: 'Belum dijawab' },
             ].map(({ cls, label }) => (

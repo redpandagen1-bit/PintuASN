@@ -47,7 +47,7 @@ const TIER_MAP: Record<TierFilter, string> = {
 
 const TIER_BADGE: Record<string, { label: string; cls: string }> = {
   free:     { label: 'Gratis',   cls: 'bg-emerald-500 text-white'  },
-  premium:  { label: 'Premium',  cls: 'bg-blue-500 text-white'     },
+  premium:  { label: 'Premium',  cls: 'bg-sky-500 text-white'      },
   platinum: { label: 'Platinum', cls: 'bg-purple-500 text-white'   },
 };
 
@@ -231,7 +231,7 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
               <span className={cn(
                 'font-bold',
                 userTier === 'platinum' ? 'text-purple-300'
-                : userTier === 'premium'  ? 'text-blue-300'
+                : userTier === 'premium'  ? 'text-sky-300'
                 : 'text-emerald-400',
               )}>
                 {userTier === 'platinum' ? 'Platinum' : userTier === 'premium' ? 'Premium' : 'Gratis'}

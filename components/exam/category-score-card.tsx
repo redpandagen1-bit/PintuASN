@@ -31,10 +31,10 @@ export function CategoryScoreCard({
       name: 'Tes Wawasan Kebangsaan',
       icon: Users,
       color: 'blue',
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
-      textColor: 'text-blue-700',
-      iconColor: 'text-blue-500'
+      bgColor: 'bg-sky-50',
+      borderColor: 'border-sky-200',
+      textColor: 'text-sky-700',
+      iconColor: 'text-sky-500'
     },
     TIU: {
       name: 'Tes Intelejensi Umum',

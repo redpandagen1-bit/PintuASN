@@ -19,8 +19,8 @@ interface Props {
 }
 
 const LEGEND = [
-  { cls: 'border-2 border-blue-500 bg-blue-50', label: 'Soal aktif' },
-  { cls: 'bg-blue-500', label: 'Sudah dijawab' },
+  { cls: 'border-2 border-sky-500 bg-sky-50', label: 'Soal aktif' },
+  { cls: 'bg-sky-500', label: 'Sudah dijawab' },
   { cls: 'bg-yellow-400', label: 'Ditandai review' },
   { cls: 'bg-slate-100 border border-slate-300', label: 'Belum dijawab' },
 ];
@@ -65,7 +65,7 @@ export function QuestionNavigatorSheet({
           <div>
             <p className="font-bold text-slate-900 text-sm">Navigasi Soal</p>
             <p className="text-xs text-slate-500 mt-0.5">
-              <span className="text-blue-600 font-semibold">{answeredCount}</span>
+              <span className="text-sky-600 font-semibold">{answeredCount}</span>
               <span> / {totalCount} terjawab</span>
               {unanswered > 0 && (
                 <span className="text-red-500 ml-1">· {unanswered} belum</span>
@@ -96,9 +96,9 @@ export function QuestionNavigatorSheet({
                     aria-label={`Soal ${index + 1}`}
                     className={cn(
                       'aspect-square rounded-lg text-[11px] font-semibold transition-all active:scale-95',
-                      isCurrent && 'border-2 border-blue-500 bg-blue-50 text-blue-700',
+                      isCurrent && 'border-2 border-sky-500 bg-sky-50 text-sky-700',
                       !isCurrent && isMarked && 'bg-yellow-400 text-white',
-                      !isCurrent && !isMarked && isAnswered && 'bg-blue-500 text-white',
+                      !isCurrent && !isMarked && isAnswered && 'bg-sky-500 text-white',
                       !isCurrent && !isMarked && !isAnswered && 'bg-slate-100 text-slate-500',
                     )}
                   >

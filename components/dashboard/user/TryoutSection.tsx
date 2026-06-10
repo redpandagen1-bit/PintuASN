@@ -72,7 +72,7 @@ function DashboardPackageCard({
   const tierBadge = contentTier === 'platinum'
     ? { label: 'Platinum', className: 'bg-purple-500 text-white' }
     : contentTier === 'premium'
-    ? { label: 'Premium',  className: 'bg-blue-500 text-white' }
+    ? { label: 'Premium',  className: 'bg-sky-500 text-white' }
     : { label: 'Gratis',   className: 'bg-emerald-500 text-white' };
 
   const truncatedTitle = pkg.title.length > 18

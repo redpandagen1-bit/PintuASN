@@ -14,69 +14,69 @@
   --font-headline: var(--font-jakarta);  /* Plus Jakarta Sans — display & headlines */
   --font-body: var(--font-inter);        /* Inter — body, labels, questions */
 
-  /* ── Pathfinder Navy — legacy aliases (backward compat) ── */
-  --color-pn-navy: #091426;
-  --color-pn-navy-deep: #001626;
-  --color-pn-navy-mid: #0d1f38;
+  /* ── Slate+Sky+Yellow — legacy aliases ── */
+  --color-pn-navy: #1e293b;
+  --color-pn-navy-deep: #0f172a;
+  --color-pn-navy-mid: #1e293b;
   --color-pn-gold: #f9bd22;
-  --color-pn-gold-dark: #795900;
-  --color-pn-surface: #f8f9ff;
-  --color-pn-surface-low: #eff4ff;
+  --color-pn-gold-dark: #ca8a04;
+  --color-pn-surface: #f8fafc;
+  --color-pn-surface-low: #f8fafc;
 
-  /* ── MD3 Pathfinder Navy — Primary ── */
-  --color-md-primary: #091426;
+  /* ── MD3 Slate+Sky+Yellow — Primary (Slate-800) ── */
+  --color-md-primary: #1e293b;
   --color-md-on-primary: #ffffff;
-  --color-md-primary-container: #1e293b;
-  --color-md-on-primary-container: #8590a6;
-  --color-md-primary-fixed: #d8e3fb;
-  --color-md-primary-fixed-dim: #bcc7de;
-  --color-md-on-primary-fixed: #111c2d;
-  --color-md-on-primary-fixed-variant: #3c475a;
-  --color-md-inverse-primary: #bcc7de;
+  --color-md-primary-container: #334155;
+  --color-md-on-primary-container: #94a3b8;
+  --color-md-primary-fixed: #e2e8f0;
+  --color-md-primary-fixed-dim: #cbd5e1;
+  --color-md-on-primary-fixed: #1e293b;
+  --color-md-on-primary-fixed-variant: #475569;
+  --color-md-inverse-primary: #cbd5e1;
 
-  /* ── MD3 Pathfinder Navy — Secondary (Gold) ── */
-  --color-md-secondary: #795900;
+  /* ── MD3 Slate+Sky+Yellow — Secondary (Sky Blue) ── */
+  --color-md-secondary: #0369a1;
   --color-md-on-secondary: #ffffff;
-  --color-md-secondary-container: #ffc329;
-  --color-md-on-secondary-container: #6f5100;
-  --color-md-secondary-fixed: #ffdf9f;
-  --color-md-secondary-fixed-dim: #f9bd22;
-  --color-md-on-secondary-fixed: #261a00;
-  --color-md-on-secondary-fixed-variant: #5c4300;
+  --color-md-secondary-container: #bae6fd;
+  --color-md-on-secondary-container: #0c4a6e;
+  --color-md-secondary-fixed: #e0f2fe;
+  --color-md-secondary-fixed-dim: #7dd3fc;
+  --color-md-on-secondary-fixed: #082f49;
+  --color-md-on-secondary-fixed-variant: #0369a1;
 
-  /* ── MD3 Pathfinder Navy — Tertiary (Deep Navy) ── */
-  --color-md-tertiary: #001626;
+  /* ── MD3 Slate+Sky+Yellow — Tertiary (Slate-900) ── */
+  --color-md-tertiary: #0f172a;
   --color-md-on-tertiary: #ffffff;
-  --color-md-tertiary-container: #002b46;
-  --color-md-on-tertiary-container: #3d96d7;
-  --color-md-tertiary-fixed: #cde5ff;
-  --color-md-tertiary-fixed-dim: #94ccff;
-  --color-md-on-tertiary-fixed: #001d32;
-  --color-md-on-tertiary-fixed-variant: #004b74;
+  --color-md-tertiary-container: #0c4a6e;
+  --color-md-on-tertiary-container: #38bdf8;
+  --color-md-tertiary-fixed: #e0f2fe;
+  --color-md-tertiary-fixed-dim: #7dd3fc;
+  --color-md-on-tertiary-fixed: #082f49;
+  --color-md-on-tertiary-fixed-variant: #075985;
 
-  /* ── MD3 Pathfinder Navy — Surface hierarchy ── */
-  --color-md-surface: #f8f9ff;
-  --color-md-on-surface: #0b1c30;
-  --color-md-surface-variant: #d3e4fe;
-  --color-md-on-surface-variant: #45474c;
+  /* ── MD3 Slate+Sky+Yellow — Surface hierarchy ── */
+  --color-md-surface: #f8fafc;
+  --color-md-on-surface: #1e293b;
+  --color-md-surface-variant: #e2e8f0;
+  --color-md-on-surface-variant: #64748b;
   --color-md-surface-container-lowest: #ffffff;
-  --color-md-surface-container-low: #eff4ff;
-  --color-md-surface-container: #e5eeff;
-  --color-md-surface-container-high: #dce9ff;
-  --color-md-surface-container-highest: #d3e4fe;
-  --color-md-surface-bright: #f8f9ff;
-  --color-md-surface-dim: #cbdbf5;
-  --color-md-inverse-surface: #213145;
-  --color-md-inverse-on-surface: #eaf1ff;
-  --color-md-surface-tint: #545f73;
+  --color-md-surface-container-low: #f8fafc;
+  --color-md-surface-container: #f1f5f9;
+  --color-md-surface-container-high: #e2e8f0;
+  --color-md-surface-container-highest: #cbd5e1;
+  --color-md-surface-bright: #f8fafc;
+  --color-md-surface-dim: #e2e8f0;
+  --color-md-inverse-surface: #1e293b;
+  --color-md-inverse-on-surface: #f1f5f9;
+  --color-md-surface-tint: #475569;
 
-  /* ── MD3 Pathfinder Navy — Background ── */
-  --color-md-background: #f8f9ff;
-  --color-md-on-background: #0b1c30;
+  /* ── MD3 Slate+Sky+Yellow — Background ── */
+  --color-md-background: #f8fafc;
+  --color-md-on-background: #1e293b;
 
-  /* ── MD3 Pathfinder Navy — Outline ── */
-  --color-md-outline: #75777d;
-  --color-md-outline-variant: #c5c6cd;
+  /* ── MD3 Slate+Sky+Yellow — Outline ── */
+  --color-md-outline: #94a3b8;
+  --color-md-outline-variant: #e2e8f0;
 
   /* ── MD3 Pathfinder Navy — Error ── */
   --color-md-error: #ba1a1a;
@@ -371,12 +371,12 @@
 .progress-md3 {
   height: 8px;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #795900 0%, #f9bd22 100%);
+  background: linear-gradient(90deg, #0ea5e9 0%, #facc15 100%);
 }
 .progress-md3-track {
   height: 8px;
   border-radius: 9999px;
-  background-color: #e5eeff;
+  background-color: #f1f5f9;
   overflow: hidden;
 }
 

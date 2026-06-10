@@ -34,14 +34,14 @@ export function UpgradeModal({ isOpen, onClose, requiredTier, contentTitle }: Up
   const Icon       = isPlatinum ? Crown : Zap;
 
   const config = {
-    iconBg:     isPlatinum ? 'bg-purple-100'  : 'bg-blue-100',
-    iconColor:  isPlatinum ? 'text-purple-600' : 'text-blue-600',
-    badgeBg:    isPlatinum ? 'bg-purple-500'   : 'bg-blue-500',
+    iconBg:     isPlatinum ? 'bg-purple-100'  : 'bg-sky-100',
+    iconColor:  isPlatinum ? 'text-purple-600' : 'text-sky-600',
+    badgeBg:    isPlatinum ? 'bg-purple-500'   : 'bg-sky-500',
     label:      isPlatinum ? 'Platinum'         : 'Premium',
     btnBg:      isPlatinum
       ? 'bg-purple-600 hover:bg-purple-700'
-      : 'bg-blue-600 hover:bg-blue-700',
-    gradient:   isPlatinum ? 'from-purple-50 to-white' : 'from-blue-50 to-white',
+      : 'bg-sky-600 hover:bg-sky-700',
+    gradient:   isPlatinum ? 'from-purple-50 to-white' : 'from-sky-50 to-white',
     features: isPlatinum
       ? ['Akses semua tryout & materi', 'Live class & webinar eksklusif',
          'Konsultasi dengan mentor', 'Grup belajar khusus Platinum', 'Roadmap belajar personal']

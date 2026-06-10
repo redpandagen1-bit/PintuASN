@@ -16,7 +16,7 @@ interface PackageCardUserProps {
 function TierBadge({ tier }: { tier?: string }) {
   if (tier === 'premium') {
     return (
-      <div className="flex items-center gap-1 bg-blue-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0">
+      <div className="flex items-center gap-1 bg-sky-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0">
         <Star size={9} fill="currentColor" />
         Premium
       </div>

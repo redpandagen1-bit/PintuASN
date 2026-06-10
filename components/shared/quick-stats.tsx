@@ -39,8 +39,8 @@ export function QuickStats({ totalAttempts, averageScore, bestScore }: QuickStat
                   {typeof stat.value === 'number' ? stat.value.toFixed(0) : stat.value}
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                <div className="h-6 w-6 rounded-full bg-blue-600" />
+              <div className="h-12 w-12 rounded-lg bg-sky-100 flex items-center justify-center">
+                <div className="h-6 w-6 rounded-full bg-sky-600" />
               </div>
             </div>
             <p className="mt-2 text-xs text-slate-500">

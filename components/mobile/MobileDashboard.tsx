@@ -67,7 +67,7 @@ const MENU_ITEMS = [
 
 const TIER_BADGE: Record<string, { label: string; cls: string }> = {
   free:     { label: 'Gratis',   cls: 'bg-emerald-500 text-white'  },
-  premium:  { label: 'Premium',  cls: 'bg-blue-500 text-white'     },
+  premium:  { label: 'Premium',  cls: 'bg-sky-500 text-white'      },
   platinum: { label: 'Platinum', cls: 'bg-purple-500 text-white'   },
 };
 
@@ -89,7 +89,7 @@ function fmtCount(n: number): string {
 // ── Category chip colors (for materials) ─────────────────────
 
 const CAT_CHIP: Record<string, string> = {
-  TWK: 'bg-blue-100 text-blue-700',
+  TWK: 'bg-sky-100 text-sky-700',
   TIU: 'bg-violet-100 text-violet-700',
   TKP: 'bg-amber-100 text-amber-700',
 };

@@ -32,15 +32,15 @@ export default function TryoutCard({ tryout }: TryoutCardProps) {
       case 'Premium': return 'bg-amber-100 text-amber-700 border-amber-200';
       case 'Free': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'Event': return 'bg-purple-100 text-purple-700 border-purple-200';
-      default: return 'bg-blue-100 text-blue-700 border-blue-200';
+      default: return 'bg-sky-100 text-sky-700 border-sky-200';
     }
   };
 
   return (
-    <div className="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:border-blue-100/50 relative">
+    <div className="group bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col h-full hover:border-sky-100/50 relative">
       
       {/* Top Decorative Line */}
-      <div className={`h-1.5 w-full ${isLocked ? 'bg-slate-200' : 'bg-gradient-to-r from-blue-400 to-indigo-500'}`} />
+      <div className={`h-1.5 w-full ${isLocked ? 'bg-slate-200' : 'bg-gradient-to-r from-sky-400 to-sky-600'}`} />
 
       <div className="p-6 flex-1">
         <div className="flex justify-between items-start mb-4">
@@ -55,7 +55,7 @@ export default function TryoutCard({ tryout }: TryoutCardProps) {
           {isLocked && <div className="p-1.5 bg-slate-100 rounded-full text-slate-400"><X size={14} /></div>}
         </div>
         
-        <h3 className="text-lg font-bold text-slate-800 mb-2 line-clamp-2 group-hover:text-blue-700 transition-colors">
+        <h3 className="text-lg font-bold text-slate-800 mb-2 line-clamp-2 group-hover:text-sky-700 transition-colors">
           {tryout.title}
         </h3>
         
@@ -84,7 +84,7 @@ export default function TryoutCard({ tryout }: TryoutCardProps) {
       <div className="p-5 pt-0">
         {isFinished ? (
           <Link href={`/dashboard/tryout/${tryout.id}/review`}>
-            <button className="w-full py-2.5 rounded-xl border-2 border-slate-100 text-slate-600 font-semibold hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300">
+            <button className="w-full py-2.5 rounded-xl border-2 border-slate-100 text-slate-600 font-semibold hover:border-sky-600 hover:text-sky-600 hover:bg-sky-50 transition-all duration-300">
               Lihat Pembahasan
             </button>
           </Link>
@@ -94,7 +94,7 @@ export default function TryoutCard({ tryout }: TryoutCardProps) {
           </button>
         ) : (
           <Link href={`/dashboard/tryout/${tryout.id}/start`}>
-            <button className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300 flex justify-center items-center group/btn active:scale-95">
+            <button className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-sky-700 text-white font-semibold hover:shadow-lg hover:shadow-sky-500/30 transition-all duration-300 flex justify-center items-center group/btn active:scale-95">
               Kerjakan Sekarang 
               <ChevronRight size={18} className="ml-1.5 transition-transform group-hover/btn:translate-x-1" />
             </button>

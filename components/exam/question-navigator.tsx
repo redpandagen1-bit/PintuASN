@@ -38,7 +38,7 @@ export function QuestionNavigator({
           <span>Soal Ini</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded bg-blue-500 text-white flex items-center justify-center text-xs">
+          <div className="w-8 h-8 rounded bg-sky-500 text-white flex items-center justify-center text-xs">
             1
           </div>
           <span>Dijawab</span>
@@ -72,7 +72,7 @@ export function QuestionNavigator({
                 "w-full aspect-square rounded flex items-center justify-center text-sm font-medium transition-all",
                 isCurrent && "border-2 border-green-500 bg-green-50 text-green-700",
                 !isCurrent && isMarked && "bg-yellow-500 text-white hover:bg-yellow-600",
-                !isCurrent && !isMarked && isAnswered && "bg-blue-500 text-white hover:bg-blue-600",
+                !isCurrent && !isMarked && isAnswered && "bg-sky-500 text-white hover:bg-sky-600",
                 !isCurrent && !isMarked && !isAnswered && "bg-slate-200 text-slate-700 hover:bg-slate-300"
               )}
               aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', soal saat ini' : ''}`}

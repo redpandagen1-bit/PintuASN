@@ -43,7 +43,7 @@ function getDifficultyBadge(difficulty: string) {
 
 function getTierBadge(tier?: string | null) {
   switch (tier) {
-    case 'premium':  return { label: 'Premium',  cls: 'bg-blue-500/20 text-blue-300 border-blue-500/30'       };
+    case 'premium':  return { label: 'Premium',  cls: 'bg-sky-500/20 text-sky-300 border-sky-500/30'         };
     case 'platinum': return { label: 'Platinum', cls: 'bg-purple-500/20 text-purple-300 border-purple-500/30' };
     default:         return { label: 'Gratis',   cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
   }
@@ -121,8 +121,8 @@ export function MobilePackageDetail({
         {/* ── Quick Stats ───────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-xl p-3.5 flex items-center gap-3 shadow-sm border border-slate-100">
-            <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-              <FileText size={16} className="text-blue-600" />
+            <div className="w-9 h-9 bg-sky-50 rounded-lg flex items-center justify-center flex-shrink-0">
+              <FileText size={16} className="text-sky-600" />
             </div>
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Total Soal</p>
@@ -159,7 +159,7 @@ export function MobilePackageDetail({
           </div>
           <div className="p-4 space-y-3">
             {[
-              { key: 'TWK', label: 'Tes Wawasan Kebangsaan',    value: PASSING_GRADE.twk, Icon: BookOpen,     cls: 'bg-blue-50 text-blue-600'    },
+              { key: 'TWK', label: 'Tes Wawasan Kebangsaan',    value: PASSING_GRADE.twk, Icon: BookOpen,     cls: 'bg-sky-50 text-sky-600'      },
               { key: 'TIU', label: 'Tes Intelegensia Umum',     value: PASSING_GRADE.tiu, Icon: BrainCircuit, cls: 'bg-emerald-50 text-emerald-600' },
               { key: 'TKP', label: 'Tes Karakteristik Pribadi', value: PASSING_GRADE.tkp, Icon: Users,        cls: 'bg-purple-50 text-purple-600'  },
             ].map((item, i) => (

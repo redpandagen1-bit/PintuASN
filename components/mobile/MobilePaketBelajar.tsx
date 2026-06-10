@@ -98,7 +98,7 @@ function PricingCard({
   const { isFree, isPremium, isPlatinum } = pkg;
 
   const cardBg = isPremium
-    ? 'bg-blue-600 border-blue-500'
+    ? 'bg-sky-600 border-sky-500'
     : isPlatinum
     ? 'bg-gradient-to-br from-violet-900 via-purple-800 to-slate-900 border-violet-700'
     : 'bg-white border-slate-200';
@@ -116,7 +116,7 @@ function PricingCard({
     isCurrent
       ? 'bg-white/20 text-white/60 cursor-default'
       : isPremium
-      ? 'bg-white text-blue-600 hover:bg-blue-50'
+      ? 'bg-white text-sky-600 hover:bg-sky-50'
       : isPlatinum
       ? 'bg-amber-400 text-slate-900 hover:bg-amber-300'
       : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
@@ -129,7 +129,7 @@ function PricingCard({
       {pkg.badge && (
         <div className={cn(
           'absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap z-10 tracking-wide',
-          isPremium  ? 'bg-white text-blue-600' : 'bg-amber-400 text-slate-900',
+          isPremium  ? 'bg-white text-sky-600' : 'bg-amber-400 text-slate-900',
         )}>
           {pkg.badge}
         </div>
@@ -142,7 +142,7 @@ function PricingCard({
             <p className={cn('font-bold text-base leading-tight', isPremium || isPlatinum ? 'text-white' : 'text-slate-900')}>
               {pkg.name}
             </p>
-            <p className={cn('text-xs', isPremium ? 'text-blue-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
+            <p className={cn('text-xs', isPremium ? 'text-sky-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
               {pkg.period}
             </p>
           </div>
@@ -159,19 +159,19 @@ function PricingCard({
         {/* Price */}
         <div className="mb-3">
           {pkg.originalPrice && (
-            <p className={cn('text-xs line-through mb-0.5', isPremium ? 'text-blue-200' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
+            <p className={cn('text-xs line-through mb-0.5', isPremium ? 'text-sky-200' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
               {pkg.originalPrice}
             </p>
           )}
           <p className={cn('text-2xl font-bold', isPremium || isPlatinum ? 'text-white' : 'text-slate-900')}>
             {pkg.priceLabel === 'Rp 0' ? 'Gratis' : pkg.priceLabel}
           </p>
-          <p className={cn('text-xs mt-0.5', isPremium ? 'text-blue-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
+          <p className={cn('text-xs mt-0.5', isPremium ? 'text-sky-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
             {pkg.description}
           </p>
         </div>
 
-        <div className={cn('h-px', isPremium ? 'bg-blue-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
+        <div className={cn('h-px', isPremium ? 'bg-sky-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
       </div>
 
       {/* Feature list */}
@@ -184,7 +184,7 @@ function PricingCard({
               {sectionLabel && (
                 <p className={cn(
                   'text-[9px] font-black uppercase tracking-widest pt-3 pb-1.5',
-                  isPremium ? 'text-blue-200/60' : isPlatinum ? 'text-purple-400' : 'text-slate-400',
+                  isPremium ? 'text-sky-200/60' : isPlatinum ? 'text-purple-400' : 'text-slate-400',
                 )}>
                   {sectionLabel}
                 </p>
@@ -222,7 +222,7 @@ function PricingCard({
 
       {/* CTA */}
       <div className="px-5 pt-3 pb-5">
-        <div className={cn('h-px mb-3', isPremium ? 'bg-blue-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
+        <div className={cn('h-px mb-3', isPremium ? 'bg-sky-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
         <button onClick={isCurrent ? undefined : onSelect} disabled={isCurrent} className={ctaCls}>
           {isCurrent
             ? <><Lock size={13} /> {ctaLabel}</>
@@ -321,7 +321,7 @@ function RiwayatPembayaranTab() {
           </div>
           {item.status.toUpperCase() === 'PENDING' && (
             <Link href={`/pembayaran/${item.orderId}`} className="block mt-3">
-              <button className="w-full py-2.5 bg-blue-50 text-blue-600 text-xs font-bold rounded-xl active-press border border-blue-100">
+              <button className="w-full py-2.5 bg-sky-50 text-sky-600 text-xs font-bold rounded-xl active-press border border-sky-100">
                 Lanjutkan Pembayaran
               </button>
             </Link>
@@ -338,7 +338,7 @@ function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
   const tierName  = { free: 'Gratis', premium: 'Premium', platinum: 'Platinum' }[userTier];
   const tierColor = {
     free:     'border-slate-200 bg-slate-50',
-    premium:  'border-blue-200 bg-blue-50',
+    premium:  'border-sky-200 bg-sky-50',
     platinum: 'border-violet-200 bg-violet-50',
   }[userTier];
   const features  = {
@@ -355,7 +355,7 @@ function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
           <span className={cn(
             'text-xs font-black px-3 py-1 rounded-full',
             userTier === 'platinum' ? 'bg-violet-100 text-violet-700' :
-            userTier === 'premium'  ? 'bg-blue-100 text-blue-700'     :
+            userTier === 'premium'  ? 'bg-sky-100 text-sky-700'       :
             'bg-emerald-100 text-emerald-700',
           )}>
             {tierName.toUpperCase()}
@@ -371,7 +371,7 @@ function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
         </ul>
       </div>
       {userTier === 'free' && (
-        <button className="w-full bg-blue-600 text-white font-extrabold py-4 rounded-2xl text-sm flex items-center justify-center gap-2 active-press shadow-sm">
+        <button className="w-full bg-sky-600 text-white font-extrabold py-4 rounded-2xl text-sm flex items-center justify-center gap-2 active-press shadow-sm">
           <Star size={16} fill="currentColor" />
           Upgrade Sekarang
         </button>

@@ -31,7 +31,7 @@ function getInitials(name?: string) {
 
 function tierBadge(tier?: string) {
   switch (tier) {
-    case 'premium':  return { label: 'Premium',  bg: 'bg-blue-500',   text: 'text-white' };
+    case 'premium':  return { label: 'Premium',  bg: 'bg-sky-500',    text: 'text-white' };
     case 'platinum': return { label: 'Platinum', bg: 'bg-purple-500', text: 'text-white' };
     default:         return { label: 'Gratis',   bg: 'bg-emerald-500',text: 'text-white' };
   }
@@ -126,7 +126,7 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
 
   const tierInfo = {
     free:     { label: 'Gratis',   color: 'bg-emerald-100 text-emerald-700' },
-    premium:  { label: 'Premium',  color: 'bg-blue-100 text-blue-700'       },
+    premium:  { label: 'Premium',  color: 'bg-sky-100 text-sky-700'         },
     platinum: { label: 'Platinum', color: 'bg-purple-100 text-purple-700'   },
   }[profile.subscription_tier ?? 'free'] ?? { label: 'Gratis', color: 'bg-emerald-100 text-emerald-700' };
 
@@ -422,7 +422,7 @@ export function MobileProfile({ initialProfile, initialStats }: MobileProfilePro
           <div className={cn(
             'rounded-2xl p-6 border-2',
             profile.subscription_tier === 'platinum' ? 'border-purple-200 bg-purple-50' :
-            profile.subscription_tier === 'premium'  ? 'border-blue-200 bg-blue-50'     :
+            profile.subscription_tier === 'premium'  ? 'border-sky-200 bg-sky-50'       :
             'border-md-outline-variant/20 bg-md-surface-container-low',
           )}>
             <div className="flex items-center justify-between mb-3">

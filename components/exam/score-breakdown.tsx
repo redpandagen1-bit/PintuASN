@@ -29,7 +29,7 @@ export function ScoreBreakdown({
     <Card className="mb-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-xl">
-          <Award className="h-6 w-6 text-blue-600" />
+          <Award className="h-6 w-6 text-sky-600" />
           Skor Total
         </CardTitle>
       </CardHeader>
@@ -65,9 +65,9 @@ export function ScoreBreakdown({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t">
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
+                <TrendingUp className="h-5 w-5 text-sky-500" />
               </div>
-              <div className="text-lg font-semibold text-blue-600">
+              <div className="text-lg font-semibold text-sky-600">
                 {scorePercentage >= 70 ? 'Baik' : scorePercentage >= 50 ? 'Cukup' : 'Perlu Perbaikan'}
               </div>
               <div className="text-xs text-muted-foreground">Kinerja</div>

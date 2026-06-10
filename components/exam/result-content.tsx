@@ -133,9 +133,9 @@ export function ResultContent({
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
-                <Clock className="h-8 w-8 text-blue-500" />
+                <Clock className="h-8 w-8 text-sky-500" />
               </div>
-              <div className="text-2xl font-bold text-blue-600">{timeTaken}</div>
+              <div className="text-2xl font-bold text-sky-600">{timeTaken}</div>
               <div className="text-sm text-muted-foreground">Waktu Pengerjaan</div>
             </div>
             
@@ -163,7 +163,7 @@ export function ResultContent({
 
       {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button asChild size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+        <Button asChild size="lg" className="bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800">
           <Link href={`/exam/${attempt.id}/review`}>
             Lihat Pembahasan Soal
           </Link>
