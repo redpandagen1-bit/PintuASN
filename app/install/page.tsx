@@ -109,7 +109,7 @@ export default function InstallPage() {
             </div>
             <div className="text-sm">
               <p className="font-bold text-emerald-900 mb-0.5">PintuASN sudah terpasang</p>
-              <p className="text-emerald-800">Kamu membuka halaman ini dari aplikasi yang sudah terinstal. Tidak perlu memasang ulang.</p>
+              <p className="text-emerald-800">Aplikasi sudah terinstal di perangkat ini. Tidak perlu memasang ulang — cukup buka dari layar utama.</p>
             </div>
           </div>
         )}
@@ -159,7 +159,7 @@ export default function InstallPage() {
 
         {/* Steps */}
         <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 md:p-6 max-w-xl mx-auto mb-8">
-          {showInstallButton ? (
+          {tab === 'android' ? (
             <>
               <button
                 onClick={() => setManualOpen((o) => !o)}
@@ -178,15 +178,13 @@ export default function InstallPage() {
             <>
               <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <Smartphone size={18} className="text-sky-500" />
-                Cara pasang di {tab === 'ios' ? 'iPhone / iPad' : 'Android'}
+                Cara pasang di iPhone / iPad
               </h2>
               {stepsList}
-              {tab === 'ios' && (
-                <div className="mt-5 rounded-xl bg-sky-50 border border-sky-100 p-3 text-xs text-sky-800">
-                  Menu &ldquo;Add to Home Screen&rdquo; hanya muncul di <span className="font-bold">Safari</span>.
-                  Kalau kamu memakai Chrome di iPhone, buka menu lalu pilih &ldquo;Open in Safari&rdquo; dulu.
-                </div>
-              )}
+              <div className="mt-5 rounded-xl bg-sky-50 border border-sky-100 p-3 text-xs text-sky-800">
+                Menu &ldquo;Add to Home Screen&rdquo; hanya muncul di <span className="font-bold">Safari</span>.
+                Kalau kamu memakai Chrome di iPhone, buka menu lalu pilih &ldquo;Open in Safari&rdquo; dulu.
+              </div>
             </>
           )}
         </div>

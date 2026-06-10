@@ -35,6 +35,16 @@ export function usePWAInstall() {
     else if (isAndroid) setPlatform('android');
     else setPlatform('desktop');
 
+    // Deteksi terpasang walau sedang di tab browser (Android Chromium).
+    // Butuh related_applications berisi entri "webapp" di manifest.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nav = navigator as any;
+    if (typeof nav.getInstalledRelatedApps === 'function') {
+      nav.getInstalledRelatedApps()
+        .then((apps: unknown[]) => { if (apps && apps.length > 0) setIsInstalled(true); })
+        .catch(() => {});
+    }
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);

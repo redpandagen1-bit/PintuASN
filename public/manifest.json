@@ -59,5 +59,7 @@
     }
   ],
   "prefer_related_applications": false,
-  "related_applications": []
+  "related_applications": [
+    { "platform": "webapp", "url": "https://pintuasn.com/manifest.json" }
+  ]
 }
