@@ -20,8 +20,8 @@ export async function subscribeToPush(): Promise<string | null> {
     const messaging = await getFirebaseMessaging();
     if (!messaging) return null;
 
-    // Daftarkan service worker, lalu tunggu sampai benar-benar aktif
-    await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+    // Daftarkan service worker tunggal (cache + FCM), lalu tunggu aktif
+    await navigator.serviceWorker.register('/sw.js', { scope: '/' });
     const registration = await navigator.serviceWorker.ready;
 
     const token = await getToken(messaging, {

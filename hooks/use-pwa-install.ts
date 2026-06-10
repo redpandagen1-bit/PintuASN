@@ -65,6 +65,8 @@ export function usePWAInstall() {
   };
 
   const canInstall = !isInstalled && (platform === 'ios' || !!deferredPrompt);
+  // Prompt install native benar-benar siap dipicu (hanya Chromium Android/desktop).
+  const promptReady = !!deferredPrompt;
 
-  return { install, canInstall, isInstalled, platform };
+  return { install, canInstall, isInstalled, platform, promptReady };
 }

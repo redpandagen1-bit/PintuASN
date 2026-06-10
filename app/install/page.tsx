@@ -6,19 +6,30 @@ import Image from 'next/image';
 import {
   ArrowLeft, Share, Plus, MoreVertical, ShieldCheck,
   Smartphone, CheckCircle2, Sparkles, Zap, RefreshCw,
+  Download, Info,
 } from 'lucide-react';
+import { usePWAInstall } from '@/hooks/use-pwa-install';
 
 type Platform = 'ios' | 'android';
 
 export default function InstallPage() {
-  const [platform, setPlatform] = useState<Platform>('android');
+  const { install, platform: detected, promptReady, isInstalled } = usePWAInstall();
+  const [tab, setTab] = useState<Platform>('android');
+  const [mounted, setMounted] = useState(false);
+  const [installing, setInstalling] = useState(false);
 
+  // Sinkronkan tab dengan platform terdeteksi (sekali, saat terdeteksi)
   useEffect(() => {
-    const ua = navigator.userAgent;
-    if (/iphone|ipad|ipod/i.test(ua)) setPlatform('ios');
-    else if (/android/i.test(ua)) setPlatform('android');
-    // desktop: biarkan default 'android', user bisa ganti tab manual
-  }, []);
+    setMounted(true);
+    if (detected === 'ios') setTab('ios');
+    else if (detected === 'android') setTab('android');
+  }, [detected]);
+
+  const handleInstall = async () => {
+    setInstalling(true);
+    await install();
+    setInstalling(false);
+  };
 
   const iosSteps = [
     { icon: <Share size={18} />, title: 'Buka lewat Safari', desc: 'Pastikan halaman pintuasn.com dibuka di browser Safari bawaan iPhone/iPad.' },
@@ -33,7 +44,16 @@ export default function InstallPage() {
     { icon: <CheckCircle2 size={18} />, title: 'Konfirmasi "Install"', desc: 'Ikon PintuASN langsung terpasang di layar utama. Selesai!' },
   ];
 
-  const steps = platform === 'ios' ? iosSteps : androidSteps;
+  const steps = tab === 'ios' ? iosSteps : androidSteps;
+
+  // Catatan pengaman: tab dibuka tidak cocok dengan perangkat
+  const mismatch =
+    mounted &&
+    ((detected === 'ios' && tab === 'android') || (detected === 'android' && tab === 'ios'));
+  const mismatchTarget = detected === 'ios' ? 'iPhone / iPad' : 'Android';
+
+  // Tombol install 1-klik hanya muncul di Android yang promptnya benar-benar siap
+  const showInstallButton = tab === 'android' && promptReady && !isInstalled;
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -58,9 +78,22 @@ export default function InstallPage() {
             Pasang <span className="text-sky-500">PintuASN</span> di HP-mu
           </h1>
           <p className="text-slate-500 mt-2 max-w-md mx-auto text-sm md:text-base">
-            Akses semua tryout & materi langsung dari layar utama — secepat aplikasi biasa, tanpa perlu store.
+            Akses semua tryout &amp; materi langsung dari layar utama secepat aplikasi biasa, tanpa perlu store.
           </p>
         </div>
+
+        {/* Sudah terpasang */}
+        {mounted && isInstalled && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 md:p-5 mb-8 flex items-start gap-3">
+            <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center">
+              <CheckCircle2 size={18} />
+            </div>
+            <div className="text-sm">
+              <p className="font-bold text-emerald-900 mb-0.5">PintuASN sudah terpasang</p>
+              <p className="text-emerald-800">Kamu membuka halaman ini dari aplikasi yang sudah terinstal. Tidak perlu memasang ulang.</p>
+            </div>
+          </div>
+        )}
 
         {/* Notice: impostor / belum di store */}
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 md:p-5 mb-8">
@@ -75,7 +108,7 @@ export default function InstallPage() {
               <p className="text-amber-800">
                 PintuASN belum merilis aplikasi di Google Play Store maupun App Store. Untuk sekarang,
                 PintuASN hadir sebagai aplikasi web (PWA) yang bisa langsung kamu tambahkan ke layar
-                utama — ringan, tanpa unduhan besar, dan otomatis selalu versi terbaru.
+                utama ringan, tanpa unduhan besar, dan otomatis selalu versi terbaru.
               </p>
               <p className="text-amber-800 mt-2">
                 Jika kamu menemukan aplikasi bernama &ldquo;PintuASN&rdquo; di Google Play, itu{' '}
@@ -106,9 +139,9 @@ export default function InstallPage() {
           {(['ios', 'android'] as Platform[]).map((p) => (
             <button
               key={p}
-              onClick={() => setPlatform(p)}
+              onClick={() => setTab(p)}
               className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
-                platform === p ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                tab === p ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {p === 'ios' ? 'iPhone / iPad' : 'Android'}
@@ -116,11 +149,39 @@ export default function InstallPage() {
           ))}
         </div>
 
+        {/* Catatan pengaman jika tab tidak cocok dengan perangkat */}
+        {mismatch && (
+          <div className="mb-5 rounded-xl bg-sky-50 border border-sky-100 p-3 flex items-start gap-2 text-xs text-sky-800 max-w-xl mx-auto">
+            <Info size={15} className="flex-shrink-0 mt-0.5" />
+            <p>
+              Perangkatmu terdeteksi <span className="font-bold">{mismatchTarget}</span>. Langkah di tab ini
+              untuk perangkat lain. Pindah ke tab <span className="font-bold">{mismatchTarget}</span> untuk panduan yang sesuai.
+            </p>
+          </div>
+        )}
+
+        {/* Tombol install 1-klik (hanya Android yang prompt-nya siap) */}
+        {showInstallButton && (
+          <div className="mb-5 max-w-xl mx-auto">
+            <button
+              onClick={handleInstall}
+              disabled={installing}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-extrabold shadow-sm transition-all active:scale-[0.98] disabled:opacity-60"
+            >
+              <Download size={18} />
+              {installing ? 'Memasang…' : 'Install Sekarang'}
+            </button>
+            <p className="text-center text-[11px] text-slate-400 mt-2">
+              Akan muncul dialog konfirmasi resmi dari browser. Atau ikuti langkah manual di bawah.
+            </p>
+          </div>
+        )}
+
         {/* Steps */}
-        <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 md:p-6">
+        <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-5 md:p-6 max-w-xl mx-auto">
           <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Smartphone size={18} className="text-sky-500" />
-            Cara pasang di {platform === 'ios' ? 'iPhone / iPad' : 'Android'}
+            {showInstallButton ? 'Atau pasang manual di Android' : `Cara pasang di ${tab === 'ios' ? 'iPhone / iPad' : 'Android'}`}
           </h2>
           <ol className="space-y-4">
             {steps.map((s, i) => (
@@ -138,7 +199,7 @@ export default function InstallPage() {
             ))}
           </ol>
 
-          {platform === 'ios' && (
+          {tab === 'ios' && (
             <div className="mt-5 rounded-xl bg-sky-50 border border-sky-100 p-3 text-xs text-sky-800">
               Menu &ldquo;Add to Home Screen&rdquo; hanya muncul di <span className="font-bold">Safari</span>.
               Kalau kamu memakai Chrome di iPhone, buka menu lalu pilih &ldquo;Open in Safari&rdquo; dulu.

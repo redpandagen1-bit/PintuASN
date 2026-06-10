@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import { idID } from '@clerk/localizations';
 import { Toaster } from 'sonner';
+import { ServiceWorkerRegister } from '@/components/shared/sw-register';
 import './globals.css';
 
 const inter = Inter({
@@ -75,6 +76,7 @@ export default function RootLayout({
       <html lang="id" className={`${inter.variable} ${jakarta.variable}`}>
         <body className={`${inter.className} tap-none overscroll-none`}>
           {children}
+          <ServiceWorkerRegister />
           <Toaster position="top-right" richColors />
         </body>
       </html>
