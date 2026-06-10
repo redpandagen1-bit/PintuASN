@@ -71,7 +71,7 @@ export const SECONDARY_MENU_ITEMS: MenuItem[] = [
   {
     id: 'grup',
     label: 'Grup',
-    href: 'https://wa.me/6585190868980?text=halo%20admin%20pintuASN%2C%20saya%20ingin%20join%20grup',
+    href: 'https://wa.me/6285190868980?text=halo%20admin%20pintuASN%2C%20saya%20ingin%20join%20grup',
     icon: 'Users',
     iconFile: 'grup',
     isActive: false,
