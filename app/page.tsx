@@ -106,6 +106,7 @@ html{scroll-behavior:smooth}
 .btn-gold{background:var(--gold);color:#fff;font-weight:800;font-size:14px;text-decoration:none;padding:10px 20px;border-radius:11px;
   box-shadow:0 8px 22px rgba(14,165,233,.32);transition:.25s}
 .btn-gold:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(14,165,233,.45)}
+.lp-mobile-dl{display:none}
 .lp-burger{display:none;background:none;border:none;cursor:pointer;flex-direction:column;gap:5px;padding:6px}
 .lp-burger span{width:24px;height:2.5px;background:var(--navy);border-radius:2px;transition:.3s}
 .lp-mobile{display:none}
@@ -415,6 +416,10 @@ html{scroll-behavior:smooth}
   .pcard.prem{transform:none}.pcard.prem:hover{transform:translateY(-8px)}
   .hero-right{display:flex;justify-content:center;margin-top:20px}
   .lp-links,.lp-nav-cta{display:none}
+  .lp-mobile-dl{display:inline-flex;align-items:center;gap:6px;margin-left:26px;margin-right:auto;margin-top:-11px;
+    background:var(--navy);color:#facc15;font-weight:800;font-size:12.5px;padding:8px 13px;border-radius:10px;
+    text-decoration:none;white-space:nowrap;box-shadow:0 6px 16px rgba(30,41,59,.22)}
+  .lp-mobile-dl:active{transform:scale(.97)}
   .lp-burger{display:flex}
   .lp-mobile{display:block;position:fixed;top:60px;left:0;right:0;z-index:55;background:#fff;border-bottom:1px solid var(--s200);
     padding:16px 24px;box-shadow:0 12px 30px rgba(30,41,59,.1);animation:lp-slidedown .25s ease}
@@ -424,6 +429,7 @@ html{scroll-behavior:smooth}
 @media(max-width:560px){
   .foot-grid{grid-template-columns:1fr}.foot-bottom{flex-direction:column;gap:8px;text-align:center}
   .sec{padding:60px 20px}.hero{padding:120px 20px 56px}
+  .lp-mobile-dl{font-size:11.5px;padding:7px 10px;margin-left:20px;gap:5px}
 }
 @media (prefers-reduced-motion: reduce){
   *{animation:none !important}
@@ -600,6 +606,12 @@ export default function Home() {
         <a href="#hero" className="lp-logo" aria-label="PintuASN">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/logo-navbar-sky.svg" alt="PintuASN" className="lp-logo-img" />
+        </a>
+        <a href="/install" className="lp-mobile-dl" aria-label="Download Aplikasi">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" />
+          </svg>
+          Download Aplikasi
         </a>
         <ul className="lp-links">
           <li><a href="#fitur">Fitur</a></li>
