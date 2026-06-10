@@ -39,19 +39,19 @@ export function FeatureGrid() {
       <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {FEATURE_GRID_ITEMS.map((item) => {
           const Icon = getIcon(item.icon);
-          const isActive = pathname === item.href ||
-                          (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const isActive = !item.external && (
+            pathname === item.href ||
+            (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          );
 
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={`group flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all duration-200 ${
-                isActive
-                  ? 'bg-slate-800 text-white shadow-lg shadow-slate-600/30'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 hover:shadow-md border border-slate-100'
-              }`}
-            >
+          const className = `group flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all duration-200 ${
+            isActive
+              ? 'bg-slate-800 text-white shadow-lg shadow-slate-600/30'
+              : 'bg-white text-slate-600 hover:bg-slate-50 hover:shadow-md border border-slate-100'
+          }`;
+
+          const inner = (
+            <>
               {/* Icon Container */}
               <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center mb-1 sm:mb-2 transition-all duration-200 ${
                 isActive ? 'bg-slate-800' : 'bg-slate-800 group-hover:bg-slate-700'
@@ -69,6 +69,16 @@ export function FeatureGrid() {
               }`}>
                 {item.label}
               </span>
+            </>
+          );
+
+          return item.external ? (
+            <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+              {inner}
+            </a>
+          ) : (
+            <Link key={item.id} href={item.href} className={className}>
+              {inner}
             </Link>
           );
         })}

@@ -436,10 +436,40 @@ html{scroll-behavior:smooth}
   .reveal{opacity:1 !important;transform:none !important}
   .hero::before{display:none}
 }
+
+/* ── WhatsApp floating CTA ── */
+.wa-fab{position:fixed;right:18px;bottom:20px;z-index:70;display:flex;align-items:center;gap:10px;text-decoration:none}
+.wa-fab__bubble{background:#fff;color:#1e293b;font-weight:700;font-size:13px;line-height:1.2;padding:9px 13px;border-radius:14px;
+  box-shadow:0 10px 28px rgba(30,41,59,.18);white-space:nowrap;position:relative;animation:wa-bob 2.6s ease-in-out infinite}
+.wa-fab__bubble::after{content:'';position:absolute;right:-6px;top:50%;transform:translateY(-50%);border:6px solid transparent;border-left-color:#fff}
+.wa-fab__txt{display:inline-block;animation:wa-fade .45s ease}
+.wa-fab__btn{position:relative;width:58px;height:58px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 12px 26px rgba(37,211,102,.5);flex-shrink:0;transition:transform .2s}
+.wa-fab:hover .wa-fab__btn{transform:scale(1.07)}
+.wa-fab__btn svg{width:32px;height:32px;fill:#fff}
+.wa-fab__btn::before{content:'';position:absolute;inset:0;border-radius:50%;background:#25D366;z-index:-1;animation:wa-pulse 2s ease-out infinite}
+.wa-fab__dot{position:absolute;top:-1px;right:-1px;width:14px;height:14px;border-radius:50%;background:#f5b700;border:2px solid #fff}
+@keyframes wa-pulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.9);opacity:0}}
+@keyframes wa-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes wa-fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(max-width:560px){
+  .wa-fab{right:14px;bottom:16px}
+  .wa-fab__bubble{display:none}
+  .wa-fab__btn{width:52px;height:52px}
+  .wa-fab__btn svg{width:28px;height:28px}
+}
 `;
+
+const WA_MSGS = ['Yuk gabung grup! 👋', 'Tanya admin via WhatsApp', 'Join komunitas PintuASN'];
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [waMsg, setWaMsg] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setWaMsg((i) => (i + 1) % WA_MSGS.length), 3200);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const nav = document.getElementById('lp-nav');
@@ -1055,6 +1085,25 @@ export default function Home() {
           <p>support@pintuasn.com</p>
         </div>
       </footer>
+
+      {/* ── Floating WhatsApp CTA ── */}
+      <a
+        className="wa-fab"
+        href="https://wa.me/6585190868980"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat WhatsApp PintuASN"
+      >
+        <span className="wa-fab__bubble">
+          <span className="wa-fab__txt" key={waMsg}>{WA_MSGS[waMsg]}</span>
+        </span>
+        <span className="wa-fab__btn">
+          <span className="wa-fab__dot" />
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M16 .396C7.164.396.001 7.561.001 16.397c0 2.872.755 5.57 2.073 7.905L0 32l7.93-2.05a15.9 15.9 0 0 0 8.07 2.18h.007C24.84 32.31 32 25.146 32 16.31 32 7.474 24.836.396 16 .396zm0 29.08h-.006a13.2 13.2 0 0 1-6.72-1.84l-.48-.286-4.705 1.216 1.257-4.586-.314-.472a13.18 13.18 0 0 1-2.02-7.02c0-7.29 5.93-13.22 13.22-13.22 3.53 0 6.85 1.376 9.35 3.876a13.13 13.13 0 0 1 3.87 9.35c0 7.29-5.93 13.22-13.22 13.22zm7.25-9.9c-.397-.198-2.35-1.16-2.714-1.292-.364-.132-.63-.198-.895.2-.265.396-1.027 1.29-1.26 1.556-.232.265-.464.298-.86.1-.397-.2-1.676-.618-3.193-1.97-1.18-1.052-1.976-2.352-2.21-2.75-.23-.397-.025-.612.174-.81.18-.178.397-.463.595-.695.198-.232.265-.397.397-.662.132-.265.066-.497-.033-.695-.1-.198-.895-2.157-1.226-2.952-.323-.775-.65-.67-.895-.683l-.762-.013c-.265 0-.695.1-1.06.497-.364.396-1.39 1.358-1.39 3.31 0 1.954 1.424 3.842 1.622 4.107.198.265 2.8 4.276 6.78 5.996.948.41 1.688.654 2.265.837.952.302 1.818.26 2.503.158.764-.114 2.35-.96 2.682-1.888.33-.927.33-1.722.232-1.888-.1-.165-.364-.265-.762-.463z" />
+          </svg>
+        </span>
+      </a>
     </div>
   );
 }

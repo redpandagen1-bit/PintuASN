@@ -5,6 +5,7 @@ export interface MenuItem {
   icon: string;        // lucide icon name (untuk sidebar desktop)
   iconFile: string;    // SVG filename di /images/icons/
   isActive?: boolean;
+  external?: boolean;  // buka di tab baru (mis. link WhatsApp)
 }
 
 export const MAIN_MENU_ITEMS: MenuItem[] = [
@@ -70,10 +71,11 @@ export const SECONDARY_MENU_ITEMS: MenuItem[] = [
   {
     id: 'grup',
     label: 'Grup',
-    href: '/grup',
+    href: 'https://wa.me/6585190868980?text=halo%20admin%20pintuASN%2C%20saya%20ingin%20join%20grup',
     icon: 'Users',
     iconFile: 'grup',
     isActive: false,
+    external: true,
   },
 ];
 

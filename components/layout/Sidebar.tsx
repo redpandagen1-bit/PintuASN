@@ -81,19 +81,25 @@ export function Sidebar() {
             Lainnya
           </p>
           {SECONDARY_MENU_ITEMS.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`group relative flex items-center gap-3 px-2 py-2 mx-1 rounded-xl transition-all duration-200 font-medium text-sm ${
-                  isActive
-                    ? 'bg-slate-800 text-yellow-400 shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
+            const isActive = !item.external && pathname === item.href;
+            const className = `group relative flex items-center gap-3 px-2 py-2 mx-1 rounded-xl transition-all duration-200 font-medium text-sm ${
+              isActive
+                ? 'bg-slate-800 text-yellow-400 shadow-sm'
+                : 'text-slate-600 hover:bg-slate-800 hover:text-white'
+            }`;
+            const inner = (
+              <>
                 <NavIcon iconFile={item.iconFile} isActive={isActive} />
                 <span className="flex-1 truncate text-[13px]">{item.label}</span>
+              </>
+            );
+            return item.external ? (
+              <a key={item.id} href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+                {inner}
+              </a>
+            ) : (
+              <Link key={item.id} href={item.href} className={className}>
+                {inner}
               </Link>
             );
           })}
