@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
-  ArrowLeft, Share, Plus, MoreVertical, ShieldCheck,
+  Share, Plus, MoreVertical, ShieldCheck,
   Smartphone, CheckCircle2, Sparkles, Zap, RefreshCw,
   Download, Info, ChevronDown,
 } from 'lucide-react';
 import { usePWAInstall } from '@/hooks/use-pwa-install';
+import { LandingNavbar } from '@/components/layout/LandingNavbar';
 
 type Platform = 'ios' | 'android';
 
@@ -41,7 +42,7 @@ export default function InstallPage() {
 
   const androidSteps = [
     { icon: <MoreVertical size={18} />, title: 'Buka menu browser', desc: 'Di Chrome, tap ikon tiga titik (⋮) di pojok kanan atas.' },
-    { icon: <Smartphone size={18} />, title: 'Pilih "Install app" / "Add to Home screen"', desc: 'Pilih opsi memasang aplikasi dari menu.' },
+    { icon: <Smartphone size={18} />, title: 'Pilih "Add to Home screen"', desc: 'Pilih opsi memasang aplikasi dari menu.' },
     { icon: <CheckCircle2 size={18} />, title: 'Konfirmasi "Install"', desc: 'Ikon PintuASN langsung terpasang di layar utama. Selesai!' },
   ];
 
@@ -76,17 +77,9 @@ export default function InstallPage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* Top bar */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-slate-600 hover:text-slate-900 text-sm font-bold">
-            <ArrowLeft size={16} /> Beranda
-          </Link>
-          <Image src="/images/logo-navbar-sky.svg" alt="PintuASN" width={92} height={28} unoptimized priority />
-        </div>
-      </header>
+      <LandingNavbar />
 
-      <div className="max-w-3xl mx-auto px-4 py-8 md:py-12">
+      <div className="max-w-3xl mx-auto px-4 pt-24 pb-8 md:pt-28 md:pb-12">
 
         {/* Hero */}
         <div className="text-center mb-8">

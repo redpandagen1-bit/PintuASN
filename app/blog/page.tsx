@@ -194,7 +194,7 @@ export default async function BlogPage({
       {/* NAV */}
       <nav className="blog-nav">
         <Link href="/" className="blog-nav__logo">
-          <Image src="/images/logo-navbar.svg" width={80} height={80} alt="PintuASN" />
+          <Image src="/images/logo-navbar-sky.svg" width={80} height={80} alt="PintuASN" />
         </Link>
         <Link href="/" className="blog-nav__back">← Kembali ke Beranda</Link>
       </nav>
