@@ -55,11 +55,11 @@ export function ReviewFormModal({ packageId, packageTitle, attemptId, isOpen, on
   const displayRating = hovered || rating;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={submitted ? onClose : undefined} />
-      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] pb-[env(safe-area-inset-bottom)]">
         {submitted ? (
-          <div className="flex flex-col items-center justify-center py-12 px-6 text-center gap-4">
+          <div className="flex flex-col items-center justify-center py-10 px-6 text-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center">
               <CheckCircle2 size={32} className="text-emerald-500" />
             </div>
@@ -77,7 +77,7 @@ export function ReviewFormModal({ packageId, packageTitle, attemptId, isOpen, on
         ) : (
           <>
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
               <div>
                 <h3 className="font-bold text-slate-800">Bagaimana pengalamanmu?</h3>
                 <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[240px]">{packageTitle}</p>
@@ -91,9 +91,9 @@ export function ReviewFormModal({ packageId, packageTitle, attemptId, isOpen, on
             </div>
 
             {/* Body */}
-            <div className="px-5 py-6 space-y-5">
+            <div className="px-5 py-5 space-y-4">
               {/* Star picker */}
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col items-center gap-2.5">
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <button
@@ -104,7 +104,7 @@ export function ReviewFormModal({ packageId, packageTitle, attemptId, isOpen, on
                       className="transition-transform hover:scale-110"
                     >
                       <Star
-                        size={36}
+                        size={30}
                         className={s <= displayRating
                           ? 'text-yellow-400 fill-yellow-400'
                           : 'text-slate-200 fill-slate-200'}
