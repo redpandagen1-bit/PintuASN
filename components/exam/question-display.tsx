@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { MathText } from '@/components/ui/math-text';
 import { cn } from '@/lib/utils';
 
 export interface QuestionWithChoices {
@@ -80,7 +81,7 @@ export function QuestionDisplay({
         <div className="space-y-6">
           {/* Question Text */}
           <div className="text-base leading-relaxed text-slate-900 font-medium">
-            {question.content}
+            <MathText value={question.content} />
           </div>
 
           {/* Question Image (if exists) */}
@@ -135,7 +136,7 @@ export function QuestionDisplay({
                           {choice.label}
                         </Badge>
                         <div className="flex-1 text-slate-900 leading-relaxed text-left text-sm sm:text-base">
-                          {choice.content}
+                          <MathText value={choice.content} />
                         </div>
                       </div>
                     </Label>

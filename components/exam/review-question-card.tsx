@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { MathText } from '@/components/ui/math-text';
 import { CheckCircle2, XCircle, AlertCircle, Info, ChevronDown } from 'lucide-react';
 import type { ReviewQuestion, ReviewChoice } from '@/types/database';
 
@@ -105,7 +106,7 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
 
       {/* Question text */}
       <div className="text-slate-800 text-sm md:text-base leading-relaxed mb-5 font-medium">
-        {question.content}
+        <MathText value={question.content} />
       </div>
 
       {/* Image — pakai <img> biasa agar SVG figural ikut tampil tanpa next/image */}
@@ -182,7 +183,7 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
                     'text-xs md:text-sm leading-relaxed',
                     (isUserAnswer || isCorrectAnswer || isMaxScore) ? 'text-slate-800 font-semibold' : 'text-slate-600 font-medium'
                   )}>
-                    {choice.content}
+                    <MathText value={choice.content} />
                   </p>
                 )}
               </div>
@@ -235,10 +236,9 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
                   {question.topic}
                 </span>
               )}
-              <div
-                className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: question.explanation.replace(/\n/g, '<br />') }}
-              />
+              <div className="prose prose-sm max-w-none">
+                <MathText value={question.explanation} />
+              </div>
               {question.explanation_image_url && (
                 <div className="mt-3 flex justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

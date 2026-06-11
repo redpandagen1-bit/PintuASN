@@ -33,6 +33,7 @@ import { useExamState } from '@/hooks/use-exam-state';
 import { useExamTimer } from '@/hooks/use-exam-timer';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { QuestionNavigatorSheet } from '@/components/exam/QuestionNavigatorSheet';
+import { MathText } from '@/components/ui/math-text';
 import { cn } from '@/lib/utils';
 import type { QuestionWithChoices } from '@/types/exam';
 
@@ -578,7 +579,7 @@ export function ExamInterface({
                 )}
                 style={{ fontFamily: 'var(--font-jakarta)' }}
               >
-                {currentQuestion.content}
+                <MathText value={currentQuestion.content} />
               </p>
             )}
 
@@ -639,7 +640,7 @@ export function ExamInterface({
                       </div>
                       {choice.content && (
                         <span className="text-[10px] leading-tight text-center text-slate-600 line-clamp-2">
-                          {choice.content}
+                          <MathText value={choice.content} />
                         </span>
                       )}
                     </button>
@@ -679,7 +680,7 @@ export function ExamInterface({
                         )}
                         style={{ fontFamily: 'var(--font-jakarta)' }}
                       >
-                        {choice.content}
+                        <MathText value={choice.content} />
                       </span>
                       {isSelected && (
                         <Check className="w-5 h-5 text-sky-500 flex-shrink-0" strokeWidth={3} />
