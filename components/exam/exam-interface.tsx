@@ -238,6 +238,17 @@ export function ExamInterface({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [attemptId, timeLeft]);
 
+  // bfcache guard (PWA/mobile): jika halaman exam dipulihkan dari back-forward
+  // cache, server-side redirect (status completed -> result) TIDAK ikut jalan.
+  // Paksa reload supaya guard di server bekerja & state tidak basi.
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) window.location.reload();
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
   function formatTime(seconds: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -258,7 +269,7 @@ export function ExamInterface({
       });
       if (!response.ok) throw new Error('Gagal membatalkan ujian');
       clearSavedPosition();
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (error) {
       console.error('Cancel error:', error);
       toast.error('Gagal membatalkan ujian. Silakan coba lagi.');
@@ -289,7 +300,9 @@ export function ExamInterface({
       }
       toast.success('Ujian berhasil dikirim!', { id: toastId });
       clearSavedPosition();
-      router.push(`/exam/${attemptId}/result`);
+      // replace (bukan push) supaya halaman exam keluar dari history —
+      // tombol "kembali" dari result tidak balik ke exam yang sudah selesai.
+      router.replace(`/exam/${attemptId}/result`);
     } catch (error) {
       console.error('Submit error:', error);
       toast.error('Gagal mengirim ujian. Silakan coba lagi.', { id: toastId });
@@ -345,7 +358,7 @@ export function ExamInterface({
   }[currentQuestion?.category] || 'bg-slate-100 text-slate-700 border-slate-200';
 
   return (
-    <div className="flex flex-col h-screen bg-white overflow-hidden">
+    <div className="flex flex-col h-dvh bg-white overflow-hidden">
 
       {/* ── REPORT MODAL (Laporkan Soal) ───────────────────────────── */}
       {reportOpen && (
