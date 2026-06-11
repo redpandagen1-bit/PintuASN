@@ -72,6 +72,7 @@ export function FiguralUploadForm({ packageId, packageTitle }: Props) {
   const [parseError, setParseError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [mode, setMode] = useState<'add' | 'overwrite'>('add');
 
   const loadJson = (text: string) => {
     setParseError(null);
@@ -109,13 +110,21 @@ export function FiguralUploadForm({ packageId, packageTitle }: Props) {
 
   const handleSubmit = async () => {
     if (!questions) return;
+    if (
+      mode === 'overwrite' &&
+      !window.confirm(
+        'Mode TIMPA aktif.\n\nSoal figural di posisi yang sudah terisi (dan ada di JSON) akan DIGANTI. Soal lama diarsipkan (riwayat aman). Posisi lain tidak tersentuh.\n\nLanjutkan?'
+      )
+    ) {
+      return;
+    }
     setSubmitting(true);
     setResult(null);
     try {
       const res = await fetch('/api/admin/upload/figural', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packageId, questions }),
+        body: JSON.stringify({ packageId, questions, mode }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -124,7 +133,7 @@ export function FiguralUploadForm({ packageId, packageTitle }: Props) {
         return;
       }
       setResult(data);
-      if (data.inserted > 0 && (!data.invalid || data.invalid.length === 0)) {
+      if (((data.inserted ?? 0) + (data.overwritten ?? 0)) > 0 && (!data.invalid || data.invalid.length === 0)) {
         setTimeout(() => {
           router.push(`/admin/packages/${packageId}`);
           router.refresh();
@@ -155,8 +164,8 @@ export function FiguralUploadForm({ packageId, packageTitle }: Props) {
         <Info className="h-4 w-4" />
         <AlertDescription className="text-xs leading-relaxed">
           Unggah <strong>1 file JSON</strong> berisi banyak soal figural (TIU posisi 31–65). Tiap soal memuat
-          SVG soal, 5 pilihan, jawaban benar, dan pembahasan (opsional) — semua inline. Posisi yang sudah
-          terisi akan dilewati otomatis. Kategori ditentukan dari posisi.
+          SVG soal, 5 pilihan, jawaban benar, dan pembahasan (opsional) — semua inline. Mode <strong>Tambah</strong>:
+          posisi terisi dilewati. Mode <strong>Timpa</strong>: posisi terisi diganti, soal lama diarsipkan. Kategori ditentukan dari posisi.
         </AlertDescription>
       </Alert>
 
@@ -180,6 +189,42 @@ export function FiguralUploadForm({ packageId, packageTitle }: Props) {
               className="mt-2 w-full rounded-md border border-slate-200 p-2 font-mono text-[11px] resize-y"
             />
           </details>
+
+          {/* Mode */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <p className="text-xs font-medium text-slate-700 mb-2">Mode simpan</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('add')}
+                className={`text-left px-3 py-2 rounded-lg border text-xs transition-colors ${
+                  mode === 'add'
+                    ? 'border-blue-500 bg-blue-50 text-blue-800 font-semibold'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Tambah
+                <span className="block font-normal text-slate-500">Skip posisi yang sudah terisi</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('overwrite')}
+                className={`text-left px-3 py-2 rounded-lg border text-xs transition-colors ${
+                  mode === 'overwrite'
+                    ? 'border-amber-500 bg-amber-50 text-amber-800 font-semibold'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Timpa
+                <span className="block font-normal text-slate-500">Ganti soal di posisi yang sudah terisi</span>
+              </button>
+            </div>
+            {mode === 'overwrite' && (
+              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mt-2">
+                ⚠️ Posisi yang ada di JSON dan sudah terisi akan <strong>diganti</strong>; soal lama diarsipkan. Posisi lain tidak tersentuh.
+              </p>
+            )}
+          </div>
 
           {parseError && (
             <Alert variant="destructive">
@@ -282,7 +327,8 @@ export function FiguralUploadForm({ packageId, packageTitle }: Props) {
             ? <AlertCircle className="h-4 w-4" />
             : <CheckCircle2 className="h-4 w-4" />}
           <AlertDescription className="text-xs space-y-1">
-            {result.inserted > 0 && <p className="text-emerald-700 font-semibold">✅ {result.inserted} soal berhasil disimpan.</p>}
+            {result.inserted > 0 && <p className="text-emerald-700 font-semibold">✅ {result.inserted} soal baru disimpan.</p>}
+            {result.overwritten > 0 && <p className="text-sky-700 font-semibold">♻️ {result.overwritten} soal ditimpa.</p>}
             {result.skipped?.length > 0 && (
               <p className="flex items-center gap-1"><SkipForward className="w-3 h-3" /> {result.skipped.length} dilewati (posisi sudah terisi).</p>
             )}

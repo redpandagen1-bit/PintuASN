@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -62,9 +62,33 @@ export function PackageTable({ packages }: PackageTableProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const totalPages = Math.ceil(packages.length / PAGE_SIZE);
+  // ── Filter ──────────────────────────────────────────────────
+  const [tierFilter, setTierFilter] = useState<'all' | 'free' | 'premium' | 'platinum'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [countFilter, setCountFilter] = useState<'all' | 'complete' | 'incomplete'>('all');
+
+  const filtered = useMemo(
+    () =>
+      packages.filter((pkg) => {
+        if (tierFilter !== 'all' && pkg.tier !== tierFilter) return false;
+        if (statusFilter !== 'all' && (statusFilter === 'active') !== !!pkg.is_active) return false;
+        const complete = (pkg.question_count ?? 0) === 110;
+        if (countFilter === 'complete' && !complete) return false;
+        if (countFilter === 'incomplete' && complete) return false;
+        return true;
+      }),
+    [packages, tierFilter, statusFilter, countFilter]
+  );
+
+  const hasFilter = tierFilter !== 'all' || statusFilter !== 'all' || countFilter !== 'all';
+  const resetFilter = () => { setTierFilter('all'); setStatusFilter('all'); setCountFilter('all'); };
+
+  // reset ke halaman 1 saat filter berubah
+  useEffect(() => { setCurrentPage(1); }, [tierFilter, statusFilter, countFilter]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const currentPackages = packages.slice(startIndex, startIndex + PAGE_SIZE);
+  const currentPackages = filtered.slice(startIndex, startIndex + PAGE_SIZE);
 
   const hasChanges = Object.keys(edits).length > 0;
 
@@ -194,6 +218,44 @@ export function PackageTable({ packages }: PackageTableProps) {
         </Button>
       </div>
 
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100">
+        <span className="text-xs font-medium text-slate-500 mr-1">Filter:</span>
+        <Select value={tierFilter} onValueChange={(v) => setTierFilter(v as typeof tierFilter)}>
+          <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Tier</SelectItem>
+            <SelectItem value="free">Gratis</SelectItem>
+            <SelectItem value="premium">Premium</SelectItem>
+            <SelectItem value="platinum">Platinum</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+          <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Status</SelectItem>
+            <SelectItem value="active">Aktif</SelectItem>
+            <SelectItem value="inactive">Nonaktif</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={countFilter} onValueChange={(v) => setCountFilter(v as typeof countFilter)}>
+          <SelectTrigger className="h-8 w-44 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Jumlah Soal</SelectItem>
+            <SelectItem value="complete">Komplit (110 soal)</SelectItem>
+            <SelectItem value="incomplete">Belum Komplit</SelectItem>
+          </SelectContent>
+        </Select>
+        {hasFilter && (
+          <Button variant="ghost" size="sm" onClick={resetFilter} className="h-8 text-xs text-slate-500">
+            Reset
+          </Button>
+        )}
+        <span className="ml-auto text-xs text-slate-500">
+          {filtered.length} dari {packages.length} paket
+        </span>
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -208,6 +270,13 @@ export function PackageTable({ packages }: PackageTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {currentPackages.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-10 text-sm text-slate-500">
+                  Tidak ada paket yang sesuai filter.
+                </TableCell>
+              </TableRow>
+            )}
             {currentPackages.map((pkg, index) => {
               const tierValue = getTierValue(pkg);
               const statusValue = getStatusValue(pkg);
@@ -337,7 +406,7 @@ export function PackageTable({ packages }: PackageTableProps) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
           <p className="text-sm text-slate-500">
-            Menampilkan {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, packages.length)} dari {packages.length} paket
+            Menampilkan {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, filtered.length)} dari {filtered.length} paket
           </p>
           <div className="flex items-center gap-1">
             <Button

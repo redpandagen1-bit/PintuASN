@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
-  let body: { packageId?: string; questions?: FiguralQuestion[] };
+  let body: { packageId?: string; questions?: FiguralQuestion[]; mode?: string };
   try {
     body = await req.json();
   } catch {
@@ -50,6 +50,8 @@ export async function POST(req: NextRequest) {
 
   const packageId = body.packageId;
   const questions = body.questions;
+  // mode 'add' (default) = skip posisi terisi; 'overwrite' = timpa posisi terisi
+  const mode = body.mode === 'overwrite' ? 'overwrite' : 'add';
   if (!packageId) return NextResponse.json({ error: 'packageId wajib' }, { status: 400 });
   if (!Array.isArray(questions) || questions.length === 0) {
     return NextResponse.json({ error: 'JSON harus berupa array soal yang tidak kosong' }, { status: 400 });
@@ -60,17 +62,21 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
-  // Posisi yang sudah terisi di paket ini
+  // Posisi yang sudah terisi di paket ini (+ question_id untuk mode timpa)
   const { data: existing } = await supabase
     .from('package_questions')
-    .select('position')
+    .select('position, question_id')
     .eq('package_id', packageId);
-  const occupied = new Set((existing ?? []).map((p: { position: number }) => p.position));
+  const occupiedMap = new Map<number, string>(
+    (existing ?? []).map((p: { position: number; question_id: string }) => [p.position, p.question_id])
+  );
+  const occupied = new Set(occupiedMap.keys());
 
   // ── Validasi semua soal dulu (all-or-nothing) ─────────────────
   const invalid: { index: number; position?: number; errors: string[] }[] = [];
   const skipped: { index: number; position: number; reason: string }[] = [];
   const valid:   (FiguralQuestion & { position: number })[] = [];
+  const replace: (FiguralQuestion & { position: number; oldQuestionId: string })[] = [];
 
   questions.forEach((q, i) => {
     const errors: string[] = [];
@@ -81,7 +87,8 @@ export async function POST(req: NextRequest) {
       invalid.push({ index: i, position: q.position, errors });
       return;
     }
-    if (occupied.has(position)) {
+    // mode 'add': skip posisi terisi; mode 'overwrite': lanjut validasi untuk ditimpa
+    if (occupied.has(position) && mode === 'add') {
       skipped.push({ index: i, position, reason: 'Posisi sudah terisi' });
       return;
     }
@@ -110,6 +117,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (errors.length > 0) invalid.push({ index: i, position, errors });
+    else if (occupied.has(position)) replace.push({ ...q, position, oldQuestionId: occupiedMap.get(position)! });
     else valid.push({ ...q, position });
   });
 
@@ -132,64 +140,88 @@ export async function POST(req: NextRequest) {
     return data.publicUrl;
   };
 
-  // ── Insert (semua sudah tervalidasi) ──────────────────────────
+  // ── Helper: insert 1 soal figural (+ upload SVG) → id soal baru ─
+  const insertFiguralQuestion = async (q: FiguralQuestion & { position: number }): Promise<string> => {
+    const category = getExpectedCategory(q.position);
+
+    const questionImg = await uploadSvg(q.question_svg!, 'soal', q.position);
+    const explanationImg = q.explanation_svg
+      ? await uploadSvg(q.explanation_svg, 'pembahasan', q.position)
+      : null;
+
+    const { data: question, error: qErr } = await supabase
+      .from('questions')
+      .insert({
+        category,
+        content:               q.content?.trim() || '',     // kolom NOT NULL → '' untuk soal gambar
+        image_url:             questionImg,
+        explanation:           q.explanation?.trim() || null,
+        explanation_image_url: explanationImg,
+        difficulty:            VALID_DIFF.includes(q.difficulty as typeof VALID_DIFF[number]) ? q.difficulty : 'medium',
+        is_published:          true,
+        status:                'published',
+        created_by:            userId,
+      })
+      .select('id')
+      .single();
+    if (qErr) throw qErr;
+
+    const choiceRows = [];
+    for (const L of VALID_ANSWERS) {
+      const c = q.choices!.find((x) => x.label === L)!;
+      const choiceImg = await uploadSvg(c.svg!, `pilihan_${L}`, q.position);
+      choiceRows.push({
+        question_id: question.id,
+        label:       L,
+        content:     '',                       // kolom NOT NULL → '' untuk pilihan gambar
+        image_url:   choiceImg,
+        is_answer:   L === q.correct_answer,
+        score:       null,
+      });
+    }
+    const { error: cErr } = await supabase.from('choices').insert(choiceRows);
+    if (cErr) throw cErr;
+
+    return question.id as string;
+  };
+
+  // ── Insert / timpa (semua sudah tervalidasi) ──────────────────
   let inserted = 0;
+  let overwritten = 0;
   try {
+    // Soal baru di posisi kosong
     for (const q of valid) {
-      const category = getExpectedCategory(q.position);
-
-      const questionImg = await uploadSvg(q.question_svg!, 'soal', q.position);
-      const explanationImg = q.explanation_svg
-        ? await uploadSvg(q.explanation_svg, 'pembahasan', q.position)
-        : null;
-
-      const { data: question, error: qErr } = await supabase
-        .from('questions')
-        .insert({
-          category,
-          content:               q.content?.trim() || '',     // kolom NOT NULL → '' untuk soal gambar
-          image_url:             questionImg,
-          explanation:           q.explanation?.trim() || null,
-          explanation_image_url: explanationImg,
-          difficulty:            VALID_DIFF.includes(q.difficulty as typeof VALID_DIFF[number]) ? q.difficulty : 'medium',
-          is_published:          true,
-          status:                'published',
-          created_by:            userId,
-        })
-        .select()
-        .single();
-      if (qErr) throw qErr;
-
-      const choiceRows = [];
-      for (const L of VALID_ANSWERS) {
-        const c = q.choices!.find((x) => x.label === L)!;
-        const choiceImg = await uploadSvg(c.svg!, `pilihan_${L}`, q.position);
-        choiceRows.push({
-          question_id: question.id,
-          label:       L,
-          content:     '',                       // kolom NOT NULL → '' untuk pilihan gambar
-          image_url:   choiceImg,
-          is_answer:   L === q.correct_answer,
-          score:       null,
-        });
-      }
-      const { error: cErr } = await supabase.from('choices').insert(choiceRows);
-      if (cErr) throw cErr;
-
+      const newId = await insertFiguralQuestion(q);
       const { error: pqErr } = await supabase
         .from('package_questions')
-        .insert({ package_id: packageId, question_id: question.id, position: q.position });
+        .insert({ package_id: packageId, question_id: newId, position: q.position });
       if (pqErr) throw pqErr;
-
       inserted++;
+    }
+
+    // Timpa posisi terisi: re-point link + soft-delete soal lama (riwayat aman)
+    for (const q of replace) {
+      const newId = await insertFiguralQuestion(q);
+      const { error: upErr } = await supabase
+        .from('package_questions')
+        .update({ question_id: newId })
+        .eq('package_id', packageId)
+        .eq('position', q.position);
+      if (upErr) throw upErr;
+      const { error: sdErr } = await supabase
+        .from('questions')
+        .update({ is_deleted: true })
+        .eq('id', q.oldQuestionId);
+      if (sdErr) throw sdErr;
+      overwritten++;
     }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Gagal menyimpan';
     return NextResponse.json(
-      { error: msg, inserted, partial: true },
+      { error: msg, inserted, overwritten, partial: true },
       { status: 500 },
     );
   }
 
-  return NextResponse.json({ inserted, valid: valid.length, invalid, skipped });
+  return NextResponse.json({ inserted, overwritten, valid: valid.length, invalid, skipped });
 }
