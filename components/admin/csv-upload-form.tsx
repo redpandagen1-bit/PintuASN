@@ -23,6 +23,7 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [parseResult, setParseResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<'add' | 'overwrite'>('add');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -39,6 +40,14 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
 
   const handleUpload = async () => {
     if (!file) return;
+    if (
+      mode === 'overwrite' &&
+      !window.confirm(
+        'Mode TIMPA aktif.\n\nSoal pada posisi yang sudah terisi (dan ada di CSV) akan DIGANTI dengan yang baru. Soal lama diarsipkan (tidak terhapus permanen, riwayat aman).\n\nPosisi yang tidak ada di CSV tidak tersentuh. Lanjutkan?'
+      )
+    ) {
+      return;
+    }
     setIsUploading(true);
     setError(null);
 
@@ -46,6 +55,7 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('packageId', packageId);
+      formData.append('mode', mode);
 
       const response = await fetch('/api/admin/upload/csv', {
         method: 'POST',
@@ -60,7 +70,7 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
       const result = await response.json();
       setParseResult(result);
 
-      if (result.invalidRows.length === 0 && result.inserted > 0) {
+      if (result.invalidRows.length === 0 && (result.inserted + (result.overwritten ?? 0)) > 0) {
         setTimeout(() => {
           router.push(`/admin/packages/${packageId}`);
           router.refresh();
@@ -98,7 +108,8 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
     window.URL.revokeObjectURL(url);
   };
 
-  const allSuccess = parseResult && parseResult.invalidRows.length === 0 && parseResult.inserted > 0;
+  const allSuccess = parseResult && parseResult.invalidRows.length === 0 &&
+    ((parseResult.inserted ?? 0) + (parseResult.overwritten ?? 0)) > 0;
   const hasErrors  = parseResult && parseResult.invalidRows.length > 0;
 
   return (
@@ -144,7 +155,7 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
             <AlertDescription className="text-sm">
               <ul className="space-y-1.5 mt-1">
                 <li>• Kolom <code className="bg-slate-100 px-1 rounded">position</code> <strong>wajib diisi</strong> — nomor soal 1–110 sesuai urutan dalam paket</li>
-                <li>• Posisi yang <strong>sudah terisi</strong> akan otomatis di-skip (tidak ditimpa)</li>
+                <li>• Mode <strong>Tambah</strong>: posisi yang sudah terisi di-skip. Mode <strong>Timpa</strong>: posisi terisi (yang ada di CSV) diganti, soal lama diarsipkan</li>
                 <li>• Boleh upload sebagian soal dulu, sisanya upload di lain waktu</li>
                 <li>• <code className="bg-slate-100 px-1 rounded">category</code> harus sesuai range posisi (TWK=1–30, TIU=31–65, TKP=66–110)</li>
                 <li>• Jika tidak ada gambar, kosongkan kolom <code className="bg-slate-100 px-1 rounded">image_url</code></li>
@@ -172,6 +183,42 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
           <CardTitle>Upload File CSV</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Mode upload */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <p className="text-sm font-medium text-slate-700 mb-2">Mode upload</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('add')}
+                className={`text-left px-3 py-2 rounded-lg border text-sm transition-colors ${
+                  mode === 'add'
+                    ? 'border-blue-500 bg-blue-50 text-blue-800 font-semibold'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Tambah
+                <span className="block text-xs font-normal text-slate-500">Skip posisi yang sudah terisi</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('overwrite')}
+                className={`text-left px-3 py-2 rounded-lg border text-sm transition-colors ${
+                  mode === 'overwrite'
+                    ? 'border-amber-500 bg-amber-50 text-amber-800 font-semibold'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Timpa
+                <span className="block text-xs font-normal text-slate-500">Ganti soal di posisi yang sudah terisi</span>
+              </button>
+            </div>
+            {mode === 'overwrite' && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded p-2 mt-2">
+                ⚠️ Posisi yang ada di CSV dan sudah terisi akan <strong>diganti</strong>; soal lama diarsipkan (riwayat & statistik aman). Posisi lain tidak tersentuh.
+              </p>
+            )}
+          </div>
+
           <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
             <Upload className="h-12 w-12 text-slate-400 mx-auto mb-4" />
             <label htmlFor="csv-file" className="cursor-pointer">
@@ -206,10 +253,11 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
           {parseResult && (
             <div className="space-y-3">
               {/* Summary */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 {[
                   { label: 'Total di CSV', value: parseResult.totalRows, color: 'text-slate-800' },
-                  { label: 'Berhasil dimasukkan', value: parseResult.inserted ?? parseResult.validRows, color: 'text-emerald-600' },
+                  { label: 'Baru dimasukkan', value: parseResult.inserted ?? parseResult.validRows, color: 'text-emerald-600' },
+                  { label: 'Ditimpa', value: parseResult.overwritten ?? 0, color: 'text-sky-600' },
                   { label: 'Di-skip (sudah ada)', value: parseResult.skippedRows?.length ?? 0, color: 'text-amber-600' },
                   { label: 'Error', value: parseResult.invalidRows.length, color: 'text-red-600' },
                 ].map(({ label, value, color }) => (
@@ -225,7 +273,7 @@ export function CSVUploadForm({ packageId, packageTitle }: CSVUploadFormProps) {
                 <Alert className="border-emerald-200 bg-emerald-50">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   <AlertDescription className="text-emerald-800">
-                    <strong>✅ {parseResult.inserted} soal berhasil dimasukkan!</strong> Mengalihkan ke halaman paket...
+                    <strong>✅ {parseResult.inserted} soal baru{parseResult.overwritten ? ` + ${parseResult.overwritten} ditimpa` : ''} berhasil!</strong> Mengalihkan ke halaman paket...
                   </AlertDescription>
                 </Alert>
               )}

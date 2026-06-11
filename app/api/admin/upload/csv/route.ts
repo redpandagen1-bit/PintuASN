@@ -19,6 +19,8 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const packageId = formData.get('packageId') as string;
+    // mode 'add' (default) = skip posisi terisi; 'overwrite' = timpa posisi terisi
+    const mode = (formData.get('mode') as string) === 'overwrite' ? 'overwrite' : 'add';
 
     if (!file) {
       return NextResponse.json({ error: 'File is required' }, { status: 400 });
@@ -34,7 +36,7 @@ export async function POST(request: NextRequest) {
         transformHeader: (header) => header.trim(),
         transform: (value) => (typeof value === 'string' ? value.trim() : value),
         complete: (results) => resolve(results),
-        error: (error) => reject(error),
+        error: (err: any) => reject(err),
       });
     });
 
@@ -42,14 +44,16 @@ export async function POST(request: NextRequest) {
     const supabase = await createAdminClient();
     const { data: existingPositions } = await supabase
       .from('package_questions')
-      .select('position')
+      .select('position, question_id')
       .eq('package_id', packageId);
 
-    const occupiedPositions = new Set(
-      (existingPositions ?? []).map((p: any) => p.position)
+    const occupiedMap = new Map<number, string>(
+      (existingPositions ?? []).map((p: any) => [p.position, p.question_id])
     );
+    const occupiedPositions = new Set(occupiedMap.keys());
 
     const validRows: any[] = [];
+    const replaceRows: any[] = []; // posisi terisi yang akan ditimpa (mode overwrite)
     const invalidRows: any[] = [];
     const skippedRows: any[] = [];
 
@@ -65,8 +69,10 @@ export async function POST(request: NextRequest) {
         return;
       }
 
-      // ── Cek apakah posisi sudah terisi ──────────────────────────────
-      if (occupiedPositions.has(position)) {
+      // ── Posisi sudah terisi ─────────────────────────────────────────
+      // mode 'add'      : di-skip tanpa validasi (perilaku lama)
+      // mode 'overwrite': lanjut validasi penuh agar bisa ditimpa
+      if (occupiedPositions.has(position) && mode === 'add') {
         skippedRows.push({ row: rowNumber, position, reason: 'Posisi sudah terisi' });
         return;
       }
@@ -138,61 +144,87 @@ export async function POST(request: NextRequest) {
 
       if (errors.length > 0) {
         invalidRows.push({ row: rowNumber, position: row.position, data: row, errors });
+      } else if (occupiedPositions.has(position)) {
+        // valid + posisi terisi + mode overwrite -> akan ditimpa
+        replaceRows.push({ ...row, position, oldQuestionId: occupiedMap.get(position) });
       } else {
         validRows.push({ ...row, position });
       }
     });
 
-    // ── Insert ke database jika semua valid ──────────────────────────────
-    if (invalidRows.length === 0 && validRows.length > 0) {
+    // ── Insert/timpa ke database jika tidak ada baris invalid ────────────
+    // Helper: insert 1 soal + choices, kembalikan id soal baru.
+    const insertQuestion = async (row: any): Promise<string> => {
+      const { data: question, error: qError } = await supabase
+        .from('questions')
+        .insert({
+          category: row.category,
+          content: row.question_text,
+          image_url: row.image_url || null,
+          explanation: row.explanation || null,
+          topic: row.topic || null,
+          difficulty: VALID_DIFFICULTIES.includes(row.difficulty) ? row.difficulty : 'medium',
+          is_published: true,
+          status: 'published',
+          created_by: userId,
+        })
+        .select('id')
+        .single();
+      if (qError) throw qError;
+
+      const isTKP = row.category === 'TKP';
+      const choices = [
+        { label: 'A', content: row.option_a, score: isTKP ? row.tkp_score_a : null, is_answer: !isTKP && row.correct_answer === 'A' },
+        { label: 'B', content: row.option_b, score: isTKP ? row.tkp_score_b : null, is_answer: !isTKP && row.correct_answer === 'B' },
+        { label: 'C', content: row.option_c, score: isTKP ? row.tkp_score_c : null, is_answer: !isTKP && row.correct_answer === 'C' },
+        { label: 'D', content: row.option_d, score: isTKP ? row.tkp_score_d : null, is_answer: !isTKP && row.correct_answer === 'D' },
+        { label: 'E', content: row.option_e, score: isTKP ? row.tkp_score_e : null, is_answer: !isTKP && row.correct_answer === 'E' },
+      ].map((c) => ({ ...c, question_id: question.id }));
+
+      const { error: cError } = await supabase.from('choices').insert(choices);
+      if (cError) throw cError;
+
+      return question.id as string;
+    };
+
+    if (invalidRows.length === 0 && (validRows.length > 0 || replaceRows.length > 0)) {
+      // Soal baru di posisi kosong
       for (const row of validRows) {
-        // Insert question
-        const { data: question, error: qError } = await supabase
-          .from('questions')
-          .insert({
-            category: row.category,
-            content: row.question_text,
-            image_url: row.image_url || null,
-            explanation: row.explanation || null,
-            topic: row.topic || null,
-            difficulty: VALID_DIFFICULTIES.includes(row.difficulty) ? row.difficulty : 'medium',
-            is_published: true,
-            status: 'published',
-            created_by: userId,
-          })
-          .select()
-          .single();
-
-        if (qError) throw qError;
-
-        // Insert choices
-        const isTKP = row.category === 'TKP';
-        const choices = [
-          { label: 'A', content: row.option_a, score: isTKP ? row.tkp_score_a : null, is_answer: !isTKP && row.correct_answer === 'A' },
-          { label: 'B', content: row.option_b, score: isTKP ? row.tkp_score_b : null, is_answer: !isTKP && row.correct_answer === 'B' },
-          { label: 'C', content: row.option_c, score: isTKP ? row.tkp_score_c : null, is_answer: !isTKP && row.correct_answer === 'C' },
-          { label: 'D', content: row.option_d, score: isTKP ? row.tkp_score_d : null, is_answer: !isTKP && row.correct_answer === 'D' },
-          { label: 'E', content: row.option_e, score: isTKP ? row.tkp_score_e : null, is_answer: !isTKP && row.correct_answer === 'E' },
-        ].map((c) => ({ ...c, question_id: question.id }));
-
-        const { error: cError } = await supabase.from('choices').insert(choices);
-        if (cError) throw cError;
-
-        // Insert ke package_questions di posisi yang diminta
+        const newId = await insertQuestion(row);
         const { error: pqError } = await supabase
           .from('package_questions')
-          .insert({ package_id: packageId, question_id: question.id, position: row.position });
-
+          .insert({ package_id: packageId, question_id: newId, position: row.position });
         if (pqError) throw pqError;
+      }
+
+      // Timpa soal di posisi terisi: re-point link + soft-delete soal lama
+      // (tidak hard-delete supaya riwayat attempt_answers & statistik tetap utuh)
+      for (const row of replaceRows) {
+        const newId = await insertQuestion(row);
+        const { error: upErr } = await supabase
+          .from('package_questions')
+          .update({ question_id: newId })
+          .eq('package_id', packageId)
+          .eq('position', row.position);
+        if (upErr) throw upErr;
+
+        const { error: sdErr } = await supabase
+          .from('questions')
+          .update({ is_deleted: true })
+          .eq('id', row.oldQuestionId);
+        if (sdErr) throw sdErr;
       }
     }
 
+    const ok = invalidRows.length === 0;
     return NextResponse.json({
       validRows: validRows.length,
       invalidRows,
       skippedRows,
       totalRows: parseResult.data.length,
-      inserted: invalidRows.length === 0 ? validRows.length : 0,
+      inserted: ok ? validRows.length : 0,
+      overwritten: ok ? replaceRows.length : 0,
+      mode,
     });
   } catch (error: any) {
     console.error('CSV upload error:', error);
