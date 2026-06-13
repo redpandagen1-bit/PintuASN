@@ -95,9 +95,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="relative z-10 flex flex-col h-full p-10">
             {/* logo */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
                 style={{ background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.1)' }}>
-                <Image src="/images/Logo.svg" alt="PintuASN" width={22} height={22}/>
+                <Image src="/images/icon-p-light.svg" alt="PintuASN" width={26} height={26} unoptimized/>
               </div>
               <span className="text-lg font-bold text-white" style={{ fontFamily:'var(--font-headline)' }}>
                 PintuASN<span style={{ color:'#f9bd22' }}>.com</span>
@@ -223,9 +223,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
             {/* logo */}
             <div className="flex flex-col items-center mb-5">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2.5"
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-2.5 overflow-hidden"
                 style={{ background:'rgba(255,255,255,.08)', border:'1px solid rgba(255,255,255,.12)' }}>
-                <Image src="/images/Logo.svg" alt="PintuASN" width={26} height={26}/>
+                <Image src="/images/icon-p-light.svg" alt="PintuASN" width={32} height={32} unoptimized/>
               </div>
               <span className="text-base font-bold text-white" style={{ fontFamily:'var(--font-headline)' }}>
                 PintuASN<span style={{ color:'#f9bd22' }}>.com</span>

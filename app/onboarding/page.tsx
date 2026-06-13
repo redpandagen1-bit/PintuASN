@@ -21,19 +21,22 @@ export default async function OnboardingPage() {
 
   if (existing?.onboarding_completed === true) redirect('/dashboard');
 
-  // Upsert profile so the row always exists before the form tries to PATCH
-  await supabase.from('profiles').upsert(
-    {
-      user_id: user.id,
-      email,
-      full_name: fullName || null,
-      role: 'user',
-      subscription_tier: 'free',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id', ignoreDuplicates: true }
-  );
+  // Insert the profile row only when it doesn't exist yet (new sign-up).
+  // Returning users already have a row, so we skip this extra DB round-trip.
+  if (!existing) {
+    await supabase.from('profiles').upsert(
+      {
+        user_id: user.id,
+        email,
+        full_name: fullName || null,
+        role: 'user',
+        subscription_tier: 'free',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id', ignoreDuplicates: true }
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
@@ -41,7 +44,7 @@ export default async function OnboardingPage() {
       {/* Logo */}
       <div className="mb-8">
         <Image
-          src="/images/logo-navbar.svg"
+          src="/images/logo-navbar-sky.svg"
           alt="PintuASN"
           width={120}
           height={38}
