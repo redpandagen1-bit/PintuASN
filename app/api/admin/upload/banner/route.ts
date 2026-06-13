@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const buffer   = Buffer.from(await file.arrayBuffer());
 
   const { data, error } = await supabase.storage
-    .from('banners')          // buat bucket "banners" di Supabase Storage dulu
+    .from('promo-images')     // bucket "banners" belum ada → pakai promo-images
     .upload(fileName, buffer, {
       contentType: file.type,
       upsert: false,
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const { data: { publicUrl } } = supabase.storage
-    .from('banners')
+    .from('promo-images')
     .getPublicUrl(data.path);
 
   return NextResponse.json({ url: publicUrl });

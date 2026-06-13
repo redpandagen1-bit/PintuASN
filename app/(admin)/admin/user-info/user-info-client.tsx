@@ -412,7 +412,8 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
             <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
             <div className="text-xs text-blue-700 space-y-0.5">
               <p className="font-semibold">Spesifikasi Gambar Banner</p>
-              <p>Ukuran: <strong>1200 × 400 px</strong> &nbsp;|&nbsp; Rasio: <strong>3:1</strong> &nbsp;|&nbsp; Format: JPG, PNG, WebP &nbsp;|&nbsp; Maks: <strong>5 MB</strong></p>
+              <p>Rasio: <strong>3:1</strong> &nbsp;|&nbsp; Ukuran ideal: <strong>1200 × 400 px</strong> (boleh 2× = 2400 × 800 px agar tajam di layar HiDPI)</p>
+              <p>Format: <strong>WebP</strong> (disarankan), JPG, atau PNG &nbsp;|&nbsp; Ukuran file maks: <strong>200 KB</strong></p>
               <p className="text-blue-600">Gambar dengan rasio berbeda akan ditolak otomatis saat upload.</p>
             </div>
           </CardContent>
@@ -722,6 +723,12 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
                   className="hidden"
                   onChange={e => { const f = e.target.files?.[0]; if (f) void handleBannerFile(f); e.target.value = ''; }}
                 />
+                <p className="mt-2 text-[11px] leading-relaxed text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  <strong>Perhatikan area aman (bleed):</strong> sudut banner membulat dan di layar HP
+                  banner mengecil drastis, jadi sisi tepi rawan terpotong / sulit dibaca. Letakkan semua
+                  teks, logo, dan tombol penting di <strong>area tengah (±60%)</strong>. Anggap ~20%
+                  sisi kiri-kanan &amp; sudut sebagai zona aman — jangan taruh informasi penting di pojok.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
