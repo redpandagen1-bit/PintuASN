@@ -27,8 +27,7 @@ export default function BannerSliderClient({ banners }: { banners: BannerItem[] 
 
   return (
     <section
-      className="relative w-full rounded-3xl overflow-hidden shadow-xl"
-      style={{ aspectRatio: '1200 / 400' }}
+      className="relative w-full rounded-3xl overflow-hidden shadow-xl aspect-[2/1] md:aspect-[3/1]"
     >
       {banners.map((b, i) => (
         <Link
