@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2, Lock, ArrowRight } from 'lucide-react';
+import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2, Lock, ArrowRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 
@@ -96,6 +96,7 @@ function PricingCard({
   onSelect:  () => void;
 }) {
   const { isFree, isPremium, isPlatinum } = pkg;
+  const [open, setOpen] = useState(false);
 
   const cardBg = isPremium
     ? 'bg-sky-600 border-sky-500'
@@ -174,7 +175,22 @@ function PricingCard({
         <div className={cn('h-px', isPremium ? 'bg-sky-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
       </div>
 
+      {/* Toggle benefit (dropdown) */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className={cn(
+          'w-full px-5 py-3 flex items-center justify-between text-xs font-bold active-press',
+          isPremium || isPlatinum ? 'text-white' : 'text-slate-700',
+        )}
+      >
+        <span>{open ? 'Sembunyikan fitur & benefit' : 'Lihat fitur & benefit'}</span>
+        <ChevronDown size={16} className={cn('transition-transform duration-300', open && 'rotate-180')} />
+      </button>
+
       {/* Feature list */}
+      {open && (
       <div className="flex-1 px-5 pb-2 space-y-0">
         {ALL_FEATURES.map((feature, i) => {
           const hasFeature = isFree ? feature.free : isPremium ? feature.premium : feature.platinum;
@@ -219,6 +235,7 @@ function PricingCard({
           );
         })}
       </div>
+      )}
 
       {/* CTA */}
       <div className="px-5 pt-3 pb-5">
@@ -395,7 +412,7 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'beli',    label: 'Beli',    icon: <ShoppingBag size={14} /> },
     { id: 'riwayat', label: 'Riwayat', icon: <History size={14} /> },
-    { id: 'aktif',   label: 'Aktif',   icon: <PackageCheck size={14} /> },
+    { id: 'aktif',   label: 'Paket Aktif', icon: <PackageCheck size={14} /> },
   ];
 
   return (
