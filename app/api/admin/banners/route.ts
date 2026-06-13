@@ -26,11 +26,12 @@ export async function POST(req: NextRequest) {
   const { data, error } = await supabase
     .from('banners')
     .insert({
-      title:       body.title,
-      image_url:   body.image_url,
-      button_link: body.button_link ?? '/daftar-tryout',
-      is_active:   body.is_active  ?? true,
-      order_index: body.order_index ?? 99,
+      title:            body.title,
+      image_url:        body.image_url,
+      image_url_mobile: body.image_url_mobile ?? null,
+      button_link:      body.button_link ?? '/daftar-tryout',
+      is_active:        body.is_active  ?? true,
+      order_index:      body.order_index ?? 99,
     })
     .select()
     .single();

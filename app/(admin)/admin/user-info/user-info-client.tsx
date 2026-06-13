@@ -23,15 +23,21 @@ import {
 } from '@/components/ui/select';
 
 // ── constants ────────────────────────────────────────────────
+// Banner web/desktop (3:1)
 const BANNER_WIDTH  = 1200;
 const BANNER_HEIGHT = 400;
 const ASPECT_RATIO  = BANNER_WIDTH / BANNER_HEIGHT;
+// Banner PWA mobile (16:9)
+const BANNER_MOBILE_WIDTH  = 1600;
+const BANNER_MOBILE_HEIGHT = 900;
+const ASPECT_RATIO_MOBILE  = BANNER_MOBILE_WIDTH / BANNER_MOBILE_HEIGHT;
 
 // ── types ────────────────────────────────────────────────────
 interface Banner {
   id: string;
   title: string;
   image_url: string;
+  image_url_mobile: string | null;
   button_link: string;
   is_active: boolean;
   order_index: number;
@@ -79,6 +85,11 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
   const [dragOver,      setDragOver]      = useState(false);
   const [bannerError,   setBannerError]   = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // ── banner mobile (16:9) state ────────────────────────────
+  const [bannerPreviewMobile, setBannerPreviewMobile] = useState<string | null>(null);
+  const [uploadingMobile,     setUploadingMobile]     = useState(false);
+  const [dragOverMobile,      setDragOverMobile]      = useState(false);
+  const fileRefMobile = useRef<HTMLInputElement>(null);
 
   // ── referral state ────────────────────────────────────────
   const [referrals,    setReferrals]    = useState<ReferralCode[]>(initialReferrals);
@@ -158,19 +169,23 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
   const openEditBanner = (b: Banner) => {
     setEditingBanner({ ...b });
     setBannerPreview(b.image_url);
+    setBannerPreviewMobile(b.image_url_mobile ?? null);
     setBannerError(null);
   };
 
   const resetBannerEdit = () => {
     setEditingBanner(null);
     setBannerPreview(null);
+    setBannerPreviewMobile(null);
     setBannerError(null);
   };
 
   const updateBanner = (patch: Partial<Banner>) =>
     setEditingBanner(prev => (prev ? { ...prev, ...patch } : prev));
 
-  const handleBannerFile = async (file: File) => {
+  // variant 'desktop' → image_url (3:1), 'mobile' → image_url_mobile (16:9)
+  const handleBannerFile = async (file: File, variant: 'desktop' | 'mobile' = 'desktop') => {
+    const isMobile = variant === 'mobile';
     setBannerError(null);
     if (!file.type.startsWith('image/')) {
       setBannerError('File harus berupa gambar (JPG / PNG / WebP).'); return;
@@ -181,23 +196,30 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
     await new Promise<void>(r => { img.onload = () => r(); });
     const ratio = img.width / img.height;
     URL.revokeObjectURL(objectUrl);
-    if (Math.abs(ratio - ASPECT_RATIO) > 0.15) {
-      setBannerError(`Rasio harus 3:1 (${BANNER_WIDTH}×${BANNER_HEIGHT}px). Gambar: ${img.width}×${img.height}px.`);
+
+    const target = isMobile ? ASPECT_RATIO_MOBILE : ASPECT_RATIO;
+    if (Math.abs(ratio - target) > 0.12) {
+      const label = isMobile
+        ? `16:9 (${BANNER_MOBILE_WIDTH}×${BANNER_MOBILE_HEIGHT}px)`
+        : `3:1 (${BANNER_WIDTH}×${BANNER_HEIGHT}px)`;
+      setBannerError(`Rasio harus ${label}. Gambar: ${img.width}×${img.height}px.`);
       return;
     }
-    setBannerPreview(URL.createObjectURL(file));
-    setUploading(true);
+
+    const localPreview = URL.createObjectURL(file);
+    if (isMobile) { setBannerPreviewMobile(localPreview); setUploadingMobile(true); }
+    else          { setBannerPreview(localPreview);       setUploading(true); }
     try {
       const fd = new FormData();
       fd.append('file', file);
       const res  = await fetch('/api/admin/upload/banner', { method: 'POST', body: fd });
       const json = await res.json() as { url?: string; error?: string };
       if (!res.ok) throw new Error(json.error ?? 'Upload gagal');
-      updateBanner({ image_url: json.url ?? '' });
+      updateBanner(isMobile ? { image_url_mobile: json.url ?? '' } : { image_url: json.url ?? '' });
     } catch (e) {
       setBannerError(e instanceof Error ? e.message : 'Upload gagal');
     } finally {
-      setUploading(false);
+      if (isMobile) setUploadingMobile(false); else setUploading(false);
     }
   };
 
@@ -412,8 +434,9 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
             <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
             <div className="text-xs text-blue-700 space-y-0.5">
               <p className="font-semibold">Spesifikasi Gambar Banner</p>
-              <p>Rasio: <strong>3:1</strong> &nbsp;|&nbsp; Ukuran ideal: <strong>1200 × 400 px</strong> (boleh 2× = 2400 × 800 px agar tajam di layar HiDPI)</p>
-              <p>Format: <strong>WebP</strong> (disarankan), JPG, atau PNG &nbsp;|&nbsp; Ukuran file maks: <strong>200 KB</strong></p>
+              <p><strong>Web / Desktop</strong> — Rasio <strong>3:1</strong>, ukuran <strong>1200 × 400 px</strong> (boleh 2× = 2400 × 800 px).</p>
+              <p><strong>PWA Mobile</strong> — Rasio <strong>16:9</strong>, ukuran <strong>1600 × 900 px</strong>. Opsional; jika kosong, banner web otomatis dipakai (sisi kiri-kanan terpotong).</p>
+              <p>Format: <strong>WebP</strong> (disarankan), JPG, atau PNG &nbsp;|&nbsp; Ukuran file maks: <strong>200 KB</strong> per gambar.</p>
               <p className="text-blue-600">Gambar dengan rasio berbeda akan ditolak otomatis saat upload.</p>
             </div>
           </CardContent>
@@ -680,10 +703,10 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
             </div>
 
             <div className="p-6 space-y-5">
-              {/* Upload zone */}
+              {/* Upload zone — WEB / DESKTOP (3:1) */}
               <div>
                 <Label className="mb-2 block text-xs font-medium">
-                  Gambar Banner
+                  Banner Web / Desktop
                   <span className="text-slate-400 font-normal ml-1">({BANNER_WIDTH}×{BANNER_HEIGHT}px · rasio 3:1)</span>
                 </Label>
                 <div
@@ -695,13 +718,13 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
                   style={{ aspectRatio: `${BANNER_WIDTH} / ${BANNER_HEIGHT}` }}
                   onDragOver={e => { e.preventDefault(); setDragOver(true); }}
                   onDragLeave={() => setDragOver(false)}
-                  onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) void handleBannerFile(f); }}
+                  onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) void handleBannerFile(f, 'desktop'); }}
                   onClick={() => fileRef.current?.click()}
                 >
                   {(bannerPreview ?? editingBanner.image_url) && (
                     <Image
                       src={bannerPreview ?? editingBanner.image_url}
-                      alt="Preview"
+                      alt="Preview desktop"
                       fill
                       className="object-cover"
                     />
@@ -721,15 +744,70 @@ export default function UserInfoClient({ initialBanners, initialReferrals }: Pro
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   className="hidden"
-                  onChange={e => { const f = e.target.files?.[0]; if (f) void handleBannerFile(f); e.target.value = ''; }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) void handleBannerFile(f, 'desktop'); e.target.value = ''; }}
                 />
-                <p className="mt-2 text-[11px] leading-relaxed text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  <strong>Perhatikan area aman (bleed):</strong> sudut banner membulat dan di layar HP
-                  banner mengecil drastis, jadi sisi tepi rawan terpotong / sulit dibaca. Letakkan semua
-                  teks, logo, dan tombol penting di <strong>area tengah (±60%)</strong>. Anggap ~20%
-                  sisi kiri-kanan &amp; sudut sebagai zona aman — jangan taruh informasi penting di pojok.
-                </p>
               </div>
+
+              {/* Upload zone — PWA MOBILE (16:9) */}
+              <div>
+                <Label className="mb-2 block text-xs font-medium">
+                  Banner PWA Mobile
+                  <span className="text-slate-400 font-normal ml-1">({BANNER_MOBILE_WIDTH}×{BANNER_MOBILE_HEIGHT}px · rasio 16:9 · opsional)</span>
+                </Label>
+                <div
+                  className={[
+                    'relative border-2 border-dashed rounded-xl overflow-hidden cursor-pointer transition-colors mx-auto max-w-[280px]',
+                    dragOverMobile ? 'border-blue-400 bg-blue-50' : 'border-slate-300 hover:border-slate-400',
+                    uploadingMobile ? 'pointer-events-none opacity-60' : '',
+                  ].join(' ')}
+                  style={{ aspectRatio: `${BANNER_MOBILE_WIDTH} / ${BANNER_MOBILE_HEIGHT}` }}
+                  onDragOver={e => { e.preventDefault(); setDragOverMobile(true); }}
+                  onDragLeave={() => setDragOverMobile(false)}
+                  onDrop={e => { e.preventDefault(); setDragOverMobile(false); const f = e.dataTransfer.files[0]; if (f) void handleBannerFile(f, 'mobile'); }}
+                  onClick={() => fileRefMobile.current?.click()}
+                >
+                  {(bannerPreviewMobile ?? editingBanner.image_url_mobile) && (
+                    <Image
+                      src={(bannerPreviewMobile ?? editingBanner.image_url_mobile) as string}
+                      alt="Preview mobile"
+                      fill
+                      className="object-cover"
+                    />
+                  )}
+                  <div className={[
+                    'absolute inset-0 flex flex-col items-center justify-center gap-2 transition-opacity',
+                    (bannerPreviewMobile ?? editingBanner.image_url_mobile) ? 'bg-black/40 opacity-0 hover:opacity-100' : 'opacity-100',
+                  ].join(' ')}>
+                    <Upload size={22} className="text-white" />
+                    <p className="text-white text-xs font-medium px-3 text-center">
+                      {uploadingMobile ? 'Mengupload...' : 'Klik atau drag gambar 16:9'}
+                    </p>
+                  </div>
+                </div>
+                <input
+                  ref={fileRefMobile}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) void handleBannerFile(f, 'mobile'); e.target.value = ''; }}
+                />
+                {(bannerPreviewMobile ?? editingBanner.image_url_mobile) && (
+                  <button
+                    type="button"
+                    onClick={() => { setBannerPreviewMobile(null); updateBanner({ image_url_mobile: null }); }}
+                    className="mt-2 mx-auto block text-[11px] text-red-500 hover:text-red-600"
+                  >
+                    Hapus banner mobile (pakai banner web)
+                  </button>
+                )}
+              </div>
+
+              <p className="text-[11px] leading-relaxed text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <strong>Perhatikan area aman (bleed):</strong> sudut banner membulat, jadi sisi tepi rawan
+                terpotong / sulit dibaca. Letakkan semua teks, logo, dan tombol penting di
+                <strong> area tengah (±60%)</strong>. Anggap ~20% sisi kiri-kanan &amp; sudut sebagai zona
+                aman. Jika banner mobile dikosongkan, banner web dipakai dan sisi kiri-kanannya terpotong di HP.
+              </p>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">

@@ -8,6 +8,7 @@ interface BannerItem {
   id: string;
   title: string;
   image_url: string;
+  image_url_mobile?: string | null;
   button_link: string;
 }
 
@@ -27,7 +28,7 @@ export default function BannerSliderClient({ banners }: { banners: BannerItem[] 
 
   return (
     <section
-      className="relative w-full rounded-3xl overflow-hidden shadow-xl aspect-[2/1] md:aspect-[3/1]"
+      className="relative w-full rounded-3xl overflow-hidden shadow-xl aspect-[16/9] md:aspect-[3/1]"
     >
       {banners.map((b, i) => (
         <Link
@@ -37,13 +38,23 @@ export default function BannerSliderClient({ banners }: { banners: BannerItem[] 
             i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
           }`}
         >
+          {/* Mobile (16:9) — pakai gambar mobile bila ada, fallback ke desktop (di-crop) */}
+          <Image
+            src={b.image_url_mobile || b.image_url}
+            alt={b.title}
+            fill
+            className="object-cover md:hidden"
+            priority={i === 0}
+            sizes="100vw"
+          />
+          {/* Desktop (3:1) */}
           <Image
             src={b.image_url}
             alt={b.title}
             fill
-            className="object-cover"
+            className="object-cover hidden md:block"
             priority={i === 0}
-            sizes="(max-width: 768px) 100vw, 1200px"
+            sizes="1200px"
           />
         </Link>
       ))}
