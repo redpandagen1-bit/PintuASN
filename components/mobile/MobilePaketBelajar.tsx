@@ -89,10 +89,12 @@ const PACKAGES: MobilePackage[] = [
 function PricingCard({
   pkg,
   isCurrent,
+  blocked,
   onSelect,
 }: {
   pkg:       MobilePackage;
   isCurrent: boolean;
+  blocked:   boolean;
   onSelect:  () => void;
 }) {
   const { isFree, isPremium, isPlatinum } = pkg;
@@ -110,8 +112,8 @@ function PricingCard({
 
   const ctaCls = cn(
     'w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all active-press',
-    isCurrent
-      ? (accent ? 'bg-white/15 text-white/60 cursor-default' : 'bg-slate-100 text-slate-400 cursor-default')
+    blocked
+      ? (accent ? 'bg-white/15 text-white/60' : 'bg-slate-200 text-slate-400')
       : isPremium
       ? 'bg-white text-sky-600 hover:bg-sky-50'
       : isPlatinum
@@ -163,9 +165,11 @@ function PricingCard({
         <p className={cn('text-[11px] leading-snug mb-3', subText)}>{pkg.description}</p>
 
         {/* CTA */}
-        <button onClick={isCurrent ? undefined : onSelect} disabled={isCurrent} className={ctaCls}>
+        <button onClick={onSelect} className={ctaCls}>
           {isCurrent
-            ? <><Lock size={12} /> {ctaLabel}</>
+            ? <><Lock size={12} /> Paket Aktif</>
+            : blocked
+            ? <>{pkg.ctaDefault}</>
             : <>{ctaLabel} <ArrowRight size={12} /></>
           }
         </button>
@@ -391,6 +395,18 @@ interface MobilePaketBelajarProps {
 
 export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajarProps) {
   const [activeTab, setActiveTab] = useState<Tab>('beli');
+  const [subInfo, setSubInfo] = useState<string | null>(null);
+
+  const currentTierName = userTier === 'platinum' ? 'Platinum' : userTier === 'premium' ? 'Premium' : 'Gratis';
+
+  // Terkunci kalau: tier-nya aktif, user platinum (sudah paling tinggi),
+  // atau user premium melihat paket lebih rendah (free).
+  const isBlocked = (tier: SubscriptionTier): boolean => {
+    if (tier === userTier) return true;
+    if (userTier === 'platinum') return true;
+    if (userTier === 'premium' && tier === 'free') return true;
+    return false;
+  };
 
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'beli',    label: 'Beli',    icon: <ShoppingBag size={14} /> },
@@ -435,14 +451,21 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
       {/* ── Beli Tab ──────────────────────────────────────────── */}
       {activeTab === 'beli' && (
         <div className="flex flex-col gap-6">
-          {PACKAGES.map(pkg => (
-            <PricingCard
-              key={pkg.id}
-              pkg={pkg}
-              isCurrent={userTier === pkg.tier}
-              onSelect={() => onSelectPkg(pkg.tier)}
-            />
-          ))}
+          {PACKAGES.map(pkg => {
+            const blocked = isBlocked(pkg.tier);
+            return (
+              <PricingCard
+                key={pkg.id}
+                pkg={pkg}
+                isCurrent={userTier === pkg.tier}
+                blocked={blocked}
+                onSelect={() => {
+                  if (blocked) { setSubInfo(`Anda telah berlangganan paket ${currentTierName}.`); return; }
+                  onSelectPkg(pkg.tier);
+                }}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -451,6 +474,31 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
 
       {/* ── Paket Aktif Tab ───────────────────────────────────── */}
       {activeTab === 'aktif' && <PaketAktifTab userTier={userTier} />}
+
+      {/* Popup: sudah berlangganan */}
+      {subInfo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-5"
+          onClick={() => setSubInfo(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-xs w-full p-6 text-center shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-12 h-12 rounded-full bg-sky-100 flex items-center justify-center mx-auto mb-3">
+              <Star size={22} className="text-sky-600" fill="currentColor" />
+            </div>
+            <p className="font-bold text-slate-800 mb-1">Sudah Berlangganan</p>
+            <p className="text-sm text-slate-500 mb-4">{subInfo}</p>
+            <button
+              onClick={() => setSubInfo(null)}
+              className="w-full bg-sky-600 text-white font-bold py-2.5 rounded-xl text-sm active-press"
+            >
+              Mengerti
+            </button>
+          </div>
+        </div>
+      )}
 
     </main>
   );

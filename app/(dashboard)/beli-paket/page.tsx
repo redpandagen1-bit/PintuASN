@@ -348,9 +348,11 @@ function FeatureIcon({ has, isPremium, isPlatinum }: { has: boolean; isPremium: 
 function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => void; userTier: Tier }) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [subInfo, setSubInfo] = useState<string | null>(null);
 
   const isPremiumUser  = userTier === 'premium';
   const isPlatinumUser = userTier === 'platinum';
+  const currentTierName = userTier === 'platinum' ? 'Platinum' : userTier === 'premium' ? 'Premium' : 'Gratis';
 
   const handleBuy = async (pkg: typeof PACKAGES[0]) => {
     if (pkg.isFree) { router.push('/dashboard'); return; }
@@ -368,6 +370,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
   };
 
   return (
+    <>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
       {PACKAGES.map((pkg) => {
         const Icon = pkg.icon;
@@ -499,14 +502,17 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
             <div className="p-5 pt-3">
               <div className={`h-px mb-3 ${pkg.isPremium ? 'bg-blue-500' : pkg.isPlatinum ? 'bg-violet-700' : 'bg-slate-100'}`} />
               <button
-                onClick={() => !isOwned && handleBuy(pkg)}
-                disabled={isDisabled}
+                onClick={() => {
+                  if (loadingId === pkg.id) return;
+                  if (isOwned) { setSubInfo(`Anda telah berlangganan paket ${currentTierName}.`); return; }
+                  handleBuy(pkg);
+                }}
+                disabled={loadingId === pkg.id}
                 className={`w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all
                   ${pkg.isPremium  ? 'bg-white text-blue-600 hover:bg-blue-50' : ''}
                   ${pkg.isPlatinum ? 'bg-amber-400 text-slate-900 hover:bg-amber-300' : ''}
                   ${pkg.isFree     ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : ''}
                   ${isOwned && !showUpgradePrice ? 'opacity-50 cursor-not-allowed' : ''}
-                  ${isDisabled && !isOwned ? 'opacity-60 cursor-not-allowed' : ''}
                 `}
               >
                 {loadingId === pkg.id
@@ -521,6 +527,32 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
         );
       })}
     </div>
+
+    {/* Popup: sudah berlangganan */}
+    {subInfo && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        onClick={() => setSubInfo(null)}
+      >
+        <div
+          className="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
+            <Crown size={24} className="text-blue-600" />
+          </div>
+          <p className="font-bold text-slate-800 mb-1">Sudah Berlangganan</p>
+          <p className="text-sm text-slate-500 mb-4">{subInfo}</p>
+          <button
+            onClick={() => setSubInfo(null)}
+            className="w-full bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-blue-700 transition"
+          >
+            Mengerti
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
 

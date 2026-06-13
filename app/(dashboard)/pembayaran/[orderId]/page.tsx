@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { MobileHeader }       from '@/components/mobile/MobileHeader';
-import { MobilePaymentStatus } from '@/components/mobile/MobilePaymentStatus';
 import {
   Clock, Copy, Check, ChevronDown, ChevronUp,
   Loader2, CheckCircle2, XCircle, RefreshCw, Tag, ChevronRight,
@@ -333,52 +332,14 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         />
       )}
 
-      {/* ── Mobile ────────────────────────────────────────────── */}
-      <div className="md:hidden">
-        <MobileHeader
-          userImageUrl={user?.imageUrl ?? null}
-          userInitials={user ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || 'U' : 'U'}
-        />
-        {order && (
-          <MobilePaymentStatus
-            orderId={order.orderId}
-            status={order.status}
-            totalAmount={totalDisplay}
-            vaNumber={order.vaNumber ?? null}
-            bankName={activeMethod?.name ?? null}
-            expiredAt={order.expiredAt}
-            packageName={order.packageName}
-            onCheckStatus={handleCheckStatus}
-          />
-        )}
-        {order && step === 1 && (
-          <div className="fixed bottom-0 left-0 w-full p-6 bg-white/80 backdrop-blur-xl border-t border-md-outline-variant/10 z-50">
-            <div className="max-w-md mx-auto space-y-3">
-              <button
-                onClick={() => setShowMethodModal(true)}
-                className="w-full font-extrabold py-4 rounded-xl bg-md-secondary-container text-md-primary text-sm"
-                style={{ fontFamily: 'var(--font-jakarta)' }}
-              >
-                {selectedMethod ? `Bayar dengan ${selectedMethod.name}` : 'Pilih Metode Pembayaran'}
-              </button>
-              {selectedMethod && (
-                <button
-                  onClick={handleLanjutkan}
-                  disabled={loadingMethod}
-                  className="w-full font-extrabold py-4 rounded-xl bg-md-primary text-white text-sm flex items-center justify-center gap-2"
-                  style={{ fontFamily: 'var(--font-jakarta)' }}
-                >
-                  {loadingMethod && <Loader2 size={16} className="animate-spin" />}
-                  Lanjutkan Pembayaran
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Header app bar — hanya muncul di PWA mobile (md:hidden) */}
+      <MobileHeader
+        userImageUrl={user?.imageUrl ?? null}
+        userInitials={user ? ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || 'U' : 'U'}
+      />
 
-      {/* ── Desktop ───────────────────────────────────────────── */}
-      <div className="hidden md:block min-h-screen bg-slate-50 py-8 px-4">
+      {/* ── Konten pembayaran — layout & flow SAMA untuk web & PWA mobile ── */}
+      <div className="min-h-screen bg-slate-50 px-4 pt-16 pb-28 md:pt-8 md:pb-8">
         <div className="max-w-2xl mx-auto space-y-4">
 
           {/* Step indicator */}
