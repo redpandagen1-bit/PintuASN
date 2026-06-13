@@ -127,7 +127,7 @@ function PricingCard({
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <p className={cn('font-extrabold text-sm leading-tight', accent ? 'text-white' : 'text-slate-900')}>
+              <p className={cn('font-extrabold text-sm leading-tight', isPremium ? 'text-yellow-400' : accent ? 'text-white' : 'text-slate-900')}>
                 {pkg.name}
               </p>
               {pkg.badge && (
@@ -153,7 +153,7 @@ function PricingCard({
 
         {/* Price */}
         <div className="flex items-end gap-2 mb-0.5">
-          <p className={cn('text-xl font-extrabold leading-none', accent ? 'text-white' : 'text-slate-900')}>
+          <p className={cn('text-xl font-extrabold leading-none', isPremium ? 'text-yellow-400' : accent ? 'text-white' : 'text-slate-900')}>
             {pkg.priceLabel === 'Rp 0' ? 'Gratis' : pkg.priceLabel}
           </p>
           {pkg.originalPrice && (
@@ -205,9 +205,9 @@ function PricingCard({
                       {hasFeature ? (
                         <div className={cn(
                           'w-3.5 h-3.5 rounded-full flex items-center justify-center',
-                          isPlatinum ? 'bg-amber-400/25' : isPremium ? 'bg-white/20' : 'bg-emerald-100',
+                          isPlatinum ? 'bg-amber-400/25' : isPremium ? 'bg-yellow-400/20' : 'bg-emerald-100',
                         )}>
-                          <Check size={8} strokeWidth={3} className={isPlatinum ? 'text-amber-300' : isPremium ? 'text-white' : 'text-emerald-600'} />
+                          <Check size={8} strokeWidth={3} className={isPlatinum ? 'text-amber-300' : isPremium ? 'text-yellow-400' : 'text-emerald-600'} />
                         </div>
                       ) : (
                         <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center bg-black/10">

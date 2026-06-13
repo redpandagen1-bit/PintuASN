@@ -332,8 +332,8 @@ function VaInstructions({ methodKey, openInstr, setOpenInstr }: { methodKey: str
 function FeatureIcon({ has, isPremium, isPlatinum }: { has: boolean; isPremium: boolean; isPlatinum: boolean }) {
   if (has) return (
     <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0
-      ${isPlatinum ? 'bg-amber-400/25' : isPremium ? 'bg-white/20' : 'bg-emerald-100'}`}>
-      <Check size={11} className={isPlatinum ? 'text-amber-300' : isPremium ? 'text-white' : 'text-emerald-600'} strokeWidth={3} />
+      ${isPlatinum ? 'bg-amber-400/25' : isPremium ? 'bg-yellow-400/20' : 'bg-emerald-100'}`}>
+      <Check size={11} className={isPlatinum ? 'text-amber-300' : isPremium ? 'text-yellow-400' : 'text-emerald-600'} strokeWidth={3} />
     </div>
   );
   return (
@@ -433,7 +433,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
                   <Icon size={18} className={pkg.isPlatinum ? 'text-slate-900' : pkg.isPremium ? 'text-white' : 'text-slate-600'} />
                 </div>
                 <div>
-                  <p className={`font-bold text-base leading-tight ${pkg.isPremium || pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>{pkg.name}</p>
+                  <p className={`font-bold text-base leading-tight ${pkg.isPremium ? 'text-yellow-400' : pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>{pkg.name}</p>
                   <p className={`text-xs ${pkg.isPremium ? 'text-blue-100' : pkg.isPlatinum ? 'text-slate-400' : 'text-slate-400'}`}>{pkg.period}</p>
                 </div>
               </div>
@@ -447,7 +447,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
                   </p>
                 )}
                 <div className="flex items-baseline gap-2">
-                  <p className={`text-2xl font-bold ${pkg.isPremium || pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-2xl font-bold ${pkg.isPremium ? 'text-yellow-400' : pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>
                     {displayPrice === 0 ? 'Gratis' : displayPriceLabel}
                   </p>
                   {/* "upgrade price" badge */}
