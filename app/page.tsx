@@ -980,7 +980,7 @@ export default function Home() {
               <div className="pop g">⚡ Populer</div>
               <div className="p-iconrow">
                 <div className="p-iconbox" style={{ background: 'rgba(14,165,233,.18)' }}>⚡</div>
-                <div><div className="p-name" style={{ color: '#fff' }}>Premium</div><div className="p-period" style={{ color: 'rgba(255,255,255,.55)' }}>Hingga November 2026</div></div>
+                <div><div className="p-name" style={{ color: '#fff' }}>Premium</div><div className="p-period" style={{ color: 'rgba(255,255,255,.55)' }}>Masa aktif 6 bulan</div></div>
               </div>
               <div className="p-orig" style={{ color: 'rgba(255,255,255,.4)' }}>Rp 200.000</div>
               <div className="p-amount" style={{ color: 'var(--sky-l)' }}>Rp 99.000</div>

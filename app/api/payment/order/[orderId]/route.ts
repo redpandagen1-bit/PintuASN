@@ -3,8 +3,9 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
-export async function GET(req: NextRequest, { params }: { params: { orderId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   try {
+    const { orderId } = await params;
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -14,14 +15,14 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
     await supabase
       .from('payment_orders')
       .update({ status: 'expired' })
-      .eq('order_id', params.orderId)
+      .eq('order_id', orderId)
       .eq('status', 'pending')
       .lt('expired_at', new Date().toISOString());
 
     const { data: order, error } = await supabase
       .from('payment_orders')
       .select('*')
-      .eq('order_id', params.orderId)
+      .eq('order_id', orderId)
       .eq('user_id', userId)
       .single();
 
@@ -53,17 +54,21 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { orderId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   try {
+    const { orderId } = await params;
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const supabase = await createAdminClient();
+    // Hanya boleh batalkan order yang masih pending — jangan timpa order
+    // yang sudah settlement/expired.
     await supabase
       .from('payment_orders')
       .update({ status: 'cancel' })
-      .eq('order_id', params.orderId)
-      .eq('user_id', userId);
+      .eq('order_id', orderId)
+      .eq('user_id', userId)
+      .eq('status', 'pending');
 
     return NextResponse.json({ success: true });
   } catch (e) {

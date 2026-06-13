@@ -67,7 +67,7 @@ const PACKAGES: MobilePackage[] = [
   {
     id: 'premium', name: 'Premium', tier: 'premium',
     priceLabel: 'Rp 99.000', originalPrice: 'Rp 200.000',
-    period: 'Hingga November 2026',
+    period: 'Masa aktif 6 bulan',
     description: 'Akses penuh untuk persiapan SKD CPNS 2026',
     badge: 'Populer',
     isFree: false, isPremium: true, isPlatinum: false,

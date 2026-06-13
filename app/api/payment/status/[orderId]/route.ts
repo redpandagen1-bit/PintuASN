@@ -2,9 +2,11 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
+import { activatePaidOrder } from '@/lib/payment/activate-order';
 
-export async function GET(req: NextRequest, { params }: { params: { orderId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ orderId: string }> }) {
   try {
+    const { orderId } = await params;
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -14,7 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
     const { data: localOrder } = await supabase
       .from('payment_orders')
       .select('expired_at, status, midtrans_transaction_id')
-      .eq('order_id', params.orderId)
+      .eq('order_id', orderId)
       .eq('user_id', userId)
       .single();
 
@@ -24,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
         await supabase
           .from('payment_orders')
           .update({ status: 'expired' })
-          .eq('order_id', params.orderId);
+          .eq('order_id', orderId);
       }
       return NextResponse.json({ status: 'expire' });
     }
@@ -46,7 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
     // karena kita charge Midtrans dengan order_id yang punya suffix
     // (PINTUASN-XXX-timestamp-methodId-ts), bukan base orderId.
     // Midtrans menerima keduanya untuk endpoint /status, tapi UUID lebih reliable.
-    const midtransId = localOrder?.midtrans_transaction_id ?? params.orderId;
+    const midtransId = localOrder?.midtrans_transaction_id ?? orderId;
     const response = await fetch(`${baseUrl}/v2/${midtransId}/status`, {
       headers: { Authorization: `Basic ${encodedKey}` },
     });
@@ -56,15 +58,14 @@ export async function GET(req: NextRequest, { params }: { params: { orderId: str
 
     // Sync status ke DB
     if (txStatus === 'settlement' || txStatus === 'capture') {
-      await supabase
-        .from('payment_orders')
-        .update({ status: 'settlement' })
-        .eq('order_id', params.orderId);
+      // Jaring pengaman: kalau webhook gagal/tidak sampai, polling sekalian
+      // mengaktifkan order (naikkan tier user). Atomic & idempotent.
+      await activatePaidOrder(supabase, orderId);
     } else if (txStatus === 'expire' || txStatus === 'cancel' || txStatus === 'deny') {
       await supabase
         .from('payment_orders')
         .update({ status: txStatus === 'expire' ? 'expired' : txStatus })
-        .eq('order_id', params.orderId);
+        .eq('order_id', orderId);
     }
 
     return NextResponse.json({ status: txStatus });

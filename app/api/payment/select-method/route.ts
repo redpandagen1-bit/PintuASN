@@ -51,11 +51,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Order tidak ditemukan' }, { status: 404 });
     }
 
-    // Kalau sudah punya VA number sebelumnya dengan metode sama, return langsung
-    if (order.va_number && order.payment_method === methodId) {
+    // Kalau metode sama sudah pernah di-charge, kembalikan detail tersimpan
+    // (VA / QRIS / e-wallet / kode) tanpa charge ulang ke Midtrans.
+    if (
+      order.payment_method === methodId &&
+      (order.va_number || order.qris_url || order.ewallet_url || order.payment_code)
+    ) {
       return NextResponse.json({
-        vaNumber: order.va_number,
-        total: order.total,
+        vaNumber:    order.va_number    ?? undefined,
+        qrisUrl:     order.qris_url      ?? undefined,
+        ewalletUrl:  order.ewallet_url   ?? undefined,
+        paymentCode: order.payment_code  ?? undefined,
+        total:       order.total,
       });
     }
 

@@ -3,30 +3,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import { activatePaidOrder } from '@/lib/payment/activate-order';
 
 // Pakai service role key agar bisa update tanpa RLS
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-
-const PACKAGE_TIER: Record<string, 'premium' | 'platinum'> = {
-  premium:  'premium',
-  platinum: 'platinum',
-};
-
-// Hitung tanggal berakhir subscription berdasarkan package:
-// premium  → 6 bulan dari sekarang
-// platinum → 1 tahun dari sekarang
-function getSubscriptionEnd(packageId: string): string {
-  const end = new Date();
-  if (packageId === 'premium') {
-    end.setMonth(end.getMonth() + 6);
-  } else {
-    end.setFullYear(end.getFullYear() + 1);
-  }
-  return end.toISOString();
-}
 
 // Normalize order_id — strip suffix -methodId-timestamp kalau ada
 // Format asli:        PINTUASN-PAIOXG-1775989365468
@@ -102,77 +85,14 @@ export async function POST(req: NextRequest) {
       transaction_status === 'deny';
 
     if (isSuccess) {
-      // ── Atomic idempotency guard ──────────────────────────────────────
-      // Gabungkan "cek sudah diproses" + "update status" jadi SATU operasi
-      // database. Kondisi .neq() memastikan update HANYA berjalan jika status
-      // masih belum settlement/capture. Kalau dua webhook datang bersamaan,
-      // hanya satu yang mendapat baris kembali — yang lain skip otomatis.
-      const { data: claimed } = await supabase
-        .from('payment_orders')
-        .update({
-          status:     'settlement',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('order_id', normalizedOrderId)
-        .neq('status', 'settlement')
-        .neq('status', 'capture')
-        .neq('status', 'expire')
-        .neq('status', 'cancel')
-        .neq('status', 'deny')
-        .select('user_id, package_id, referral_code')
-        .maybeSingle();
-
-      if (!claimed) {
-        // Order tidak ditemukan ATAU sudah diproses sebelumnya — keduanya aman
+      // Aktivasi atomic + idempotent (klaim status + naikkan tier + referral).
+      // Logika dipakai bersama dengan endpoint polling status.
+      const activated = await activatePaidOrder(supabase, normalizedOrderId);
+      if (!activated) {
         console.log(`[midtrans-webhook] Already processed or not found: ${normalizedOrderId}`);
         return NextResponse.json({ message: 'Already processed' });
       }
-
-      console.log(`[midtrans-webhook] Settlement claimed for order: ${normalizedOrderId}`);
-
-      // ── Update tier user di profiles ─────────────────────────────────
-      const newTier = PACKAGE_TIER[claimed.package_id];
-      if (newTier) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            subscription_tier:  newTier,
-            subscription_start: new Date().toISOString(),
-            subscription_end:   getSubscriptionEnd(claimed.package_id),
-            updated_at:         new Date().toISOString(),
-          })
-          .eq('user_id', claimed.user_id);
-
-        if (profileError) {
-          console.error('Failed to update profile tier:', profileError.code);
-        }
-      } else {
-        console.error('Unknown package_id, skipping tier upgrade:', claimed.package_id);
-      }
-
-      // ── Increment referral used_count jika order pakai kode referral ──
-      // Aman non-atomic karena idempotency guard di atas memastikan blok ini
-      // hanya dijalankan tepat satu kali per order.
-      if (claimed.referral_code) {
-        const { data: ref } = await supabase
-          .from('referral_codes')
-          .select('used_count')
-          .eq('code', claimed.referral_code)
-          .single();
-
-        if (ref) {
-          const { error: refError } = await supabase
-            .from('referral_codes')
-            .update({ used_count: ref.used_count + 1 })
-            .eq('code', claimed.referral_code);
-
-          if (refError) {
-            console.error('Failed to increment referral used_count:', refError.code);
-          } else {
-            console.log(`[midtrans-webhook] Incremented used_count for referral: ${claimed.referral_code}`);
-          }
-        }
-      }
+      console.log(`[midtrans-webhook] Settlement activated for order: ${normalizedOrderId}`);
 
     } else if (isExpiredOrCancelled) {
       // ── Ambil data order untuk cancel/expire ─────────────────────────

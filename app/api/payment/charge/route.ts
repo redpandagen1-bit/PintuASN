@@ -5,7 +5,7 @@ import { rateLimit } from '@/lib/rate-limit';
 
 // ── Harga paket (harga aktual yang di-charge) ─────────────────
 const BASE_PRICES: Record<string, { name: string; price: number }> = {
-  premium:  { name: 'PintuASN Premium - Hingga November 2026', price: 99000  },
+  premium:  { name: 'PintuASN Premium - Masa Aktif 6 Bulan', price: 99000  },
   platinum: { name: 'PintuASN Platinum - Masa Aktif 1 Tahun',  price: 119000 },
 };
 
