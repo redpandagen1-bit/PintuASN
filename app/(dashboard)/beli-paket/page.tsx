@@ -412,7 +412,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
             {/* Badge */}
             {pkg.badge && (
               <div className={`absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap z-10 tracking-wide shadow-sm
-                ${pkg.isPremium ? 'bg-white text-blue-600' : 'bg-amber-400 text-slate-900'}`}>
+                ${pkg.isPremium ? 'bg-yellow-400 text-slate-900' : 'bg-amber-400 text-slate-900'}`}>
                 {pkg.badge}
               </div>
             )}
@@ -433,7 +433,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
                   <Icon size={18} className={pkg.isPlatinum ? 'text-slate-900' : pkg.isPremium ? 'text-white' : 'text-slate-600'} />
                 </div>
                 <div>
-                  <p className={`font-bold text-base leading-tight ${pkg.isPremium ? 'text-yellow-400' : pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>{pkg.name}</p>
+                  <p className={`font-bold text-base leading-tight ${pkg.isPremium || pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>{pkg.name}</p>
                   <p className={`text-xs ${pkg.isPremium ? 'text-blue-100' : pkg.isPlatinum ? 'text-slate-400' : 'text-slate-400'}`}>{pkg.period}</p>
                 </div>
               </div>
@@ -447,7 +447,7 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
                   </p>
                 )}
                 <div className="flex items-baseline gap-2">
-                  <p className={`text-2xl font-bold ${pkg.isPremium ? 'text-yellow-400' : pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>
+                  <p className={`text-2xl font-bold ${pkg.isPremium || pkg.isPlatinum ? 'text-white' : 'text-slate-900'}`}>
                     {displayPrice === 0 ? 'Gratis' : displayPriceLabel}
                   </p>
                   {/* "upgrade price" badge */}

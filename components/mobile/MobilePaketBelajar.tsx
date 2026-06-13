@@ -127,13 +127,13 @@ function PricingCard({
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <p className={cn('font-extrabold text-sm leading-tight', isPremium ? 'text-yellow-400' : accent ? 'text-white' : 'text-slate-900')}>
+              <p className={cn('font-extrabold text-sm leading-tight', accent ? 'text-white' : 'text-slate-900')}>
                 {pkg.name}
               </p>
               {pkg.badge && (
                 <span className={cn(
                   'text-[8px] font-black px-1.5 py-0.5 rounded-full tracking-wider',
-                  isPremium ? 'bg-white text-sky-600' : 'bg-amber-400 text-slate-900',
+                  isPremium ? 'bg-yellow-400 text-slate-900' : 'bg-amber-400 text-slate-900',
                 )}>
                   {pkg.badge.toUpperCase()}
                 </span>
@@ -153,7 +153,7 @@ function PricingCard({
 
         {/* Price */}
         <div className="flex items-end gap-2 mb-0.5">
-          <p className={cn('text-xl font-extrabold leading-none', isPremium ? 'text-yellow-400' : accent ? 'text-white' : 'text-slate-900')}>
+          <p className={cn('text-xl font-extrabold leading-none', accent ? 'text-white' : 'text-slate-900')}>
             {pkg.priceLabel === 'Rp 0' ? 'Gratis' : pkg.priceLabel}
           </p>
           {pkg.originalPrice && (
