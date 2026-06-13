@@ -97,6 +97,7 @@ function PricingCard({
 }) {
   const { isFree, isPremium, isPlatinum } = pkg;
   const [open, setOpen] = useState(false);
+  const accent = isPremium || isPlatinum; // teks terang di atas bg berwarna
 
   const cardBg = isPremium
     ? 'bg-sky-600 border-sky-500'
@@ -104,148 +105,130 @@ function PricingCard({
     ? 'bg-gradient-to-br from-violet-900 via-purple-800 to-slate-900 border-violet-700'
     : 'bg-white border-slate-200';
 
-  const ctaLabel = isCurrent
-    ? 'Paket Aktif'
-    : isFree
-    ? pkg.ctaDefault
-    : isPremium
-    ? pkg.ctaDefault
-    : pkg.ctaDefault;
+  const subText = isPremium ? 'text-sky-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400';
+  const ctaLabel = isCurrent ? 'Paket Aktif' : pkg.ctaDefault;
 
   const ctaCls = cn(
-    'w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active-press',
+    'w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all active-press',
     isCurrent
-      ? 'bg-white/20 text-white/60 cursor-default'
+      ? (accent ? 'bg-white/15 text-white/60 cursor-default' : 'bg-slate-100 text-slate-400 cursor-default')
       : isPremium
       ? 'bg-white text-sky-600 hover:bg-sky-50'
       : isPlatinum
       ? 'bg-amber-400 text-slate-900 hover:bg-amber-300'
-      : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+      : 'bg-slate-900 text-white hover:bg-slate-800',
   );
 
   return (
-    <div className={cn('relative rounded-2xl border shadow-sm overflow-hidden flex flex-col', cardBg)}>
+    <div className={cn('relative rounded-2xl border shadow-sm overflow-hidden', cardBg)}>
+      <div className="p-4">
 
-      {/* Badge */}
-      {pkg.badge && (
-        <div className={cn(
-          'absolute top-3 left-1/2 -translate-x-1/2 text-[10px] font-black px-3 py-1 rounded-full whitespace-nowrap z-10 tracking-wide',
-          isPremium  ? 'bg-white text-sky-600' : 'bg-amber-400 text-slate-900',
-        )}>
-          {pkg.badge}
-        </div>
-      )}
-
-      {/* Header */}
-      <div className={cn('px-5 pb-3', pkg.badge ? 'pt-9' : 'pt-5')}>
-        <div className="flex items-center gap-2.5 mb-3">
-          <div>
-            <p className={cn('font-bold text-base leading-tight', isPremium || isPlatinum ? 'text-white' : 'text-slate-900')}>
-              {pkg.name}
-            </p>
-            <p className={cn('text-xs', isPremium ? 'text-sky-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
-              {pkg.period}
-            </p>
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <p className={cn('font-extrabold text-sm leading-tight', accent ? 'text-white' : 'text-slate-900')}>
+                {pkg.name}
+              </p>
+              {pkg.badge && (
+                <span className={cn(
+                  'text-[8px] font-black px-1.5 py-0.5 rounded-full tracking-wider',
+                  isPremium ? 'bg-white text-sky-600' : 'bg-amber-400 text-slate-900',
+                )}>
+                  {pkg.badge.toUpperCase()}
+                </span>
+              )}
+            </div>
+            <p className={cn('text-[11px] mt-0.5', subText)}>{pkg.period}</p>
           </div>
           {isCurrent && (
             <span className={cn(
-              'ml-auto text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1',
+              'shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1',
               isPlatinum ? 'bg-amber-400 text-slate-900' : isPremium ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700',
             )}>
-              <Check size={9} strokeWidth={3} /> Aktif
+              <Check size={8} strokeWidth={3} /> Aktif
             </span>
           )}
         </div>
 
         {/* Price */}
-        <div className="mb-3">
-          {pkg.originalPrice && (
-            <p className={cn('text-xs line-through mb-0.5', isPremium ? 'text-sky-200' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
-              {pkg.originalPrice}
-            </p>
-          )}
-          <p className={cn('text-2xl font-bold', isPremium || isPlatinum ? 'text-white' : 'text-slate-900')}>
+        <div className="flex items-end gap-2 mb-0.5">
+          <p className={cn('text-xl font-extrabold leading-none', accent ? 'text-white' : 'text-slate-900')}>
             {pkg.priceLabel === 'Rp 0' ? 'Gratis' : pkg.priceLabel}
           </p>
-          <p className={cn('text-xs mt-0.5', isPremium ? 'text-sky-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400')}>
-            {pkg.description}
-          </p>
+          {pkg.originalPrice && (
+            <p className={cn('text-[11px] line-through pb-0.5', subText)}>{pkg.originalPrice}</p>
+          )}
         </div>
+        <p className={cn('text-[11px] leading-snug mb-3', subText)}>{pkg.description}</p>
 
-        <div className={cn('h-px', isPremium ? 'bg-sky-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
-      </div>
-
-      {/* Toggle benefit (dropdown) */}
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        className={cn(
-          'w-full px-5 py-3 flex items-center justify-between text-xs font-bold active-press',
-          isPremium || isPlatinum ? 'text-white' : 'text-slate-700',
-        )}
-      >
-        <span>{open ? 'Sembunyikan fitur & benefit' : 'Lihat fitur & benefit'}</span>
-        <ChevronDown size={16} className={cn('transition-transform duration-300', open && 'rotate-180')} />
-      </button>
-
-      {/* Feature list */}
-      {open && (
-      <div className="flex-1 px-5 pb-2 space-y-0">
-        {ALL_FEATURES.map((feature, i) => {
-          const hasFeature = isFree ? feature.free : isPremium ? feature.premium : feature.platinum;
-          const sectionLabel = SECTION_LABELS[i];
-          return (
-            <div key={i}>
-              {sectionLabel && (
-                <p className={cn(
-                  'text-[9px] font-black uppercase tracking-widest pt-3 pb-1.5',
-                  isPremium ? 'text-sky-200/60' : isPlatinum ? 'text-purple-400' : 'text-slate-400',
-                )}>
-                  {sectionLabel}
-                </p>
-              )}
-              <div className={cn('flex items-start gap-2.5 py-1', !hasFeature && 'opacity-35')}>
-                {/* Icon */}
-                <div className="mt-0.5 flex-shrink-0">
-                  {hasFeature ? (
-                    <div className={cn(
-                      'w-4 h-4 rounded-full flex items-center justify-center',
-                      isPlatinum ? 'bg-amber-400/25' : isPremium ? 'bg-white/20' : 'bg-emerald-100',
-                    )}>
-                      <Check size={9} strokeWidth={3} className={isPlatinum ? 'text-amber-300' : isPremium ? 'text-white' : 'text-emerald-600'} />
-                    </div>
-                  ) : (
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center bg-black/10">
-                      <X size={8} strokeWidth={2.5} className={isPremium || isPlatinum ? 'text-white/30' : 'text-slate-400'} />
-                    </div>
-                  )}
-                </div>
-                {/* Label */}
-                <span className={cn(
-                  'text-xs leading-snug',
-                  !hasFeature
-                    ? (isPremium || isPlatinum ? 'text-white/40 line-through' : 'text-slate-400 line-through')
-                    : (isPremium || isPlatinum ? 'text-white' : 'text-slate-700'),
-                )}>
-                  {feature.label}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      )}
-
-      {/* CTA */}
-      <div className="px-5 pt-3 pb-5">
-        <div className={cn('h-px mb-3', isPremium ? 'bg-sky-500' : isPlatinum ? 'bg-violet-700' : 'bg-slate-100')} />
+        {/* CTA */}
         <button onClick={isCurrent ? undefined : onSelect} disabled={isCurrent} className={ctaCls}>
           {isCurrent
-            ? <><Lock size={13} /> {ctaLabel}</>
-            : <>{ctaLabel} <ArrowRight size={13} /></>
+            ? <><Lock size={12} /> {ctaLabel}</>
+            : <>{ctaLabel} <ArrowRight size={12} /></>
           }
         </button>
+
+        {/* Toggle benefit (dropdown) */}
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          className={cn(
+            'w-full mt-3 pt-3 border-t flex items-center justify-between text-[11px] font-bold active-press',
+            accent ? 'text-white/90 border-white/15' : 'text-slate-600 border-slate-100',
+          )}
+        >
+          <span>{open ? 'Sembunyikan fitur' : 'Lihat fitur & benefit'}</span>
+          <ChevronDown size={15} className={cn('transition-transform duration-300', open && 'rotate-180')} />
+        </button>
+
+        {/* Feature list */}
+        {open && (
+          <div className="mt-1.5 space-y-0">
+            {ALL_FEATURES.map((feature, i) => {
+              const hasFeature = isFree ? feature.free : isPremium ? feature.premium : feature.platinum;
+              const sectionLabel = SECTION_LABELS[i];
+              return (
+                <div key={i}>
+                  {sectionLabel && (
+                    <p className={cn(
+                      'text-[8px] font-black uppercase tracking-widest pt-2.5 pb-1',
+                      isPremium ? 'text-sky-200/60' : isPlatinum ? 'text-purple-400' : 'text-slate-400',
+                    )}>
+                      {sectionLabel}
+                    </p>
+                  )}
+                  <div className={cn('flex items-start gap-2 py-0.5', !hasFeature && 'opacity-35')}>
+                    <div className="mt-0.5 shrink-0">
+                      {hasFeature ? (
+                        <div className={cn(
+                          'w-3.5 h-3.5 rounded-full flex items-center justify-center',
+                          isPlatinum ? 'bg-amber-400/25' : isPremium ? 'bg-white/20' : 'bg-emerald-100',
+                        )}>
+                          <Check size={8} strokeWidth={3} className={isPlatinum ? 'text-amber-300' : isPremium ? 'text-white' : 'text-emerald-600'} />
+                        </div>
+                      ) : (
+                        <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center bg-black/10">
+                          <X size={7} strokeWidth={2.5} className={accent ? 'text-white/30' : 'text-slate-400'} />
+                        </div>
+                      )}
+                    </div>
+                    <span className={cn(
+                      'text-[11px] leading-snug',
+                      !hasFeature
+                        ? (accent ? 'text-white/40 line-through' : 'text-slate-400 line-through')
+                        : (accent ? 'text-white' : 'text-slate-700'),
+                    )}>
+                      {feature.label}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
