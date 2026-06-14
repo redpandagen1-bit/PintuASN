@@ -15,6 +15,7 @@ import { Skeleton }      from '@/components/ui/skeleton';
 import PaymentSuccessToast from '@/components/shared/payment-success-toast';
 import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
 import { MobileDashboard }   from '@/components/mobile/MobileDashboard';
+import { MobileTopBar }      from '@/components/mobile/MobileTopBar';
 
 // ─────────────────────────────────────────────────────────────
 
@@ -112,8 +113,10 @@ async function DashboardContent() {
     <>
       {/* ── MOBILE layout (md:hidden via MobilePageWrapper) ── */}
       <MobilePageWrapper>
+        {/* Navbar dashboard mobile — download app (kiri) + user (kanan) */}
+        <MobileTopBar />
         {/* Banner mobile — lebar sesuai layout */}
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-4 mt-4">
           <BannerSlider />
         </div>
         <MobileDashboard

@@ -130,9 +130,9 @@ export function Sidebar() {
             <div className="h-px bg-white/10 mb-3" />
             <div className="grid grid-cols-3 gap-1.5 mb-3">
               {[
-                { file: 'riwayat_free', label: 'Riwayat' },
-                { file: 'video_skd_free', label: 'Video SKD' },
-                { file: 'analisis_free', label: 'Analisis' },
+                { file: 'riwayat_premium', label: 'Riwayat' },
+                { file: 'video_skd_premium', label: 'Materi SKD' },
+                { file: 'analisis_premium', label: 'Analisis' },
               ].map(({ file, label }) => (
                 <div
                   key={file}
@@ -145,13 +145,19 @@ export function Sidebar() {
                     height={22}
                     className="mx-auto mb-1"
                   />
-                  <p className="text-slate-500 text-[9px] font-medium">{label}</p>
+                  <p className="text-slate-400 text-[9px] font-medium">{label}</p>
                 </div>
               ))}
             </div>
+            <div className="mb-3">
+              <p className="text-slate-500 text-xs line-through leading-none mb-0.5">
+                Rp 200.000
+              </p>
+              <p className="text-white font-bold text-lg leading-none">Rp 99.000</p>
+            </div>
             <Link href="/beli-paket">
               <button className="w-full bg-yellow-400 text-slate-900 font-bold py-2 px-4 rounded-xl hover:bg-yellow-300 transition-all duration-200 text-xs shadow-md">
-                Lihat Paket →
+                Upgrade Sekarang →
               </button>
             </Link>
           </div>
@@ -179,7 +185,7 @@ export function Sidebar() {
             <div className="grid grid-cols-3 gap-1.5 mb-3">
               {[
                 { file: 'riwayat_premium', label: 'Riwayat' },
-                { file: 'video_skd_premium', label: 'Video SKD' },
+                { file: 'video_skd_premium', label: 'Materi Video' },
                 { file: 'analisis_premium', label: 'Analisis' },
               ].map(({ file, label }) => (
                 <div

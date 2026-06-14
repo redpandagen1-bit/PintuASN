@@ -136,73 +136,6 @@ export function MobileDashboard({
   return (
     <main className="space-y-6">
 
-      {/* ── Upgrade / Premium CTA (compact) ─────────────────── */}
-      {showOffer && (
-        <section className="px-4">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-3 shadow-lg">
-
-            {/* Header: icon + judul + deskripsi inline */}
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <div className="flex items-center gap-1.5">
-                <Crown size={13} className="text-yellow-400 flex-shrink-0 mt-px" />
-                <div>
-                  <h3 className="text-white font-bold text-xs leading-tight"
-                    style={{ fontFamily: 'var(--font-jakarta)' }}>
-                    Upgrade{' '}
-                    <span className="text-yellow-400">
-                      {isPremium ? 'Platinum' : 'Premium'}
-                    </span>
-                  </h3>
-                  <p className="text-slate-400 text-[10px] leading-tight mt-0.5">
-                    {isPremium
-                      ? 'Akses fitur eksklusif & video SKD lengkap.'
-                      : 'Tryout Premium + Materi video lengkap.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Harga di kanan atas (hanya premium) */}
-              {isPremium && (
-                <div className="flex-shrink-0 text-right">
-                  <p className="text-slate-500 text-[9px] line-through leading-none">{offerOrig}</p>
-                  <p className="text-white font-bold text-sm leading-tight"
-                    style={{ fontFamily: 'var(--font-jakarta)' }}>
-                    {offerPrice}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Divider */}
-            <div className="h-px bg-white/10 mb-2" />
-
-            {/* Feature grid 3-col compact */}
-            <div className="grid grid-cols-3 gap-1 mb-2.5">
-              {[
-                { val: isPremium ? '∞' : '✗', label: 'Riwayat' },
-                { val: isPremium ? 'HD' : '✗', label: 'Video SKD' },
-                { val: isPremium ? 'Pro' : '✗', label: 'Analisis' },
-              ].map(({ val, label }) => (
-                <div key={label} className="bg-white/5 border border-white/10 rounded-md py-1 text-center">
-                  <p className={`text-[10px] font-black leading-none ${isPremium ? 'text-yellow-400' : 'text-slate-500'}`}>
-                    {val}
-                  </p>
-                  <p className="text-slate-400 text-[8px] mt-0.5">{label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA button */}
-            <Link href="/beli-paket">
-              <button className="w-full bg-white text-slate-800 font-semibold py-2 px-4 rounded-xl active-press transition-all text-xs shadow-md">
-                {isPremium ? 'Upgrade Sekarang' : 'Lihat Paket'}
-              </button>
-            </Link>
-
-          </div>
-        </section>
-      )}
-
       {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
       <section>
         <div className="grid grid-cols-3">
@@ -238,6 +171,71 @@ export function MobileDashboard({
           })}
         </div>
       </section>
+
+      {/* ── Upgrade / Premium CTA (compact) ─────────────────── */}
+      {showOffer && (
+        <section className="px-4">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-3 shadow-lg">
+
+            {/* Header: icon + judul + deskripsi inline */}
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="flex items-center gap-1.5">
+                <Crown size={13} className="text-yellow-400 flex-shrink-0 mt-px" />
+                <div>
+                  <h3 className="text-white font-bold text-xs leading-tight"
+                    style={{ fontFamily: 'var(--font-jakarta)' }}>
+                    Upgrade{' '}
+                    <span className="text-yellow-400">
+                      {isPremium ? 'Platinum' : 'Premium'}
+                    </span>
+                  </h3>
+                  <p className="text-slate-400 text-[10px] leading-tight mt-0.5">
+                    {isPremium
+                      ? 'Akses fitur eksklusif & video SKD lengkap.'
+                      : 'Tryout Premium + Materi video lengkap.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Harga di kanan atas */}
+              <div className="flex-shrink-0 text-right">
+                <p className="text-slate-500 text-[9px] line-through leading-none">{offerOrig}</p>
+                <p className="text-white font-bold text-sm leading-tight"
+                  style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  {offerPrice}
+                </p>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-white/10 mb-2" />
+
+            {/* Feature grid 3-col compact */}
+            <div className="grid grid-cols-3 gap-1 mb-2.5">
+              {[
+                { val: '∞', label: 'Riwayat' },
+                { val: 'HD', label: isPremium ? 'Materi Video' : 'Materi SKD' },
+                { val: 'Pro', label: 'Analisis' },
+              ].map(({ val, label }) => (
+                <div key={label} className="bg-white/5 border border-white/10 rounded-md py-1 text-center">
+                  <p className="text-[10px] font-black leading-none text-yellow-400">
+                    {val}
+                  </p>
+                  <p className="text-slate-400 text-[8px] mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA button */}
+            <Link href="/beli-paket">
+              <button className="w-full bg-white text-slate-800 font-semibold py-2 px-4 rounded-xl active-press transition-all text-xs shadow-md">
+                Upgrade Sekarang
+              </button>
+            </Link>
+
+          </div>
+        </section>
+      )}
 
       {/* ── Mini Statistik Belajar ─────────────────────────────── */}
       <section className="mx-4">
