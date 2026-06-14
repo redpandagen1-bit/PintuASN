@@ -1,417 +1,239 @@
 'use client';
 
 // components/mobile/MobileMateri.tsx
-// Mobile-only materi page — compact, slate-800 hero, consistent with other mobile pages
+// Mobile materi modul — Tab → Topik → Sub-topik → Reader. Tanpa video.
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  Search, Play, FileText, Lock, X, ExternalLink,
-  FileIcon, Clock, BookOpen, Flag, Brain, BookMarked,
+  BookOpen, ChevronRight, Lock, CheckCircle2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { canAccess } from '@/lib/subscription-utils';
+import { UpgradeModal }     from '@/components/shared/upgrade-modal';
+import { ModuleReader }     from '@/components/materi/module-reader';
+import { canAccess }        from '@/lib/subscription-utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
-import type { Material } from '@/app/(dashboard)/materi/page';
+import { readState, markRead, type MaterialModule } from '@/app/(dashboard)/materi/shared';
 
-// ── Types ─────────────────────────────────────────────────────
+type TabId = 'TWK' | 'TIU' | 'TKP' | 'INFORMASI';
 
-type TabId = 'SEMUA' | 'INFORMASI' | 'TWK' | 'TIU' | 'TKP';
-
-interface MobileMateriProps {
-  materials: Material[];
-  userTier:  SubscriptionTier;
-}
-
-// ── Constants ─────────────────────────────────────────────────
-
-const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
-  { id: 'SEMUA',     label: 'Semua', icon: <BookOpen   size={12} /> },
-  { id: 'INFORMASI', label: 'Info',  icon: <FileText   size={12} /> },
-  { id: 'TWK',       label: 'TWK',   icon: <Flag       size={12} /> },
-  { id: 'TIU',       label: 'TIU',   icon: <Brain      size={12} /> },
-  { id: 'TKP',       label: 'TKP',   icon: <BookMarked size={12} /> },
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'INFORMASI', label: 'Info CPNS' },
+  { id: 'TWK',       label: 'TWK' },
+  { id: 'TIU',       label: 'TIU' },
+  { id: 'TKP',       label: 'TKP' },
 ];
 
-const TAB_DESC: Record<TabId, string> = {
-  SEMUA:     'Semua materi SKD CPNS — Informasi, TWK, TIU, dan TKP.',
-  INFORMASI: 'Jadwal, persyaratan, dan alur pendaftaran CPNS.',
-  TWK:       'Pancasila, UUD 1945, NKRI, dan Bela Negara.',
-  TIU:       'Verbal, numerik, figural, dan logika penalaran.',
-  TKP:       'Pelayanan publik, sosial budaya, dan profesionalisme.',
-};
-
-const TIER_BADGE: Record<string, { label: string; cls: string }> = {
-  premium:  { label: 'PREMIUM',  cls: 'bg-amber-500/90 text-white' },
-  platinum: { label: 'PLATINUM', cls: 'bg-purple-500/90 text-white' },
-};
-
-// ── Helpers ───────────────────────────────────────────────────
-
-function getYoutubeId(url: string): string | null {
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-    if (u.hostname === 'youtu.be')          return u.pathname.slice(1).split('?')[0];
-    return null;
-  } catch { return null; }
+function TierPill({ tier }: { tier: MaterialModule['tier'] }) {
+  if (tier === 'premium')  return <span className="text-[9px] font-black text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded-full">Premium</span>;
+  if (tier === 'platinum') return <span className="text-[9px] font-black text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded-full">Platinum</span>;
+  return null;
 }
 
-function getGoogleDriveEmbedUrl(url: string): string | null {
-  try {
-    const u     = new URL(url);
-    const match = u.pathname.match(/\/file\/d\/([^/]+)/);
-    if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
-    const id    = u.searchParams.get('id');
-    if (id)    return `https://drive.google.com/file/d/${id}/preview`;
-    return null;
-  } catch { return null; }
-}
-
-// ── Content Modal ─────────────────────────────────────────────
-
-function ContentModal({ material, onClose }: { material: Material; onClose: () => void }) {
-  const ytId          = getYoutubeId(material.content_url);
-  const driveEmbedUrl = material.type === 'pdf' ? getGoogleDriveEmbedUrl(material.content_url) : null;
-  const isPdf         = material.type === 'pdf';
-
-  return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-slate-900" onClick={onClose}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 flex-shrink-0"
-        onClick={e => e.stopPropagation()}>
-        <div className="min-w-0 flex items-center gap-2">
-          {isPdf
-            ? <FileIcon size={15} className="text-orange-400 flex-shrink-0" />
-            : <Play     size={15} className="text-red-400 flex-shrink-0" />
-          }
-          <div className="min-w-0">
-            <h3 className="text-white font-bold text-sm truncate">{material.title}</h3>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-slate-400 text-xs">{material.category}</span>
-              {material.duration_minutes && (
-                <span className="flex items-center gap-1 text-slate-400 text-xs">
-                  <Clock size={10} /> {material.duration_minutes} mnt
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-          {isPdf && (
-            <a href={material.content_url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 text-white rounded-lg text-xs font-semibold">
-              <ExternalLink size={12} /> Buka
-            </a>
-          )}
-          <button onClick={onClose} className="p-1.5 bg-slate-700 rounded-lg">
-            <X size={16} className="text-slate-300" />
-          </button>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden" onClick={e => e.stopPropagation()}>
-        {material.type === 'video' && ytId ? (
-          <div className="w-full h-full flex items-center justify-center bg-black">
-            <iframe
-              src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`}
-              className="w-full aspect-video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        ) : isPdf && driveEmbedUrl ? (
-          <iframe src={driveEmbedUrl} className="w-full h-full" allow="autoplay" />
-        ) : isPdf ? (
-          <div className="h-full flex flex-col items-center justify-center gap-4 p-8">
-            <div className="w-14 h-14 bg-slate-700 rounded-2xl flex items-center justify-center">
-              <FileIcon size={28} className="text-orange-400" />
-            </div>
-            <p className="text-slate-300 text-sm text-center max-w-xs">
-              Preview tidak tersedia. Buka dokumen di browser.
-            </p>
-            <a href={material.content_url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 px-5 py-2.5 bg-slate-700 text-white rounded-xl text-sm font-semibold">
-              <ExternalLink size={14} /> Buka Dokumen
-            </a>
-          </div>
-        ) : (
-          <div className="h-full flex items-center justify-center">
-            <p className="text-slate-400 text-sm">Konten tidak tersedia</p>
-          </div>
-        )}
-      </div>
-
-      {material.description && (
-        <div className="px-4 py-3 border-t border-slate-700 flex-shrink-0" onClick={e => e.stopPropagation()}>
-          <p className="text-slate-400 text-xs leading-relaxed">{material.description}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Locked Prompt ─────────────────────────────────────────────
-
-function LockedModal({ tier, onClose }: { tier: 'premium' | 'platinum'; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative bg-white rounded-t-3xl w-full max-w-md p-7 text-center" onClick={e => e.stopPropagation()}>
-        <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Lock size={24} className="text-slate-700" />
-        </div>
-        <h3 className="font-extrabold text-base text-slate-800 mb-1.5">
-          Materi {tier === 'premium' ? 'Premium' : 'Platinum'}
-        </h3>
-        <p className="text-slate-500 text-sm mb-6">
-          Upgrade untuk mengakses materi {tier === 'premium' ? 'Premium' : 'Platinum'} ini.
-        </p>
-        <div className="space-y-2.5">
-          <a href="/beli-paket" className="block">
-            <button className="w-full bg-slate-800 text-white font-extrabold py-3 rounded-xl text-sm">
-              Upgrade Sekarang
-            </button>
-          </a>
-          <button onClick={onClose} className="w-full text-slate-400 text-sm py-1.5">
-            Nanti saja
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Materi Card ───────────────────────────────────────────────
-
-function MateriCard({
-  material, userTier, onPlay, onLocked,
+export function MobileMateri({
+  modules, userTier,
 }: {
-  material:  Material;
-  userTier:  SubscriptionTier;
-  onPlay:    (m: Material) => void;
-  onLocked:  (tier: 'premium' | 'platinum') => void;
+  modules:  MaterialModule[];
+  userTier: SubscriptionTier;
 }) {
-  const accessible = canAccess(userTier, material.tier as SubscriptionTier);
-  const ytId       = material.type === 'video' ? getYoutubeId(material.content_url) : null;
-  const badge      = TIER_BADGE[material.tier];
+  const [activeTab,    setActiveTab]    = useState<TabId>('INFORMASI');
+  const [openTopic,    setOpenTopic]    = useState<string | null>(null);
+  const [openModuleId, setOpenModuleId] = useState<string | null>(null);
+  const [upgradeOpen,  setUpgradeOpen]  = useState(false);
+  const [upgradeTier,  setUpgradeTier]  = useState<'premium' | 'platinum'>('premium');
+  const [upgradeTitle, setUpgradeTitle] = useState('');
+  const [readVersion,  setReadVersion]  = useState(0);
 
-  return (
-    <div
-      className={cn(
-        'bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 active-press cursor-pointer',
-        !accessible && 'opacity-75',
-      )}
-      onClick={() => accessible ? onPlay(material) : onLocked(material.tier as 'premium' | 'platinum')}
-    >
-      {/* Thumbnail */}
-      <div className="relative">
-        {material.type === 'video' && ytId ? (
-          <div className="relative aspect-video">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`}
-              alt={material.title}
-              className={cn('w-full h-full object-cover', !accessible && 'brightness-50')}
-            />
-            <div className={cn('absolute inset-0 flex items-center justify-center', accessible ? 'bg-black/20' : 'bg-black/40')}>
-              {accessible
-                ? <div className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center">
-                    <Play size={16} className="text-slate-800 ml-0.5" />
-                  </div>
-                : <div className="w-9 h-9 bg-black/60 rounded-full border border-white/20 flex items-center justify-center">
-                    <Lock size={15} className="text-white" />
-                  </div>
-              }
-            </div>
-          </div>
-        ) : (
-          <div className={cn(
-            'aspect-video flex flex-col items-center justify-center gap-1.5',
-            accessible ? 'bg-slate-50' : 'bg-slate-100',
-          )}>
-            {accessible
-              ? <FileIcon size={26} className="text-orange-500" />
-              : <Lock size={22} className="text-slate-400" />
-            }
-            <span className="text-[10px] font-semibold text-slate-400">
-              {accessible ? 'PDF' : 'Terkunci'}
-            </span>
-          </div>
-        )}
+  // ── Integrasi tombol "kembali" perangkat (PWA) dengan navigasi in-app ──
+  // Tanpa ini, back perangkat dari /materi langsung ke dashboard.
+  // Dengan ini: Reader → daftar sub-topik → daftar topik → baru keluar.
+  const moduleRef = useRef<string | null>(null);
+  const topicRef  = useRef<string | null>(null);
+  moduleRef.current = openModuleId;
+  topicRef.current  = openTopic;
 
-        {/* Badges */}
-        {material.is_new && (
-          <div className="absolute top-1.5 left-1.5 bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
-            BARU
-          </div>
-        )}
-        {badge && (
-          <div className={cn('absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full', badge.cls)}>
-            {badge.label}
-          </div>
-        )}
-      </div>
+  useEffect(() => {
+    const onPop = () => {
+      if (moduleRef.current !== null) setOpenModuleId(null);
+      else if (topicRef.current !== null) setOpenTopic(null);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
-      {/* Info */}
-      <div className="p-2.5">
-        <p className="font-semibold text-xs text-slate-800 leading-snug mb-1.5 line-clamp-2">
-          {material.title}
-        </p>
-        <div className="flex items-center gap-2 text-[10px] text-slate-400">
-          <span className="flex items-center gap-1">
-            {material.type === 'video' ? <Play size={9} /> : <FileText size={9} />}
-            {material.type === 'video' ? 'Video' : 'PDF'}
-          </span>
-          {material.duration_minutes && (
-            <span className="flex items-center gap-1">
-              <Clock size={9} /> {material.duration_minutes} mnt
-            </span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+  const pushHist    = () => { try { window.history.pushState({ materi: Date.now() }, ''); } catch { /* ignore */ } };
+  const backOneLevel = () => { try { window.history.back(); } catch { setOpenModuleId(null); setOpenTopic(null); } };
 
-// ── Component ─────────────────────────────────────────────────
+  const openTopicNav = (topic: string) => { setOpenTopic(topic); pushHist(); };
 
-export function MobileMateri({ materials, userTier }: MobileMateriProps) {
-  const [activeTab,   setActiveTab]   = useState<TabId>('SEMUA');
-  const [search,      setSearch]      = useState('');
-  const [activeModal, setActiveModal] = useState<Material | null>(null);
-  const [lockedTier,  setLockedTier]  = useState<'premium' | 'platinum' | null>(null);
-
-  const filtered = useMemo(() => materials.filter(m => {
-    const matchTab    = activeTab === 'SEMUA' || m.category === activeTab;
-    const matchSearch = search === '' || m.title.toLowerCase().includes(search.toLowerCase());
-    return matchTab && matchSearch;
-  }), [materials, activeTab, search]);
-
-  const counts = useMemo(() => {
-    const result = { SEMUA: materials.length } as Record<TabId, number>;
-    for (const tab of TABS) {
-      if (tab.id !== 'SEMUA') {
-        result[tab.id] = materials.filter(m => m.category === tab.id).length;
-      }
+  const topicGroups = useMemo(() => {
+    const groups = new Map<string, MaterialModule[]>();
+    for (const m of modules) {
+      if (m.category !== activeTab) continue;
+      if (!groups.has(m.topic)) groups.set(m.topic, []);
+      groups.get(m.topic)!.push(m);
     }
-    return result;
-  }, [materials]);
+    return Array.from(groups.entries()).map(([topic, mods]) => ({ topic, modules: mods }));
+  }, [modules, activeTab]);
 
-  return (
-    <main className="pb-24">
+  const readMap     = useMemo(() => readState(), [readVersion]);
+  const activeGroup = topicGroups.find(g => g.topic === openTopic) || null;
+  const openModule  = activeGroup?.modules.find(m => m.id === openModuleId) || null;
 
-      {/* Modals */}
-      {activeModal && <ContentModal material={activeModal} onClose={() => setActiveModal(null)} />}
-      {lockedTier  && <LockedModal  tier={lockedTier}     onClose={() => setLockedTier(null)}  />}
+  const openModuleSafe = (m: MaterialModule) => {
+    if (canAccess(userTier, m.tier)) { setOpenModuleId(m.id); pushHist(); }
+    else { setUpgradeTitle(m.title); setUpgradeTier(m.tier as 'premium' | 'platinum'); setUpgradeOpen(true); }
+  };
 
-      {/* ══════════════════════════════════════════════════════
-          HERO — slate-800, all-around rounded
-      ══════════════════════════════════════════════════════ */}
-      <div className="bg-slate-800 relative overflow-hidden rounded-3xl mx-3 mt-3 shadow-xl">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-400 rounded-full opacity-10 blur-3xl pointer-events-none" />
+  // ── READER ──────────────────────────────────────────────────
+  if (openModule && activeGroup) {
+    const idx  = activeGroup.modules.findIndex(m => m.id === openModule.id);
+    const next = activeGroup.modules[idx + 1] || null;
 
-        <div className="relative z-10 px-4 pt-4 pb-4">
-          {/* Title */}
-          <h1 className="text-xl font-extrabold text-white leading-tight mb-0.5">
-            Materi <span className="text-yellow-400">Belajar</span>
-          </h1>
-          <p className="text-slate-400 text-xs mb-3">
-            Pilih kategori SKD untuk mulai belajar.
-          </p>
+    const finishAndNext = () => {
+      markRead(openModule.id);
+      setReadVersion(v => v + 1);
+      if (next && canAccess(userTier, next.tier)) setOpenModuleId(next.id);
+      else backOneLevel();
+    };
 
-          {/* Search — compact dark */}
-          <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Cari materi..."
-              className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:border-slate-400 placeholder:text-slate-500 transition-colors"
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-              >
-                <X size={12} />
-              </button>
-            )}
+    return (
+      <>
+        <div className="px-4 pb-24">
+          <ModuleReader module={openModule} onBack={backOneLevel} onComplete={finishAndNext} />
+        </div>
+        <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)}
+          requiredTier={upgradeTier} contentTitle={upgradeTitle} />
+      </>
+    );
+  }
+
+  // ── SUB-TOPIK LIST ──────────────────────────────────────────
+  if (activeGroup) {
+    const total     = activeGroup.modules.length;
+    const doneCount = activeGroup.modules.filter(m => readMap[m.id]).length;
+    const pct       = total ? Math.round((doneCount / total) * 100) : 0;
+    return (
+      <>
+        <div className="px-4 pb-24 space-y-4">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+            <button onClick={backOneLevel} className="hover:text-slate-700">Materi</button>
+            <ChevronRight size={12} />
+            <span className="text-slate-700 truncate">{activeGroup.topic}</span>
+          </nav>
+
+          {/* Judul + materi digabung dalam satu kontainer */}
+          <div className="rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="bg-slate-800 px-5 pt-5 pb-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-36 h-36 bg-yellow-500/10 rounded-full blur-2xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+              <div className="relative z-10">
+                <h1 className="text-xl font-extrabold text-white mb-3">{activeGroup.topic}</h1>
+                <div className="flex items-center gap-2 mb-1.5 text-[11px] text-slate-300">
+                  <span>{total} sub-topik</span>
+                  <span className="ml-auto font-bold text-yellow-400">{pct}%</span>
+                </div>
+                <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-yellow-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-2 divide-y divide-slate-100">
+              {activeGroup.modules.map((m, i) => {
+                const accessible = canAccess(userTier, m.tier);
+                const isDone     = !!readMap[m.id];
+                const pages      = (m.pages?.length) || 1;
+                return (
+                  <button key={m.id} onClick={() => openModuleSafe(m)}
+                    className="w-full flex items-center gap-3 px-2.5 py-3 text-left">
+                    <span className="flex-shrink-0">
+                      {!accessible
+                        ? <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><Lock size={14} className="text-slate-400" /></span>
+                        : isDone
+                        ? <span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center"><CheckCircle2 size={16} className="text-emerald-500" /></span>
+                        : <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><span className="text-[11px] font-bold text-slate-500">{i + 1}</span></span>}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className={`block text-sm font-semibold truncate ${accessible ? 'text-slate-800' : 'text-slate-500'}`}>{m.title}</span>
+                      <span className="text-[10px] text-slate-400">{pages} halaman{m.read_minutes ? ` · ${m.read_minutes} mnt` : ''}</span>
+                    </span>
+                    {m.is_new && <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full flex-shrink-0">Baru</span>}
+                    {!accessible && <TierPill tier={m.tier} />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+        <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)}
+          requiredTier={upgradeTier} contentTitle={upgradeTitle} />
+      </>
+    );
+  }
 
-      {/* ══════════════════════════════════════════════════════
-          TABS — pill strip, "Semua" as first & default
-      ══════════════════════════════════════════════════════ */}
-      <div className="flex gap-2 overflow-x-auto py-2.5 px-4 scrollbar-hide bg-white border-b border-slate-100">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setSearch(''); }}
-            className={cn(
-              'flex-shrink-0 flex items-center gap-1.5 px-3.5 py-1 rounded-full font-bold text-xs transition-colors',
-              activeTab === tab.id
-                ? 'bg-slate-800 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-500',
-            )}
-          >
-            {tab.icon}
-            {tab.label}
-            <span className={cn(
-              'text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center',
-              activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500',
-            )}>
-              {counts[tab.id]}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* ══════════════════════════════════════════════════════
-          CONTENT
-      ══════════════════════════════════════════════════════ */}
-      <div className="px-4 pt-3">
-
-        {/* Tab description */}
-        <div className="flex items-start gap-1.5 mb-3 px-0.5">
-          <BookOpen size={11} className="text-slate-400 flex-shrink-0 mt-0.5" />
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            {TAB_DESC[activeTab]}
-          </p>
+  // ── TOPIK GRID ──────────────────────────────────────────────
+  return (
+    <>
+      <div className="px-4 pb-24 space-y-5">
+        <div className="bg-slate-800 rounded-2xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-44 h-44 bg-yellow-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+          <div className="relative z-10">
+            <h1 className="text-2xl font-extrabold text-white leading-tight mb-1">Pelajari <span className="text-yellow-400">Materinya</span></h1>
+            <p className="text-slate-300 text-xs leading-relaxed">Dirangkum per topik &amp; sub-topik, lengkap dengan kuis tiap halaman.</p>
+          </div>
         </div>
 
-        {/* Grid */}
-        {filtered.length === 0 ? (
-          <div className="text-center py-14 flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-              <BookOpen size={20} className="text-slate-400" />
-            </div>
-            <p className="text-sm font-semibold text-slate-500">
-              {search ? `Tidak ditemukan "${search}"` : 'Belum ada materi.'}
-            </p>
-            {search && (
-              <button onClick={() => setSearch('')} className="text-xs text-slate-400 underline">
-                Hapus pencarian
+        <div className="grid grid-cols-4 gap-1.5">
+          {TABS.map(tab => {
+            const isActive = tab.id === activeTab;
+            return (
+              <button key={tab.id} onClick={() => { setActiveTab(tab.id); setOpenTopic(null); }}
+                className={`px-1 py-2 rounded-lg font-semibold text-[11px] text-center truncate border ${
+                  isActive ? 'bg-slate-800 text-yellow-400 border-slate-800' : 'bg-white text-slate-600 border-slate-200'
+                }`}>
+                {tab.label}
               </button>
-            )}
+            );
+          })}
+        </div>
+
+        {topicGroups.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3">
+            {topicGroups.map((g, i) => {
+              const total     = g.modules.length;
+              const doneCount = g.modules.filter(m => readMap[m.id]).length;
+              const pct       = total ? Math.round((doneCount / total) * 100) : 0;
+              const isDone    = total > 0 && doneCount === total;
+              return (
+                <button key={g.topic} onClick={() => openTopicNav(g.topic)}
+                  className="bg-white rounded-2xl border border-slate-200 p-4 text-left flex flex-col active:scale-[0.98] transition-transform">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center">
+                      <span className="text-sm font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">{total} sub</span>
+                  </div>
+                  <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex-1 leading-snug line-clamp-2 min-h-[34px]">{g.topic}</h3>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-[10px] font-semibold ${isDone ? 'text-emerald-600' : 'text-slate-400'}`}>{isDone ? 'Selesai' : `${doneCount}/${total}`}</span>
+                    <span className="text-[10px] font-bold text-slate-400">{pct}%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${isDone ? 'bg-emerald-500' : 'bg-slate-800'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </button>
+              );
+            })}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {filtered.map(m => (
-              <MateriCard
-                key={m.id}
-                material={m}
-                userTier={userTier}
-                onPlay={mat => setActiveModal(mat)}
-                onLocked={tier => setLockedTier(tier)}
-              />
-            ))}
+          <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-10 text-center">
+            <BookOpen size={28} className="text-slate-300 mx-auto mb-2" />
+            <p className="text-sm font-bold text-slate-600">Segera Hadir</p>
+            <p className="text-xs text-slate-400 mt-1">Materi kategori ini sedang disiapkan.</p>
           </div>
         )}
-
       </div>
-    </main>
+      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)}
+        requiredTier={upgradeTier} contentTitle={upgradeTitle} />
+    </>
   );
 }

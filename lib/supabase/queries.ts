@@ -112,6 +112,28 @@ export const getAllMaterials = unstable_cache(
 );
 
 // ─────────────────────────────────────────────────────────────
+// MATERIAL MODULES (materi bacaan "native" — non-video)
+// ─────────────────────────────────────────────────────────────
+
+export const getMaterialModules = unstable_cache(
+  async () => {
+    const supabase = createCacheClient();
+    const { data, error } = await supabase
+      .from('material_modules')
+      .select('id, category, topic, title, content_body, pages, quiz, tier, read_minutes, topic_order, sub_order, is_new')
+      .eq('is_active', true).eq('is_deleted', false)
+      .order('category',    { ascending: true })
+      .order('topic_order', { ascending: true })
+      .order('topic',       { ascending: true })
+      .order('sub_order',   { ascending: true });
+    if (error) throw new Error(`Failed to fetch material modules: ${error.message}`);
+    return data ?? [];
+  },
+  ['material-modules'],
+  { tags: ['material-modules'], revalidate: 300 },
+);
+
+// ─────────────────────────────────────────────────────────────
 // PACKAGE QUESTIONS
 // ─────────────────────────────────────────────────────────────
 
