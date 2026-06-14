@@ -26,6 +26,36 @@ export async function GET() {
   return NextResponse.json({ modules: data ?? [] });
 }
 
+// Reorder sub-topik dalam satu topik: body.reorder = [{ id, sub_order }, ...]
+export async function PATCH(req: NextRequest) {
+  try {
+    await requireAdmin();
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
+  let body: any;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: 'Body harus JSON' }, { status: 400 }); }
+
+  if (!Array.isArray(body?.reorder) || body.reorder.length === 0) {
+    return NextResponse.json({ error: 'reorder wajib berupa array {id, sub_order}' }, { status: 400 });
+  }
+  const supabase = admin();
+  try {
+    for (const item of body.reorder) {
+      if (!item?.id || typeof item.sub_order !== 'number') continue;
+      const { error } = await supabase
+        .from('material_modules')
+        .update({ sub_order: item.sub_order })
+        .eq('id', item.id);
+      if (error) throw error;
+    }
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
+  revalidateTag('material-modules');
+  return NextResponse.json({ ok: true });
+}
+
 // Soft-delete: 1 modul (body.id) ATAU seluruh topik (body.category + body.topic)
 export async function DELETE(req: NextRequest) {
   try {

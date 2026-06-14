@@ -6,7 +6,7 @@
 // Materi video TIDAK ditampilkan di sini (halaman terpisah).
 // ============================================================
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   BookOpen, FileText, ChevronRight,
   Clock, Lock, CheckCircle2, GraduationCap, Layers, ArrowRight,
@@ -66,11 +66,32 @@ export default function MateriPageClient({
   const openModule  = activeGroup?.modules.find(m => m.id === openModuleId) || null;
   const readMap     = useMemo(() => readState(), [readVersion]);
 
+  // ── Integrasi tombol "kembali" browser dengan navigasi in-app ──
+  // Tanpa ini, back dari /materi langsung ke dashboard.
+  // Dengan ini: Reader → daftar sub-topik → daftar topik → baru keluar.
+  const moduleRef = useRef<string | null>(null);
+  const topicRef  = useRef<string | null>(null);
+  moduleRef.current = openModuleId;
+  topicRef.current  = openTopic;
+
+  useEffect(() => {
+    const onPop = () => {
+      if (moduleRef.current !== null) setOpenModuleId(null);
+      else if (topicRef.current !== null) setOpenTopic(null);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  const pushHist     = () => { try { window.history.pushState({ materi: Date.now() }, ''); } catch { /* ignore */ } };
+  const backOneLevel = () => { try { window.history.back(); } catch { setOpenModuleId(null); setOpenTopic(null); } };
+  const openTopicNav = (topic: string) => { setOpenTopic(topic); pushHist(); };
+
   const handleLocked = (title: string, tier: 'premium' | 'platinum') => {
     setUpgradeTitle(title); setUpgradeTier(tier); setUpgradeOpen(true);
   };
   const openModuleSafe = (m: MaterialModule) => {
-    if (canAccess(userTier, m.tier)) setOpenModuleId(m.id);
+    if (canAccess(userTier, m.tier)) { setOpenModuleId(m.id); pushHist(); }
     else handleLocked(m.title, m.tier as 'premium' | 'platinum');
   };
 
@@ -84,12 +105,12 @@ export default function MateriPageClient({
       markRead(openModule.id);
       setReadVersion(v => v + 1);
       if (next && canAccess(userTier, next.tier)) setOpenModuleId(next.id);
-      else setOpenModuleId(null);
+      else backOneLevel();
     };
     return (
       <>
         <div className="max-w-3xl mx-auto pb-10">
-          <ModuleReader module={openModule} onBack={() => setOpenModuleId(null)} onComplete={finishAndNext} />
+          <ModuleReader module={openModule} onBack={backOneLevel} onComplete={finishAndNext} />
         </div>
         <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)}
           requiredTier={upgradeTier} contentTitle={upgradeTitle} />
@@ -109,9 +130,9 @@ export default function MateriPageClient({
         <div className="max-w-3xl mx-auto pb-10 space-y-5">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-            <button onClick={() => setOpenTopic(null)} className="hover:text-slate-700 transition-colors">Materi</button>
+            <button onClick={backOneLevel} className="hover:text-slate-700 transition-colors">Materi</button>
             <ChevronRight size={13} />
-            <button onClick={() => setOpenTopic(null)} className="hover:text-slate-700 transition-colors">{activeTabConfig.label}</button>
+            <button onClick={backOneLevel} className="hover:text-slate-700 transition-colors">{activeTabConfig.label}</button>
             <ChevronRight size={13} />
             <span className="text-slate-700">{activeGroup.topic}</span>
           </nav>
@@ -244,7 +265,7 @@ export default function MateriPageClient({
               const status    = doneCount === 0 ? 'Belum dimulai' : doneCount === total ? 'Selesai' : `${doneCount}/${total} selesai`;
               const isDone    = total > 0 && doneCount === total;
               return (
-                <button key={g.topic} onClick={() => setOpenTopic(g.topic)}
+                <button key={g.topic} onClick={() => openTopicNav(g.topic)}
                   className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 text-left flex flex-col">
                   {/* Top */}
                   <div className="flex items-start justify-between mb-4">

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Upload, Loader2, AlertCircle, Info, CheckCircle2, Download,
-  ChevronDown, Trash2, FileJson,
+  ChevronDown, Trash2, FileJson, ChevronUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ModuleContent } from '@/components/materi/module-content';
@@ -137,6 +137,31 @@ export function MaterialModuleUploadForm({ existing }: { existing: ExistingModul
     });
     if (res.ok) { toast.success('Topik dihapus'); router.refresh(); }
     else toast.error('Gagal menghapus');
+  };
+
+  const deleteModule = async (id: string, title: string) => {
+    if (!window.confirm(`Hapus sub-topik "${title}"? Bisa di-upload ulang.`)) return;
+    const res = await fetch('/api/admin/material-modules', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) { toast.success('Sub-topik dihapus'); router.refresh(); }
+    else toast.error('Gagal menghapus');
+  };
+
+  // Tukar posisi 1 sub-topik dengan tetangganya, lalu simpan urutan baru (1..n)
+  const moveModule = async (mods: ExistingModule[], index: number, dir: 'up' | 'down') => {
+    const j = dir === 'up' ? index - 1 : index + 1;
+    if (j < 0 || j >= mods.length) return;
+    const arr = [...mods];
+    [arr[index], arr[j]] = [arr[j], arr[index]];
+    const reorder = arr.map((m, i) => ({ id: m.id, sub_order: i + 1 }));
+    const res = await fetch('/api/admin/material-modules', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reorder }),
+    });
+    if (res.ok) { toast.success('Urutan diperbarui'); router.refresh(); }
+    else toast.error('Gagal mengubah urutan');
   };
 
   // Kelompokkan existing per kategori → topik
@@ -294,16 +319,43 @@ export function MaterialModuleUploadForm({ existing }: { existing: ExistingModul
           <p className="text-xs text-slate-400 py-4 text-center">Belum ada materi modul. Upload file JSON di atas.</p>
         ) : (
           <div className="space-y-4">
+            <p className="text-[11px] text-slate-400">Gunakan panah untuk mengurutkan sub-topik di tiap topik. Urutan ini yang tampil ke pengguna.</p>
             {Array.from(byCatTopic.entries()).map(([cat, topics]) => (
               <div key={cat}>
                 <p className="text-[11px] font-black uppercase tracking-wide text-slate-400 mb-1.5">{cat}</p>
-                <div className="space-y-1.5">
+                <div className="space-y-3">
                   {Array.from(topics.entries()).map(([topic, mods]) => (
-                    <div key={topic} className="flex items-center justify-between px-3 py-2 rounded-lg border border-slate-200 bg-slate-50">
-                      <span className="text-sm text-slate-700 font-medium">{topic} <span className="text-xs text-slate-400">· {mods.length} sub-topik</span></span>
-                      <button onClick={() => deleteTopic(cat, topic)} className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500" title="Hapus topik">
-                        <Trash2 size={15} />
-                      </button>
+                    <div key={topic} className="rounded-lg border border-slate-200 overflow-hidden">
+                      {/* Header topik */}
+                      <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-200">
+                        <span className="text-sm text-slate-700 font-semibold">{topic} <span className="text-xs font-normal text-slate-400">· {mods.length} sub-topik</span></span>
+                        <button onClick={() => deleteTopic(cat, topic)} className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500" title="Hapus seluruh topik">
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                      {/* Daftar sub-topik (bisa diurutkan) */}
+                      <div className="divide-y divide-slate-100">
+                        {mods.map((m, i) => (
+                          <div key={m.id} className="flex items-center gap-2 px-3 py-2">
+                            <span className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-500 flex-shrink-0">{i + 1}</span>
+                            <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{m.title}</span>
+                            <div className="flex items-center gap-0.5 flex-shrink-0">
+                              <button onClick={() => moveModule(mods, i, 'up')} disabled={i === 0}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:hover:bg-transparent" title="Naik">
+                                <ChevronUp size={15} />
+                              </button>
+                              <button onClick={() => moveModule(mods, i, 'down')} disabled={i === mods.length - 1}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:hover:bg-transparent" title="Turun">
+                                <ChevronDown size={15} />
+                              </button>
+                              <button onClick={() => deleteModule(m.id, m.title)}
+                                className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500" title="Hapus sub-topik">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
