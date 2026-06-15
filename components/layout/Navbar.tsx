@@ -83,7 +83,10 @@ export function Navbar() {
           <div className="flex items-center gap-2">
 
             {/* Bell */}
-            <DropdownMenu open={notificationOpen} onOpenChange={setNotificationOpen}>
+            <DropdownMenu open={notificationOpen} onOpenChange={(open) => {
+              setNotificationOpen(open);
+              if (open && unreadCount > 0) markAllAsRead();
+            }}>
               <DropdownMenuTrigger asChild>
                 <button
                   className={`relative p-2 rounded-lg hover:bg-slate-100 transition-all ${

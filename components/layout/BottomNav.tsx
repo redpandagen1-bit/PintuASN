@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useNotifications } from '@/hooks/use-notifications';
@@ -20,7 +21,11 @@ const RIGHT_ITEMS = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { unreadCount } = useNotifications();
+  const { unreadCount, refresh } = useNotifications();
+
+  // Segarkan jumlah unread tiap kali pindah halaman (mis. setelah membuka /notifikasi
+  // yang otomatis menandai semua dibaca), agar badge langsung ikut hilang.
+  useEffect(() => { refresh(); }, [pathname, refresh]);
 
   const isItemActive = (href: string) =>
     pathname === href || (href !== '/dashboard' && pathname?.startsWith(href));
@@ -46,7 +51,7 @@ export function BottomNav() {
             style={{ filter: isActive ? GOLD_FILTER : SLATE_FILTER }}
           />
           {/* Badge unread khusus notifikasi */}
-          {id === 'notifikasi' && unreadCount > 0 && (
+          {id === 'notifikasi' && unreadCount > 0 && pathname !== '/notifikasi' && (
             <span className="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-1 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white leading-none">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
