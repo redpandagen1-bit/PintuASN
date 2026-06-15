@@ -62,7 +62,14 @@ export function MobileMateri({
   const pushHist    = () => { try { window.history.pushState({ materi: Date.now() }, ''); } catch { /* ignore */ } };
   const backOneLevel = () => { try { window.history.back(); } catch { setOpenModuleId(null); setOpenTopic(null); } };
 
-  const openTopicNav = (topic: string) => { setOpenTopic(topic); pushHist(); };
+  // Topik dengan 1 sub-topik langsung buka reader (tanpa daftar sub-topik).
+  const openTopicNav = (g: { topic: string; modules: MaterialModule[] }) => {
+    if (g.modules.length === 1 && !canAccess(userTier, g.modules[0].tier)) {
+      setUpgradeTitle(g.modules[0].title); setUpgradeTier(g.modules[0].tier as 'premium' | 'platinum'); setUpgradeOpen(true);
+      return;
+    }
+    setOpenTopic(g.topic); pushHist();
+  };
 
   const topicGroups = useMemo(() => {
     const groups = new Map<string, MaterialModule[]>();
@@ -84,12 +91,14 @@ export function MobileMateri({
   };
 
   // ── READER ──────────────────────────────────────────────────
-  if (openModule && activeGroup) {
-    const idx  = activeGroup.modules.findIndex(m => m.id === openModule.id);
+  const soloMod   = activeGroup && activeGroup.modules.length === 1 ? activeGroup.modules[0] : null;
+  const readerMod = openModule || soloMod;
+  if (activeGroup && readerMod) {
+    const idx  = activeGroup.modules.findIndex(m => m.id === readerMod.id);
     const next = activeGroup.modules[idx + 1] || null;
 
     const finishAndNext = () => {
-      markRead(openModule.id);
+      markRead(readerMod.id);
       setReadVersion(v => v + 1);
       if (next && canAccess(userTier, next.tier)) setOpenModuleId(next.id);
       else backOneLevel();
@@ -98,7 +107,7 @@ export function MobileMateri({
     return (
       <>
         <div className="px-4 pb-24">
-          <ModuleReader module={openModule} onBack={backOneLevel} onComplete={finishAndNext} />
+          <ModuleReader module={readerMod} onBack={backOneLevel} onComplete={finishAndNext} />
         </div>
         <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)}
           requiredTier={upgradeTier} contentTitle={upgradeTitle} />
@@ -212,14 +221,16 @@ export function MobileMateri({
               const doneCount = avail.filter(m => readMap[m.id]).length;
               const pct       = avail.length ? Math.round((doneCount / avail.length) * 100) : 0;
               const isDone    = avail.length > 0 && doneCount === avail.length;
+              const solo      = total === 1;
+              const soloPages = solo ? (g.modules[0].pages?.length || 1) : 0;
               return (
-                <button key={g.topic} onClick={() => openTopicNav(g.topic)}
+                <button key={g.topic} onClick={() => openTopicNav(g)}
                   className="bg-white rounded-2xl border border-slate-200 p-4 text-left flex flex-col active:scale-[0.98] transition-transform">
                   <div className="flex items-start justify-between mb-3">
                     <span className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center">
                       <span className="text-sm font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">{total} sub</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">{solo ? `${soloPages} hal` : `${total} sub`}</span>
                   </div>
                   <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex-1 leading-snug line-clamp-2 min-h-[34px]">{g.topic}</h3>
                   <div className="flex items-center justify-between mb-1">

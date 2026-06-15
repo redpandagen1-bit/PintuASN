@@ -85,10 +85,16 @@ export default function MateriPageClient({
 
   const pushHist     = () => { try { window.history.pushState({ materi: Date.now() }, ''); } catch { /* ignore */ } };
   const backOneLevel = () => { try { window.history.back(); } catch { setOpenModuleId(null); setOpenTopic(null); } };
-  const openTopicNav = (topic: string) => { setOpenTopic(topic); pushHist(); };
-
   const handleLocked = (title: string, tier: 'premium' | 'platinum') => {
     setUpgradeTitle(title); setUpgradeTier(tier); setUpgradeOpen(true);
+  };
+  // Topik dengan 1 sub-topik langsung buka reader (tanpa daftar sub-topik).
+  const openTopicNav = (g: TopicGroup) => {
+    if (g.modules.length === 1 && !canAccess(userTier, g.modules[0].tier)) {
+      handleLocked(g.modules[0].title, g.modules[0].tier as 'premium' | 'platinum');
+      return;
+    }
+    setOpenTopic(g.topic); pushHist();
   };
   const openModuleSafe = (m: MaterialModule) => {
     if (canAccess(userTier, m.tier)) { setOpenModuleId(m.id); pushHist(); }
@@ -98,11 +104,14 @@ export default function MateriPageClient({
   const activeTabConfig = TABS.find(t => t.id === activeTab)!;
 
   // ── READER ──────────────────────────────────────────────────
-  if (openModule && activeGroup) {
-    const idx  = activeGroup.modules.findIndex(m => m.id === openModule.id);
+  // Modul yang dibaca: yang dipilih dari daftar, ATAU otomatis bila topik hanya 1 sub-topik.
+  const soloMod  = activeGroup && activeGroup.modules.length === 1 ? activeGroup.modules[0] : null;
+  const readerMod = openModule || soloMod;
+  if (activeGroup && readerMod) {
+    const idx  = activeGroup.modules.findIndex(m => m.id === readerMod.id);
     const next = activeGroup.modules[idx + 1] || null;
     const finishAndNext = () => {
-      markRead(openModule.id);
+      markRead(readerMod.id);
       setReadVersion(v => v + 1);
       if (next && canAccess(userTier, next.tier)) setOpenModuleId(next.id);
       else backOneLevel();
@@ -110,7 +119,7 @@ export default function MateriPageClient({
     return (
       <>
         <div className="max-w-3xl mx-auto pb-10">
-          <ModuleReader module={openModule} onBack={backOneLevel} onComplete={finishAndNext} />
+          <ModuleReader module={readerMod} onBack={backOneLevel} onComplete={finishAndNext} />
         </div>
         <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)}
           requiredTier={upgradeTier} contentTitle={upgradeTitle} />
@@ -277,8 +286,10 @@ export default function MateriPageClient({
               const status    = avail.length === 0 ? 'Segera hadir'
                               : doneCount === 0 ? 'Belum dimulai'
                               : isDone ? 'Selesai' : `${doneCount}/${avail.length} selesai`;
+              const solo      = total === 1;
+              const soloPages = solo ? (g.modules[0].pages?.length || 1) : 0;
               return (
-                <button key={g.topic} onClick={() => openTopicNav(g.topic)}
+                <button key={g.topic} onClick={() => openTopicNav(g)}
                   className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 text-left flex flex-col">
                   {/* Top */}
                   <div className="flex items-start justify-between mb-4">
@@ -286,7 +297,7 @@ export default function MateriPageClient({
                       <span className="text-base font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
                     </span>
                     <span className="text-[11px] font-medium text-slate-400 mt-1 flex items-center gap-1">
-                      <Layers size={12} /> {total} sub-topik
+                      <Layers size={12} /> {solo ? `${soloPages} halaman` : `${total} sub-topik`}
                     </span>
                   </div>
                   {/* Title */}
