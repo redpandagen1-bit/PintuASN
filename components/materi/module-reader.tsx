@@ -128,6 +128,16 @@ export function ModuleReader({
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [pageIdx, phase]);
 
+  // Catat ke server bahwa modul ini dibuka (untuk progres Roadmap).
+  useEffect(() => {
+    if (module.is_placeholder) return;
+    fetch('/api/materi/track-module-view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ moduleId: module.id }),
+    }).catch(() => { /* non-fatal */ });
+  }, [module.id, module.is_placeholder]);
+
   const goNextPageOrFinish = () => {
     if (isLast) { onComplete(); return; }
     setPageIdx(i => i + 1);

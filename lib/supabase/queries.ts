@@ -342,68 +342,49 @@ export type AttemptHistoryData = {
 export async function getRoadmapStats(userId: string) {
   const supabase = await createAdminClient();
 
-  // Step 1: ambil ID materi per kategori dulu (Supabase JS v2 tidak
-  // support subquery langsung di .in() — harus fetch ID terlebih dahulu)
+  // Step 1: ambil ID materi per kategori (materi modul baru + materi lama video/pdf)
   const [
-    { data: informasiMaterials, error: infoMaterialError },
-    { data: skdMaterials,       error: skdMaterialError  },
+    { data: informasiMaterials },
+    { data: skdMaterials       },
+    { data: informasiModules   },
+    { data: skdModules         },
   ] = await Promise.all([
-    supabase
-      .from('materials')
-      .select('id')
-      .eq('category', 'INFORMASI')
-      .eq('is_active', true)
-      .eq('is_deleted', false),
-    supabase
-      .from('materials')
-      .select('id')
-      .in('category', ['TWK', 'TIU', 'TKP'])
-      .eq('is_active', true)
-      .eq('is_deleted', false),
+    supabase.from('materials').select('id').eq('category', 'INFORMASI').eq('is_active', true).eq('is_deleted', false),
+    supabase.from('materials').select('id').in('category', ['TWK', 'TIU', 'TKP']).eq('is_active', true).eq('is_deleted', false),
+    supabase.from('material_modules').select('id').eq('category', 'INFORMASI').eq('is_active', true).eq('is_deleted', false),
+    supabase.from('material_modules').select('id').in('category', ['TWK', 'TIU', 'TKP']).eq('is_active', true).eq('is_deleted', false),
   ]);
 
-  if (infoMaterialError) throw new Error(`Failed to fetch informasi material ids: ${infoMaterialError.message}`);
-  if (skdMaterialError)  throw new Error(`Failed to fetch skd material ids: ${skdMaterialError.message}`);
+  const informasiIds       = (informasiMaterials ?? []).map(m => m.id);
+  const skdIds             = (skdMaterials       ?? []).map(m => m.id);
+  const informasiModuleIds = (informasiModules   ?? []).map(m => m.id);
+  const skdModuleIds       = (skdModules         ?? []).map(m => m.id);
 
-  const informasiIds = (informasiMaterials ?? []).map(m => m.id);
-  const skdIds       = (skdMaterials       ?? []).map(m => m.id);
+  const countOr0 = (p: Promise<{ count: number | null }>) => p.then(r => r.count ?? 0).catch(() => 0);
+  const viewsCount = (table: string, col: string, ids: string[]) =>
+    ids.length > 0
+      ? countOr0(supabase.from(table).select(col, { count: 'exact', head: true }).eq('user_id', userId).in(col, ids) as any)
+      : Promise.resolve(0);
 
-  // Step 2: jalankan 3 query utama secara paralel
-  const [
-    { data: attempts,        error: attemptsError  },
-    { count: informasiCount, error: infoError       },
-    { count: materiCount,    error: materiError      },
-  ] = await Promise.all([
-    // Query 1: semua completed attempts (skor per kategori)
+  // Step 2: attempts + jumlah materi dibuka (gabungan materi lama & modul baru)
+  const [attemptsRes, mvInfo, mvSkd, mmvInfo, mmvSkd] = await Promise.all([
     supabase
       .from('attempts')
       .select('score_twk, score_tiu, score_tkp, final_score, completed_at')
       .eq('user_id', userId)
       .eq('status', 'completed')
       .order('completed_at', { ascending: false }),
-
-    // Query 2: jumlah materi INFORMASI yang sudah dibuka user
-    informasiIds.length > 0
-      ? supabase
-          .from('material_views')
-          .select('material_id', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .in('material_id', informasiIds)
-      : Promise.resolve({ count: 0, error: null }),
-
-    // Query 3: jumlah materi TWK/TIU/TKP yang sudah dibuka user
-    skdIds.length > 0
-      ? supabase
-          .from('material_views')
-          .select('material_id', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .in('material_id', skdIds)
-      : Promise.resolve({ count: 0, error: null }),
+    viewsCount('material_views', 'material_id', informasiIds),
+    viewsCount('material_views', 'material_id', skdIds),
+    viewsCount('material_module_views', 'module_id', informasiModuleIds),
+    viewsCount('material_module_views', 'module_id', skdModuleIds),
   ]);
 
+  const { data: attempts, error: attemptsError } = attemptsRes;
   if (attemptsError) throw new Error(`Failed to fetch roadmap attempts: ${attemptsError.message}`);
-  if (infoError)     throw new Error(`Failed to fetch informasi views: ${infoError.message}`);
-  if (materiError)   throw new Error(`Failed to fetch materi views: ${materiError.message}`);
+
+  const informasiCount = mvInfo + mmvInfo;
+  const materiCount    = mvSkd + mmvSkd;
 
   const completed = attempts ?? [];
 

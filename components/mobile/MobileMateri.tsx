@@ -62,10 +62,13 @@ export function MobileMateri({
   const pushHist    = () => { try { window.history.pushState({ materi: Date.now() }, ''); } catch { /* ignore */ } };
   const backOneLevel = () => { try { window.history.back(); } catch { setOpenModuleId(null); setOpenTopic(null); } };
 
-  // Topik dengan 1 sub-topik langsung buka reader (tanpa daftar sub-topik).
+  // Klik topik: jika seluruh materi terkunci → popup upgrade; jika 1 sub-topik → langsung reader.
   const openTopicNav = (g: { topic: string; modules: MaterialModule[] }) => {
-    if (g.modules.length === 1 && !canAccess(userTier, g.modules[0].tier)) {
-      setUpgradeTitle(g.modules[0].title); setUpgradeTier(g.modules[0].tier as 'premium' | 'platinum'); setUpgradeOpen(true);
+    const anyAccessible = g.modules.some(m => canAccess(userTier, m.tier));
+    if (!anyAccessible) {
+      setUpgradeTitle(g.topic);
+      setUpgradeTier((g.modules[0]?.tier === 'platinum' ? 'platinum' : 'premium'));
+      setUpgradeOpen(true);
       return;
     }
     setOpenTopic(g.topic); pushHist();
@@ -223,6 +226,7 @@ export function MobileMateri({
               const isDone    = avail.length > 0 && doneCount === avail.length;
               const solo      = total === 1;
               const soloPages = solo ? (g.modules[0].pages?.length || 1) : 0;
+              const locked    = g.modules.length > 0 && g.modules.every(m => !canAccess(userTier, m.tier));
               return (
                 <button key={g.topic} onClick={() => openTopicNav(g)}
                   className="bg-white rounded-2xl border border-slate-200 p-4 text-left flex flex-col active:scale-[0.98] transition-transform">
@@ -230,7 +234,9 @@ export function MobileMateri({
                     <span className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center">
                       <span className="text-sm font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">{solo ? `${soloPages} hal` : `${total} sub`}</span>
+                    {locked
+                      ? <span className="flex items-center gap-0.5 text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full"><Lock size={10} /> Premium</span>
+                      : <span className="text-[10px] text-slate-400 mt-0.5">{solo ? `${soloPages} hal` : `${total} sub`}</span>}
                   </div>
                   <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex-1 leading-snug line-clamp-2 min-h-[34px]">{g.topic}</h3>
                   <div className="flex items-center justify-between mb-1">

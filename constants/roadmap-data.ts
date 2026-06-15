@@ -56,9 +56,9 @@ const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
     title: 'Penguatan Materi Awal',
     description: 'Bangun pemahaman dasar pada tiga kategori SKD',
     detail:
-      'Tahap ini berfokus pada pembangunan fondasi pengetahuan. Pelajari konsep-konsep inti pada kategori TWK (Wawasan Kebangsaan), TIU (Intelegensi Umum), dan TKP (Karakteristik Pribadi). Manfaatkan materi dalam format video maupun PDF yang tersedia untuk memperluas wawasan sebelum mulai mengerjakan soal latihan.',
+      'Tahap ini berfokus pada pembangunan fondasi pengetahuan. Pelajari konsep-konsep inti pada kategori TWK (Wawasan Kebangsaan), TIU (Intelegensi Umum), dan TKP (Karakteristik Pribadi). Manfaatkan materi bacaan yang tersedia untuk memperluas wawasan sebelum mulai mengerjakan soal latihan.',
     requirement:
-      'Akses minimal 4 materi dari kategori TWK, TIU, atau TKP (video atau PDF).',
+      'Akses minimal 4 materi dari kategori TWK, TIU, atau TKP (materi bacaan).',
     icon: '📖',
     ctaLabel: 'Buka Materi',
     ctaHref: '/materi',
@@ -83,7 +83,7 @@ const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
     detail:
       'Berbekal data dari simulasi awal, identifikasi kategori dengan skor paling lemah dan prioritaskan pendalaman pada area tersebut. Eksplorasi lebih banyak materi — termasuk topik-topik spesifik dalam TWK, TIU, dan TKP — untuk menutup celah pengetahuan yang ditemukan. Kualitas pemahaman pada tahap ini akan sangat menentukan laju peningkatan skor.',
     requirement:
-      'Akses minimal 8 materi dari kategori TWK, TIU, atau TKP (video atau PDF).',
+      'Akses minimal 8 materi dari kategori TWK, TIU, atau TKP (materi bacaan).',
     icon: '📚',
     ctaLabel: 'Buka Materi',
     ctaHref: '/materi',

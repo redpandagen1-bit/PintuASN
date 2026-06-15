@@ -88,10 +88,12 @@ export default function MateriPageClient({
   const handleLocked = (title: string, tier: 'premium' | 'platinum') => {
     setUpgradeTitle(title); setUpgradeTier(tier); setUpgradeOpen(true);
   };
-  // Topik dengan 1 sub-topik langsung buka reader (tanpa daftar sub-topik).
+  // Klik topik: jika seluruh materi terkunci → popup upgrade; jika 1 sub-topik → langsung reader.
   const openTopicNav = (g: TopicGroup) => {
-    if (g.modules.length === 1 && !canAccess(userTier, g.modules[0].tier)) {
-      handleLocked(g.modules[0].title, g.modules[0].tier as 'premium' | 'platinum');
+    const anyAccessible = g.modules.some(m => canAccess(userTier, m.tier));
+    if (!anyAccessible) {
+      const t = (g.modules[0]?.tier === 'platinum' ? 'platinum' : 'premium') as 'premium' | 'platinum';
+      handleLocked(g.topic, t);
       return;
     }
     setOpenTopic(g.topic); pushHist();
@@ -288,6 +290,7 @@ export default function MateriPageClient({
                               : isDone ? 'Selesai' : `${doneCount}/${avail.length} selesai`;
               const solo      = total === 1;
               const soloPages = solo ? (g.modules[0].pages?.length || 1) : 0;
+              const locked    = g.modules.length > 0 && g.modules.every(m => !canAccess(userTier, m.tier));
               return (
                 <button key={g.topic} onClick={() => openTopicNav(g)}
                   className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 text-left flex flex-col">
@@ -296,9 +299,13 @@ export default function MateriPageClient({
                     <span className="w-11 h-11 rounded-xl bg-slate-800 flex items-center justify-center">
                       <span className="text-base font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
                     </span>
-                    <span className="text-[11px] font-medium text-slate-400 mt-1 flex items-center gap-1">
-                      <Layers size={12} /> {solo ? `${soloPages} halaman` : `${total} sub-topik`}
-                    </span>
+                    {locked ? (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full"><Lock size={11} /> Premium</span>
+                    ) : (
+                      <span className="text-[11px] font-medium text-slate-400 mt-1 flex items-center gap-1">
+                        <Layers size={12} /> {solo ? `${soloPages} halaman` : `${total} sub-topik`}
+                      </span>
+                    )}
                   </div>
                   {/* Title */}
                   <h3 className="text-[15px] font-bold text-slate-800 leading-snug mb-4 flex-1 line-clamp-2 min-h-[42px] group-hover:text-slate-900">{g.topic}</h3>
