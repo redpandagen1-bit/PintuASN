@@ -121,9 +121,10 @@ export default function MateriPageClient({
   // ── SUB-TOPIK LIST ──────────────────────────────────────────
   if (activeGroup) {
     const total     = activeGroup.modules.length;
-    const doneCount = activeGroup.modules.filter(m => readMap[m.id]).length;
+    const avail     = activeGroup.modules.filter(m => !m.is_placeholder);
+    const doneCount = avail.filter(m => readMap[m.id]).length;
     const totalMin  = activeGroup.modules.reduce((s, m) => s + (m.read_minutes || 0), 0);
-    const pct       = total ? Math.round((doneCount / total) * 100) : 0;
+    const pct       = avail.length ? Math.round((doneCount / avail.length) * 100) : 0;
 
     return (
       <>
@@ -153,39 +154,48 @@ export default function MateriPageClient({
                 <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                   <div className="h-full bg-yellow-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1.5">{doneCount} dari {total} sub-topik selesai</p>
+                <p className="text-[11px] text-slate-400 mt-1.5">{doneCount} dari {avail.length} materi tersedia selesai{total > avail.length ? ` · ${total - avail.length} segera hadir` : ''}</p>
               </div>
             </div>
 
             {/* Materi (daftar sub-topik) */}
             <div className="bg-white p-3 divide-y divide-slate-100">
               {activeGroup.modules.map((m, i) => {
-                const accessible = canAccess(userTier, m.tier);
-                const isDone     = !!readMap[m.id];
-                const pages      = (m.pages?.length) || 1;
+                const placeholder = m.is_placeholder;
+                const accessible  = canAccess(userTier, m.tier);
+                const isDone      = !!readMap[m.id];
+                const pages       = (m.pages?.length) || 1;
                 return (
-                  <button key={m.id} onClick={() => openModuleSafe(m)}
+                  <button key={m.id} onClick={() => !placeholder && openModuleSafe(m)} disabled={placeholder}
                     className={`group w-full flex items-center gap-4 px-3 py-3.5 text-left rounded-lg transition-colors ${
-                      accessible ? 'hover:bg-slate-50' : ''
+                      placeholder ? 'cursor-default opacity-70' : accessible ? 'hover:bg-slate-50' : ''
                     }`}>
                     <span className="flex-shrink-0">
-                      {!accessible
+                      {placeholder
+                        ? <span className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center"><span className="text-xs font-bold text-slate-400">{i + 1}</span></span>
+                        : !accessible
                         ? <span className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center"><Lock size={16} className="text-slate-400" /></span>
                         : isDone
                         ? <span className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center"><CheckCircle2 size={18} className="text-emerald-500" /></span>
                         : <span className="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-slate-800 flex items-center justify-center transition-colors"><span className="text-xs font-bold text-slate-500 group-hover:text-yellow-400">{i + 1}</span></span>}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className={`block text-sm font-semibold truncate ${accessible ? 'text-slate-800' : 'text-slate-500'}`}>{m.title}</span>
-                      <span className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
-                        <span className="flex items-center gap-1"><FileText size={11} /> {pages} halaman</span>
-                        {m.read_minutes ? <><span>·</span><span className="flex items-center gap-1"><Clock size={11} /> {m.read_minutes} mnt</span></> : null}
-                      </span>
+                      <span className={`block text-sm font-semibold truncate ${placeholder ? 'text-slate-400' : accessible ? 'text-slate-800' : 'text-slate-500'}`}>{m.title}</span>
+                      {!placeholder && (
+                        <span className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
+                          <span className="flex items-center gap-1"><FileText size={11} /> {pages} halaman</span>
+                          {m.read_minutes ? <><span>·</span><span className="flex items-center gap-1"><Clock size={11} /> {m.read_minutes} mnt</span></> : null}
+                        </span>
+                      )}
                     </span>
                     <span className="flex items-center gap-2.5 flex-shrink-0">
-                      {m.is_new && <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Baru</span>}
-                      {!accessible && <TierPill tier={m.tier} />}
-                      {accessible && <ArrowRight size={16} className="text-slate-300 group-hover:text-slate-800 group-hover:translate-x-0.5 transition-all" />}
+                      {placeholder
+                        ? <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Segera hadir</span>
+                        : <>
+                            {m.is_new && <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Baru</span>}
+                            {!accessible && <TierPill tier={m.tier} />}
+                            {accessible && <ArrowRight size={16} className="text-slate-300 group-hover:text-slate-800 group-hover:translate-x-0.5 transition-all" />}
+                          </>}
                     </span>
                   </button>
                 );
@@ -260,10 +270,13 @@ export default function MateriPageClient({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {topicGroups.map((g, i) => {
               const total     = g.modules.length;
-              const doneCount = g.modules.filter(m => readMap[m.id]).length;
-              const pct       = total ? Math.round((doneCount / total) * 100) : 0;
-              const status    = doneCount === 0 ? 'Belum dimulai' : doneCount === total ? 'Selesai' : `${doneCount}/${total} selesai`;
-              const isDone    = total > 0 && doneCount === total;
+              const avail     = g.modules.filter(m => !m.is_placeholder);
+              const doneCount = avail.filter(m => readMap[m.id]).length;
+              const pct       = avail.length ? Math.round((doneCount / avail.length) * 100) : 0;
+              const isDone    = avail.length > 0 && doneCount === avail.length;
+              const status    = avail.length === 0 ? 'Segera hadir'
+                              : doneCount === 0 ? 'Belum dimulai'
+                              : isDone ? 'Selesai' : `${doneCount}/${avail.length} selesai`;
               return (
                 <button key={g.topic} onClick={() => openTopicNav(g.topic)}
                   className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 text-left flex flex-col">

@@ -131,42 +131,48 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
-  let inserted = 0, archived = 0, skipped = 0;
+  let inserted = 0, archived = 0;
   try {
     for (const grp of clean) {
-      // Judul yang sudah ada (aktif) di topik ini
+      // Modul yang sudah ada (termasuk placeholder kisi-kisi) di topik ini
       const { data: existing } = await supabase
         .from('material_modules')
-        .select('id, title')
+        .select('id, title, topic_order, sub_order')
         .eq('category', grp.category).eq('topic', grp.topic)
         .eq('is_active', true).eq('is_deleted', false);
-      const existingTitles = new Set((existing ?? []).map((r: any) => r.title));
+      const exMap = new Map<string, any>((existing ?? []).map((r: any) => [r.title, r]));
+      // Pertahankan posisi topik dari slot kisi-kisi yang sudah ada
+      const groupTopicOrder = existing?.[0]?.topic_order ?? grp.topic_order;
 
-      if (mode === 'overwrite' && existing && existing.length > 0) {
+      // Mode 'overwrite' = ganti seluruh topik; mode 'add' = upsert per judul
+      // (judul yang sama, termasuk placeholder, diarsipkan lalu diganti isi baru).
+      const toArchive = mode === 'overwrite'
+        ? (existing ?? [])
+        : grp.rows.filter(r => exMap.has(r.title)).map(r => exMap.get(r.title));
+      if (toArchive.length > 0) {
         const { error: delErr } = await supabase
           .from('material_modules')
           .update({ is_deleted: true, is_active: false })
-          .in('id', existing.map((r: any) => r.id));
+          .in('id', toArchive.map((r: any) => r.id));
         if (delErr) throw delErr;
-        archived += existing.length;
-        existingTitles.clear();
+        archived += toArchive.length;
       }
 
-      const toInsert = grp.rows
-        .filter(r => mode === 'overwrite' || !existingTitles.has(r.title))
-        .map(r => ({
-          category: grp.category, topic: grp.topic, topic_order: grp.topic_order,
+      const toInsert = grp.rows.map(r => {
+        const slot = mode === 'add' ? exMap.get(r.title) : undefined;
+        return {
+          category: grp.category, topic: grp.topic,
+          topic_order: groupTopicOrder,
           title: r.title, content_body: null, pages: r.pages, tier: r.tier,
-          read_minutes: r.read_minutes, sub_order: r.sub_order, is_new: r.is_new,
-          quiz: null, created_by: userId,
-        }));
-      skipped += grp.rows.length - toInsert.length;
+          read_minutes: r.read_minutes,
+          sub_order: slot ? slot.sub_order : r.sub_order,  // pertahankan posisi slot
+          is_new: r.is_new, quiz: null, is_placeholder: false, created_by: userId,
+        };
+      });
 
-      if (toInsert.length > 0) {
-        const { error: insErr } = await supabase.from('material_modules').insert(toInsert);
-        if (insErr) throw insErr;
-        inserted += toInsert.length;
-      }
+      const { error: insErr } = await supabase.from('material_modules').insert(toInsert);
+      if (insErr) throw insErr;
+      inserted += toInsert.length;
     }
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Gagal menyimpan';
@@ -174,5 +180,5 @@ export async function POST(req: NextRequest) {
   }
 
   revalidateTag('material-modules');
-  return NextResponse.json({ inserted, archived, skipped, invalid: [] });
+  return NextResponse.json({ inserted, archived, skipped: 0, invalid: [] });
 }

@@ -109,8 +109,9 @@ export function MobileMateri({
   // ── SUB-TOPIK LIST ──────────────────────────────────────────
   if (activeGroup) {
     const total     = activeGroup.modules.length;
-    const doneCount = activeGroup.modules.filter(m => readMap[m.id]).length;
-    const pct       = total ? Math.round((doneCount / total) * 100) : 0;
+    const avail     = activeGroup.modules.filter(m => !m.is_placeholder);
+    const doneCount = avail.filter(m => readMap[m.id]).length;
+    const pct       = avail.length ? Math.round((doneCount / avail.length) * 100) : 0;
     return (
       <>
         <div className="px-4 pb-24 space-y-4">
@@ -139,25 +140,32 @@ export function MobileMateri({
 
             <div className="bg-white p-2 divide-y divide-slate-100">
               {activeGroup.modules.map((m, i) => {
-                const accessible = canAccess(userTier, m.tier);
-                const isDone     = !!readMap[m.id];
-                const pages      = (m.pages?.length) || 1;
+                const placeholder = m.is_placeholder;
+                const accessible  = canAccess(userTier, m.tier);
+                const isDone      = !!readMap[m.id];
+                const pages       = (m.pages?.length) || 1;
                 return (
-                  <button key={m.id} onClick={() => openModuleSafe(m)}
-                    className="w-full flex items-center gap-3 px-2.5 py-3 text-left">
+                  <button key={m.id} onClick={() => !placeholder && openModuleSafe(m)} disabled={placeholder}
+                    className={`w-full flex items-center gap-3 px-2.5 py-3 text-left ${placeholder ? 'opacity-70' : ''}`}>
                     <span className="flex-shrink-0">
-                      {!accessible
+                      {placeholder
+                        ? <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><span className="text-[11px] font-bold text-slate-400">{i + 1}</span></span>
+                        : !accessible
                         ? <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><Lock size={14} className="text-slate-400" /></span>
                         : isDone
                         ? <span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center"><CheckCircle2 size={16} className="text-emerald-500" /></span>
                         : <span className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><span className="text-[11px] font-bold text-slate-500">{i + 1}</span></span>}
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className={`block text-sm font-semibold truncate ${accessible ? 'text-slate-800' : 'text-slate-500'}`}>{m.title}</span>
-                      <span className="text-[10px] text-slate-400">{pages} halaman{m.read_minutes ? ` · ${m.read_minutes} mnt` : ''}</span>
+                      <span className={`block text-sm font-semibold truncate ${placeholder ? 'text-slate-400' : accessible ? 'text-slate-800' : 'text-slate-500'}`}>{m.title}</span>
+                      {!placeholder && <span className="text-[10px] text-slate-400">{pages} halaman{m.read_minutes ? ` · ${m.read_minutes} mnt` : ''}</span>}
                     </span>
-                    {m.is_new && <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full flex-shrink-0">Baru</span>}
-                    {!accessible && <TierPill tier={m.tier} />}
+                    {placeholder
+                      ? <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Segera</span>
+                      : <>
+                          {m.is_new && <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full flex-shrink-0">Baru</span>}
+                          {!accessible && <TierPill tier={m.tier} />}
+                        </>}
                   </button>
                 );
               })}
@@ -200,9 +208,10 @@ export function MobileMateri({
           <div className="grid grid-cols-2 gap-3">
             {topicGroups.map((g, i) => {
               const total     = g.modules.length;
-              const doneCount = g.modules.filter(m => readMap[m.id]).length;
-              const pct       = total ? Math.round((doneCount / total) * 100) : 0;
-              const isDone    = total > 0 && doneCount === total;
+              const avail     = g.modules.filter(m => !m.is_placeholder);
+              const doneCount = avail.filter(m => readMap[m.id]).length;
+              const pct       = avail.length ? Math.round((doneCount / avail.length) * 100) : 0;
+              const isDone    = avail.length > 0 && doneCount === avail.length;
               return (
                 <button key={g.topic} onClick={() => openTopicNav(g.topic)}
                   className="bg-white rounded-2xl border border-slate-200 p-4 text-left flex flex-col active:scale-[0.98] transition-transform">
@@ -214,7 +223,7 @@ export function MobileMateri({
                   </div>
                   <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex-1 leading-snug line-clamp-2 min-h-[34px]">{g.topic}</h3>
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`text-[10px] font-semibold ${isDone ? 'text-emerald-600' : 'text-slate-400'}`}>{isDone ? 'Selesai' : `${doneCount}/${total}`}</span>
+                    <span className={`text-[10px] font-semibold ${isDone ? 'text-emerald-600' : 'text-slate-400'}`}>{avail.length === 0 ? 'Segera hadir' : isDone ? 'Selesai' : `${doneCount}/${avail.length}`}</span>
                     <span className="text-[10px] font-bold text-slate-400">{pct}%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">

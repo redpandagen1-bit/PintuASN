@@ -144,7 +144,13 @@ export function ModuleReader({
   const finalLabel = 'Lanjutkan ke sub-bab berikutnya';
 
   return (
-    <div ref={topRef} className="scroll-mt-4 rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+    <div
+      ref={topRef}
+      className="scroll-mt-4 rounded-2xl border border-slate-200 overflow-hidden shadow-sm select-none"
+      onContextMenu={(e) => e.preventDefault()}
+      onCopy={(e) => e.preventDefault()}
+      onCut={(e) => e.preventDefault()}
+    >
       {/* Judul (slate-800) */}
       <div className="bg-slate-800 px-5 md:px-6 pt-5 pb-5 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-44 h-44 bg-yellow-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />

@@ -120,7 +120,7 @@ export const getMaterialModules = unstable_cache(
     const supabase = createCacheClient();
     const { data, error } = await supabase
       .from('material_modules')
-      .select('id, category, topic, title, content_body, pages, quiz, tier, read_minutes, topic_order, sub_order, is_new')
+      .select('id, category, topic, title, content_body, pages, quiz, tier, read_minutes, topic_order, sub_order, is_new, is_placeholder')
       .eq('is_active', true).eq('is_deleted', false)
       .order('category',    { ascending: true })
       .order('topic_order', { ascending: true })

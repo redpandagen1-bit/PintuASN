@@ -25,6 +25,7 @@ export interface MaterialModule {
   topic_order:  number;
   sub_order:    number;
   is_new:       boolean;
+  is_placeholder: boolean;   // true = slot kisi-kisi yang isinya belum di-upload
 }
 
 // Normalisasi modul → selalu array halaman (fallback dari content_body legacy).

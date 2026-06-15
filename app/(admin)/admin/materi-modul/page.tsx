@@ -8,7 +8,7 @@ export default async function AdminMateriModulPage() {
   const supabase = await createAdminClient();
   const { data: modules } = await supabase
     .from('material_modules')
-    .select('id, category, topic, title, tier, read_minutes, topic_order, sub_order, is_new')
+    .select('id, category, topic, title, tier, read_minutes, topic_order, sub_order, is_new, is_placeholder')
     .eq('is_deleted', false)
     .order('category').order('topic_order').order('topic').order('sub_order');
 

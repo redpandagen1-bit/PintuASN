@@ -359,7 +359,12 @@ export function ExamInterface({
   }[currentQuestion?.category] || 'bg-slate-100 text-slate-700 border-slate-200';
 
   return (
-    <div className="flex flex-col h-dvh bg-white overflow-hidden">
+    <div
+      className="flex flex-col h-dvh bg-white overflow-hidden select-none"
+      onContextMenu={(e) => e.preventDefault()}
+      onCopy={(e) => e.preventDefault()}
+      onCut={(e) => e.preventDefault()}
+    >
 
       {/* ── REPORT MODAL (Laporkan Soal) ───────────────────────────── */}
       {reportOpen && (

@@ -16,7 +16,7 @@ import { ModuleContent } from '@/components/materi/module-content';
 
 interface ExistingModule {
   id: string; category: string; topic: string; title: string;
-  tier: string; read_minutes: number | null;
+  tier: string; read_minutes: number | null; is_placeholder?: boolean;
 }
 interface QuizItem { question: string; choices: string[]; answer: number; explanation?: string }
 interface PageInput { content?: string; info?: string | null; quiz?: QuizItem[] | null }
@@ -296,8 +296,7 @@ export function MaterialModuleUploadForm({ existing }: { existing: ExistingModul
       {result && (
         <div className={`rounded-xl border p-4 text-xs space-y-1 ${result.invalid?.length || result.error ? 'border-rose-200 bg-rose-50' : 'border-emerald-200 bg-emerald-50'}`}>
           {result.inserted > 0 && <p className="text-emerald-700 font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> {result.inserted} sub-topik disimpan.</p>}
-          {result.archived > 0 && <p className="text-sky-700">♻️ {result.archived} sub-topik lama diarsipkan (timpa).</p>}
-          {result.skipped > 0 && <p className="text-amber-700">{result.skipped} di-skip (judul sudah ada).</p>}
+          {result.archived > 0 && <p className="text-sky-700">♻️ {result.archived} slot/versi lama diganti dengan isi baru.</p>}
           {result.invalid?.length > 0 && (
             <div className="text-rose-700">
               <p className="font-semibold">Ditolak (tidak ada yang disimpan):</p>
@@ -338,7 +337,8 @@ export function MaterialModuleUploadForm({ existing }: { existing: ExistingModul
                         {mods.map((m, i) => (
                           <div key={m.id} className="flex items-center gap-2 px-3 py-2">
                             <span className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-500 flex-shrink-0">{i + 1}</span>
-                            <span className="flex-1 min-w-0 text-sm text-slate-700 truncate">{m.title}</span>
+                            <span className={`flex-1 min-w-0 text-sm truncate ${m.is_placeholder ? 'text-slate-400' : 'text-slate-700'}`}>{m.title}</span>
+                            {m.is_placeholder && <span className="text-[9px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full flex-shrink-0">Kosong</span>}
                             <div className="flex items-center gap-0.5 flex-shrink-0">
                               <button onClick={() => moveModule(mods, i, 'up')} disabled={i === 0}
                                 className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:hover:bg-transparent" title="Naik">
