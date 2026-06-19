@@ -90,16 +90,23 @@ function PricingCard({
   pkg,
   isCurrent,
   blocked,
+  showUpgradePrice = false,
   onSelect,
 }: {
   pkg:       MobilePackage;
   isCurrent: boolean;
   blocked:   boolean;
+  showUpgradePrice?: boolean;
   onSelect:  () => void;
 }) {
   const { isFree, isPremium, isPlatinum } = pkg;
   const [open, setOpen] = useState(false);
   const accent = isPremium || isPlatinum; // teks terang di atas bg berwarna
+
+  // Harga upgrade Premium → Platinum (samakan dgn desktop & charge API)
+  const displayPriceLabel  = showUpgradePrice ? 'Rp 29.000'                 : pkg.priceLabel;
+  const displayOriginal    = showUpgradePrice ? pkg.priceLabel             : pkg.originalPrice;
+  const displayDescription = showUpgradePrice ? 'Upgrade dari paket Premium' : pkg.description;
 
   const cardBg = isPremium
     ? 'bg-sky-600 border-sky-500'
@@ -108,7 +115,7 @@ function PricingCard({
     : 'bg-white border-slate-200';
 
   const subText = isPremium ? 'text-sky-100' : isPlatinum ? 'text-purple-300' : 'text-slate-400';
-  const ctaLabel = isCurrent ? 'Paket Aktif' : pkg.ctaDefault;
+  const ctaLabel = isCurrent ? 'Paket Aktif' : showUpgradePrice ? 'Upgrade Platinum' : pkg.ctaDefault;
 
   const ctaCls = cn(
     'w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all active-press',
@@ -156,13 +163,18 @@ function PricingCard({
         {/* Price */}
         <div className="flex items-end gap-2 mb-0.5">
           <p className={cn('text-xl font-extrabold leading-none', accent ? 'text-white' : 'text-slate-900')}>
-            {pkg.priceLabel === 'Rp 0' ? 'Gratis' : pkg.priceLabel}
+            {displayPriceLabel === 'Rp 0' ? 'Gratis' : displayPriceLabel}
           </p>
-          {pkg.originalPrice && (
-            <p className={cn('text-[11px] line-through pb-0.5', subText)}>{pkg.originalPrice}</p>
+          {displayOriginal && (
+            <p className={cn('text-[11px] line-through pb-0.5', subText)}>{displayOriginal}</p>
+          )}
+          {showUpgradePrice && (
+            <span className="text-[8px] font-black bg-amber-400 text-slate-900 px-1.5 py-0.5 rounded-full pb-0 whitespace-nowrap">
+              HARGA UPGRADE
+            </span>
           )}
         </div>
-        <p className={cn('text-[11px] leading-snug mb-3', subText)}>{pkg.description}</p>
+        <p className={cn('text-[11px] leading-snug mb-3', subText)}>{displayDescription}</p>
 
         {/* CTA */}
         <button onClick={onSelect} className={ctaCls}>
@@ -453,12 +465,15 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
         <div className="flex flex-col gap-6">
           {PACKAGES.map(pkg => {
             const blocked = isBlocked(pkg.tier);
+            // Premium user melihat kartu Platinum → tampilkan harga upgrade (Rp 29.000)
+            const showUpgradePrice = pkg.isPlatinum && userTier === 'premium';
             return (
               <PricingCard
                 key={pkg.id}
                 pkg={pkg}
                 isCurrent={userTier === pkg.tier}
                 blocked={blocked}
+                showUpgradePrice={showUpgradePrice}
                 onSelect={() => {
                   if (blocked) { setSubInfo(`Anda telah berlangganan paket ${currentTierName}.`); return; }
                   onSelectPkg(pkg.tier);
