@@ -12,6 +12,7 @@ import { Lock, TrendingUp, Search, X,
 import { UpgradeModal }             from '@/components/shared/upgrade-modal';
 import TryoutFilterTabs             from '@/components/dashboard/user/TryoutFilterTabs';
 import { ReviewsPopup }             from '@/components/shared/ReviewsPopup';
+import { HotsBadge }               from '@/components/shared/HotsBadge';
 
 import { canAccess }                from '@/lib/subscription-utils';
 import type { SubscriptionTier }    from '@/lib/subscription-utils';
@@ -28,6 +29,7 @@ interface PackageData {
   description?:        string | null;
   difficulty:          string;
   tier?:               string;
+  is_hots?:            boolean;
   total_questions?:    number;
   duration_minutes?:   number;
   completedUsersCount: number;
@@ -79,12 +81,19 @@ function PackageCard({
     <>
       <div className="relative bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 flex flex-col">
 
-        {/* Badge tier */}
+        {/* Badge tier — posisi tetap */}
         <div className="absolute top-3 right-3 z-10">
           <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${tierBadge.className}`}>
             {tierBadge.label}
           </span>
         </div>
+
+        {/* Badge HOTS — naik di atas tier, boleh keluar dari card */}
+        {pkg.is_hots ? (
+          <div className="absolute -top-2.5 right-3 z-20">
+            <HotsBadge size="md" />
+          </div>
+        ) : null}
 
         <div className="p-5 flex-1 flex flex-col">
           {/* Judul */}

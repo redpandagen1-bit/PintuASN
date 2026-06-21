@@ -14,6 +14,7 @@ import { canAccess }             from '@/lib/subscription-utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 import { UpgradeModal }          from '@/components/shared/upgrade-modal';
 import { ReviewsPopup }          from '@/components/shared/ReviewsPopup';
+import { HotsBadge }             from '@/components/shared/HotsBadge';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ interface PackageData {
   description?:        string | null;
   difficulty:          string;
   tier?:               string;
+  is_hots?:            boolean;
   total_questions?:    number;
   duration_minutes?:   number;
   completedUsersCount: number;
@@ -77,9 +79,16 @@ function TryoutCard({
   return (
     <>
       <div className={cn(
-        'bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden',
+        'relative bg-white rounded-xl border border-slate-100 shadow-sm',
         !accessible && 'opacity-90',
       )}>
+        {/* Badge HOTS — naik di atas tier, boleh keluar dari card */}
+        {pkg.is_hots ? (
+          <div className="absolute -top-2.5 left-3 z-20">
+            <HotsBadge size="sm" />
+          </div>
+        ) : null}
+
         {/* Top row: tier badge */}
         <div className="flex items-center justify-between px-3 pt-3 pb-1">
           <span className={cn('text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full', badge.cls)}>

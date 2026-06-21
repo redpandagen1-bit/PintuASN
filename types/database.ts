@@ -46,6 +46,8 @@ export interface Package {
   description?: string;
   difficulty: 'easy' | 'medium' | 'hard';
   duration_minutes: number;
+  tier?: 'free' | 'premium' | 'platinum';
+  is_hots?: boolean;
   is_active: boolean;
   is_deleted: boolean;
   created_at: string;

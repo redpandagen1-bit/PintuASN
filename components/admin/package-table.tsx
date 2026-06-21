@@ -29,7 +29,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Eye, Trash2, Package, ChevronLeft, ChevronRight, Save, CheckCircle2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2, Package, ChevronLeft, ChevronRight, Save, CheckCircle2, Flame } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 const PAGE_SIZE = 10;
 
@@ -47,6 +48,7 @@ interface PackageRow {
 interface EditedField {
   tier?: 'free' | 'premium' | 'platinum';
   is_active?: boolean;
+  is_hots?: boolean;
 }
 
 interface PackageTableProps {
@@ -98,6 +100,20 @@ export function PackageTable({ packages }: PackageTableProps) {
       const newField: EditedField = { ...existing, tier: value };
       // Remove if same as original
       if (value === original.tier) delete newField.tier;
+      if (Object.keys(newField).length === 0) {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [id]: newField };
+    });
+  }, []);
+
+  const handleHotsChange = useCallback((id: string, value: boolean, original: PackageRow) => {
+    setEdits(prev => {
+      const existing = prev[id] || {};
+      const newField: EditedField = { ...existing, is_hots: value };
+      // Remove if same as original
+      if (value === !!original.is_hots) delete newField.is_hots;
       if (Object.keys(newField).length === 0) {
         const { [id]: _, ...rest } = prev;
         return rest;
@@ -170,6 +186,8 @@ export function PackageTable({ packages }: PackageTableProps) {
   const getTierValue = (pkg: PackageRow) => edits[pkg.id]?.tier ?? pkg.tier;
   const getStatusValue = (pkg: PackageRow) =>
     edits[pkg.id]?.is_active !== undefined ? edits[pkg.id].is_active : pkg.is_active;
+  const getHotsValue = (pkg: PackageRow) =>
+    edits[pkg.id]?.is_hots !== undefined ? edits[pkg.id].is_hots : !!pkg.is_hots;
 
   const isRowEdited = (id: string) => !!edits[id] && Object.keys(edits[id]).length > 0;
 
@@ -265,6 +283,7 @@ export function PackageTable({ packages }: PackageTableProps) {
               <TableHead className="w-36">Tier</TableHead>
               <TableHead className="w-32">Tingkat</TableHead>
               <TableHead className="w-32">Jumlah Soal</TableHead>
+              <TableHead className="w-24">HOTS</TableHead>
               <TableHead className="w-36">Status</TableHead>
               <TableHead className="w-20">Aksi</TableHead>
             </TableRow>
@@ -272,7 +291,7 @@ export function PackageTable({ packages }: PackageTableProps) {
           <TableBody>
             {currentPackages.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-10 text-sm text-slate-500">
+                <TableCell colSpan={8} className="text-center py-10 text-sm text-slate-500">
                   Tidak ada paket yang sesuai filter.
                 </TableCell>
               </TableRow>
@@ -343,6 +362,21 @@ export function PackageTable({ packages }: PackageTableProps) {
                   <TableCell>
                     <span className="font-medium">{pkg.question_count || 0}</span>
                     <span className="text-slate-500 text-sm"> soal</span>
+                  </TableCell>
+
+                  {/* HOTS toggle */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={getHotsValue(pkg)}
+                        onCheckedChange={(checked) => handleHotsChange(pkg.id, checked, pkg)}
+                        className="data-[state=checked]:bg-orange-500"
+                      />
+                      <Flame
+                        className={`h-4 w-4 ${getHotsValue(pkg) ? 'text-orange-500' : 'text-slate-300'}`}
+                        fill={getHotsValue(pkg) ? 'currentColor' : 'none'}
+                      />
+                    </div>
                   </TableCell>
 
                   {/* Status dropdown */}

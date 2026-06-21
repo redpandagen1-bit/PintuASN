@@ -73,6 +73,7 @@ export async function PATCH(
         description: body.description,
         difficulty: body.difficulty,
         tier: body.tier,
+        is_hots: body.is_hots,
         duration_minutes: body.duration_minutes,
         is_active: body.is_active,
         updated_at: new Date().toISOString(),

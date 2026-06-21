@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Package, Shield, BarChart3, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Loader2, Package, Shield, BarChart3, Eye, EyeOff, Sparkles, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PackageEditDialogProps {
@@ -44,6 +44,7 @@ export function PackageEditDialog({
     description: packageData.description || '',
     difficulty: packageData.difficulty || 'medium',
     tier: packageData.tier || 'free',
+    is_hots: packageData.is_hots || false,
     is_active: packageData.is_active || false,
   });
 
@@ -267,6 +268,45 @@ export function PackageEditDialog({
                 {formData.tier === 'premium' && 'Hanya user Premium & Platinum yang bisa akses'}
                 {formData.tier === 'platinum' && 'Eksklusif untuk user Platinum saja'}
               </p>
+            </div>
+
+            {/* HOTS Toggle */}
+            <div
+              className={cn(
+                'relative overflow-hidden rounded-xl border-2 transition-all',
+                formData.is_hots
+                  ? 'bg-gradient-to-br from-amber-50 to-red-50 border-orange-300'
+                  : 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'
+              )}
+            >
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Flame
+                        className={cn(
+                          'h-5 w-5',
+                          formData.is_hots ? 'text-orange-500' : 'text-slate-400'
+                        )}
+                        fill={formData.is_hots ? 'currentColor' : 'none'}
+                      />
+                      <Label className="text-base font-semibold cursor-pointer">
+                        Tandai sebagai HOTS
+                      </Label>
+                    </div>
+                    <p className="text-sm text-slate-600">
+                      {formData.is_hots
+                        ? 'Badge HOTS dengan aksen api tampil di card paket'
+                        : 'Aktifkan untuk menandai paket dengan soal Higher Order Thinking Skills'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.is_hots}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_hots: checked })}
+                    className="data-[state=checked]:bg-orange-500"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

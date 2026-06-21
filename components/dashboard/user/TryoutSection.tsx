@@ -10,6 +10,7 @@ import { Button }                    from '@/components/ui/button';
 import { UpgradeModal }              from '@/components/shared/upgrade-modal';
 import { ReviewsPopup }              from '@/components/shared/ReviewsPopup';
 import TryoutFilterTabs              from '@/components/dashboard/user/TryoutFilterTabs';
+import { HotsBadge }                 from '@/components/shared/HotsBadge';
 import {
   TrendingUp, ChevronRight, ChevronLeft,
   Clock, FileText, Users, Star, Lock, BarChart2,
@@ -30,6 +31,7 @@ interface PackageItem {
   description?:        string | null;
   difficulty:          string;
   tier?:               string;
+  is_hots?:            boolean;
   total_questions?:    number;
   duration_minutes?:   number;
   completedUsersCount: number;
@@ -81,7 +83,14 @@ function DashboardPackageCard({
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col min-w-[240px]">
+      <div className="relative bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col min-w-[240px]">
+
+        {/* Badge HOTS — naik di atas tier, boleh keluar dari card */}
+        {pkg.is_hots ? (
+          <div className="absolute -top-2.5 right-3 z-20">
+            <HotsBadge size="sm" />
+          </div>
+        ) : null}
 
         {/* Header */}
         <div className="px-4 pt-4 pb-2 flex items-center justify-between gap-2">
@@ -221,7 +230,7 @@ export default function TryoutSection({
           <>
             <div
               ref={scrollRef}
-              className="flex gap-3 overflow-x-auto pb-1 scroll-smooth"
+              className="flex gap-3 overflow-x-auto pt-3 pb-1 scroll-smooth"
               style={{ scrollbarWidth: 'none' }}
             >
               {filtered.map(pkg => (
