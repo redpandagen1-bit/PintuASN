@@ -98,7 +98,13 @@ export async function POST(req: NextRequest) {
         if (quizErr) errors.push(`${mLabel} hal.${pi + 1}: ${quizErr}`);
       });
 
-      const tier = m.tier && VALID_TIER.includes(m.tier as any) ? m.tier : groupTier;
+      // Aturan akses (server-enforced, abaikan tier dari file): INFORMASI gratis;
+      // TWK/TIU/TKP terkunci/premium, KECUALI satu sampel gratis "Pengertian Nasionalisme".
+      const titleTrim = (m.title ?? '').trim();
+      const isFree = g.category === 'INFORMASI'
+        || (g.category === 'TWK' && titleTrim === 'Pengertian Nasionalisme');
+      const tier = isFree ? 'free' : 'premium';
+      void groupTier;
       rows.push({
         title:        (m.title ?? '').trim(),
         pages:        pages.map(p => ({
