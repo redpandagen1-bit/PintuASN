@@ -9,7 +9,7 @@ import {
   Check, Zap, Shield, Crown, ArrowRight, Loader2,
   ShoppingBag, History, PackageCheck, Copy, CheckCheck,
   X, Clock, Tag, CheckCircle2, XCircle,
-  ChevronDown, ChevronUp, Lock,
+  ChevronDown, ChevronUp, Lock, CreditCard,
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -118,7 +118,8 @@ const METHOD_NAMES: Record<string, string> = {
   bri_va: 'BRI Virtual Account', bca_va: 'BCA Virtual Account',
   mandiri_va: 'Mandiri Virtual Account', bni_va: 'BNI Virtual Account',
   qris: 'QRIS', gopay: 'GoPay', shopeepay: 'ShopeePay', dana: 'DANA',
-  alfamart: 'Alfamart', indomaret: 'Indomaret',
+  alfamart: 'Alfamart', indomaret: 'Indomaret', other_bank: 'SeaBank & Bank Lain',
+  snap: 'Menunggu pemilihan metode',
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -168,6 +169,7 @@ function useCountdown(expiredAt: string) {
 // ─── Order Detail Popup ───────────────────────────────────────────────────────
 
 function OrderDetailPopup({ orderId, onClose }: { orderId: string; onClose: () => void }) {
+  const router = useRouter();
   const [order, setOrder]         = useState<OrderDetail | null>(null);
   const [loading, setLoading]     = useState(true);
   const [copied, setCopied]       = useState<string | null>(null);
@@ -215,6 +217,14 @@ function OrderDetailPopup({ orderId, onClose }: { orderId: string; onClose: () =
                       {order.status === 'settlement' || order.status === 'capture' ? 'Pembayaran berhasil' : 'Pesanan ini sudah tidak aktif'}
                     </p>
                   </div>
+                )}
+                {isPending && !countdown.expired && (
+                  <button
+                    onClick={() => router.push(`/pembayaran/${orderId}`)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition"
+                  >
+                    <CreditCard size={16} /> Lanjutkan Pembayaran
+                  </button>
                 )}
                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                   <div className="px-4 pt-4 pb-3 border-b border-slate-100">

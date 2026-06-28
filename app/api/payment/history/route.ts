@@ -7,11 +7,15 @@ const PAYMENT_METHOD_NAMES: Record<string, string> = {
   bri_va:     'BRI Virtual Account',
   bca_va:     'BCA Virtual Account',
   mandiri_va: 'Mandiri Virtual Account',
+  bni_va:     'BNI Virtual Account',
   qris:       'QRIS',
   gopay:      'GoPay',
   dana:       'DANA',
   shopeepay:  'ShopeePay',
   other_bank: 'SeaBank & Bank Lain',
+  alfamart:   'Alfamart',
+  indomaret:  'Indomaret',
+  snap:       'Menunggu pemilihan metode',
 };
 
 // Bank key dari payment_method ID

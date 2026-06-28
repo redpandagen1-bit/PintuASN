@@ -21,6 +21,54 @@ function normalizeOrderId(id: string): string {
   return match ? match[1] : id;
 }
 
+type PaymentDetail = { methodId: string | null; vaNumber: string | null; paymentCode: string | null };
+
+// Terjemahkan payload notifikasi Midtrans → metode (sesuai ID di app) + nomor VA
+// / kode bayar, supaya riwayat menampilkan metode asli (bukan "snap").
+function extractPaymentDetail(body: Record<string, unknown>): PaymentDetail {
+  const paymentType = typeof body.payment_type === 'string' ? body.payment_type : '';
+  const vaArr = Array.isArray(body.va_numbers)
+    ? (body.va_numbers as Array<{ bank?: string; va_number?: string }>)
+    : [];
+  const firstVa = vaArr[0];
+  const str = (v: unknown) => (typeof v === 'string' && v ? v : null);
+
+  const BANK_TO_METHOD: Record<string, string> = {
+    bri: 'bri_va', bca: 'bca_va', bni: 'bni_va', mandiri: 'mandiri_va',
+    permata: 'other_bank', cimb: 'other_bank',
+  };
+
+  let methodId: string | null = null;
+  let vaNumber: string | null = null;
+  let paymentCode: string | null = null;
+
+  switch (paymentType) {
+    case 'bank_transfer':
+      methodId = BANK_TO_METHOD[(firstVa?.bank ?? '').toLowerCase()] ?? 'bri_va';
+      vaNumber = str(firstVa?.va_number) ?? str(body.permata_va_number);
+      break;
+    case 'permata':
+      methodId = 'other_bank';
+      vaNumber = str(body.permata_va_number) ?? str(firstVa?.va_number);
+      break;
+    case 'echannel': // Mandiri bill payment
+      methodId = 'mandiri_va';
+      vaNumber = str(body.bill_key);
+      break;
+    case 'qris':       methodId = 'qris';       break;
+    case 'gopay':      methodId = 'gopay';      break;
+    case 'shopeepay':  methodId = 'shopeepay';  break;
+    case 'cstore':
+      methodId = str(body.store) ?? 'indomaret';
+      paymentCode = str(body.payment_code);
+      break;
+    default:
+      methodId = paymentType || null;
+  }
+
+  return { methodId, vaNumber, paymentCode };
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Baca raw body sebagai teks dulu agar gross_amount tidak kehilangan
@@ -73,6 +121,22 @@ export async function POST(req: NextRequest) {
 
     // ── Normalize order_id (handle suffix dari retry charge) ───────────
     const normalizedOrderId = normalizeOrderId(order_id);
+
+    // ── Tangkap metode asli + VA/kode bayar (untuk ditampilkan di riwayat) ──
+    // Dilakukan untuk semua status (termasuk pending) supaya begitu user memilih
+    // metode di popup Snap, riwayat langsung menampilkan metode & nomor VA-nya.
+    const detail = extractPaymentDetail(body);
+    if (detail.methodId || detail.vaNumber || detail.paymentCode) {
+      const patch: Record<string, string> = { updated_at: new Date().toISOString() };
+      if (detail.methodId)    patch.payment_method = detail.methodId;
+      if (detail.vaNumber)    patch.va_number      = detail.vaNumber;
+      if (detail.paymentCode) patch.payment_code   = detail.paymentCode;
+      const { error: detailErr } = await supabase
+        .from('payment_orders')
+        .update(patch)
+        .eq('order_id', normalizedOrderId);
+      if (detailErr) console.error('[midtrans-webhook] Gagal simpan detail metode:', detailErr.code);
+    }
 
     // ── Cek apakah pembayaran berhasil ─────────────────────────────────
     const isSuccess =

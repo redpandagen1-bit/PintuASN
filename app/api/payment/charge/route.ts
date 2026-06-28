@@ -47,6 +47,27 @@ export async function POST(req: NextRequest) {
       ? { name: UPGRADE_PLATINUM_NAME, price: UPGRADE_PLATINUM_PRICE }
       : BASE_PRICES[package_id];
 
+    // Anti-duplikat: kalau sudah ada order pending yang masih aktif untuk paket &
+    // harga yang sama, pakai ulang order itu — jangan bikin baru. Ini mencegah
+    // riwayat banjir order pending dan membuat countdown berjalan apa adanya.
+    const { data: existing } = await supabase
+      .from('payment_orders')
+      .select('order_id, base_price')
+      .eq('user_id', userId)
+      .eq('package_id', package_id)
+      .eq('status', 'pending')
+      .gt('expired_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing && existing.base_price === pkg.price) {
+      return NextResponse.json({
+        orderId: existing.order_id,
+        redirectUrl: `/pembayaran/${existing.order_id}`,
+      });
+    }
+
     const orderId = `PINTUASN-${userId.slice(-6).toUpperCase()}-${Date.now()}`;
     const expiredAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 jam
 
