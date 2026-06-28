@@ -33,7 +33,7 @@ const TABS = [
 interface TopicGroup { topic: string; modules: MaterialModule[] }
 
 function TierPill({ tier }: { tier: MaterialModule['tier'] }) {
-  if (tier === 'premium')  return <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">Premium</span>;
+  if (tier === 'premium')  return <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">Premium</span>;
   if (tier === 'platinum') return <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">Platinum</span>;
   return null;
 }
@@ -88,12 +88,12 @@ export default function MateriPageClient({
   const handleLocked = (title: string, tier: 'premium' | 'platinum') => {
     setUpgradeTitle(title); setUpgradeTier(tier); setUpgradeOpen(true);
   };
-  // Klik topik: jika seluruh materi terkunci → popup upgrade; jika 1 sub-topik → langsung reader.
+  // Topik selalu bisa dibuka untuk melihat daftar sub-bab; yang terkunci hanya sub-bab-nya.
+  // Pengecualian: topik dengan 1 sub-bab langsung membuka reader, jadi bila sub-bab itu
+  // terkunci, klik kartu memunculkan popup upgrade (tidak ada daftar untuk ditampilkan).
   const openTopicNav = (g: TopicGroup) => {
-    const anyAccessible = g.modules.some(m => canAccess(userTier, m.tier));
-    if (!anyAccessible) {
-      const t = (g.modules[0]?.tier === 'platinum' ? 'platinum' : 'premium') as 'premium' | 'platinum';
-      handleLocked(g.topic, t);
+    if (g.modules.length === 1 && !canAccess(userTier, g.modules[0].tier)) {
+      handleLocked(g.modules[0].title, g.modules[0].tier as 'premium' | 'platinum');
       return;
     }
     setOpenTopic(g.topic); pushHist();
@@ -185,7 +185,7 @@ export default function MateriPageClient({
                       {placeholder
                         ? <span className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center"><span className="text-xs font-bold text-slate-400">{i + 1}</span></span>
                         : !accessible
-                        ? <span className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center"><Lock size={16} className="text-slate-400" /></span>
+                        ? <span className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center"><Lock size={16} className="text-blue-500" /></span>
                         : isDone
                         ? <span className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center"><CheckCircle2 size={18} className="text-emerald-500" /></span>
                         : <span className="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-slate-800 flex items-center justify-center transition-colors"><span className="text-xs font-bold text-slate-500 group-hover:text-yellow-400">{i + 1}</span></span>}
@@ -290,7 +290,10 @@ export default function MateriPageClient({
                               : isDone ? 'Selesai' : `${doneCount}/${avail.length} selesai`;
               const solo      = total === 1;
               const soloPages = solo ? (g.modules[0].pages?.length || 1) : 0;
-              const locked    = g.modules.length > 0 && g.modules.every(m => !canAccess(userTier, m.tier));
+              // Badge gembok pada kartu hanya untuk topik 1 sub-bab yang terkunci
+              // (karena membukanya = membuka sub-bab itu langsung). Topik multi sub-bab
+              // tetap bisa dibuka; kunci tampil per sub-bab di dalam daftar.
+              const soloLocked = solo && !canAccess(userTier, g.modules[0].tier);
               return (
                 <button key={g.topic} onClick={() => openTopicNav(g)}
                   className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 text-left flex flex-col">
@@ -299,8 +302,8 @@ export default function MateriPageClient({
                     <span className="w-11 h-11 rounded-xl bg-slate-800 flex items-center justify-center">
                       <span className="text-base font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
                     </span>
-                    {locked ? (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full"><Lock size={11} /> Premium</span>
+                    {soloLocked ? (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full"><Lock size={11} /> Premium</span>
                     ) : (
                       <span className="text-[11px] font-medium text-slate-400 mt-1 flex items-center gap-1">
                         <Layers size={12} /> {solo ? `${soloPages} halaman` : `${total} sub-topik`}
