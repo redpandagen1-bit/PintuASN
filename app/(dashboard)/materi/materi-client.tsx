@@ -203,7 +203,6 @@ export default function MateriPageClient({
                       {placeholder
                         ? <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">Segera hadir</span>
                         : <>
-                            {m.is_new && <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">Baru</span>}
                             {!accessible && <TierPill tier={m.tier} />}
                             {accessible && <ArrowRight size={16} className="text-slate-300 group-hover:text-slate-800 group-hover:translate-x-0.5 transition-all" />}
                           </>}

@@ -175,7 +175,6 @@ export function MobileMateri({
                     {placeholder
                       ? <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full flex-shrink-0">Segera</span>
                       : <>
-                          {m.is_new && <span className="text-[9px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded-full flex-shrink-0">Baru</span>}
                           {!accessible && <TierPill tier={m.tier} />}
                         </>}
                   </button>
