@@ -46,6 +46,37 @@ function useCountdown(expiredAt: string, active: boolean) {
   return time;
 }
 
+// ─── Snap (popup) ───────────────────────────────────────────────────────────
+
+const IS_SNAP_MODE = process.env.NEXT_PUBLIC_PAYMENT_MODE === 'snap';
+
+declare global {
+  interface Window {
+    snap?: { pay: (token: string, options: Record<string, () => void>) => void };
+  }
+}
+
+// Muat snap.js sekali, lalu resolve saat siap dipakai.
+function ensureSnapLoaded(snapUrl: string, clientKey: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') return reject(new Error('No window'));
+    if (window.snap) return resolve();
+    const existing = document.getElementById('midtrans-snap') as HTMLScriptElement | null;
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('Gagal memuat Snap')));
+      return;
+    }
+    const s = document.createElement('script');
+    s.id = 'midtrans-snap';
+    s.src = snapUrl;
+    s.setAttribute('data-client-key', clientKey);
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Gagal memuat Snap'));
+    document.body.appendChild(s);
+  });
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type Step = 1 | 2;
@@ -231,6 +262,36 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         finalPrice: data.total,
       } : prev);
       setStep(2);
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+    } finally {
+      setLoadingMethod(false);
+    }
+  };
+
+  // Bayar via Snap popup (mode Snap). Harga & metode ditangani oleh Snap;
+  // aktivasi paket tetap lewat webhook.
+  const handleSnapPay = async () => {
+    if (!order) return;
+    setLoadingMethod(true);
+    try {
+      const res = await fetch('/api/payment/snap-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal memproses pembayaran');
+
+      await ensureSnapLoaded(data.snapUrl, data.clientKey);
+      if (!window.snap) throw new Error('Snap belum siap. Coba lagi.');
+
+      window.snap.pay(data.token, {
+        onSuccess: () => router.push('/dashboard?payment=success'),
+        onPending: () => router.push('/dashboard?payment=pending'),
+        onError:   () => { alert('Pembayaran gagal. Silakan coba lagi.'); setLoadingMethod(false); },
+        onClose:   () => setLoadingMethod(false),
+      });
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
@@ -489,7 +550,9 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
                 )}
               </div>
 
-              {/* Metode Pembayaran — tombol trigger modal */}
+              {/* Metode Pembayaran — tombol trigger modal (mode Core API saja;
+                  di mode Snap, pemilihan metode terjadi di dalam popup) */}
+              {!IS_SNAP_MODE && (
               <div className="bg-white rounded-xl border border-slate-200 p-4">
                 <h2 className="font-bold text-slate-800 text-sm mb-3">Metode Pembayaran</h2>
                 <button
@@ -528,16 +591,29 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
                   )}
                 </button>
               </div>
+              )}
 
-              <button
-                onClick={handleLanjutkan}
-                disabled={!selectedMethod || loadingMethod}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loadingMethod
-                  ? <><Loader2 size={16} className="animate-spin" /> Memproses...</>
-                  : <><ChevronRight size={16} /> Lanjutkan Pembayaran</>}
-              </button>
+              {IS_SNAP_MODE ? (
+                <button
+                  onClick={handleSnapPay}
+                  disabled={loadingMethod || order.status !== 'pending'}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMethod
+                    ? <><Loader2 size={16} className="animate-spin" /> Memproses...</>
+                    : <><CreditCard size={16} /> Bayar Sekarang</>}
+                </button>
+              ) : (
+                <button
+                  onClick={handleLanjutkan}
+                  disabled={!selectedMethod || loadingMethod}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMethod
+                    ? <><Loader2 size={16} className="animate-spin" /> Memproses...</>
+                    : <><ChevronRight size={16} /> Lanjutkan Pembayaran</>}
+                </button>
+              )}
             </>
           )}
 
