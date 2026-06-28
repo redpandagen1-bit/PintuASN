@@ -24,8 +24,12 @@ export function getSubscriptionEnd(packageId: string): string {
 /**
  * Tandai order sebagai settlement DAN naikkan tier user, atomic + idempotent.
  *
- * Kondisi `.neq()` memastikan update status hanya berjalan jika order belum
- * pernah final. Kalau dua pemanggilan datang bersamaan (mis. webhook + polling),
+ * Hanya guard `settlement`/`capture` yang dipakai (idempotensi: paket tidak
+ * diaktifkan dua kali). Status `cancel`/`expire`/`deny` SENGAJA tidak di-guard:
+ * fungsi ini hanya dipanggil ketika pembayaran benar-benar masuk (settlement/
+ * capture), jadi kalau user terlanjur membayar order yang sempat dibatalkan/
+ * kedaluwarsa, paketnya tetap diaktifkan. Prinsip: uang masuk → user pasti
+ * dapat paketnya. Kalau dua pemanggilan datang bersamaan (webhook + polling),
  * hanya satu yang mendapat baris kembali — yang lain otomatis no-op.
  *
  * @returns true jika order BARU diaktifkan oleh pemanggilan ini.
@@ -40,9 +44,6 @@ export async function activatePaidOrder(
     .eq('order_id', orderId)
     .neq('status', 'settlement')
     .neq('status', 'capture')
-    .neq('status', 'expire')
-    .neq('status', 'cancel')
-    .neq('status', 'deny')
     .select('user_id, package_id, referral_code')
     .maybeSingle();
 
