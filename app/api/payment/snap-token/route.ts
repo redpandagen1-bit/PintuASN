@@ -70,6 +70,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nominal pembayaran tidak valid.' }, { status: 400 });
     }
 
+    const isSandbox = process.env.MIDTRANS_IS_SANDBOX === 'true';
+    const apiBase = isSandbox
+      ? 'https://app.sandbox.midtrans.com'
+      : 'https://app.midtrans.com';
+    const snapUrl = `${apiBase}/snap/snap.js`;
+
+    // Lanjutkan billing sebelumnya: kalau order masih punya Snap token yang valid
+    // (nominal sama & belum kedaluwarsa), pakai ulang token itu supaya user
+    // melanjutkan ke VA/QR yang SAMA — bukan membuat billing/VA baru.
+    const notExpired = order.expired_at ? new Date(order.expired_at) > new Date() : true;
+    if (order.snap_token && order.total === grossAmount && notExpired) {
+      return NextResponse.json({
+        token: order.snap_token,
+        redirectUrl: order.snap_redirect_url ?? null,
+        clientKey,
+        snapUrl,
+      });
+    }
+
     // Customer details (Midtrans butuh minimal email untuk beberapa metode)
     const clerkUser = await currentUser();
     const email =
@@ -86,13 +105,6 @@ export async function POST(req: NextRequest) {
     // order_id Midtrans harus unik tiap attempt. Suffix akan di-strip oleh
     // normalizeOrderId di webhook sehingga tetap memetakan ke order DB.
     const midtransOrderId = `${orderId}-${Date.now().toString(36)}`;
-
-    const isSandbox = process.env.MIDTRANS_IS_SANDBOX === 'true';
-    const apiBase = isSandbox
-      ? 'https://app.sandbox.midtrans.com'
-      : 'https://app.midtrans.com';
-    const snapUrl = `${apiBase}/snap/snap.js`;
-
     const encodedKey = Buffer.from(`${serverKey}:`).toString('base64');
 
     const snapBody = {
@@ -142,6 +154,8 @@ export async function POST(req: NextRequest) {
         payment_method: 'snap',
         total: grossAmount,
         admin_fee: 0,
+        snap_token: data.token,
+        snap_redirect_url: data.redirect_url ?? null,
         updated_at: new Date().toISOString(),
       })
       .eq('order_id', orderId)
