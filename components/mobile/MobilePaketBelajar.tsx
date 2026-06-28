@@ -332,9 +332,12 @@ function RiwayatPembayaranTab() {
             </span>
           </div>
           <div className="flex items-center justify-between text-xs text-slate-400">
-            <span>{item.method}</span>
-            <span>{new Date(item.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+            <span className="truncate mr-2">{item.method}</span>
+            <span className="flex-shrink-0">{item.date}</span>
           </div>
+          {item.methodDetail && (
+            <p className="text-xs font-mono text-slate-500 mt-1 truncate">{item.methodDetail}</p>
+          )}
           {item.status.toUpperCase() === 'PENDING' && (
             <Link href={`/pembayaran/${item.orderId}`} className="block mt-3">
               <button className="w-full py-2.5 bg-sky-50 text-sky-600 text-xs font-bold rounded-xl active-press border border-sky-100">

@@ -58,7 +58,9 @@ export async function GET() {
 
     const mapped = (orders ?? []).map((o: any) => {
       const methodId: string = o.payment_method ?? '';
-      const methodName = PAYMENT_METHOD_NAMES[methodId] ?? o.payment_method_name ?? methodId ?? '-';
+      const methodName = methodId
+        ? (PAYMENT_METHOD_NAMES[methodId] ?? methodId)
+        : 'Belum dipilih';
       const bankKey    = METHOD_TO_BANK[methodId] ?? null;
       const ewalletKey = METHOD_TO_EWALLET[methodId] ?? null;
 
