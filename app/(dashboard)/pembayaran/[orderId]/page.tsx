@@ -30,6 +30,7 @@ function formatTanggal(iso: string) {
 function useCountdown(expiredAt: string, active: boolean) {
   const calc = useCallback(() => {
     const diff = new Date(expiredAt).getTime() - Date.now();
+    if (!expiredAt || isNaN(diff)) return { h: 0, m: 0, s: 0, expired: false };
     if (diff <= 0) return { h: 0, m: 0, s: 0, expired: true };
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
@@ -40,6 +41,7 @@ function useCountdown(expiredAt: string, active: boolean) {
   const [time, setTime] = useState(calc);
   useEffect(() => {
     if (!active) return;
+    setTime(calc()); // koreksi seketika saat expiredAt berubah (hindari flash 24 jam)
     const t = setInterval(() => setTime(calc()), 1000);
     return () => clearInterval(t);
   }, [calc, active]);
@@ -150,7 +152,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
   }, [order, orderId, router, step]);
 
   const countdown = useCountdown(
-    order?.expiredAt ?? new Date(Date.now() + 86400000).toISOString(),
+    order?.expiredAt ?? '',
     step === 2
   );
 

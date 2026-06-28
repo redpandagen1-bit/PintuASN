@@ -158,11 +158,16 @@ function formatRupiah(n: number) { return 'Rp ' + n.toLocaleString('id-ID'); }
 function useCountdown(expiredAt: string) {
   const calc = useCallback(() => {
     const diff = new Date(expiredAt).getTime() - Date.now();
+    if (!expiredAt || isNaN(diff)) return { h: 0, m: 0, s: 0, expired: false };
     if (diff <= 0) return { h: 0, m: 0, s: 0, expired: true };
     return { h: Math.floor(diff / 3600000), m: Math.floor((diff % 3600000) / 60000), s: Math.floor((diff % 60000) / 1000), expired: false };
   }, [expiredAt]);
   const [time, setTime] = useState(calc);
-  useEffect(() => { const t = setInterval(() => setTime(calc()), 1000); return () => clearInterval(t); }, [calc]);
+  useEffect(() => {
+    setTime(calc()); // koreksi seketika saat expiredAt berubah (hindari flash 24 jam)
+    const t = setInterval(() => setTime(calc()), 1000);
+    return () => clearInterval(t);
+  }, [calc]);
   return time;
 }
 
@@ -181,7 +186,9 @@ function OrderDetailPopup({ orderId, onClose }: { orderId: string; onClose: () =
       .catch(console.error).finally(() => setLoading(false));
   }, [orderId]);
 
-  const countdown = useCountdown(order?.expiredAt ?? new Date(Date.now() + 86400000).toISOString());
+  // Jangan pakai fallback Date.now()+24jam — itu bikin countdown "balik ke 24 jam"
+  // saat order belum kemuat. Pakai expiredAt asli; kalau kosong, countdown netral.
+  const countdown = useCountdown(order?.expiredAt ?? '');
   const copy = (text: string) => { navigator.clipboard.writeText(text); setCopied(text); setTimeout(() => setCopied(null), 2000); };
 
   const isPending  = order?.status === 'pending';
