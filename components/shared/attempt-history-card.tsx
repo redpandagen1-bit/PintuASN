@@ -12,6 +12,7 @@ import {
   Share2,
   Lock,
   Crown,
+  Target,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -58,6 +59,7 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
   };
 
   const passed = isPassed();
+  const isDrilling = (attempt as any).kind === 'drilling';
   const totalScore = attempt.total_score ?? (attempt as any).final_score ?? null;
   const completedAt = (attempt as any).completed_at || attempt.started_at;
   const duration = calculateDuration(attempt.started_at, (attempt as any).completed_at);
@@ -89,7 +91,7 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
         >
           {/* Blurred content */}
           <div className="flex select-none pointer-events-none" aria-hidden="true">
-            <div className={cn('w-1 flex-shrink-0', passed ? 'bg-emerald-500' : 'bg-red-400')} />
+            <div className={cn('w-1 flex-shrink-0', isDrilling ? 'bg-sky-500' : passed ? 'bg-emerald-500' : 'bg-red-400')} />
             <div className="flex-1 px-5 py-4 blur-[3px] opacity-50">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -181,7 +183,7 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
   return (
     <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       <div className="flex">
-        <div className={cn('w-1 flex-shrink-0', passed ? 'bg-emerald-500' : 'bg-red-400')} />
+        <div className={cn('w-1 flex-shrink-0', isDrilling ? 'bg-sky-500' : passed ? 'bg-emerald-500' : 'bg-red-400')} />
 
         <div className="flex-1 px-4 py-3.5">
           {/* Title row + total score inline on mobile */}
@@ -190,19 +192,25 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
               <h3 className="text-sm font-bold text-slate-800 truncate">
                 {attempt.packages?.title || 'Unknown Package'}
               </h3>
-              <span className={cn(
-                'flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide',
-                passed
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-red-100 text-red-600'
-              )}>
-                {passed
-                  ? <><CheckCircle2 size={9} /> Lulus</>
-                  : <><XCircle size={9} /> Tidak Lulus</>}
-              </span>
+              {isDrilling ? (
+                <span className="flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide bg-sky-100 text-sky-700">
+                  <Target size={9} /> Drilling
+                </span>
+              ) : (
+                <span className={cn(
+                  'flex-shrink-0 inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide',
+                  passed
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-red-100 text-red-600'
+                )}>
+                  {passed
+                    ? <><CheckCircle2 size={9} /> Lulus</>
+                    : <><XCircle size={9} /> Tidak Lulus</>}
+                </span>
+              )}
             </div>
-            {/* Total score — always top-right */}
-            {totalScore !== null && (
+            {/* Total score — tryout saja (drilling skornya parsial) */}
+            {!isDrilling && totalScore !== null && (
               <div className="flex-shrink-0 text-right">
                 <div className="text-xl font-black text-slate-800 leading-none">{totalScore}</div>
                 <div className="text-[10px] text-slate-400 font-medium">/ 550</div>
@@ -224,7 +232,8 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
             )}
           </div>
 
-          {/* Score pills */}
+          {/* Score pills — tryout saja */}
+          {!isDrilling && (
           <div className="flex items-center gap-1.5 mb-3">
             {attempt.score_twk !== null && attempt.score_twk !== undefined && (
               <span className="px-2 py-0.5 bg-pn-surface-low rounded-md text-xs font-bold text-slate-600">
@@ -242,6 +251,7 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
               </span>
             )}
           </div>
+          )}
 
           {/* Action buttons — full-width on mobile */}
           <div className="flex items-center gap-1.5">

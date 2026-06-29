@@ -263,7 +263,8 @@ export async function getAttemptHistory(
   let query = supabase
     .from('attempts')
     .select('*, packages ( id, title, difficulty )', { count: 'exact' })
-    .eq('user_id', userId).eq('status', 'completed').eq('kind', 'tryout');
+    // Riwayat menampilkan tryout DAN drilling (drilling ditandai di kartu).
+    .eq('user_id', userId).eq('status', 'completed');
 
   if (filterBy === 'passed')
     query = query.gte('score_twk', PASSING_GRADES.TWK).gte('score_tiu', PASSING_GRADES.TIU).gte('score_tkp', PASSING_GRADES.TKP);
@@ -288,7 +289,6 @@ export async function getAttemptHistory(
     .select('id')
     .eq('user_id', userId)
     .eq('status', 'completed')
-    .eq('kind', 'tryout')
     .order('completed_at', { ascending: false })
     .limit(3);
 
