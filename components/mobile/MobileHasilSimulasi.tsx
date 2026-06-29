@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { cn } from '@/lib/utils';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
+import { DrillingTopicBreakdown, type TopicBreakdownRow } from '@/components/exam/DrillingTopicBreakdown';
 import { getSlowestQuestions, getWrongAnalysis, calcPercentile, getAccuracyDonut, getPacing } from '@/lib/scoring/analysis';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 
@@ -70,6 +71,7 @@ interface MobileHasilSimulasiProps {
   subscriptionTier:   SubscriptionTier;
   categoryTotals?:    { TWK: number; TIU: number; TKP: number };
   isDrilling?:        boolean;
+  topicBreakdown?:    TopicBreakdownRow[];
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -161,6 +163,7 @@ export function MobileHasilSimulasi({
   subscriptionTier,
   categoryTotals,
   isDrilling = false,
+  topicBreakdown = [],
 }: MobileHasilSimulasiProps) {
   const [reviewOpen, setReviewOpen] = useState(false);
   useEffect(() => {
@@ -376,6 +379,13 @@ export function MobileHasilSimulasi({
           <span>Durasi: <span className="font-bold text-slate-600">{duration} menit</span></span>
         </div>
       </div>
+
+      {/* ── Breakdown per-topik — khusus sesi drilling ────────── */}
+      {isDrilling && (
+        <section className="mx-4 mb-4">
+          <DrillingTopicBreakdown topics={topicBreakdown} />
+        </section>
+      )}
 
       {/* ── Ringkasan Jawaban — donut (semua tier) ────────────── */}
       <div className="px-4">

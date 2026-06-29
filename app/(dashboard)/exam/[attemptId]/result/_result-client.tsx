@@ -3,6 +3,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getSlowestQuestions, getWrongAnalysis, calcPercentile, getAccuracyDonut, getPacing } from '@/lib/scoring/analysis';
+import { DrillingTopicBreakdown, type TopicBreakdownRow } from '@/components/exam/DrillingTopicBreakdown';
 import {
   Trophy, Clock, CheckCircle2, XCircle, AlertCircle,
   RotateCcw, Eye, ArrowLeft, TrendingUp, BookOpen,
@@ -75,6 +76,7 @@ interface ResultClientProps {
   // Sesi drilling: sembunyikan elemen yang tidak relevan
   // (popup ulasan, leaderboard, peringkat, tren skor antar percobaan).
   isDrilling?: boolean;
+  topicBreakdown?: TopicBreakdownRow[];
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -182,7 +184,7 @@ export default function ResultClient({
   attemptId, attempt, packageInfo, leaderboard,
   packageRank, totalParticipants, attemptHistory,
   lastThreeAttempts, answers, duration, userId,
-  subscriptionTier, categoryTotals, isDrilling = false,
+  subscriptionTier, categoryTotals, isDrilling = false, topicBreakdown = [],
 }: ResultClientProps) {
   const [reviewOpen, setReviewOpen] = useState(false);
 
@@ -397,6 +399,10 @@ export default function ResultClient({
 
       {/* ══ ANALYTICS ══════════════════════════════════════════════════════ */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+        {/* Breakdown per-topik — khusus sesi drilling */}
+        {isDrilling && <DrillingTopicBreakdown topics={topicBreakdown} />}
+
 
         {/* Ringkasan Jawaban — donut besar (semua tier) */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 md:p-6">

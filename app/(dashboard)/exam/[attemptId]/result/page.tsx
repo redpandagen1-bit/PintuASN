@@ -78,6 +78,7 @@ async function getResultData(attemptId: string, userId: string) {
         id,
         content,
         category,
+        topic,
         choices ( id, is_answer, score )
       )
     `)
@@ -103,9 +104,25 @@ async function getResultData(attemptId: string, userId: string) {
         id: question?.id,
         content: question?.content,
         category: question?.category,
+        topic: question?.topic ?? null,
       },
     };
   });
+
+  // Agregasi per topik (dipakai breakdown di hasil drilling)
+  const topicMap = new Map<string, { category: 'TWK' | 'TIU' | 'TKP'; topic: string; answered: number; correct: number; scoreSum: number; isTKP: boolean }>();
+  for (const a of answersWithCorrect) {
+    const cat = a.questions.category as 'TWK' | 'TIU' | 'TKP' | undefined;
+    if (!cat) continue;
+    const topic = (a.questions.topic ?? 'Lainnya') as string;
+    const key = `${cat}|${topic}`;
+    const b = topicMap.get(key) ?? { category: cat, topic, answered: 0, correct: 0, scoreSum: 0, isTKP: cat === 'TKP' };
+    b.answered += 1;
+    if (cat === 'TKP') b.scoreSum += a.tkp_score ?? 0;
+    else if (a.is_correct) b.correct += 1;
+    topicMap.set(key, b);
+  }
+  const topicBreakdown = Array.from(topicMap.values()).sort((x, y) => y.answered - x.answered);
 
   // ✅ FIX: Supabase foreign key join mengembalikan profiles sebagai array,
   // tapi LeaderboardItem mengharapkan object tunggal | null.
@@ -136,6 +153,7 @@ async function getResultData(attemptId: string, userId: string) {
     lastThreeAttempts: attemptHistory?.slice(-3) || [],
     answers: answersWithCorrect,
     categoryTotals,
+    topicBreakdown,
   };
 }
 
@@ -187,6 +205,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
           subscriptionTier={subscriptionTier}
           categoryTotals={data.categoryTotals}
           isDrilling={isDrilling}
+          topicBreakdown={data.topicBreakdown}
         />
       </MobilePageWrapper>
       <div className="hidden md:block">
@@ -206,6 +225,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
           subscriptionTier={subscriptionTier}
           categoryTotals={data.categoryTotals}
           isDrilling={isDrilling}
+          topicBreakdown={data.topicBreakdown}
         />
       </div>
     </>
