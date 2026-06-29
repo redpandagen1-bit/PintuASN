@@ -11,6 +11,8 @@ import {
 } from 'recharts';
 import { TrendingUp, ChevronRight, Trophy, Target, AlertTriangle, CheckCircle2, XCircle, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TopicMasterySection } from '@/components/statistics/TopicMasterySection';
+import type { TopicMasteryByCategory } from '@/constants/drilling';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -42,6 +44,7 @@ interface MobileStatistikProps {
   data:          Attempt[];
   ranking?:      RankingData | null;
   distribution?: ScoreBucket[];
+  mastery?:      TopicMasteryByCategory;
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -95,7 +98,7 @@ function EmptyHint({ className }: { className?: string }) {
 
 // ── Component ─────────────────────────────────────────────────
 
-export function MobileStatistik({ data, ranking, distribution }: MobileStatistikProps) {
+export function MobileStatistik({ data, ranking, distribution, mastery }: MobileStatistikProps) {
   const completed = data.filter(a => a.status === 'completed');
   const hasData   = completed.length > 0;
   const passed    = completed.filter(a => a.is_passed);
@@ -233,6 +236,13 @@ export function MobileStatistik({ data, ranking, distribution }: MobileStatistik
               <p className="text-xs text-slate-500 mt-0.5">Kerjakan soal untuk menampilkan data.</p>
             </div>
           </div>
+        </section>
+      )}
+
+      {/* ── Penguasaan Topik + topik terlemah ──────────────────── */}
+      {mastery && (
+        <section className="mx-4 mb-4">
+          <TopicMasterySection mastery={mastery} />
         </section>
       )}
 

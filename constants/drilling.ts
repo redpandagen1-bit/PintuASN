@@ -55,3 +55,25 @@ export type DrillingTopicStat = {
 };
 
 export type DrillingCategoryStats = Record<DrillingCategory, DrillingTopicStat[]>;
+
+// ── Penguasaan topik (statistik) ─────────────────────────────
+export type TopicMasteryLevel = 'none' | 'weak' | 'medium' | 'strong';
+
+export type TopicMastery = {
+  category: DrillingCategory;
+  topic: string;
+  answered: number;   // jumlah soal topik ini yang pernah dijawab
+  isTKP: boolean;
+  // TWK/TIU: akurasi benar; TKP: persen dari skor maksimal (skor/5)
+  masteryPct: number; // 0-100 (0 jika belum ada data)
+  level: TopicMasteryLevel;
+};
+
+export type TopicMasteryByCategory = Record<DrillingCategory, TopicMastery[]>;
+
+export function masteryLevel(answered: number, pct: number): TopicMasteryLevel {
+  if (answered === 0) return 'none';
+  if (pct < 60) return 'weak';
+  if (pct < 80) return 'medium';
+  return 'strong';
+}

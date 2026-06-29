@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
   Target,
@@ -54,14 +54,30 @@ const CATEGORY_THEME: Record<
 
 export function DrillingClient({ stats }: { stats: DrillingCategoryStats }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [category, setCategory] = useState<DrillingCategory>('TWK');
-  // Default KOSONG: tidak ada topik terpilih
-  const [selected, setSelected] = useState<Record<DrillingCategory, Set<string>>>(() => ({
-    TWK: new Set<string>(),
-    TIU: new Set<string>(),
-    TKP: new Set<string>(),
-  }));
+  // Preselect dari query (?cat=TWK&topic=Bela+Negara) — dipakai tombol
+  // "Drilling topik ini" di halaman Statistik.
+  const initCat = (() => {
+    const c = searchParams.get('cat');
+    return c && c in DRILLING_TOPICS ? (c as DrillingCategory) : 'TWK';
+  })();
+
+  const [category, setCategory] = useState<DrillingCategory>(initCat);
+  // Default KOSONG, kecuali ada topik dari query
+  const [selected, setSelected] = useState<Record<DrillingCategory, Set<string>>>(() => {
+    const base = {
+      TWK: new Set<string>(),
+      TIU: new Set<string>(),
+      TKP: new Set<string>(),
+    };
+    const c = searchParams.get('cat') as DrillingCategory | null;
+    const t = searchParams.get('topic');
+    if (c && c in DRILLING_TOPICS && t && DRILLING_TOPICS[c].includes(t)) {
+      base[c] = new Set([t]);
+    }
+    return base;
+  });
   const [count, setCount] = useState<number>(DRILLING_LIMITS.DEFAULT_QUESTIONS);
   const [minutes, setMinutes] = useState<number>(DRILLING_LIMITS.DEFAULT_MINUTES);
   const [starting, setStarting] = useState(false);

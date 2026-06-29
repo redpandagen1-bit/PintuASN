@@ -9,6 +9,7 @@ export async function getUserAttempts(userId: string): Promise<Attempt[]> {
     .select('*')
     .eq('user_id', userId)
     .eq('status', 'completed')
+    .eq('kind', 'tryout') // drilling tidak dihitung di statistik tryout
     .order('completed_at', { ascending: false });
   
   if (error) {

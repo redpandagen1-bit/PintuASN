@@ -14,6 +14,8 @@ import {
   Target,
   BarChart2
 } from 'lucide-react';
+import { TopicMasterySection } from '@/components/statistics/TopicMasterySection';
+import type { TopicMasteryByCategory } from '@/constants/drilling';
 
 // ===== TYPES =====
 interface Attempt {
@@ -43,6 +45,7 @@ interface StatisticsViewProps {
   data: Attempt[];
   ranking?: RankingData | null;
   distribution?: ScoreBucket[];
+  mastery?: TopicMasteryByCategory;
 }
 
 // ===== CONSTANTS =====
@@ -129,7 +132,7 @@ const GapProgress: React.FC<GapProgressProps> = ({ current, threshold, label, ma
 
 // ===== MAIN COMPONENT =====
 
-const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribution }) => {
+const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribution, mastery }) => {
   const stats = useMemo(() => {
     const completedAttempts = data.filter(attempt => attempt.status === 'completed');
     
@@ -296,8 +299,14 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
           />
         </div>
 
+        {mastery && (
+          <div className="mb-8">
+            <TopicMasterySection mastery={mastery} />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          
+
           {/* 2. Main Chart: Performance Trend */}
           <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
             <div className="flex justify-between items-center mb-6">

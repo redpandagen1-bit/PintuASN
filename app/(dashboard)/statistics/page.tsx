@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { getUserAttempts } from '@/lib/db/attempts';
 import { createAdminClient } from '@/lib/supabase/server';
+import { getTopicMastery } from '@/lib/supabase/drilling';
 import StatisticsView from '@/components/statistics/StatisticsView';
 import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
 import { MobileStatistik }   from '@/components/mobile/MobileStatistik';
@@ -20,7 +21,10 @@ export default async function StatisticsPage() {
     supabase.rpc('get_score_distribution'),
   ]);
 
-  const attempts     = await getUserAttempts(userId);
+  const [attempts, mastery] = await Promise.all([
+    getUserAttempts(userId),
+    getTopicMastery(userId),
+  ]);
   const ranking      = rankingData?.[0] || null;
   const distribution = distributionData || [];
 
@@ -28,12 +32,12 @@ export default async function StatisticsPage() {
     <>
       {/* ── Mobile ── */}
       <MobilePageWrapper>
-        <MobileStatistik data={attempts} ranking={ranking} distribution={distribution} />
+        <MobileStatistik data={attempts} ranking={ranking} distribution={distribution} mastery={mastery} />
       </MobilePageWrapper>
 
       {/* ── Desktop ── */}
       <div className="hidden md:block">
-        <StatisticsView data={attempts} ranking={ranking} distribution={distribution} />
+        <StatisticsView data={attempts} ranking={ranking} distribution={distribution} mastery={mastery} />
       </div>
     </>
   );

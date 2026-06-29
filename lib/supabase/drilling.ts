@@ -7,9 +7,12 @@ import {
   DRILLING_TOPICS,
   DRILLING_ALL_TOPICS,
   DRILLING_CATEGORIES,
+  masteryLevel,
   type DrillingCategory,
   type DrillingCategoryStats,
   type DrillingTopicStat,
+  type TopicMastery,
+  type TopicMasteryByCategory,
 } from '@/constants/drilling';
 
 /**
@@ -68,4 +71,46 @@ export async function pickDrillingQuestions(
   });
   if (error) throw new Error(`Failed to pick drilling questions: ${error.message}`);
   return ((data ?? []) as { id: string }[]).map((r) => r.id);
+}
+
+/**
+ * Penguasaan per topik baku untuk halaman Statistik.
+ * Hanya topik di taksonomi drilling yang dikembalikan (per kategori).
+ */
+export async function getTopicMastery(userId: string): Promise<TopicMasteryByCategory> {
+  const supabase = await createAdminClient();
+  const { data, error } = await supabase.rpc('topic_mastery', { p_user_id: userId });
+  if (error) throw new Error(`Failed to fetch topic mastery: ${error.message}`);
+
+  const byKey = new Map<string, { answered: number; correct: number; scoreSum: number }>();
+  for (const row of (data ?? []) as { category: string; topic: string; answered: number; correct: number; score_sum: number }[]) {
+    byKey.set(`${row.category}|${row.topic}`, {
+      answered: Number(row.answered) || 0,
+      correct: Number(row.correct) || 0,
+      scoreSum: Number(row.score_sum) || 0,
+    });
+  }
+
+  const result = {} as TopicMasteryByCategory;
+  for (const cat of DRILLING_CATEGORIES) {
+    const isTKP = cat === 'TKP';
+    result[cat] = DRILLING_TOPICS[cat].map<TopicMastery>((topic) => {
+      const hit = byKey.get(`${cat}|${topic}`) ?? { answered: 0, correct: 0, scoreSum: 0 };
+      const pct =
+        hit.answered === 0
+          ? 0
+          : isTKP
+            ? Math.round((hit.scoreSum / (hit.answered * 5)) * 100)
+            : Math.round((hit.correct / hit.answered) * 100);
+      return {
+        category: cat,
+        topic,
+        answered: hit.answered,
+        isTKP,
+        masteryPct: pct,
+        level: masteryLevel(hit.answered, pct),
+      };
+    });
+  }
+  return result;
 }
