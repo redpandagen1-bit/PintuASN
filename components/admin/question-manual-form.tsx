@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Loader2, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { MAX_IMAGE_UPLOAD_BYTES, MAX_IMAGE_UPLOAD_LABEL } from '@/lib/upload-limits';
+import { DRILLING_TOPICS, type DrillingCategory } from '@/constants/drilling';
 
 interface QuestionManualFormProps {
   packageId: string;
@@ -220,7 +221,16 @@ export function QuestionManualForm({ packageId, packageTitle }: QuestionManualFo
                 </Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      category: value,
+                      // reset topik jika tak valid untuk kategori baru
+                      topic: DRILLING_TOPICS[value as DrillingCategory]?.includes(prev.topic)
+                        ? prev.topic
+                        : '',
+                    }))
+                  }
                 >
                   <SelectTrigger id="category">
                     <SelectValue />
@@ -252,12 +262,19 @@ export function QuestionManualForm({ packageId, packageTitle }: QuestionManualFo
 
               <div className="space-y-2">
                 <Label htmlFor="topic">Topik</Label>
-                <Input
-                  id="topic"
-                  placeholder="Contoh: Pancasila"
-                  value={formData.topic}
-                  onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                />
+                <Select
+                  value={formData.topic || undefined}
+                  onValueChange={(value) => setFormData({ ...formData, topic: value })}
+                >
+                  <SelectTrigger id="topic">
+                    <SelectValue placeholder="Pilih topik" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DRILLING_TOPICS[formData.category as DrillingCategory].map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth/check-admin';
 import { createAdminClient } from '@/lib/supabase/server';
 import Papa from 'papaparse';
+import { DRILLING_TOPICS, type DrillingCategory } from '@/constants/drilling';
 
 const VALID_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
 const VALID_CATEGORIES = ['TWK', 'TIU', 'TKP'] as const;
@@ -87,6 +88,20 @@ export async function POST(request: NextRequest) {
             `Posisi ${position} harus category ${expectedCategory}, bukan ${row.category}`
           );
         }
+      }
+
+      // ── Validasi topic (harus dari taksonomi baku kategori) ──────────
+      const topicVal = typeof row.topic === 'string' ? row.topic.trim() : '';
+      const allowedTopics = VALID_CATEGORIES.includes(row.category)
+        ? DRILLING_TOPICS[row.category as DrillingCategory]
+        : [];
+      if (!topicVal) {
+        errors.push('topic wajib diisi');
+      } else if (allowedTopics.length > 0 && !allowedTopics.includes(topicVal)) {
+        errors.push(
+          `topic "${topicVal.substring(0, 40)}" tidak dikenal untuk ${row.category}. ` +
+          `Pilihan: ${allowedTopics.join(', ')}`
+        );
       }
 
       // ── Validasi difficulty ──────────────────────────────────────────
