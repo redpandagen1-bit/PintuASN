@@ -4,13 +4,13 @@ import Link from 'next/link';
 import {
   Gauge,
   Target,
-  Users,
   Building2,
   CheckCircle2,
   AlertCircle,
   ArrowRight,
   Info,
   ClipboardList,
+  Trophy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG, TOTAL_MAX_SCORE } from '@/constants/scoring';
@@ -22,12 +22,10 @@ const CATS = [
   { key: 'tkp' as const, label: 'TKP', cfg: TKP_CONFIG },
 ];
 
-type Verdict = {
-  label: string;
-  ring: string;   // warna ring/aksen (hex)
-  chip: string;   // kelas badge
-  desc: string;
-};
+// Sampel instansi dianggap "cukup" untuk persaingan bila >= ini (selain kamu).
+const INSTANSI_ENOUGH = 7;
+
+type Verdict = { label: string; ring: string; chip: string; desc: string };
 
 function getVerdict(d: PeluangFormasi): Verdict {
   if (!d.passing.all) {
@@ -35,22 +33,19 @@ function getVerdict(d: PeluangFormasi): Verdict {
       label: 'Belum Lolos Passing Grade',
       ring: '#f43f5e',
       chip: 'bg-rose-100 text-rose-700',
-      desc: 'Ada kategori yang belum memenuhi nilai ambang. Perbaiki dulu agar memenuhi syarat dasar.',
+      desc: 'Ada kategori yang belum memenuhi nilai ambang. Penuhi dulu syarat dasarnya.',
     };
   }
-  const p = d.percentile;
-  if (p == null) {
-    return { label: 'Lolos Passing Grade', ring: '#10b981', chip: 'bg-emerald-100 text-emerald-700', desc: 'Kamu memenuhi semua nilai ambang. Belum ada pembanding untuk posisi peringkat.' };
-  }
-  if (p >= 75) return { label: 'Peluang Besar', ring: '#10b981', chip: 'bg-emerald-100 text-emerald-700', desc: 'Nilaimu unggul dibanding mayoritas peserta. Pertahankan dan jaga konsistensi.' };
-  if (p >= 50) return { label: 'Bersaing', ring: '#f59e0b', chip: 'bg-amber-100 text-amber-700', desc: 'Nilaimu di atas rata-rata, tapi persaingan ketat. Tingkatkan untuk lebih aman.' };
-  return { label: 'Perlu Ditingkatkan', ring: '#fb923c', chip: 'bg-orange-100 text-orange-700', desc: 'Nilaimu masih di bawah sebagian besar peserta. Fokus latihan untuk naik peringkat.' };
+  const p = d.nationalPercentile;
+  if (p == null) return { label: 'Lolos Passing Grade', ring: '#10b981', chip: 'bg-emerald-100 text-emerald-700', desc: 'Kamu memenuhi semua nilai ambang. Belum ada pembanding untuk peringkat.' };
+  if (p >= 75) return { label: 'Peluang Besar', ring: '#10b981', chip: 'bg-emerald-100 text-emerald-700', desc: 'Nilaimu unggul dibanding mayoritas peserta. Pertahankan konsistensi.' };
+  if (p >= 50) return { label: 'Bersaing', ring: '#f59e0b', chip: 'bg-amber-100 text-amber-700', desc: 'Nilaimu di atas rata-rata, tapi persaingan ketat. Tingkatkan agar lebih aman.' };
+  return { label: 'Perlu Ditingkatkan', ring: '#fb923c', chip: 'bg-orange-100 text-orange-700', desc: 'Nilaimu masih di bawah sebagian besar peserta. Fokus latihan untuk naik.' };
 }
 
 export function PeluangFormasiClient({ data }: { data: PeluangFormasi }) {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-0 pb-10">
-      {/* ── HERO ─────────────────────────────────────────────── */}
       <div className="bg-slate-800 rounded-2xl p-4 md:p-5 mt-3 md:mt-0 mb-4 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-3">
         <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
         <div className="relative z-10 max-w-2xl">
@@ -58,7 +53,7 @@ export function PeluangFormasiClient({ data }: { data: PeluangFormasi }) {
             Peluang <span className="text-yellow-400">Formasi</span>
           </h1>
           <p className="text-slate-300 text-[11px] md:text-xs leading-relaxed">
-            Estimasi posisi nilai SKD-mu dibanding peserta PintuASN lain. Bukan hasil resmi BKN.
+            Bandingkan nilai SKD-mu dengan peserta PintuASN lain di instansi yang sama. Estimasi, bukan hasil resmi BKN.
           </p>
         </div>
         <div className="relative z-10 flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-slate-700/40 rounded-2xl border border-slate-600 shadow-inner rotate-3 flex-shrink-0">
@@ -79,10 +74,7 @@ function EmptyState() {
       <p className="text-xs text-slate-400 mb-5 max-w-xs mx-auto">
         Kerjakan minimal satu tryout dulu agar peluang formasimu bisa dihitung.
       </p>
-      <Link
-        href="/daftar-tryout"
-        className="inline-flex items-center gap-1.5 h-11 px-6 rounded-xl bg-yellow-400 text-slate-900 font-bold hover:bg-yellow-300 transition"
-      >
+      <Link href="/daftar-tryout" className="inline-flex items-center gap-1.5 h-11 px-6 rounded-xl bg-yellow-400 text-slate-900 font-bold hover:bg-yellow-300 transition">
         Mulai Tryout <ArrowRight className="w-4 h-4" />
       </Link>
     </div>
@@ -91,27 +83,27 @@ function EmptyState() {
 
 function Result({ data }: { data: PeluangFormasi }) {
   const v = getVerdict(data);
-  const ringPct = data.percentile ?? 0;
+  const ringPct = data.nationalPercentile ?? 0;
   const weakest = [...CATS]
     .map((c) => ({ ...c, ratio: (data[c.key] - c.cfg.PASSING_GRADE) / c.cfg.MAX_SCORE }))
     .sort((a, b) => a.ratio - b.ratio)[0];
   const weakCat = weakest.label as 'TWK' | 'TIU' | 'TKP';
 
+  const instTotal = data.instansiPeers + 1; // termasuk kamu
+  const instSmallSample = data.instansiPeers > 0 && instTotal < INSTANSI_ENOUGH;
+
   return (
     <div className="space-y-4">
-      {/* ── Verdict + persentil ──────────────────────────────── */}
+      {/* ── Verdict + persentil nasional ─────────────────────── */}
       <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 md:p-6 shadow-sm">
         <div className="flex items-center gap-5">
-          <div
-            className="relative w-28 h-28 rounded-full flex-shrink-0"
-            style={{ background: `conic-gradient(${v.ring} ${ringPct * 3.6}deg, #f1f5f9 0deg)` }}
-          >
+          <div className="relative w-28 h-28 rounded-full flex-shrink-0" style={{ background: `conic-gradient(${v.ring} ${ringPct * 3.6}deg, #f1f5f9 0deg)` }}>
             <div className="absolute inset-[10px] bg-white rounded-full flex flex-col items-center justify-center">
-              {data.percentile == null ? (
+              {data.nationalPercentile == null ? (
                 <CheckCircle2 className="w-8 h-8" style={{ color: v.ring }} />
               ) : (
                 <>
-                  <span className="text-2xl font-bold text-slate-800 leading-none">{data.percentile}%</span>
+                  <span className="text-2xl font-bold text-slate-800 leading-none">{data.nationalPercentile}%</span>
                   <span className="text-[10px] text-slate-400 mt-0.5">persentil</span>
                 </>
               )}
@@ -132,6 +124,70 @@ function Result({ data }: { data: PeluangFormasi }) {
         </div>
       </div>
 
+      {/* ── INSTANSI TUJUAN (fokus) ──────────────────────────── */}
+      <div className="rounded-2xl border-2 border-sky-100 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-1">
+          <Building2 className="h-4 w-4 text-sky-500" />
+          <h3 className="font-bold text-slate-800 text-sm">Instansi Tujuan</h3>
+        </div>
+
+        {!data.instansi ? (
+          <>
+            <p className="text-sm text-slate-500 mb-3">Kamu belum memilih instansi tujuan, jadi perbandingan per instansi belum bisa ditampilkan.</p>
+            <Link href="/profile" className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-600 hover:text-sky-700">
+              <Info className="h-3.5 w-3.5" /> Pilih instansi tujuan di profil
+            </Link>
+          </>
+        ) : (
+          <>
+            <p className="text-base font-bold text-slate-800 leading-snug mb-3">{data.instansi}</p>
+
+            {data.instansiPeers === 0 ? (
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3.5 text-sm text-slate-500">
+                Sejauh ini kamu satu-satunya peserta PintuASN yang memilih instansi ini, jadi belum ada pembanding khusus instansi. Lihat posisi nasionalmu di bawah.
+              </div>
+            ) : (
+              <>
+                <div className="flex items-stretch gap-3">
+                  <div className="flex-shrink-0 w-24 rounded-xl bg-sky-50 border border-sky-100 flex flex-col items-center justify-center py-3">
+                    <div className="flex items-center gap-1 text-sky-600">
+                      <Trophy className="h-3.5 w-3.5" />
+                      <span className="text-2xl font-extrabold leading-none">#{data.instansiRank}</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-1">dari {instTotal} peserta</span>
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <p className="text-sm text-slate-600 mb-2">
+                      Nilaimu lebih tinggi dari{' '}
+                      <span className="font-bold text-slate-800">{data.instansiBetter}</span> peserta
+                      {' '}(<span className="font-bold text-sky-600">{data.instansiPercentile}%</span>) yang memilih instansi ini.
+                    </p>
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full rounded-full bg-sky-500" style={{ width: `${data.instansiPercentile}%` }} />
+                    </div>
+                  </div>
+                </div>
+                {instSmallSample && (
+                  <p className="text-[11px] text-amber-600 mt-2.5 flex items-start gap-1">
+                    <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    Peserta instansi ini masih sedikit, jadi anggap sebagai gambaran awal.
+                  </p>
+                )}
+              </>
+            )}
+
+            {/* Konteks nasional */}
+            {data.nationalPercentile != null && (
+              <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                Se-nasional: nilaimu lebih tinggi dari{' '}
+                <span className="font-bold text-slate-700">{data.nationalPercentile}%</span>{' '}
+                dari {data.nationalPeers} peserta PintuASN.
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
       {/* ── Passing Grade per kategori ───────────────────────── */}
       <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm">
         <h3 className="font-bold text-slate-800 text-sm mb-3">Status Nilai Ambang (Passing Grade)</h3>
@@ -147,13 +203,8 @@ function Result({ data }: { data: PeluangFormasi }) {
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-semibold text-slate-700">{c.label}</span>
                   <span className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 tabular-nums">
-                      {score} <span className="text-slate-300">/ {c.cfg.MAX_SCORE}</span>
-                    </span>
-                    <span className={cn(
-                      'inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-                      passed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-600',
-                    )}>
+                    <span className="text-xs text-slate-500 tabular-nums">{score} <span className="text-slate-300">/ {c.cfg.MAX_SCORE}</span></span>
+                    <span className={cn('inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full', passed ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-600')}>
                       {passed ? <CheckCircle2 size={9} /> : <AlertCircle size={9} />}
                       {passed ? 'Lolos' : `-${gap}`}
                     </span>
@@ -161,49 +212,13 @@ function Result({ data }: { data: PeluangFormasi }) {
                 </div>
                 <div className="relative h-2 rounded-full bg-slate-100 overflow-hidden">
                   <div className={cn('h-full rounded-full', passed ? 'bg-emerald-500' : 'bg-rose-400')} style={{ width: `${pct}%` }} />
-                  <div className="absolute top-0 bottom-0 w-0.5 bg-slate-400" style={{ left: `${minPct}%` }} title={`Ambang ${c.cfg.PASSING_GRADE}`} />
+                  <div className="absolute top-0 bottom-0 w-0.5 bg-slate-400" style={{ left: `${minPct}%` }} />
                 </div>
-                <div className="flex justify-end mt-0.5">
-                  <span className="text-[10px] text-slate-400">ambang {c.cfg.PASSING_GRADE}</span>
-                </div>
+                <div className="flex justify-end mt-0.5"><span className="text-[10px] text-slate-400">ambang {c.cfg.PASSING_GRADE}</span></div>
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* ── Posisi vs peserta ────────────────────────────────── */}
-      <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
-          <Users className="h-4 w-4 text-sky-500" />
-          <h3 className="font-bold text-slate-800 text-sm">Posisi Kamu</h3>
-        </div>
-
-        {data.percentile == null || data.peers === 0 ? (
-          <p className="text-sm text-slate-500">
-            Belum ada peserta lain sebagai pembanding. Posisimu akan muncul seiring bertambahnya peserta.
-          </p>
-        ) : (
-          <>
-            <p className="text-sm text-slate-600">
-              Nilaimu lebih tinggi dari{' '}
-              <span className="font-bold text-slate-800">{data.percentile}%</span>{' '}
-              peserta ({data.betterThan} dari {data.peers} pembanding).
-            </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5">
-              <Building2 className="h-3.5 w-3.5 text-slate-400" />
-              {data.scope === 'instansi'
-                ? <>Dibanding peserta yang mengincar <span className="font-semibold text-slate-700">{data.instansi}</span></>
-                : <>Dibanding <span className="font-semibold text-slate-700">seluruh peserta PintuASN</span>{data.instansi ? ' (peserta untuk instansimu belum cukup)' : ''}</>}
-            </div>
-          </>
-        )}
-
-        {!data.instansi && (
-          <Link href="/profile" className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-sky-600 hover:text-sky-700">
-            <Info className="h-3.5 w-3.5" /> Atur instansi tujuan di profil untuk perbandingan lebih relevan
-          </Link>
-        )}
       </div>
 
       {/* ── Rekomendasi ──────────────────────────────────────── */}
@@ -214,17 +229,13 @@ function Result({ data }: { data: PeluangFormasi }) {
           </div>
           <p className="text-xs text-slate-300">
             {data.passing.all
-              ? <>Fokus naikkan kategori terlemahmu: <span className="font-bold text-white">{weakCat}</span>.</>
+              ? <>Naikkan kategori terlemahmu: <span className="font-bold text-white">{weakCat}</span> agar peringkatmu naik.</>
               : <>Prioritaskan kategori yang belum lolos ambang.</>}
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
-          <Link href={`/drilling?cat=${weakCat}`} className="h-10 px-4 inline-flex items-center gap-1.5 rounded-xl bg-yellow-400 text-slate-900 text-sm font-bold hover:bg-yellow-300 transition">
-            Drilling {weakCat}
-          </Link>
-          <Link href="/statistics" className="h-10 px-4 inline-flex items-center rounded-xl border border-slate-600 text-slate-200 text-sm font-semibold hover:bg-slate-700 transition">
-            Statistik
-          </Link>
+          <Link href={`/drilling?cat=${weakCat}`} className="h-10 px-4 inline-flex items-center rounded-xl bg-yellow-400 text-slate-900 text-sm font-bold hover:bg-yellow-300 transition">Drilling {weakCat}</Link>
+          <Link href="/statistics" className="h-10 px-4 inline-flex items-center rounded-xl border border-slate-600 text-slate-200 text-sm font-semibold hover:bg-slate-700 transition">Statistik</Link>
         </div>
       </div>
 
