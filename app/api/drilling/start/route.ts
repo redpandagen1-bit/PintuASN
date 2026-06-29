@@ -75,6 +75,16 @@ export async function POST(req: Request) {
 
     const supabase = await createAdminClient();
 
+    // Cegah penumpukan: sesi drilling lama yang masih berjalan ditandai
+    // abandoned, lalu seluruh sesi abandoned (paket throwaway) dibersihkan.
+    await supabase
+      .from('attempts')
+      .update({ status: 'abandoned' })
+      .eq('user_id', userId)
+      .eq('kind', 'drilling')
+      .eq('status', 'in_progress');
+    await supabase.rpc('cleanup_abandoned_drilling', { p_user_id: userId });
+
     const cats = Array.from(catSet);
     const catLabel = cats.join('/');
     const titleTopics =

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
@@ -14,6 +15,8 @@ import {
   Check,
   CheckCheck,
   ArrowRight,
+  RotateCcw,
+  History,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -52,7 +55,13 @@ const CATEGORY_THEME: Record<
   },
 };
 
-export function DrillingClient({ stats }: { stats: DrillingCategoryStats }) {
+export function DrillingClient({
+  stats,
+  inProgress,
+}: {
+  stats: DrillingCategoryStats;
+  inProgress?: { id: string; title: string; totalQuestions: number } | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -178,6 +187,32 @@ export function DrillingClient({ stats }: { stats: DrillingCategoryStats }) {
 
         <div className="relative z-10 flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-slate-700/40 rounded-2xl border border-slate-600 shadow-inner rotate-3 flex-shrink-0">
           <Target className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
+        </div>
+      </div>
+
+      {/* ── Lanjutkan sesi + link riwayat ───────────────────── */}
+      <div className="mb-4 space-y-2">
+        {inProgress && (
+          <Link
+            href={`/drilling/${inProgress.id}`}
+            className="flex items-center justify-between gap-3 rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3"
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <RotateCcw className="w-4 h-4 text-amber-600 flex-shrink-0" />
+              <span className="text-sm font-semibold text-amber-800 truncate">
+                Lanjutkan sesi yang belum selesai
+              </span>
+            </span>
+            <span className="text-xs font-bold text-amber-700 flex-shrink-0">Lanjutkan →</span>
+          </Link>
+        )}
+        <div className="flex justify-end">
+          <Link
+            href="/drilling/riwayat"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800"
+          >
+            <History className="w-3.5 h-3.5" /> Riwayat Drilling
+          </Link>
         </div>
       </div>
 

@@ -14,7 +14,8 @@ export default function DashboardLayout({
   // Halaman pengerjaan tryout & drilling: full screen tanpa sidebar/navbar.
   // Cocokkan /exam/<id> dan /drilling/<id>, tapi BUKAN /drilling/<id>/result.
   const isExamPage =
-    /^\/exam\/[^/]+$/.test(pathname ?? '') || /^\/drilling\/[^/]+$/.test(pathname ?? '');
+    /^\/exam\/[^/]+$/.test(pathname ?? '') ||
+    /^\/drilling\/(?!riwayat$)[^/]+$/.test(pathname ?? '');
   const isReviewPage = /^\/exam\/[^/]+\/review/.test(pathname ?? '');
 
   if (isExamPage) {

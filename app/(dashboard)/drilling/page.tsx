@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
-import { getDrillingTopicStats } from '@/lib/supabase/drilling';
+import { getDrillingTopicStats, getInProgressDrilling } from '@/lib/supabase/drilling';
 import { DrillingClient } from './drilling-client';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -11,8 +11,11 @@ async function DrillingContent() {
 
   // Catatan: fitur drilling untuk sementara terbuka untuk semua user.
   // Rencana ke depan akan dibatasi tier premium (gating menyusul).
-  const stats = await getDrillingTopicStats(userId);
-  return <DrillingClient stats={stats} />;
+  const [stats, inProgress] = await Promise.all([
+    getDrillingTopicStats(userId),
+    getInProgressDrilling(userId),
+  ]);
+  return <DrillingClient stats={stats} inProgress={inProgress} />;
 }
 
 export default function DrillingPage() {

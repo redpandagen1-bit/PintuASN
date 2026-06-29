@@ -73,6 +73,60 @@ export async function pickDrillingQuestions(
   return ((data ?? []) as { id: string }[]).map((r) => r.id);
 }
 
+export type DrillingAttemptRow = {
+  id: string;
+  status: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  title: string;
+  totalQuestions: number;
+};
+
+/** Sesi drilling yang masih berjalan (untuk opsi "lanjutkan"). Null jika tidak ada. */
+export async function getInProgressDrilling(userId: string): Promise<DrillingAttemptRow | null> {
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from('attempts')
+    .select('id, status, started_at, completed_at, packages ( title, total_questions )')
+    .eq('user_id', userId)
+    .eq('kind', 'drilling')
+    .eq('status', 'in_progress')
+    .order('started_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!data) return null;
+  const pkg = (data as any).packages;
+  return {
+    id: data.id,
+    status: data.status,
+    startedAt: data.started_at,
+    completedAt: data.completed_at,
+    title: pkg?.title ?? 'Drilling',
+    totalQuestions: pkg?.total_questions ?? 0,
+  };
+}
+
+/** Riwayat sesi drilling yang sudah selesai. */
+export async function getDrillingHistory(userId: string, limit = 30): Promise<DrillingAttemptRow[]> {
+  const supabase = await createAdminClient();
+  const { data } = await supabase
+    .from('attempts')
+    .select('id, status, started_at, completed_at, packages ( title, total_questions )')
+    .eq('user_id', userId)
+    .eq('kind', 'drilling')
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false })
+    .limit(limit);
+  return ((data ?? []) as any[]).map((d) => ({
+    id: d.id,
+    status: d.status,
+    startedAt: d.started_at,
+    completedAt: d.completed_at,
+    title: d.packages?.title ?? 'Drilling',
+    totalQuestions: d.packages?.total_questions ?? 0,
+  }));
+}
+
 /**
  * Penguasaan per topik baku untuk halaman Statistik.
  * Hanya topik di taksonomi drilling yang dikembalikan (per kategori).
