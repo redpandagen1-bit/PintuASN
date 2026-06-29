@@ -140,7 +140,7 @@ export function MobileDashboard({
 
       {/* ── Menu Grid 2×4 ────────────────────────────────────── */}
       <section>
-        <div className="grid grid-cols-4 gap-x-1.5 gap-y-1 max-w-[300px] mx-auto">
+        <div className="grid grid-cols-4 gap-x-4 gap-y-3 max-w-[420px] mx-auto">
           {MENU_ITEMS.map(({ label, href, iconFile }) => {
             const external = href.startsWith('http');
             const inner = (
