@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getSlowestQuestions, getWrongAnalysis, calcPercentile, getAccuracyDonut, getPacing } from '@/lib/scoring/analysis';
 import { DrillingTopicBreakdown, type TopicBreakdownRow } from '@/components/exam/DrillingTopicBreakdown';
+import { ExamTopicAnalysis } from '@/components/exam/ExamTopicAnalysis';
 import {
   Trophy, Clock, CheckCircle2, XCircle, AlertCircle,
   RotateCcw, Eye, ArrowLeft, TrendingUp, BookOpen,
@@ -400,8 +401,10 @@ export default function ResultClient({
       {/* ══ ANALYTICS ══════════════════════════════════════════════════════ */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-5">
 
-        {/* Breakdown per-topik — khusus sesi drilling */}
-        {isDrilling && <DrillingTopicBreakdown topics={topicBreakdown} />}
+        {/* Per-topik: drilling -> breakdown sesi; tryout -> analisis & rekomendasi */}
+        {isDrilling
+          ? <DrillingTopicBreakdown topics={topicBreakdown} />
+          : <ExamTopicAnalysis topics={topicBreakdown} />}
 
 
         {/* Ringkasan Jawaban — donut besar (semua tier) */}

@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG } from '@/constants/scoring';
 import { DrillingTopicBreakdown, type TopicBreakdownRow } from '@/components/exam/DrillingTopicBreakdown';
+import { ExamTopicAnalysis } from '@/components/exam/ExamTopicAnalysis';
 import { getSlowestQuestions, getWrongAnalysis, calcPercentile, getAccuracyDonut, getPacing } from '@/lib/scoring/analysis';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 
@@ -380,10 +381,12 @@ export function MobileHasilSimulasi({
         </div>
       </div>
 
-      {/* ── Breakdown per-topik — khusus sesi drilling ────────── */}
-      {isDrilling && (
+      {/* ── Per-topik: breakdown (drilling) / analisis & rekomendasi (tryout) ── */}
+      {topicBreakdown.length > 0 && (
         <section className="mx-4 mb-4">
-          <DrillingTopicBreakdown topics={topicBreakdown} />
+          {isDrilling
+            ? <DrillingTopicBreakdown topics={topicBreakdown} />
+            : <ExamTopicAnalysis topics={topicBreakdown} />}
         </section>
       )}
 
