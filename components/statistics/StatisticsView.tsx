@@ -299,12 +299,6 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
           />
         </div>
 
-        {mastery && (
-          <div className="mb-8">
-            <TopicMasterySection mastery={mastery} />
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
 
           {/* 2. Main Chart: Performance Trend */}
@@ -447,6 +441,13 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
           </div>
         </div>
 
+        {/* 3b. Penguasaan topik (setelah tren & peringkat nasional) */}
+        {mastery && (
+          <div className="mb-8">
+            <TopicMasterySection mastery={mastery} />
+          </div>
+        )}
+
         {/* 4. Secondary Charts: Gap Analysis & Distribution */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           
@@ -458,16 +459,16 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
             />
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.gapAnalysisData} layout="vertical" margin={{ left: 0 }}>
+                <BarChart data={stats.gapAnalysisData} layout="vertical" margin={{ left: 12, right: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                   <XAxis type="number" hide />
-                  <YAxis 
-                    dataKey="subject" 
-                    type="category" 
-                    axisLine={false} 
+                  <YAxis
+                    dataKey="subject"
+                    type="category"
+                    axisLine={false}
                     tickLine={false}
-                    width={40}
-                    tick={{ fill: '#64748b', fontWeight: 600 }}
+                    width={52}
+                    tick={{ fill: '#64748b', fontWeight: 600, fontSize: 12 }}
                   />
                   <RechartsTooltip cursor={{fill: 'transparent'}} />
                   <Bar dataKey="ambangBatas" name="Passing Grade" fill="#e2e8f0" barSize={20} radius={[0, 4, 4, 0]} />

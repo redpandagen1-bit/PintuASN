@@ -239,13 +239,6 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
         </section>
       )}
 
-      {/* ── Penguasaan Topik + topik terlemah ──────────────────── */}
-      {mastery && (
-        <section className="mx-4 mb-4">
-          <TopicMasterySection mastery={mastery} />
-        </section>
-      )}
-
       {/* ── Tren Performa — AreaChart (like desktop) ───────────── */}
       <section className="mx-4 mb-4 bg-white rounded-2xl p-4 shadow-md3-sm">
         {/* Header */}
@@ -374,6 +367,13 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
         </div>
         <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
       </section>
+
+      {/* ── Penguasaan Topik + topik terlemah (setelah peringkat) ── */}
+      {mastery && (
+        <section className="mx-4 mb-4">
+          <TopicMasterySection mastery={mastery} />
+        </section>
+      )}
 
       {/* ── Gap Nilai Minimum ───────────────────────────────────── */}
       <section className="mx-4 mb-4">
