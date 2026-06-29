@@ -3,6 +3,7 @@
 // ============================================================
 
 import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 import { createAdminClient, createCacheClient } from './server';
 import type { Profile, Package, Attempt } from '@/types/database';
 import { PASSING_GRADES } from '@/constants/exam';
@@ -115,23 +116,23 @@ export const getAllMaterials = unstable_cache(
 // MATERIAL MODULES (materi bacaan "native" — non-video)
 // ─────────────────────────────────────────────────────────────
 
-export const getMaterialModules = unstable_cache(
-  async () => {
-    const supabase = createCacheClient();
-    const { data, error } = await supabase
-      .from('material_modules')
-      .select('id, category, topic, title, content_body, pages, quiz, tier, read_minutes, topic_order, sub_order, is_new, is_placeholder')
-      .eq('is_active', true).eq('is_deleted', false)
-      .order('category',    { ascending: true })
-      .order('topic_order', { ascending: true })
-      .order('topic',       { ascending: true })
-      .order('sub_order',   { ascending: true });
-    if (error) throw new Error(`Failed to fetch material modules: ${error.message}`);
-    return data ?? [];
-  },
-  ['material-modules'],
-  { tags: ['material-modules'], revalidate: 300 },
-);
+// Catatan: TIDAK pakai unstable_cache. Payload modul (content_body + pages +
+// quiz semua modul) sudah > 2MB, sedangkan Next Data Cache punya batas 2MB per
+// entry → gagal menyimpan & memicu unhandledRejection. Pakai React cache()
+// untuk dedupe per-request saja (tanpa limit ukuran).
+export const getMaterialModules = cache(async () => {
+  const supabase = createCacheClient();
+  const { data, error } = await supabase
+    .from('material_modules')
+    .select('id, category, topic, title, content_body, pages, quiz, tier, read_minutes, topic_order, sub_order, is_new, is_placeholder')
+    .eq('is_active', true).eq('is_deleted', false)
+    .order('category',    { ascending: true })
+    .order('topic_order', { ascending: true })
+    .order('topic',       { ascending: true })
+    .order('sub_order',   { ascending: true });
+  if (error) throw new Error(`Failed to fetch material modules: ${error.message}`);
+  return data ?? [];
+});
 
 // ─────────────────────────────────────────────────────────────
 // PACKAGE QUESTIONS
