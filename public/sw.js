@@ -2,7 +2,7 @@
 // Service worker tunggal PintuASN: cache aset statis + Firebase Cloud Messaging.
 // Satu SW di scope '/' agar tidak bentrok antar registrasi.
 
-const CACHE_NAME = 'pintuasn-v3';
+const CACHE_NAME = 'pintuasn-v4';
 // Hanya aset statis & ringan yang di-precache. HTML/API TIDAK di-cache.
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -116,6 +116,21 @@ self.addEventListener('fetch', (event) => {
 
   // Jangan sentuh route API — selalu jaringan, tidak di-cache.
   if (url.pathname.startsWith('/api/')) return;
+
+  // Banner: network-first — konten promosi yang sering ganti.
+  // Selalu ambil versi terbaru saat online; cache hanya cadangan offline.
+  if (url.pathname.startsWith('/images/banners/')) {
+    event.respondWith(
+      fetch(request).then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(request))
+    );
+    return;
+  }
 
   const isStatic =
     url.pathname.startsWith('/_next/static/') ||
