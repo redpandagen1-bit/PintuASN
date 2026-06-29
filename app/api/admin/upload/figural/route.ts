@@ -153,6 +153,8 @@ export async function POST(req: NextRequest) {
       .from('questions')
       .insert({
         category,
+        // Soal figural masuk taksonomi drilling sebagai topik 'Figural' (khusus TIU).
+        topic:                 category === 'TIU' ? 'Figural' : null,
         content:               q.content?.trim() || '',     // kolom NOT NULL → '' untuk soal gambar
         image_url:             questionImg,
         explanation:           q.explanation?.trim() || null,

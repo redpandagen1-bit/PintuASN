@@ -15,6 +15,7 @@ export const DRILLING_TOPICS: Record<DrillingCategory, string[]> = {
     'Deret Angka',
     'Perbandingan Kuantitatif',
     'Jarak Waktu Kecepatan',
+    'Figural',
   ],
   TKP: [
     'Pelayanan Publik',
