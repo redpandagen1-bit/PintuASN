@@ -44,6 +44,11 @@ interface ExamInterfaceProps {
   initialAnswers: Record<string, string>;
   timeRemaining: number;
   startedAt?: string;
+  // Tujuan redirect setelah submit (default: halaman hasil tryout).
+  // Dipakai fitur drilling untuk diarahkan ke hasil drilling.
+  resultPath?: string;
+  // Tujuan redirect saat sesi dibatalkan (default: dashboard).
+  cancelPath?: string;
 }
 
 const ANSWER_LABELS = ['A', 'B', 'C', 'D', 'E'];
@@ -54,6 +59,8 @@ export function ExamInterface({
   questions,
   initialAnswers,
   timeRemaining,
+  resultPath,
+  cancelPath,
 }: ExamInterfaceProps) {
   const {
     currentIndex,
@@ -270,7 +277,7 @@ export function ExamInterface({
       });
       if (!response.ok) throw new Error('Gagal membatalkan ujian');
       clearSavedPosition();
-      router.replace('/dashboard');
+      router.replace(cancelPath ?? '/dashboard');
     } catch (error) {
       console.error('Cancel error:', error);
       toast.error('Gagal membatalkan ujian. Silakan coba lagi.');
@@ -303,7 +310,7 @@ export function ExamInterface({
       clearSavedPosition();
       // replace (bukan push) supaya halaman exam keluar dari history —
       // tombol "kembali" dari result tidak balik ke exam yang sudah selesai.
-      router.replace(`/exam/${attemptId}/result`);
+      router.replace(resultPath ?? `/exam/${attemptId}/result`);
     } catch (error) {
       console.error('Submit error:', error);
       toast.error('Gagal mengirim ujian. Silakan coba lagi.', { id: toastId });

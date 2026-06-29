@@ -72,6 +72,9 @@ interface ResultClientProps {
   userRankInLeaderboard?: number;
   subscriptionTier: SubscriptionTier;
   categoryTotals?: { TWK: number; TIU: number; TKP: number };
+  // Sesi drilling: sembunyikan elemen yang tidak relevan
+  // (popup ulasan, leaderboard, peringkat, tren skor antar percobaan).
+  isDrilling?: boolean;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -179,11 +182,12 @@ export default function ResultClient({
   attemptId, attempt, packageInfo, leaderboard,
   packageRank, totalParticipants, attemptHistory,
   lastThreeAttempts, answers, duration, userId,
-  subscriptionTier, categoryTotals,
+  subscriptionTier, categoryTotals, isDrilling = false,
 }: ResultClientProps) {
   const [reviewOpen, setReviewOpen] = useState(false);
 
   useEffect(() => {
+    if (isDrilling) return; // drilling: tidak ada popup ulasan paket
     if (!packageInfo?.id) return;
     const timer = setTimeout(async () => {
       try {
@@ -269,7 +273,7 @@ export default function ResultClient({
             <div>
               <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">{completedDate}</p>
               <h1 className="text-xl font-extrabold text-white tracking-tight">
-                Hasil <span className="text-yellow-400">Simulasi</span>
+                Hasil <span className="text-yellow-400">{isDrilling ? 'Drilling' : 'Simulasi'}</span>
               </h1>
               {packageInfo?.title && <p className="text-slate-400 text-sm mt-0.5">{packageInfo.title}</p>}
             </div>
@@ -346,6 +350,7 @@ export default function ResultClient({
                 );
               })}
 
+              {!isDrilling && (
               <div className="col-span-3 grid grid-cols-2 gap-3">
                 {/* Peringkat — semua tier bisa lihat */}
                 <div className="bg-yellow-400/10 border border-yellow-400/20 rounded-2xl p-4 flex items-center gap-4">
@@ -384,6 +389,7 @@ export default function ResultClient({
                   )}
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>
@@ -471,7 +477,8 @@ export default function ResultClient({
           )}
         </LockedSection>
 
-        {/* Row 1: Progress chart + Leaderboard */}
+        {/* Row 1: Progress chart + Leaderboard (disembunyikan untuk drilling) */}
+        {!isDrilling && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
           {/* Progress chart — platinum only */}
@@ -538,6 +545,7 @@ export default function ResultClient({
             </div>
           </div>
         </div>
+        )}
 
         {/* Analisis Soal Salah — platinum only */}
         {hasWrongData && (

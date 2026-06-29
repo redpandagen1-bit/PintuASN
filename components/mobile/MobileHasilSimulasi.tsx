@@ -69,6 +69,7 @@ interface MobileHasilSimulasiProps {
   duration:           number;
   subscriptionTier:   SubscriptionTier;
   categoryTotals?:    { TWK: number; TIU: number; TKP: number };
+  isDrilling?:        boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -159,9 +160,11 @@ export function MobileHasilSimulasi({
   duration,
   subscriptionTier,
   categoryTotals,
+  isDrilling = false,
 }: MobileHasilSimulasiProps) {
   const [reviewOpen, setReviewOpen] = useState(false);
   useEffect(() => {
+    if (isDrilling) return; // drilling: tanpa popup ulasan paket
     if (!packageId) return;
     const t = setTimeout(async () => {
       try {
@@ -347,12 +350,15 @@ export function MobileHasilSimulasi({
 
       {/* ── Compact Stats: Peringkat · Persentil · Akurasi ────── */}
       <div className="px-4">
-        <div className="grid grid-cols-3 divide-x divide-slate-100 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          {[
-            { icon: '🏆', value: `#${packageRank}`, label: 'Peringkat', sub: `${totalParticipants.toLocaleString('id-ID')} peserta` },
-            { icon: '📊', value: `Top ${percentile}%`, label: 'Persentil', sub: 'nasional' },
-            { icon: '🎯', value: `${accuracy}%`, label: 'Akurasi', sub: 'dari skor maks' },
-          ].map(({ icon, value, label, sub }) => (
+        <div className={`grid ${isDrilling ? 'grid-cols-1' : 'grid-cols-3'} divide-x divide-slate-100 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden`}>
+          {(isDrilling
+            ? [{ icon: '🎯', value: `${accuracy}%`, label: 'Akurasi', sub: 'dari skor maks' }]
+            : [
+                { icon: '🏆', value: `#${packageRank}`, label: 'Peringkat', sub: `${totalParticipants.toLocaleString('id-ID')} peserta` },
+                { icon: '📊', value: `Top ${percentile}%`, label: 'Persentil', sub: 'nasional' },
+                { icon: '🎯', value: `${accuracy}%`, label: 'Akurasi', sub: 'dari skor maks' },
+              ]
+          ).map(({ icon, value, label, sub }) => (
             <div key={label} className="flex flex-col items-center py-3 px-1 text-center">
               <span className="text-base mb-1">{icon}</span>
               <span className="text-sm font-extrabold text-slate-800 leading-none">{value}</span>
@@ -449,7 +455,8 @@ export function MobileHasilSimulasi({
         </LockedSection>
       </div>
 
-      {/* ── Tren Skor — Platinum only ─────────────────────────── */}
+      {/* ── Tren Skor — Platinum only (disembunyikan untuk drilling) ─ */}
+      {!isDrilling && (
       <div className="px-4">
         <LockedSection
           locked={!isPlatinum}
@@ -486,9 +493,10 @@ export function MobileHasilSimulasi({
           )}
         </LockedSection>
       </div>
+      )}
 
-      {/* ── Leaderboard ───────────────────────────────────────── */}
-      {leaderboard.length > 0 && (
+      {/* ── Leaderboard (disembunyikan untuk drilling) ─────────── */}
+      {!isDrilling && leaderboard.length > 0 && (
         <div className="px-4">
           <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -681,8 +689,8 @@ export function MobileHasilSimulasi({
         </div>
       )}
 
-      {/* ── Riwayat Percobaan — Platinum only ─────────────────── */}
-      {lastThreeAttempts.length > 0 && (
+      {/* ── Riwayat Percobaan — Platinum only (disembunyikan untuk drilling) ─ */}
+      {!isDrilling && lastThreeAttempts.length > 0 && (
         <div className="px-4">
           <LockedSection
             locked={!isPlatinum}

@@ -160,6 +160,8 @@ export default async function ResultPage({ params }: ResultPageProps) {
     item => item.user_id === userId
   )?.rank;
 
+  const isDrilling = (data.attempt as { kind?: string }).kind === 'drilling';
+
   return (
     <>
       <MobilePageWrapper>
@@ -184,6 +186,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
           duration={duration}
           subscriptionTier={subscriptionTier}
           categoryTotals={data.categoryTotals}
+          isDrilling={isDrilling}
         />
       </MobilePageWrapper>
       <div className="hidden md:block">
@@ -202,6 +205,7 @@ export default async function ResultPage({ params }: ResultPageProps) {
           userRankInLeaderboard={userRankInLeaderboard}
           subscriptionTier={subscriptionTier}
           categoryTotals={data.categoryTotals}
+          isDrilling={isDrilling}
         />
       </div>
     </>

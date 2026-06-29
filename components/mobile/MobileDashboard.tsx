@@ -56,7 +56,9 @@ interface MobileDashboardProps {
 
 const MENU_ITEMS = [
   { label: 'Materi',        href: '/materi',        iconFile: 'materi'       },
+  { label: 'Materi Video',  href: '/materi-video',  iconFile: 'materi_video' },
   { label: 'Daftar Tryout', href: '/daftar-tryout', iconFile: 'daftar_tryout' },
+  { label: 'Drilling',      href: '/drilling',      iconFile: 'drilling' },
   { label: 'Riwayat',       href: '/history',       iconFile: 'riwayat'      },
   { label: 'Beli Paket',    href: '/beli-paket',    iconFile: 'beli_paket'   },
   { label: 'Event & Promo', href: '/events-promo',  iconFile: 'event_promo'  },
@@ -136,9 +138,9 @@ export function MobileDashboard({
   return (
     <main className="space-y-6">
 
-      {/* ── Menu Grid 3×2 ────────────────────────────────────── */}
+      {/* ── Menu Grid 2×4 ────────────────────────────────────── */}
       <section>
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-4 gap-x-1.5 gap-y-1 max-w-[300px] mx-auto">
           {MENU_ITEMS.map(({ label, href, iconFile }) => {
             const external = href.startsWith('http');
             const inner = (
@@ -152,13 +154,13 @@ export function MobileDashboard({
                   className="transition-all group-active:scale-95"
                   style={{ opacity: 0.85 }}
                 />
-                <span className="text-[10px] font-bold text-md-primary text-center leading-tight"
+                <span className="text-[10px] font-semibold text-md-primary text-center leading-tight"
                   style={{ fontFamily: 'var(--font-jakarta)' }}>
                   {label}
                 </span>
               </>
             );
-            const cls = 'flex flex-col items-center gap-2 py-3 group active-press';
+            const cls = 'flex flex-col items-center gap-1 py-1.5 group active-press';
             return external ? (
               <a key={label} href={href} target="_blank" rel="noopener noreferrer" className={cls}>
                 {inner}

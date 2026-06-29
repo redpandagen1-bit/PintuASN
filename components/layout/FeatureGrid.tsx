@@ -10,7 +10,9 @@ import {
   ShoppingCart,
   MessageCircle,
   Zap,
-  Users
+  Users,
+  ClipboardList,
+  Target
 } from 'lucide-react';
 import { FEATURE_GRID_ITEMS } from '@/constants/menu-items';
 
@@ -23,7 +25,9 @@ const ICON_MAP = {
   ShoppingCart,
   MessageCircle,
   Zap,
-  Users
+  Users,
+  ClipboardList,
+  Target
 };
 
 export function FeatureGrid() {

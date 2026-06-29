@@ -1,7 +1,9 @@
 <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-  <rect width="48" height="48" rx="10" fill="#091426"/>
-  <path d="M12 11 C12 11 17 9 24 11 L24 37 C17 35 12 37 12 37 Z" fill="#ffffff" opacity="0.9"/>
-  <path d="M24 11 C24 11 31 9 36 11 L36 37 C31 35 24 37 24 37 Z" fill="#f9bd22"/>
-  <line x1="24" y1="11" x2="24" y2="37" stroke="#091426" stroke-width="0.8"/>
-  <path d="M12 37 Q24 40 36 37" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.5"/>
+  <rect width="48" height="48" rx="12" fill="#2c3542"/>
+  <path d="M24 14.5 C19.5 12.3 14 12.3 9.5 13.6 L9.5 34 C14 32.7 19.5 32.7 24 34.9 Z" fill="#eceff2"/>
+  <path d="M24 14.5 C28.5 12.3 34 12.3 38.5 13.6 L38.5 34 C34 32.7 28.5 32.7 24 34.9 Z" fill="#f5b91f"/>
+  <line x1="13" y1="18.6" x2="20.5" y2="19.4" stroke="#9aa6b2" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="13" y1="22.1" x2="20.5" y2="22.9" stroke="#9aa6b2" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="13" y1="25.6" x2="18.5" y2="26.2" stroke="#9aa6b2" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M29 32.8 L29 40 L31 38.1 L33 40 L33 32.4 Z" fill="#d9a512"/>
 </svg>

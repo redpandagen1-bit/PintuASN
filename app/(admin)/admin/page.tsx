@@ -14,7 +14,7 @@ const getAdminCounts = unstable_cache(
       supabase.from('profiles').select('*', { count: 'exact', head: true }),
       supabase.from('questions').select('*', { count: 'exact', head: true }).eq('is_deleted', false),
       supabase.from('packages').select('*', { count: 'exact', head: true }).eq('is_deleted', false),
-      supabase.from('attempts').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
+      supabase.from('attempts').select('*', { count: 'exact', head: true }).eq('status', 'completed').eq('kind', 'tryout'),
     ]);
     return {
       users:     usersCount.count     ?? 0,

@@ -34,11 +34,27 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     isActive: false,
   },
   {
+    id: 'materi-video',
+    label: 'Materi Video',
+    href: '/materi-video',
+    icon: 'PlayCircle',
+    iconFile: 'materi_video',
+    isActive: true,
+  },
+  {
     id: 'daftar-tryout',
     label: 'Daftar Tryout',
     href: '/daftar-tryout',
     icon: 'ClipboardList',
     iconFile: 'daftar_tryout',
+    isActive: true,
+  },
+  {
+    id: 'drilling',
+    label: 'Drilling Soal',
+    href: '/drilling',
+    icon: 'Target',
+    iconFile: 'drilling',
     isActive: true,
   },
   {

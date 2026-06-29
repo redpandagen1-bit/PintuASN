@@ -244,6 +244,7 @@ export async function getUserAttempts(userId: string) {
     .from('attempts')
     .select('*, packages ( id, title, description, difficulty )')
     .eq('user_id', userId)
+    .eq('kind', 'tryout') // drilling tidak masuk daftar/analitik tryout
     .order('started_at', { ascending: false });
   if (error) throw new Error(`Failed to fetch attempts: ${error.message}`);
   return data ?? [];
@@ -261,7 +262,7 @@ export async function getAttemptHistory(
   let query = supabase
     .from('attempts')
     .select('*, packages ( id, title, difficulty )', { count: 'exact' })
-    .eq('user_id', userId).eq('status', 'completed');
+    .eq('user_id', userId).eq('status', 'completed').eq('kind', 'tryout');
 
   if (filterBy === 'passed')
     query = query.gte('score_twk', PASSING_GRADES.TWK).gte('score_tiu', PASSING_GRADES.TIU).gte('score_tkp', PASSING_GRADES.TKP);
@@ -286,6 +287,7 @@ export async function getAttemptHistory(
     .select('id')
     .eq('user_id', userId)
     .eq('status', 'completed')
+    .eq('kind', 'tryout')
     .order('completed_at', { ascending: false })
     .limit(3);
 
@@ -304,7 +306,7 @@ export async function getUserStats(userId: string) {
   const supabase = await createAdminClient();
   const { data: attempts, error } = await supabase
     .from('attempts').select('*')
-    .eq('user_id', userId).eq('status', 'completed')
+    .eq('user_id', userId).eq('status', 'completed').eq('kind', 'tryout')
     .order('completed_at', { ascending: false });
   if (error) throw new Error(`Failed to fetch user stats: ${error.message}`);
 
@@ -373,6 +375,7 @@ export async function getRoadmapStats(userId: string) {
       .select('score_twk, score_tiu, score_tkp, final_score, completed_at')
       .eq('user_id', userId)
       .eq('status', 'completed')
+      .eq('kind', 'tryout')
       .order('completed_at', { ascending: false }),
     viewsCount('material_views', 'material_id', informasiIds),
     viewsCount('material_views', 'material_id', skdIds),
