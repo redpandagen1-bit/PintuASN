@@ -34,11 +34,11 @@ export const MAIN_MENU_ITEMS: MenuItem[] = [
     isActive: false,
   },
   {
-    id: 'materi-video',
-    label: 'Materi Video',
-    href: '/materi-video',
-    icon: 'PlayCircle',
-    iconFile: 'materi_video',
+    id: 'peluang-formasi',
+    label: 'Peluang Formasi',
+    href: '/peluang-formasi',
+    icon: 'Gauge',
+    iconFile: 'peluang_formasi',
     isActive: true,
   },
   {

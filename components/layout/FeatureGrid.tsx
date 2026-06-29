@@ -12,7 +12,8 @@ import {
   Zap,
   Users,
   ClipboardList,
-  Target
+  Target,
+  Gauge
 } from 'lucide-react';
 import { FEATURE_GRID_ITEMS } from '@/constants/menu-items';
 
@@ -27,7 +28,8 @@ const ICON_MAP = {
   Zap,
   Users,
   ClipboardList,
-  Target
+  Target,
+  Gauge
 };
 
 export function FeatureGrid() {

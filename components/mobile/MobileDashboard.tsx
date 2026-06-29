@@ -56,7 +56,7 @@ interface MobileDashboardProps {
 
 const MENU_ITEMS = [
   { label: 'Materi',        href: '/materi',        iconFile: 'materi'       },
-  { label: 'Materi Video',  href: '/materi-video',  iconFile: 'materi_video' },
+  { label: 'Peluang Formasi', href: '/peluang-formasi', iconFile: 'peluang_formasi' },
   { label: 'Daftar Tryout', href: '/daftar-tryout', iconFile: 'daftar_tryout' },
   { label: 'Drilling',      href: '/drilling',      iconFile: 'drilling' },
   { label: 'Riwayat',       href: '/history',       iconFile: 'riwayat'      },
