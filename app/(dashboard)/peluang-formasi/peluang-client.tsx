@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { INSTANSI } from '@/constants/instansi';
+import SearchableDropdown from '@/components/onboarding/searchable-dropdown';
 import {
   Gauge,
   Target,
@@ -50,7 +51,7 @@ function getVerdict(d: PeluangFormasi): Verdict {
 export function PeluangFormasiClient({ data }: { data: PeluangFormasi }) {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-0 pb-10">
-      <div className="bg-slate-800 rounded-2xl p-4 md:p-5 mt-3 md:mt-0 mb-4 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-3">
+      <div className="bg-slate-800 rounded-2xl p-3.5 md:p-4 mt-2 md:mt-0 mb-3 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-3">
         <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-xl md:text-2xl font-extrabold text-white mb-1 tracking-tight">
@@ -89,7 +90,7 @@ function EmptyState() {
 function StandingBar({ percentile, peers }: { percentile: number; peers: number }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs font-semibold text-slate-600">Se-nasional</span>
         <span className="text-[11px] text-slate-400">{peers.toLocaleString('id-ID')} peserta PintuASN</span>
       </div>
@@ -106,7 +107,7 @@ function StandingBar({ percentile, peers }: { percentile: number; peers: number 
         <span>Terendah</span>
         <span>Tertinggi</span>
       </div>
-      <p className="text-sm text-slate-600 mt-2.5">
+      <p className="text-xs text-slate-600 mt-2">
         Kamu di <span className="font-bold text-slate-800">persentil {percentile}</span>, lebih tinggi
         dari <span className="font-bold text-slate-800">{percentile}%</span> peserta.
       </p>
@@ -152,40 +153,40 @@ function Result({ data }: { data: PeluangFormasi }) {
   const instSmallSample = cmp.peers > 0 && instTotalSel < INSTANSI_ENOUGH;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* ── Verdict + persentil nasional ─────────────────────── */}
-      <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 md:p-6 shadow-sm">
-        <div className="flex items-center gap-5">
-          <div className="relative w-28 h-28 rounded-full flex-shrink-0" style={{ background: `conic-gradient(${v.ring} ${ringPct * 3.6}deg, #f1f5f9 0deg)` }}>
-            <div className="absolute inset-[10px] bg-white rounded-full flex flex-col items-center justify-center">
+      <div className="rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="relative w-20 h-20 rounded-full flex-shrink-0" style={{ background: `conic-gradient(${v.ring} ${ringPct * 3.6}deg, #f1f5f9 0deg)` }}>
+            <div className="absolute inset-[7px] bg-white rounded-full flex flex-col items-center justify-center">
               {data.nationalPercentile == null ? (
-                <CheckCircle2 className="w-8 h-8" style={{ color: v.ring }} />
+                <CheckCircle2 className="w-6 h-6" style={{ color: v.ring }} />
               ) : (
                 <>
-                  <span className="text-2xl font-bold text-slate-800 leading-none">{data.nationalPercentile}%</span>
-                  <span className="text-[10px] text-slate-400 mt-0.5">persentil</span>
+                  <span className="text-lg font-bold text-slate-800 leading-none">{data.nationalPercentile}%</span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">persentil</span>
                 </>
               )}
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <span className={cn('inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full mb-2', v.chip)}>
-              {data.passing.all ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+            <span className={cn('inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full mb-1.5', v.chip)}>
+              {data.passing.all ? <CheckCircle2 size={11} /> : <AlertCircle size={11} />}
               {v.label}
             </span>
-            <p className="text-sm text-slate-500 leading-relaxed">{v.desc}</p>
-            <div className="mt-3 flex items-baseline gap-1.5">
-              <span className="text-xs text-slate-400">Nilai terbaikmu</span>
-              <span className="text-xl font-bold text-slate-800">{data.finalScore}</span>
-              <span className="text-xs text-slate-400">/ {TOTAL_MAX_SCORE}</span>
+            <p className="text-xs text-slate-500 leading-snug">{v.desc}</p>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-[11px] text-slate-400">Nilai terbaikmu</span>
+              <span className="text-lg font-bold text-slate-800">{data.finalScore}</span>
+              <span className="text-[11px] text-slate-400">/ {TOTAL_MAX_SCORE}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── Posisi & Instansi Tujuan ─────────────────────────── */}
-      <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-3">
           <Users className="h-4 w-4 text-sky-500" />
           <h3 className="font-bold text-slate-800 text-sm">Posisi Kamu</h3>
         </div>
@@ -198,23 +199,19 @@ function Result({ data }: { data: PeluangFormasi }) {
         )}
 
         {/* Bandingkan dengan instansi (bisa pilih instansi lain) */}
-        <div className="mt-4 pt-4 border-t border-slate-100">
-          <div className="flex items-center gap-1.5 mb-2">
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 mb-1.5">
             <Building2 className="h-3.5 w-3.5 text-slate-400" />
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Bandingkan per instansi</span>
           </div>
-          <select
+          <SearchableDropdown
             value={selectedInst}
-            onChange={(e) => onPickInstansi(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border-2 border-slate-200 bg-white text-sm text-slate-700 focus:border-sky-400 outline-none"
-          >
-            <option value="">Pilih instansi...</option>
-            {INSTANSI.map((n) => (
-              <option key={n} value={n}>{n}{data.instansi === n ? ' (tujuanmu)' : ''}</option>
-            ))}
-          </select>
+            onChange={onPickInstansi}
+            options={INSTANSI}
+            placeholder="Cari instansi..."
+          />
 
-          <div className="mt-3">
+          <div className="mt-2">
             {loadingCmp ? (
               <p className="text-sm text-slate-400">Menghitung...</p>
             ) : !selectedInst ? (
@@ -268,9 +265,9 @@ function Result({ data }: { data: PeluangFormasi }) {
       </div>
 
       {/* ── Passing Grade per kategori ───────────────────────── */}
-      <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm">
-        <h3 className="font-bold text-slate-800 text-sm mb-3">Status Nilai Ambang (Passing Grade)</h3>
-        <div className="space-y-3">
+      <div className="rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm">
+        <h3 className="font-bold text-slate-800 text-sm mb-2">Status Nilai Ambang (Passing Grade)</h3>
+        <div className="space-y-2">
           {CATS.map((c) => {
             const score = data[c.key];
             const passed = score >= c.cfg.PASSING_GRADE;
@@ -301,7 +298,7 @@ function Result({ data }: { data: PeluangFormasi }) {
       </div>
 
       {/* ── Rekomendasi ──────────────────────────────────────── */}
-      <div className="rounded-2xl bg-slate-800 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="rounded-2xl bg-slate-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="text-white">
           <div className="flex items-center gap-2 text-sm font-semibold mb-0.5">
             <Target className="w-4 h-4 text-yellow-400" /> Langkah berikutnya
@@ -313,8 +310,8 @@ function Result({ data }: { data: PeluangFormasi }) {
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
-          <Link href={`/drilling?cat=${weakCat}`} className="h-10 px-4 inline-flex items-center rounded-xl bg-yellow-400 text-slate-900 text-sm font-bold hover:bg-yellow-300 transition">Drilling {weakCat}</Link>
-          <Link href="/statistics" className="h-10 px-4 inline-flex items-center rounded-xl border border-slate-600 text-slate-200 text-sm font-semibold hover:bg-slate-700 transition">Statistik</Link>
+          <Link href={`/drilling?cat=${weakCat}`} className="h-9 px-4 inline-flex items-center rounded-xl bg-yellow-400 text-slate-900 text-sm font-bold hover:bg-yellow-300 transition">Drilling {weakCat}</Link>
+          <Link href="/statistics" className="h-9 px-4 inline-flex items-center rounded-xl border border-slate-600 text-slate-200 text-sm font-semibold hover:bg-slate-700 transition">Statistik</Link>
         </div>
       </div>
 
