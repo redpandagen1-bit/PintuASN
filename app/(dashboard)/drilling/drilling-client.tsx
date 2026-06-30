@@ -65,7 +65,7 @@ export function DrillingClient({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Preselect dari query (?cat=TWK&topic=Bela+Negara) — dipakai tombol
+  // Preselect dari query (?cat=TWK&topic=Bela+Negara), dipakai tombol
   // "Drilling topik ini" di halaman Statistik.
   const initCat = (() => {
     const c = searchParams.get('cat');

@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { INSTANSI } from '@/constants/instansi';
 import {
   Gauge,
   Target,
@@ -11,6 +13,8 @@ import {
   Info,
   ClipboardList,
   Trophy,
+  Sparkles,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TWK_CONFIG, TIU_CONFIG, TKP_CONFIG, TOTAL_MAX_SCORE } from '@/constants/scoring';
@@ -81,6 +85,35 @@ function EmptyState() {
   );
 }
 
+// Bar posisi nasional dengan penanda persentil di atas gradasi merah→hijau.
+function StandingBar({ percentile, peers }: { percentile: number; peers: number }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-slate-600">Se-nasional</span>
+        <span className="text-[11px] text-slate-400">{peers.toLocaleString('id-ID')} peserta PintuASN</span>
+      </div>
+      <div
+        className="relative h-3 rounded-full"
+        style={{ background: 'linear-gradient(to right, #fecdd3, #fde68a, #a7f3d0)' }}
+      >
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-[3px] border-slate-800 shadow-sm"
+          style={{ left: `calc(${percentile}% - 8px)` }}
+        />
+      </div>
+      <div className="flex justify-between mt-1 text-[10px] text-slate-400">
+        <span>Terendah</span>
+        <span>Tertinggi</span>
+      </div>
+      <p className="text-sm text-slate-600 mt-2.5">
+        Kamu di <span className="font-bold text-slate-800">persentil {percentile}</span>, lebih tinggi
+        dari <span className="font-bold text-slate-800">{percentile}%</span> peserta.
+      </p>
+    </div>
+  );
+}
+
 function Result({ data }: { data: PeluangFormasi }) {
   const v = getVerdict(data);
   const ringPct = data.nationalPercentile ?? 0;
@@ -89,8 +122,34 @@ function Result({ data }: { data: PeluangFormasi }) {
     .sort((a, b) => a.ratio - b.ratio)[0];
   const weakCat = weakest.label as 'TWK' | 'TIU' | 'TKP';
 
-  const instTotal = data.instansiPeers + 1; // termasuk kamu
-  const instSmallSample = data.instansiPeers > 0 && instTotal < INSTANSI_ENOUGH;
+  // Perbandingan instansi: default ke instansi tujuan user, bisa diganti.
+  const [selectedInst, setSelectedInst] = useState<string>(data.instansi ?? '');
+  const [cmp, setCmp] = useState<{ peers: number; better: number; percentile: number | null; rank: number | null }>({
+    peers: data.instansiPeers,
+    better: data.instansiBetter,
+    percentile: data.instansiPercentile,
+    rank: data.instansiRank,
+  });
+  const [loadingCmp, setLoadingCmp] = useState(false);
+
+  async function onPickInstansi(nama: string) {
+    setSelectedInst(nama);
+    if (!nama) return;
+    setLoadingCmp(true);
+    try {
+      const res = await fetch(`/api/peluang-formasi?instansi=${encodeURIComponent(nama)}`);
+      const d = await res.json();
+      setCmp({ peers: d.peers ?? 0, better: d.better ?? 0, percentile: d.percentile ?? null, rank: d.rank ?? null });
+    } catch {
+      /* abaikan error jaringan */
+    } finally {
+      setLoadingCmp(false);
+    }
+  }
+
+  const isOwnInst = !!data.instansi && selectedInst === data.instansi;
+  const instTotalSel = cmp.peers + 1;
+  const instSmallSample = cmp.peers > 0 && instTotalSel < INSTANSI_ENOUGH;
 
   return (
     <div className="space-y-4">
@@ -124,27 +183,49 @@ function Result({ data }: { data: PeluangFormasi }) {
         </div>
       </div>
 
-      {/* ── INSTANSI TUJUAN (fokus) ──────────────────────────── */}
-      <div className="rounded-2xl border-2 border-sky-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-1">
-          <Building2 className="h-4 w-4 text-sky-500" />
-          <h3 className="font-bold text-slate-800 text-sm">Instansi Tujuan</h3>
+      {/* ── Posisi & Instansi Tujuan ─────────────────────────── */}
+      <div className="rounded-2xl border-2 border-slate-100 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="h-4 w-4 text-sky-500" />
+          <h3 className="font-bold text-slate-800 text-sm">Posisi Kamu</h3>
         </div>
 
-        {!data.instansi ? (
-          <>
-            <p className="text-sm text-slate-500 mb-3">Kamu belum memilih instansi tujuan, jadi perbandingan per instansi belum bisa ditampilkan.</p>
-            <Link href="/profile" className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-600 hover:text-sky-700">
-              <Info className="h-3.5 w-3.5" /> Pilih instansi tujuan di profil
-            </Link>
-          </>
+        {/* Posisi nasional: visual utama (data nyata) */}
+        {data.nationalPercentile != null ? (
+          <StandingBar percentile={data.nationalPercentile} peers={data.nationalPeers} />
         ) : (
-          <>
-            <p className="text-base font-bold text-slate-800 leading-snug mb-3">{data.instansi}</p>
+          <p className="text-sm text-slate-500">Belum ada peserta lain sebagai pembanding nasional.</p>
+        )}
 
-            {data.instansiPeers === 0 ? (
-              <div className="rounded-xl bg-slate-50 border border-slate-100 p-3.5 text-sm text-slate-500">
-                Sejauh ini kamu satu-satunya peserta PintuASN yang memilih instansi ini, jadi belum ada pembanding khusus instansi. Lihat posisi nasionalmu di bawah.
+        {/* Bandingkan dengan instansi (bisa pilih instansi lain) */}
+        <div className="mt-4 pt-4 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Building2 className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Bandingkan per instansi</span>
+          </div>
+          <select
+            value={selectedInst}
+            onChange={(e) => onPickInstansi(e.target.value)}
+            className="w-full h-10 px-3 rounded-xl border-2 border-slate-200 bg-white text-sm text-slate-700 focus:border-sky-400 outline-none"
+          >
+            <option value="">Pilih instansi...</option>
+            {INSTANSI.map((n) => (
+              <option key={n} value={n}>{n}{data.instansi === n ? ' (tujuanmu)' : ''}</option>
+            ))}
+          </select>
+
+          <div className="mt-3">
+            {loadingCmp ? (
+              <p className="text-sm text-slate-400">Menghitung...</p>
+            ) : !selectedInst ? (
+              <p className="text-xs text-slate-400">Pilih instansi untuk melihat posisimu di antara pesertanya.</p>
+            ) : cmp.peers === 0 ? (
+              <div className="flex items-start gap-2.5 rounded-xl bg-sky-50 border border-sky-100 px-3.5 py-3">
+                <Sparkles className="h-4 w-4 text-sky-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-sky-800 leading-relaxed">
+                  Belum ada peserta lain yang memilih <span className="font-bold">{selectedInst}</span>
+                  {isOwnInst ? ' (instansi tujuanmu)' : ''}. Pakai posisi nasional di atas sebagai acuan.
+                </p>
               </div>
             ) : (
               <>
@@ -152,40 +233,38 @@ function Result({ data }: { data: PeluangFormasi }) {
                   <div className="flex-shrink-0 w-24 rounded-xl bg-sky-50 border border-sky-100 flex flex-col items-center justify-center py-3">
                     <div className="flex items-center gap-1 text-sky-600">
                       <Trophy className="h-3.5 w-3.5" />
-                      <span className="text-2xl font-extrabold leading-none">#{data.instansiRank}</span>
+                      <span className="text-2xl font-extrabold leading-none">#{cmp.rank}</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 mt-1">dari {instTotal} peserta</span>
+                    <span className="text-[10px] text-slate-400 mt-1">dari {instTotalSel} peserta</span>
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <p className="text-sm text-slate-600 mb-2">
-                      Nilaimu lebih tinggi dari{' '}
-                      <span className="font-bold text-slate-800">{data.instansiBetter}</span> peserta
-                      {' '}(<span className="font-bold text-sky-600">{data.instansiPercentile}%</span>) yang memilih instansi ini.
+                      {isOwnInst ? 'Di instansi tujuanmu' : 'Di instansi ini'}, nilaimu lebih tinggi dari{' '}
+                      <span className="font-bold text-slate-800">{cmp.better}</span> peserta
+                      {' '}(<span className="font-bold text-sky-600">{cmp.percentile}%</span>).
                     </p>
                     <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                      <div className="h-full rounded-full bg-sky-500" style={{ width: `${data.instansiPercentile}%` }} />
+                      <div className="h-full rounded-full bg-sky-500" style={{ width: `${cmp.percentile}%` }} />
                     </div>
                   </div>
                 </div>
                 {instSmallSample && (
                   <p className="text-[11px] text-amber-600 mt-2.5 flex items-start gap-1">
                     <Info className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                    Peserta instansi ini masih sedikit, jadi anggap sebagai gambaran awal.
+                    Peserta instansi ini masih sedikit, anggap sebagai gambaran awal.
                   </p>
                 )}
               </>
             )}
+          </div>
 
-            {/* Konteks nasional */}
-            {data.nationalPercentile != null && (
-              <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
-                Se-nasional: nilaimu lebih tinggi dari{' '}
-                <span className="font-bold text-slate-700">{data.nationalPercentile}%</span>{' '}
-                dari {data.nationalPeers} peserta PintuASN.
-              </div>
-            )}
-          </>
-        )}
+          {!data.instansi && (
+            <p className="mt-2.5 text-[11px] text-slate-400">
+              Belum mengatur instansi tujuan?{' '}
+              <Link href="/profile" className="text-sky-600 font-semibold">Atur di profil</Link>.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* ── Passing Grade per kategori ───────────────────────── */}

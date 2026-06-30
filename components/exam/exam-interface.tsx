@@ -1047,7 +1047,14 @@ export function ExamInterface({
               <div><span className="text-slate-500">Ditandai</span><p className="font-semibold text-yellow-600">{flaggedQuestions.size}</p></div>
             </div>
             {answers.size < questions.length && (
-              <Alert><AlertDescription>Masih ada {questions.length - answers.size} soal yang belum dijawab.</AlertDescription></Alert>
+              <Alert>
+                <AlertDescription>
+                  Masih ada <strong>{questions.length - answers.size}</strong> soal yang belum dijawab.
+                  Soal yang kosong dihitung tidak menambah nilai, sehingga dapat menurunkan skormu
+                  dan memengaruhi rata-rata serta peringkat nilaimu. Pastikan kamu sudah yakin
+                  sebelum mengirim.
+                </AlertDescription>
+              </Alert>
             )}
           </div>
           <DialogFooter>

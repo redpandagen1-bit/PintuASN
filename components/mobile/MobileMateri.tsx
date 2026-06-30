@@ -63,16 +63,7 @@ export function MobileMateri({
   const backOneLevel = () => { try { window.history.back(); } catch { setOpenModuleId(null); setOpenTopic(null); } };
 
   // Topik selalu bisa dibuka untuk melihat daftar sub-bab; yang terkunci hanya sub-bab-nya.
-  // Pengecualian: topik 1 sub-bab langsung buka reader, jadi bila terkunci → popup upgrade.
-  const openTopicNav = (g: { topic: string; modules: MaterialModule[] }) => {
-    if (g.modules.length === 1 && !canAccess(userTier, g.modules[0].tier)) {
-      setUpgradeTitle(g.modules[0].title);
-      setUpgradeTier((g.modules[0].tier === 'platinum' ? 'platinum' : 'premium'));
-      setUpgradeOpen(true);
-      return;
-    }
-    setOpenTopic(g.topic); pushHist();
-  };
+  const openTopicNav = (g: { topic: string; modules: MaterialModule[] }) => { setOpenTopic(g.topic); pushHist(); };
 
   const topicGroups = useMemo(() => {
     const groups = new Map<string, MaterialModule[]>();
@@ -94,7 +85,8 @@ export function MobileMateri({
   };
 
   // ── READER ──────────────────────────────────────────────────
-  const soloMod   = activeGroup && activeGroup.modules.length === 1 ? activeGroup.modules[0] : null;
+  const soloMod   = activeGroup && activeGroup.modules.length === 1 && canAccess(userTier, activeGroup.modules[0].tier)
+    ? activeGroup.modules[0] : null;
   const readerMod = openModule || soloMod;
   if (activeGroup && readerMod) {
     const idx  = activeGroup.modules.findIndex(m => m.id === readerMod.id);
@@ -225,7 +217,6 @@ export function MobileMateri({
               const isDone    = avail.length > 0 && doneCount === avail.length;
               const solo       = total === 1;
               const soloPages  = solo ? (g.modules[0].pages?.length || 1) : 0;
-              const soloLocked = solo && !canAccess(userTier, g.modules[0].tier);
               return (
                 <button key={g.topic} onClick={() => openTopicNav(g)}
                   className="bg-white rounded-2xl border border-slate-200 p-4 text-left flex flex-col active:scale-[0.98] transition-transform">
@@ -233,9 +224,7 @@ export function MobileMateri({
                     <span className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center">
                       <span className="text-sm font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
                     </span>
-                    {soloLocked
-                      ? <span className="flex items-center gap-0.5 text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded-full"><Lock size={10} /> Premium</span>
-                      : <span className="text-[10px] text-slate-400 mt-0.5">{solo ? `${soloPages} hal` : `${total} sub`}</span>}
+                    <span className="text-[10px] text-slate-400 mt-0.5">{solo ? `${soloPages} hal` : `${total} sub`}</span>
                   </div>
                   <h3 className="text-[13px] font-bold text-slate-800 mb-3 flex-1 leading-snug line-clamp-2 min-h-[34px]">{g.topic}</h3>
                   <div className="flex items-center justify-between mb-1">

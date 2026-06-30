@@ -208,6 +208,10 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
             placeholder="Cari instansi tujuan..."
             pinnedOption="Belum Ditentukan"
           />
+          <p className="mt-1.5 text-[11px] text-amber-600 leading-relaxed">
+            Wajib diisi sesuai instansi yang benar-benar kamu incar. Data ini dipakai untuk fitur
+            seperti Peluang Formasi dan perbandingan statistik, jadi pastikan pilihanmu tepat.
+          </p>
         </Field>
 
         {/* Jenis Kelamin */}

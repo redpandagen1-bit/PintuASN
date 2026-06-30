@@ -89,15 +89,7 @@ export default function MateriPageClient({
     setUpgradeTitle(title); setUpgradeTier(tier); setUpgradeOpen(true);
   };
   // Topik selalu bisa dibuka untuk melihat daftar sub-bab; yang terkunci hanya sub-bab-nya.
-  // Pengecualian: topik dengan 1 sub-bab langsung membuka reader, jadi bila sub-bab itu
-  // terkunci, klik kartu memunculkan popup upgrade (tidak ada daftar untuk ditampilkan).
-  const openTopicNav = (g: TopicGroup) => {
-    if (g.modules.length === 1 && !canAccess(userTier, g.modules[0].tier)) {
-      handleLocked(g.modules[0].title, g.modules[0].tier as 'premium' | 'platinum');
-      return;
-    }
-    setOpenTopic(g.topic); pushHist();
-  };
+  const openTopicNav = (g: TopicGroup) => { setOpenTopic(g.topic); pushHist(); };
   const openModuleSafe = (m: MaterialModule) => {
     if (canAccess(userTier, m.tier)) { setOpenModuleId(m.id); pushHist(); }
     else handleLocked(m.title, m.tier as 'premium' | 'platinum');
@@ -107,7 +99,10 @@ export default function MateriPageClient({
 
   // ── READER ──────────────────────────────────────────────────
   // Modul yang dibaca: yang dipilih dari daftar, ATAU otomatis bila topik hanya 1 sub-topik.
-  const soloMod  = activeGroup && activeGroup.modules.length === 1 ? activeGroup.modules[0] : null;
+  // Topik 1 sub-bab langsung buka reader HANYA bila bisa diakses; bila terkunci,
+  // tampilkan daftar (berisi sub-bab terkunci) agar topik tetap bisa dibuka.
+  const soloMod  = activeGroup && activeGroup.modules.length === 1 && canAccess(userTier, activeGroup.modules[0].tier)
+    ? activeGroup.modules[0] : null;
   const readerMod = openModule || soloMod;
   if (activeGroup && readerMod) {
     const idx  = activeGroup.modules.findIndex(m => m.id === readerMod.id);
@@ -289,10 +284,6 @@ export default function MateriPageClient({
                               : isDone ? 'Selesai' : `${doneCount}/${avail.length} selesai`;
               const solo      = total === 1;
               const soloPages = solo ? (g.modules[0].pages?.length || 1) : 0;
-              // Badge gembok pada kartu hanya untuk topik 1 sub-bab yang terkunci
-              // (karena membukanya = membuka sub-bab itu langsung). Topik multi sub-bab
-              // tetap bisa dibuka; kunci tampil per sub-bab di dalam daftar.
-              const soloLocked = solo && !canAccess(userTier, g.modules[0].tier);
               return (
                 <button key={g.topic} onClick={() => openTopicNav(g)}
                   className="group bg-white rounded-2xl border border-slate-200 hover:border-slate-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 text-left flex flex-col">
@@ -301,13 +292,9 @@ export default function MateriPageClient({
                     <span className="w-11 h-11 rounded-xl bg-slate-800 flex items-center justify-center">
                       <span className="text-base font-extrabold text-yellow-400">{String(i + 1).padStart(2, '0')}</span>
                     </span>
-                    {soloLocked ? (
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full"><Lock size={11} /> Premium</span>
-                    ) : (
-                      <span className="text-[11px] font-medium text-slate-400 mt-1 flex items-center gap-1">
-                        <Layers size={12} /> {solo ? `${soloPages} halaman` : `${total} sub-topik`}
-                      </span>
-                    )}
+                    <span className="text-[11px] font-medium text-slate-400 mt-1 flex items-center gap-1">
+                      <Layers size={12} /> {solo ? `${soloPages} halaman` : `${total} sub-topik`}
+                    </span>
                   </div>
                   {/* Title */}
                   <h3 className="text-[15px] font-bold text-slate-800 leading-snug mb-4 flex-1 line-clamp-2 min-h-[42px] group-hover:text-slate-900">{g.topic}</h3>
