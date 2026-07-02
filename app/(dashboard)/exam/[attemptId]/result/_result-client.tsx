@@ -12,6 +12,13 @@ import {
 } from 'lucide-react';
 import { ReviewFormModal } from '@/components/shared/ReviewFormModal';
 import {
+  StatInfo,
+  MiniLinePreview,
+  MiniBarsPreview,
+  MiniTablePreview,
+  MiniListPreview,
+} from '@/components/shared/StatInfo';
+import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Cell, PieChart, Pie,
 } from 'recharts';
@@ -109,11 +116,17 @@ function LockedSection({
   icon,
   children,
   locked,
+  explanation,
+  preview,
 }: {
   title: React.ReactNode;
   icon: React.ReactNode;
   children: React.ReactNode;
   locked: boolean;
+  /** Penjelasan singkat untuk tombol "i". */
+  explanation?: React.ReactNode;
+  /** Contoh dummy yang muncul di tombol "i" saat section terkunci. */
+  preview?: React.ReactNode;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -121,6 +134,14 @@ function LockedSection({
       <div className="flex items-center gap-2 px-5 pt-5 pb-3">
         {icon}
         <span className="font-bold text-slate-800 text-sm">{title}</span>
+        {explanation && (
+          <StatInfo
+            className="ml-1 flex-shrink-0"
+            locked={locked}
+            explanation={explanation}
+            preview={preview}
+          />
+        )}
         {locked && (
           <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
             <Lock size={10} />
@@ -368,7 +389,15 @@ export default function ResultClient({
 
                 {/* Tren Skor — platinum only */}
                 <div className="relative bg-white/5 border border-white/8 rounded-2xl p-4 overflow-hidden">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Tren Skor</p>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Tren Skor</p>
+                    <StatInfo
+                      variant="light"
+                      locked={!isPlatinum}
+                      explanation="Ringkasan arah skor totalmu dari waktu ke waktu. Sekilas kelihatan apakah kamu sedang naik atau turun."
+                      preview={<MiniLinePreview />}
+                    />
+                  </div>
                   {!isPlatinum ? (
                     <>
                       <div className="blur-sm pointer-events-none select-none h-14 flex items-center justify-center">
@@ -412,6 +441,10 @@ export default function ResultClient({
           <div className="flex items-center gap-2 mb-1">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             <h3 className="font-bold text-slate-800 text-sm">Ringkasan Jawaban Kamu</h3>
+            <StatInfo
+              className="ml-1 flex-shrink-0"
+              explanation="Perbandingan jumlah soal benar, salah, dan belum dijawab untuk TWK & TIU. Angka besar di tengah adalah persentase akurasimu."
+            />
           </div>
           <p className="text-xs text-slate-400 mb-4">
             Benar, salah, &amp; belum dijawab untuk soal <b>TWK &amp; TIU</b>. (TKP dinilai skala 1–5, dihitung terpisah.)
@@ -456,6 +489,8 @@ export default function ResultClient({
           locked={!isPlatinum}
           icon={<Timer className="h-4 w-4 text-violet-500" />}
           title="Kecepatan Mengerjakan"
+          explanation="Rata-rata waktu yang kamu habiskan per soal di tiap materi (TWK, TIU, TKP). Berguna untuk tahu materi mana yang bikin kamu lambat."
+          preview={<MiniBarsPreview />}
         >
           <p className="text-xs text-slate-400 mb-4">
             Rata-rata waktu yang kamu habiskan untuk <b>tiap soal</b> di setiap materi.
@@ -495,6 +530,8 @@ export default function ResultClient({
             locked={!isPlatinum}
             icon={<TrendingUp className="h-4 w-4 text-slate-500" />}
             title="Progres Nilai per Percobaan"
+            explanation="Grafik naik-turun skor totalmu setiap kali mengulang paket ini. Memudahkan melihat apakah kamu makin berkembang."
+            preview={<MiniLinePreview />}
           >
             {chartData.length > 1 ? (
               <div className="h-44">
@@ -569,6 +606,8 @@ export default function ResultClient({
                 </span>
               </span>
             }
+            explanation="Rincian jumlah soal salah per kategori plus daftar soal yang perlu kamu pelajari ulang di pembahasan."
+            preview={<MiniListPreview />}
           >
             <p className="text-xs text-slate-400 mb-4">
               Pelajari soal-soal ini di pembahasan untuk meningkatkan skor pada percobaan berikutnya.
@@ -651,6 +690,8 @@ export default function ResultClient({
             locked={!isPlatinum}
             icon={<Timer className="h-4 w-4 text-slate-500" />}
             title="5 Soal dengan Pengerjaan Waktu Terlama"
+            explanation="Lima soal yang paling menyita waktumu. Kenali polanya supaya lebih cepat di simulasi berikutnya."
+            preview={<MiniListPreview />}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
               <div className="h-40">
@@ -697,6 +738,8 @@ export default function ResultClient({
                 <span className="text-xs text-slate-400 font-normal">3 terakhir di paket ini</span>
               </span>
             }
+            explanation="Tabel tiga percobaan terakhirmu di paket ini beserta skor TWK, TIU, TKP dan status lulusnya."
+            preview={<MiniTablePreview />}
           >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

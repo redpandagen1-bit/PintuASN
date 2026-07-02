@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { TopicMasterySection } from '@/components/statistics/TopicMasterySection';
 import type { TopicMasteryByCategory } from '@/constants/drilling';
+import { StatInfo } from '@/components/shared/StatInfo';
 
 // ===== TYPES =====
 interface Attempt {
@@ -61,9 +62,10 @@ interface StatCardProps {
   subtext?: string;
   icon: React.ElementType;
   trend?: number;
+  info?: React.ReactNode;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, subtext, icon: Icon, trend }) => (
+const StatCard: React.FC<StatCardProps> = ({ title, value, subtext, icon: Icon, trend, info }) => (
   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-200">
     <div className="flex justify-between items-start mb-4">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800">
@@ -76,7 +78,10 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtext, icon: Icon, 
       )}
     </div>
     <div>
-      <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
+      <h3 className="text-slate-500 text-sm font-medium mb-1 flex items-center gap-1.5">
+        {title}
+        {info && <StatInfo explanation={info} align="start" />}
+      </h3>
       <div className="flex items-baseline gap-2">
         <span className="text-2xl font-bold text-slate-800">{value}</span>
         {subtext && <span className="text-xs text-slate-400">{subtext}</span>}
@@ -85,9 +90,12 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtext, icon: Icon, 
   </div>
 );
 
-const SectionHeader: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => (
+const SectionHeader: React.FC<{ title: string; subtitle: string; info?: React.ReactNode }> = ({ title, subtitle, info }) => (
   <div className="mb-6">
-    <h2 className="text-lg font-bold text-slate-800">{title}</h2>
+    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-1.5">
+      {title}
+      {info && <StatInfo explanation={info} align="start" />}
+    </h2>
     <p className="text-sm text-slate-500">{subtitle}</p>
   </div>
 );
@@ -273,29 +281,33 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
 
         {/* 1. Summary Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard 
-            title="Total Tryout" 
-            value={stats.totalAttempts} 
-            subtext="Paket Selesai" 
+          <StatCard
+            title="Total Tryout"
+            value={stats.totalAttempts}
+            subtext="Paket Selesai"
             icon={FileText}
+            info="Jumlah paket simulasi SKD yang sudah kamu selesaikan sampai tuntas."
           />
-          <StatCard 
-            title="Skor Tertinggi" 
-            value={stats.bestScore} 
-            subtext="/ 550" 
-            icon={Trophy} 
+          <StatCard
+            title="Skor Tertinggi"
+            value={stats.bestScore}
+            subtext="/ 550"
+            icon={Trophy}
+            info="Skor total terbaik yang pernah kamu raih dari seluruh tryout (maksimum 550)."
           />
-          <StatCard 
-            title="Rata-rata Skor" 
-            value={stats.averageScores.final} 
-            subtext="Stabil" 
-            icon={Activity} 
+          <StatCard
+            title="Rata-rata Skor"
+            value={stats.averageScores.final}
+            subtext="Stabil"
+            icon={Activity}
+            info="Rata-rata skor total dari semua tryout yang kamu selesaikan. Gambaran performa umummu."
           />
-          <StatCard 
-            title="Tingkat Kelulusan" 
-            value={`${Math.round(stats.passRate)}%`} 
-            subtext="Passing Grade" 
-            icon={CheckCircle2} 
+          <StatCard
+            title="Tingkat Kelulusan"
+            value={`${Math.round(stats.passRate)}%`}
+            subtext="Passing Grade"
+            icon={CheckCircle2}
+            info="Persentase tryout yang lolos ketiga passing grade (TWK, TIU, TKP) dari total tryoutmu."
           />
         </div>
 
@@ -304,9 +316,10 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
           {/* 2. Main Chart: Performance Trend */}
           <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
             <div className="flex justify-between items-center mb-6">
-              <SectionHeader 
-                title="Tren Performa Skor" 
-                subtitle="Perbandingan skor Anda vs Rata-rata" 
+              <SectionHeader
+                title="Tren Performa Skor"
+                subtitle="Perbandingan skor Anda vs Rata-rata"
+                info="Grafik skor 10 tryout terakhirmu (garis gelap) dibanding rata-ratamu (garis putus-putus). Untuk melihat perkembangan dari waktu ke waktu."
               />
               <div className="flex gap-2 text-xs">
                 <div className="flex items-center gap-1">
@@ -374,7 +387,14 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
             
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium opacity-90">Peringkat Nasional</span>
+                <span className="text-sm font-medium opacity-90 flex items-center gap-1.5">
+                  Peringkat Nasional
+                  <StatInfo
+                    variant="light"
+                    align="start"
+                    explanation="Posisi peringkatmu dibanding seluruh pengguna berdasarkan rata-rata skor, plus persentase peserta yang berhasil kamu ungguli."
+                  />
+                </span>
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-400/10">
                   <Trophy className="w-5 h-5 text-yellow-400" />
                 </div>
@@ -453,9 +473,10 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
           
           {/* Gap Analysis */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <SectionHeader 
-              title="Gap Nilai Minimum (Passing Grade)" 
-              subtitle="Posisi skor rata-rata kamu vs Ambang Batas" 
+            <SectionHeader
+              title="Gap Nilai Minimum (Passing Grade)"
+              subtitle="Posisi skor rata-rata kamu vs Ambang Batas"
+              info="Membandingkan rata-rata skormu (batang gelap) dengan ambang batas kelulusan tiap materi (batang terang). Terlihat materi mana yang masih kurang."
             />
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -480,9 +501,10 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
 
           {/* Score Distribution */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-            <SectionHeader 
-              title="Distribusi Skor Peserta" 
-              subtitle="Posisi kamu dalam kurva peserta" 
+            <SectionHeader
+              title="Distribusi Skor Peserta"
+              subtitle="Posisi kamu dalam kurva peserta"
+              info="Kurva sebaran skor seluruh peserta. Garis 'Kamu' menandai posisi rata-rata skormu di antara mereka."
             />
             <div className="h-[250px]">
               {!hasData ? (
@@ -545,7 +567,13 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
         {/* 5. Last 5 Tryouts */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-800">5 Tryout Terakhir</h2>
+            <h2 className="text-base font-bold text-slate-800 flex items-center gap-1.5">
+              5 Tryout Terakhir
+              <StatInfo
+                align="start"
+                explanation="Rincian lima tryout terbaru: skor TWK, TIU, TKP, total, dan status lulus tiap sesinya."
+              />
+            </h2>
           </div>
 
           {!hasData && (

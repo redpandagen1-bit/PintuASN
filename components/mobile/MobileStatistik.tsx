@@ -13,6 +13,7 @@ import { TrendingUp, ChevronRight, Trophy, Target, AlertTriangle, CheckCircle2, 
 import { cn } from '@/lib/utils';
 import { TopicMasterySection } from '@/components/statistics/TopicMasterySection';
 import type { TopicMasteryByCategory } from '@/constants/drilling';
+import { StatInfo } from '@/components/shared/StatInfo';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -243,9 +244,13 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
       <section className="mx-4 mb-4 bg-white rounded-2xl p-4 shadow-md3-sm">
         {/* Header */}
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-bold text-md-primary"
+          <h2 className="text-sm font-bold text-md-primary flex items-center gap-1.5"
             style={{ fontFamily: 'var(--font-jakarta)' }}>
             Tren Performa Skor
+            <StatInfo
+              align="start"
+              explanation="Grafik skor 10 tryout terakhirmu (garis biru) dibanding rata-ratamu (garis putus-putus). Untuk melihat perkembangan dari waktu ke waktu."
+            />
           </h2>
         </div>
         <p className="text-[10px] text-md-on-surface-variant mb-3">
@@ -323,8 +328,13 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
       <section className="mx-4 mb-4 bg-md-primary rounded-2xl p-5 text-white relative overflow-hidden shadow-md3-lg">
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/60 flex items-center gap-1.5">
               Peringkat Nasional
+              <StatInfo
+                variant="light"
+                align="start"
+                explanation="Posisi peringkatmu dibanding seluruh pengguna berdasarkan rata-rata skor, plus persentase peserta yang berhasil kamu ungguli."
+              />
             </p>
             <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
               <Trophy size={15} className="text-yellow-300" />
@@ -383,6 +393,10 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
             Gap Nilai Minimum
           </h2>
           <span className="text-[10px] text-md-on-surface-variant">(Passing Grade)</span>
+          <StatInfo
+            align="start"
+            explanation="Membandingkan rata-rata skormu tiap materi dengan ambang batas kelulusannya. Angka merah menandai berapa poin lagi yang kurang."
+          />
         </div>
         <div className="bg-white rounded-2xl p-4 shadow-md3-sm space-y-4">
           {gapItems.map(({ key, avg, threshold, max, color }) => {
@@ -438,9 +452,13 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
 
       {/* ── Distribusi Skor Peserta ─────────────────────────────── */}
       <section className="mx-4 mb-4">
-          <h2 className="text-sm font-bold text-md-primary mb-0.5 px-1"
+          <h2 className="text-sm font-bold text-md-primary mb-0.5 px-1 flex items-center gap-1.5"
             style={{ fontFamily: 'var(--font-jakarta)' }}>
             Distribusi Skor Peserta
+            <StatInfo
+              align="start"
+              explanation="Kurva sebaran skor seluruh peserta. Garis 'Kamu' menandai posisi rata-rata skormu di antara mereka."
+            />
           </h2>
           <p className="text-[10px] text-md-on-surface-variant mb-2 px-1">
             Posisi rata-rata skormu di antara semua peserta
@@ -541,9 +559,13 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
 
       {/* ── Distribusi Per Kategori ─────────────────────────────── */}
       <section className="mx-4 mb-4">
-        <h2 className="text-sm font-bold text-md-primary mb-2 px-1"
+        <h2 className="text-sm font-bold text-md-primary mb-2 px-1 flex items-center gap-1.5"
           style={{ fontFamily: 'var(--font-jakarta)' }}>
           Distribusi Per Kategori
+          <StatInfo
+            align="start"
+            explanation="Rata-rata skormu di tiap materi (TWK, TIU, TKP) dibanding skor maksimalnya, ditampilkan sebagai bar penguasaan."
+          />
         </h2>
         <div className="bg-white rounded-2xl p-4 shadow-md3-sm space-y-4">
           {[
@@ -575,8 +597,12 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
       {/* ── 5 Tryout Terakhir ───────────────────────────────────── */}
       <section className="mx-4 mb-4">
           <div className="flex justify-between items-center mb-2 px-1">
-            <h2 className="text-sm font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
+            <h2 className="text-sm font-bold text-md-primary flex items-center gap-1.5" style={{ fontFamily: 'var(--font-jakarta)' }}>
               5 Tryout Terakhir
+              <StatInfo
+                align="start"
+                explanation="Ringkasan lima tryout terbaru: tanggal, skor total, status lulus, dan rincian TWK/TIU/TKP tiap sesinya."
+              />
             </h2>
             {hasData && (
               <Link href="/history"
