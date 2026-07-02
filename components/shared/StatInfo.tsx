@@ -71,15 +71,16 @@ export function StatInfo({
           aria-label="Penjelasan statistik"
           onClick={(e) => e.stopPropagation()}
           className={cn(
-            'inline-flex h-4 w-4 items-center justify-center rounded-full border transition-colors',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/60',
-            variant === 'light'
-              ? 'border-white/25 text-white/60 hover:text-white hover:border-white/50'
-              : 'border-slate-300 text-slate-400 hover:text-slate-600 hover:border-slate-400',
+            // Kuning solid + ikon gelap = kontras tinggi, terlihat jelas
+            // termasuk di PWA Android. flex-none supaya tidak ikut mengecil.
+            'inline-flex h-[18px] w-[18px] flex-none items-center justify-center rounded-full',
+            'bg-yellow-400 text-slate-900 shadow-sm transition-colors hover:bg-yellow-300',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500/60',
+            variant === 'light' ? 'ring-1 ring-white/30' : '',
             className,
           )}
         >
-          <Info className="h-2.5 w-2.5" strokeWidth={2.5} />
+          <Info className="h-3 w-3" strokeWidth={2.75} />
         </button>
       </PopoverTrigger>
 

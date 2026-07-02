@@ -9,6 +9,7 @@ import {
   type TopicMastery,
   type TopicMasteryByCategory,
 } from '@/constants/drilling';
+import { StatInfo } from '@/components/shared/StatInfo';
 
 const LEVEL: Record<TopicMastery['level'], { bar: string; text: string }> = {
   none:   { bar: 'bg-slate-200',   text: 'text-slate-400' },
@@ -39,6 +40,11 @@ export function TopicMasterySection({ mastery }: { mastery: TopicMasteryByCatego
         <div className="flex items-center gap-2 mb-1">
           <Target className="h-4 w-4 text-rose-500" />
           <h3 className="font-bold text-slate-800 text-sm">Topik yang Perlu Dikuasai</h3>
+          <StatInfo
+            className="ml-0.5"
+            align="start"
+            explanation="Tiga topik dengan penguasaan terendah dari latihanmu. Ketuk Drilling untuk langsung berlatih topik itu."
+          />
         </div>
         <p className="text-xs text-slate-400 mb-4">
           Topik dengan penguasaan terendah dari latihanmu. Latih langsung lewat drilling.
@@ -98,7 +104,13 @@ export function TopicMasterySection({ mastery }: { mastery: TopicMasteryByCatego
       {/* ── Peta penguasaan topik (tampil lebih dulu) ───────── */}
       <div className="order-1 bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-bold text-slate-800 text-sm">Peta Penguasaan Topik</h3>
+          <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+            Peta Penguasaan Topik
+            <StatInfo
+              align="start"
+              explanation="Tingkat penguasaanmu per topik di tiap materi (TWK, TIU, TKP). Warna bar: merah lemah, kuning sedang, hijau kuat."
+            />
+          </h3>
           <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
             {DRILLING_CATEGORIES.map((c) => (
               <button
