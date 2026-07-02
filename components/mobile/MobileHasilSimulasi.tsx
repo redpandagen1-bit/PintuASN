@@ -7,6 +7,13 @@ import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ReviewFormModal } from '@/components/shared/ReviewFormModal';
 import {
+  StatInfo,
+  MiniLinePreview,
+  MiniBarsPreview,
+  MiniTablePreview,
+  MiniListPreview,
+} from '@/components/shared/StatInfo';
+import {
   CheckCircle2, XCircle, Trophy, Clock, TrendingUp,
   AlertTriangle, Timer, Lock, BookOpen, Eye, RotateCcw,
 } from 'lucide-react';
@@ -96,34 +103,49 @@ function catColor(cat: string) {
 // ── LockedSection ─────────────────────────────────────────────
 
 function LockedSection({
-  title, icon, children, locked,
+  title, subtitle, icon, children, locked, explanation, preview,
 }: {
   title: React.ReactNode;
+  subtitle?: React.ReactNode;
   icon: React.ReactNode;
   children: React.ReactNode;
   locked: boolean;
+  explanation?: React.ReactNode;
+  preview?: React.ReactNode;
 }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      {/* Header — judul ambil sisa ruang, tombol "i" + badge Platinum
+          dikelompokkan di kanan (flex-none) agar selalu terlihat. */}
       <div className="flex items-start gap-2 px-4 pt-4 pb-3">
-        <span className="mt-0.5 flex-shrink-0">{icon}</span>
-        <span className="font-bold text-slate-800 text-sm flex-1">{title}</span>
-        {locked && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">
-            <Lock size={9} />Platinum
-          </span>
-        )}
+        <span className="mt-0.5 flex-none">{icon}</span>
+        <div className="flex-1 min-w-0">
+          <span className="font-bold text-slate-800 text-sm leading-snug">{title}</span>
+          {subtitle && (
+            <span className="block text-[11px] text-slate-400 font-normal mt-0.5">{subtitle}</span>
+          )}
+        </div>
+        <div className="flex flex-none items-center gap-1.5 pt-0.5">
+          {explanation && (
+            <StatInfo locked={locked} explanation={explanation} preview={preview} />
+          )}
+          {locked && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+              <Lock size={9} />Platinum
+            </span>
+          )}
+        </div>
       </div>
-      <div className="relative px-4 pb-4">
+      <div className={`relative px-4 pb-4 ${locked ? 'min-h-[188px]' : ''}`}>
         <div className={locked ? 'blur-sm pointer-events-none select-none' : ''}>
           {children}
         </div>
         {locked && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-4 text-center">
             <div className="w-11 h-11 rounded-2xl bg-slate-800 flex items-center justify-center shadow-lg">
               <Lock size={18} className="text-yellow-400" />
             </div>
-            <div className="text-center px-4">
+            <div>
               <p className="text-sm font-bold text-slate-800">Fitur Eksklusif Platinum</p>
               <p className="text-xs text-slate-500 mt-0.5">Upgrade untuk melihat analisis lengkap</p>
             </div>
@@ -394,10 +416,13 @@ export function MobileHasilSimulasi({
       <div className="px-4">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
           <div className="flex items-center gap-2 mb-0.5">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-none" />
             <h3 className="font-bold text-slate-800 text-sm" style={{ fontFamily: 'var(--font-jakarta)' }}>
               Ringkasan Jawaban Kamu
             </h3>
+            <StatInfo
+              explanation="Perbandingan jumlah soal benar, salah, dan belum dijawab untuk TWK & TIU. Angka besar di tengah adalah persentase akurasimu."
+            />
           </div>
           <p className="text-[10px] text-slate-400 mb-3">
             Benar, salah, &amp; belum dijawab (TWK &amp; TIU). TKP dinilai terpisah (skala 1–5).
@@ -440,6 +465,8 @@ export function MobileHasilSimulasi({
           locked={!isPlatinum}
           icon={<Clock className="h-4 w-4 text-violet-500" />}
           title="Kecepatan Mengerjakan"
+          explanation="Rata-rata waktu yang kamu habiskan per soal di tiap materi (TWK, TIU, TKP). Berguna untuk tahu materi mana yang bikin kamu lambat."
+          preview={<MiniBarsPreview />}
         >
           <p className="text-[10px] text-slate-400 mb-3">
             Rata-rata waktu untuk tiap soal di setiap materi.
@@ -475,6 +502,8 @@ export function MobileHasilSimulasi({
           locked={!isPlatinum}
           icon={<TrendingUp className="h-4 w-4 text-slate-500" />}
           title="Progres Nilai per Percobaan"
+          explanation="Grafik naik-turun skor totalmu setiap kali mengulang paket ini. Memudahkan melihat apakah kamu makin berkembang."
+          preview={<MiniLinePreview />}
         >
           {chartData.length > 1 ? (
             <div className="h-40">
@@ -568,14 +597,10 @@ export function MobileHasilSimulasi({
           <LockedSection
             locked={!isPlatinum}
             icon={<AlertTriangle className="h-4 w-4 text-rose-500" />}
-            title={
-              <span>
-                Analisis Soal Salah
-                <span className="block text-[11px] text-slate-400 font-normal mt-0.5">
-                  {wrongAnalysis.totalWrong} salah TWK+TIU · {wrongAnalysis.totalLowTkp} TKP skor rendah
-                </span>
-              </span>
-            }
+            title="Analisis Soal Salah"
+            subtitle={`${wrongAnalysis.totalWrong} salah TWK+TIU · ${wrongAnalysis.totalLowTkp} TKP skor rendah`}
+            explanation="Rincian jumlah soal salah per kategori plus daftar soal yang perlu kamu pelajari ulang di pembahasan."
+            preview={<MiniListPreview />}
           >
             <p className="text-xs text-slate-400 mb-3">
               Pelajari soal-soal ini di pembahasan untuk meningkatkan skor pada percobaan berikutnya.
@@ -661,6 +686,8 @@ export function MobileHasilSimulasi({
             locked={!isPlatinum}
             icon={<Timer className="h-4 w-4 text-slate-500" />}
             title="5 Soal dengan Pengerjaan Waktu Terlama"
+            explanation="Lima soal yang paling menyita waktumu. Kenali polanya supaya lebih cepat di simulasi berikutnya."
+            preview={<MiniListPreview />}
           >
             <div className="h-36 mb-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -708,14 +735,10 @@ export function MobileHasilSimulasi({
           <LockedSection
             locked={!isPlatinum}
             icon={<Trophy className="h-4 w-4 text-slate-500" />}
-            title={
-              <span className="flex items-center justify-between w-full">
-                Riwayat Percobaan
-                <span className="text-[11px] text-slate-400 font-normal">
-                  {lastThreeAttempts.length} percobaan terakhir
-                </span>
-              </span>
-            }
+            title="Riwayat Percobaan"
+            subtitle={`${lastThreeAttempts.length} percobaan terakhir`}
+            explanation="Tabel percobaan terakhirmu di paket ini beserta skor TWK, TIU, TKP dan status lulusnya."
+            preview={<MiniTablePreview />}
           >
             <div className="overflow-x-auto">
               <table className="w-full text-xs min-w-[300px]">
