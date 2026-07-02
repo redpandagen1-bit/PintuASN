@@ -5,18 +5,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   BookOpen, Users,
-  ChevronRight, ArrowRight, Play, Clock,
+  ChevronRight, ArrowRight, Clock,
   CheckCircle, BarChart2,
-  Award, TrendingUp, FileText,
+  Award, TrendingUp,
   Crown, Lock, Zap,
+  Landmark, Brain, HeartHandshake, Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { canAccess }             from '@/lib/subscription-utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 import { UpgradeModal }          from '@/components/shared/upgrade-modal';
+import { pickLatest }            from '@/components/dashboard/user/MateriTerbaru';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -31,14 +32,14 @@ interface PackageItem {
 }
 
 interface MaterialItem {
-  id:               string;
-  title:            string;
-  category:         string;
-  type:             string;
-  tier:             string;
-  duration_minutes: number | null;
-  is_new:           boolean;
-  content_url:      string | null;
+  id:             string;
+  title:          string;
+  category:       string;
+  topic:          string;
+  tier:           string;
+  read_minutes:   number | null;
+  is_new:         boolean;
+  is_placeholder: boolean;
 }
 
 interface MobileDashboardProps {
@@ -88,21 +89,14 @@ function fmtCount(n: number): string {
   return String(n);
 }
 
-// ── Category chip colors (for materials) ─────────────────────
+// ── Konfigurasi kategori materi (ikon + warna) ────────────────
 
-const CAT_CHIP: Record<string, string> = {
-  TWK: 'bg-sky-100 text-sky-700',
-  TIU: 'bg-violet-100 text-violet-700',
-  TKP: 'bg-amber-100 text-amber-700',
+const MAT_CAT: Record<string, { label: string; icon: React.ElementType; chip: string; iconWrap: string }> = {
+  INFORMASI: { label: 'Info CPNS', icon: Info,           chip: 'bg-indigo-100 text-indigo-700', iconWrap: 'bg-indigo-500' },
+  TWK:       { label: 'TWK',       icon: Landmark,       chip: 'bg-sky-100 text-sky-700',       iconWrap: 'bg-sky-500'    },
+  TIU:       { label: 'TIU',       icon: Brain,          chip: 'bg-violet-100 text-violet-700', iconWrap: 'bg-violet-500' },
+  TKP:       { label: 'TKP',       icon: HeartHandshake, chip: 'bg-amber-100 text-amber-700',   iconWrap: 'bg-amber-500'  },
 };
-
-// ── Helpers ───────────────────────────────────────────────────
-
-function getYoutubeId(url: string | null): string | null {
-  if (!url) return null;
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
-  return m?.[1] ?? null;
-}
 
 // ── Component ─────────────────────────────────────────────────
 
@@ -117,6 +111,10 @@ export function MobileDashboard({
   userTier,
 }: MobileDashboardProps) {
   const activeSet = new Set(packageIdsWithAttempts);
+
+  // Materi terbaru: buang placeholder, "Baru" didahulukan, bergiliran antar
+  // kategori (helper sama dengan versi desktop).
+  const materiTerbaru = pickLatest(materials, 4);
 
   // ── Upgrade modal state ───────────────────────────────────────
   const [modalOpen,  setModalOpen]  = useState(false);
@@ -397,7 +395,7 @@ export function MobileDashboard({
       )}
 
       {/* ── Materi Terbaru ───────────────────────────────────── */}
-      {materials.length > 0 && (
+      {materiTerbaru.length > 0 && (
         <section className="space-y-3 px-4">
           <div className="flex justify-between items-end">
             <h2 className="text-base font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
@@ -409,49 +407,22 @@ export function MobileDashboard({
           </div>
 
           <div className="space-y-2.5">
-            {materials.slice(0, 4).map(mat => {
-              const catChip  = CAT_CHIP[mat.category] ?? 'bg-slate-100 text-slate-600';
-              const isVideo  = mat.type === 'video';
-              const ytId     = isVideo ? getYoutubeId(mat.content_url) : null;
-              const thumbUrl = ytId
-                ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg`
-                : null;
+            {materiTerbaru.map(mat => {
+              const cat        = MAT_CAT[mat.category] ?? MAT_CAT.INFORMASI;
+              const Icon       = cat.icon;
+              const accessible = canAccess(userTier, mat.tier as SubscriptionTier);
+              const isPaid     = mat.tier !== 'free';
 
               return (
-                <Link key={mat.id} href={mat.content_url ?? '/materi'} className="block active-press">
+                <Link key={mat.id} href="/materi" className="block active-press">
                   <div className="bg-white rounded-2xl p-3.5 flex gap-3.5 items-center shadow-md3-sm">
-                    {/* Thumbnail / icon */}
-                    <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-md-surface-container relative">
-                      {isVideo && thumbUrl ? (
-                        <>
-                          <Image
-                            src={thumbUrl}
-                            alt={mat.title}
-                            fill
-                            className="object-cover"
-                            sizes="64px"
-                            unoptimized
-                          />
-                          {/* Play overlay */}
-                          <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                            <div className="w-7 h-7 rounded-full bg-white/90 flex items-center justify-center">
-                              <Play size={12} className="text-md-primary ml-0.5" fill="currentColor" />
-                            </div>
-                          </div>
-                        </>
-                      ) : isVideo ? (
-                        /* Video tanpa YT ID */
-                        <div className="w-full h-full bg-md-primary/10 flex items-center justify-center">
-                          <div className="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center">
-                            <Play size={12} className="text-md-primary ml-0.5" fill="currentColor" />
-                          </div>
-                        </div>
-                      ) : (
-                        /* PDF / dokumen */
-                        <div className="w-full h-full bg-rose-50 flex flex-col items-center justify-center gap-0.5">
-                          <FileText size={20} className="text-rose-400" strokeWidth={1.5} />
-                          <span className="text-[8px] font-black text-rose-500 uppercase tracking-wider">PDF</span>
-                        </div>
+                    {/* Ikon kategori */}
+                    <div className={cn('w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center relative', cat.iconWrap)}>
+                      <Icon size={22} className="text-white" strokeWidth={2} />
+                      {!accessible && (
+                        <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow">
+                          <Lock size={10} className="text-slate-500" />
+                        </span>
                       )}
                     </div>
 
@@ -459,16 +430,16 @@ export function MobileDashboard({
                     <div className="flex-grow space-y-1.5 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {mat.is_new && (
-                          <span className="bg-md-secondary-container/20 text-md-on-secondary-container text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest">
+                          <span className="bg-emerald-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest">
                             BARU
                           </span>
                         )}
-                        <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded uppercase', catChip)}>
-                          {mat.category}
+                        <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded uppercase', cat.chip)}>
+                          {cat.label}
                         </span>
-                        {mat.duration_minutes && (
-                          <span className="text-[10px] text-md-on-surface-variant font-medium">
-                            {mat.duration_minutes} Mnt
+                        {isPaid && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase bg-slate-100 text-slate-500 capitalize">
+                            {mat.tier}
                           </span>
                         )}
                       </div>
@@ -476,7 +447,7 @@ export function MobileDashboard({
                         {mat.title}
                       </h3>
                       <span className="text-[10px] font-bold text-md-secondary uppercase tracking-widest flex items-center gap-1">
-                        {isVideo ? 'Tonton Materi' : 'Buka Materi'}
+                        {mat.read_minutes ? `${mat.read_minutes} mnt baca` : (accessible ? 'Baca Materi' : 'Lihat Materi')}
                         <ChevronRight size={10} />
                       </span>
                     </div>

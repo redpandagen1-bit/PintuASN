@@ -4,7 +4,8 @@ import { Suspense }      from 'react';
 import { redirect }      from 'next/navigation';
 import { auth }          from '@clerk/nextjs/server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { BannerSlider, StatCard, MateriTabs } from '@/components/dashboard/user';
+import { getMaterialModules } from '@/lib/supabase/queries';
+import { BannerSlider, StatCard, MateriTerbaru } from '@/components/dashboard/user';
 import { FeatureGrid }   from '@/components/layout/FeatureGrid';
 import TryoutSection     from '@/components/dashboard/user/TryoutSection';
 import { Button }        from '@/components/ui/button';
@@ -56,7 +57,7 @@ async function DashboardContent() {
   const [
     { data: completedCounts },
     { data: rankingData },
-    { data: materials },
+    materialModules,
   ] = await Promise.all([
     packageIds.length > 0
       ? supabase
@@ -68,14 +69,11 @@ async function DashboardContent() {
 
     supabase.rpc('get_user_national_rank', { p_user_id: userId }),
 
-    supabase
-      .from('materials')
-      .select('id, title, category, type, tier, duration_minutes, is_new, content_url')
-      .eq('is_active', true)
-      .eq('is_deleted', false)
-      .order('order_index', { ascending: true })
-      .order('created_at',  { ascending: false }),
+    // Materi terbaru = modul materi aktif (material_modules), bukan lagi video/pdf.
+    getMaterialModules(),
   ]);
+
+  const materials = materialModules ?? [];
 
   const userCountsByPackage = new Map<string, number>();
   if (completedCounts) {
@@ -168,14 +166,23 @@ async function DashboardContent() {
           />
         </section>
 
-        {/* Materi */}
+        {/* Materi Terbaru */}
         <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-5">
-          <div>
-            <h2 className="text-xl font-bold text-slate-800">Materi</h2>
-            <p className="text-slate-500 text-xs mt-0.5">Pelajari materi persiapan CPNS 2026.</p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">
+                Materi <span className="text-yellow-500">Terbaru</span>
+              </h2>
+              <p className="text-slate-500 text-xs mt-0.5">Modul belajar persiapan CPNS 2026, langsung baca.</p>
+            </div>
+            <Link href="/materi" className="flex-shrink-0">
+              <Button className="bg-slate-800 text-yellow-400 hover:bg-slate-700 flex items-center gap-1 px-3 md:px-4 py-2 font-semibold text-xs md:text-sm">
+                Semua Materi <ChevronRight size={13} />
+              </Button>
+            </Link>
           </div>
-          <MateriTabs
-            materials={materials ?? []}
+          <MateriTerbaru
+            modules={materials}
             userTier={userTier}
           />
         </section>
