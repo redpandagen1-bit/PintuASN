@@ -71,7 +71,7 @@ export function ReviewsPopup({ packageId, packageTitle, isOpen, onClose }: Revie
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
         {/* Header */}
@@ -88,8 +88,9 @@ export function ReviewsPopup({ packageId, packageTitle, isOpen, onClose }: Revie
           </button>
         </div>
 
-        {/* Content */}
-        <div className="overflow-y-auto flex-1 px-5 py-4">
+        {/* Content — padding bawah + safe-area agar ulasan terakhir tidak
+            tertutup navbar / tepi layar di PWA mobile. */}
+        <div className="overflow-y-auto flex-1 px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
               <Loader2 size={24} className="text-slate-400 animate-spin" />
