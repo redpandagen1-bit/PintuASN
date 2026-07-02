@@ -113,6 +113,7 @@ function catColor(cat: string) {
 
 function LockedSection({
   title,
+  subtitle,
   icon,
   children,
   locked,
@@ -120,6 +121,7 @@ function LockedSection({
   preview,
 }: {
   title: React.ReactNode;
+  subtitle?: React.ReactNode;
   icon: React.ReactNode;
   children: React.ReactNode;
   locked: boolean;
@@ -130,39 +132,49 @@ function LockedSection({
 }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-      {/* Judul — TIDAK diblur, selalu terlihat */}
-      <div className="flex items-center gap-2 px-5 pt-5 pb-3">
-        {icon}
-        <span className="font-bold text-slate-800 text-sm">{title}</span>
-        {explanation && (
-          <StatInfo
-            className="ml-1 flex-shrink-0"
-            locked={locked}
-            explanation={explanation}
-            preview={preview}
-          />
-        )}
-        {locked && (
-          <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-            <Lock size={10} />
-            Platinum
-          </span>
-        )}
+      {/* Header — TIDAK diblur, selalu terlihat.
+          Judul mengambil sisa ruang (flex-1), tombol "i" + badge Platinum
+          dikelompokkan di kanan (flex-none) agar selalu terlihat & rapi
+          walau judul membungkus beberapa baris. */}
+      <div className="flex items-start gap-2 px-5 pt-5 pb-3">
+        <span className="mt-0.5 flex-none">{icon}</span>
+        <div className="flex-1 min-w-0">
+          <span className="font-bold text-slate-800 text-sm leading-snug">{title}</span>
+          {subtitle && (
+            <span className="block text-xs text-slate-400 font-normal mt-0.5">{subtitle}</span>
+          )}
+        </div>
+        <div className="flex flex-none items-center gap-1.5 pt-0.5">
+          {explanation && (
+            <StatInfo
+              locked={locked}
+              explanation={explanation}
+              preview={preview}
+            />
+          )}
+          {locked && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+              <Lock size={10} />
+              Platinum
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Konten — blur jika locked */}
-      <div className="relative px-5 pb-5">
+      {/* Konten — blur jika locked. min-height memastikan overlay muat
+          rapi walau konten aslinya pendek. */}
+      <div className={`relative px-5 pb-5 ${locked ? 'min-h-[196px]' : ''}`}>
         <div className={locked ? 'blur-sm pointer-events-none select-none' : ''}>
           {children}
         </div>
 
         {/* Overlay lock */}
         {locked && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center shadow-lg">
-              <Lock size={22} className="text-yellow-400" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-4 text-center">
+            <div className="w-11 h-11 rounded-2xl bg-slate-800 flex items-center justify-center shadow-lg">
+              <Lock size={20} className="text-yellow-400" />
             </div>
-            <div className="text-center">
+            <div>
               <p className="text-sm font-bold text-slate-800">Fitur Eksklusif Platinum</p>
               <p className="text-xs text-slate-500 mt-0.5">Upgrade untuk melihat analisis lengkap</p>
             </div>
@@ -598,14 +610,8 @@ export default function ResultClient({
           <LockedSection
             locked={!isPlatinum}
             icon={<AlertTriangle className="h-4 w-4 text-rose-500" />}
-            title={
-              <span className="flex items-center gap-2">
-                Analisis Soal Salah
-                <span className="text-xs text-slate-400 font-normal">
-                  {wrongAnalysis.totalWrong} salah TWK+TIU · {wrongAnalysis.totalLowTkp} TKP skor rendah
-                </span>
-              </span>
-            }
+            title="Analisis Soal Salah"
+            subtitle={`${wrongAnalysis.totalWrong} salah TWK+TIU · ${wrongAnalysis.totalLowTkp} TKP skor rendah`}
             explanation="Rincian jumlah soal salah per kategori plus daftar soal yang perlu kamu pelajari ulang di pembahasan."
             preview={<MiniListPreview />}
           >
@@ -732,12 +738,8 @@ export default function ResultClient({
           <LockedSection
             locked={!isPlatinum}
             icon={<Trophy className="h-4 w-4 text-slate-500" />}
-            title={
-              <span className="flex items-center justify-between w-full">
-                Riwayat Percobaan
-                <span className="text-xs text-slate-400 font-normal">3 terakhir di paket ini</span>
-              </span>
-            }
+            title="Riwayat Percobaan"
+            subtitle="3 terakhir di paket ini"
             explanation="Tabel tiga percobaan terakhirmu di paket ini beserta skor TWK, TIU, TKP dan status lulusnya."
             preview={<MiniTablePreview />}
           >
