@@ -204,12 +204,15 @@ function Result({ data }: { data: PeluangFormasi }) {
             <Building2 className="h-3.5 w-3.5 text-slate-400" />
             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Bandingkan per instansi</span>
           </div>
-          <SearchableDropdown
-            value={selectedInst}
-            onChange={onPickInstansi}
-            options={INSTANSI}
-            placeholder="Cari instansi..."
-          />
+          {/* Batasi lebar di web (mobile tetap full) agar tidak memanjang */}
+          <div className="w-full sm:max-w-xs">
+            <SearchableDropdown
+              value={selectedInst}
+              onChange={onPickInstansi}
+              options={INSTANSI}
+              placeholder="Cari instansi..."
+            />
+          </div>
 
           <div className="mt-2">
             {loadingCmp ? (
