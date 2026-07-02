@@ -11,23 +11,29 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('package_reviews')
-    .select(`
-      id, rating, comment, created_at, user_id,
-      profiles ( full_name )
-    `)
+    .select('id, rating, comment, created_at, user_id')
     .eq('package_id', packageId)
     .order('created_at', { ascending: false })
     .limit(10);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const reviews = (data || []).map((r: any) => {
-    const profilesRaw = r.profiles;
-    const profile = Array.isArray(profilesRaw) ? profilesRaw[0] : profilesRaw;
-    const fullName = profile?.full_name ?? null;
-    const displayName = fullName
-      ? fullName.split(' ')[0]
-      : 'Pengguna';
+  // package_reviews.user_id tidak punya FK ke profiles, jadi embed PostgREST
+  // (`profiles(full_name)`) gagal. Ambil nama secara terpisah lalu gabungkan.
+  const userIds = [...new Set((data || []).map((r) => r.user_id))];
+  const nameByUserId = new Map<string, string | null>();
+
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, full_name')
+      .in('user_id', userIds);
+    (profiles || []).forEach((p) => nameByUserId.set(p.user_id, p.full_name ?? null));
+  }
+
+  const reviews = (data || []).map((r) => {
+    const fullName = nameByUserId.get(r.user_id) ?? null;
+    const displayName = fullName ? fullName.split(' ')[0] : 'Pengguna';
     return {
       id: r.id,
       rating: r.rating,
