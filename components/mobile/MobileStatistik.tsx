@@ -14,6 +14,12 @@ import { cn } from '@/lib/utils';
 import { TopicMasterySection } from '@/components/statistics/TopicMasterySection';
 import type { TopicMasteryByCategory } from '@/constants/drilling';
 import { StatInfo } from '@/components/shared/StatInfo';
+import { SkorPrediction } from '@/components/statistics/SkorPrediction';
+import { PremiumGate } from '@/components/statistics/PremiumGate';
+import { PeluangProjection } from '@/components/roadmap/PeluangProjection';
+import { canAccess, type SubscriptionTier } from '@/lib/subscription-utils';
+import type { PeluangFormasi } from '@/lib/supabase/peluang-formasi';
+import { Lock } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -46,6 +52,8 @@ interface MobileStatistikProps {
   ranking?:      RankingData | null;
   distribution?: ScoreBucket[];
   mastery?:      TopicMasteryByCategory;
+  userTier?:     SubscriptionTier;
+  peluang?:      PeluangFormasi | null;
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -99,7 +107,8 @@ function EmptyHint({ className }: { className?: string }) {
 
 // ── Component ─────────────────────────────────────────────────
 
-export function MobileStatistik({ data, ranking, distribution, mastery }: MobileStatistikProps) {
+export function MobileStatistik({ data, ranking, distribution, mastery, userTier = 'free', peluang = null }: MobileStatistikProps) {
+  const analyticsLocked = !canAccess(userTier, 'platinum');
   const completed = data.filter(a => a.status === 'completed');
   const hasData   = completed.length > 0;
   const passed    = completed.filter(a => a.is_passed);
@@ -237,6 +246,28 @@ export function MobileStatistik({ data, ranking, distribution, mastery }: Mobile
               <p className="text-xs text-slate-500 mt-0.5">Kerjakan soal untuk menampilkan data.</p>
             </div>
           </div>
+        </section>
+      )}
+
+      {/* ── Analitik Lanjutan: Prediksi Skor + Peluang (kunci Platinum) ── */}
+      {hasData && (
+        <section className="mx-4 mb-4 space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <h2 className="text-sm font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
+              Analitik Lanjutan
+            </h2>
+            {analyticsLocked && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
+                <Lock size={9} /> Platinum
+              </span>
+            )}
+          </div>
+          <PremiumGate locked={analyticsLocked}>
+            <div className="space-y-3">
+              <SkorPrediction attempts={data} />
+              <PeluangProjection peluang={peluang} />
+            </div>
+          </PremiumGate>
         </section>
       )}
 
