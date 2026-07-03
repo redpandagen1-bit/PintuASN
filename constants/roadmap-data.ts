@@ -29,13 +29,14 @@ export const THRESHOLDS = {
   MATERI_LANJUT_VIEW:   8,    // step 4
   SIMULASI_INTENSIF:    6,    // step 5
   // step 6: allPassed (avg >= passing grade)
-  EVALUASI_TRYOUT:      20,   // step 7
-  SILVER_SCORE:         475,  // step 8
-  GOLD_SCORE:           500,  // step 9
+  // step 7: hasInstansi (Ukur Peluang Lolos)
+  EVALUASI_TRYOUT:      20,   // step 8
+  SILVER_SCORE:         475,  // step 9
+  GOLD_SCORE:           500,  // step 10
 } as const;
 
 // ─────────────────────────────────────────────────────────────
-// DEFINISI 9 FASE (statis — tanpa status)
+// DEFINISI 10 FASE (statis — tanpa status)
 // ─────────────────────────────────────────────────────────────
 const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
   {
@@ -114,8 +115,20 @@ const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
     ctaHref: '/statistics',
   },
   {
-    id: 'evaluasi_mendalam',
+    id: 'ukur_peluang',
     step: 7,
+    title: 'Ukur Peluang Lolos',
+    description: 'Bandingkan nilaimu dengan pesaing di instansi tujuan',
+    detail:
+      'Setelah melampaui passing grade, langkah strategis berikutnya adalah mengukur seberapa kompetitif nilaimu di antara peserta lain yang mengincar instansi yang sama. Tetapkan instansi tujuanmu, lalu buka Peluang Formasi untuk melihat estimasi peringkat, persentil, dan gambaran persainganmu. Ini membantumu menilai apakah skormu sudah cukup aman atau masih perlu digenjot. Catatan: angka ini estimasi berbasis data peserta PintuASN, bukan hasil resmi BKN.',
+    requirement: 'Tetapkan instansi tujuan, lalu cek posisimu di halaman Peluang Formasi.',
+    icon: '🎯',
+    ctaLabel: 'Ukur Peluang',
+    ctaHref: '/peluang-formasi',
+  },
+  {
+    id: 'evaluasi_mendalam',
+    step: 8,
     title: 'Evaluasi & Optimasi',
     description: 'Analisis pola kelemahan dan optimalkan strategi menjawab',
     detail:
@@ -127,7 +140,7 @@ const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
   },
   {
     id: 'silver',
-    step: 8,
+    step: 9,
     title: 'Prestasi Silver',
     description: 'Capai skor final di atas 475 poin',
     detail:
@@ -139,7 +152,7 @@ const PHASE_DEFINITIONS: Omit<RoadmapPhase, 'status'>[] = [
   },
   {
     id: 'gold',
-    step: 9,
+    step: 10,
     title: 'Prestasi Gold',
     description: 'Capai skor final di atas 500 poin — level tertinggi',
     detail:
@@ -171,6 +184,7 @@ export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
     avgTiu,
     avgTkp,
     bestFinalScore,
+    hasInstansi,
   } = data;
 
   const allPassed =
@@ -186,6 +200,9 @@ export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
     kuasai_materi_lanjut: materiViewCount    >= THRESHOLDS.MATERI_LANJUT_VIEW,
     simulasi_intensif:    totalCompleted     >= THRESHOLDS.SIMULASI_INTENSIF,
     capai_passing_grade:  allPassed,
+    // Tahap ini jadi "aktif" setelah passing grade bila instansi belum diset,
+    // lalu "selesai" begitu user menetapkan instansi tujuannya.
+    ukur_peluang:         hasInstansi,
     evaluasi_mendalam:    totalCompleted     >= THRESHOLDS.EVALUASI_TRYOUT,
     silver:               bestFinalScore     >  THRESHOLDS.SILVER_SCORE,
     gold:                 bestFinalScore     >  THRESHOLDS.GOLD_SCORE,
@@ -337,6 +354,16 @@ export function getRekomendasi(data: RoadmapPageData): {
       message:  `Langkah berikutnya: ${activePhase.title}. ${activePhase.requirement}`,
       action:   'Mulai Tryout',
       href:     '/daftar-tryout',
+    };
+  }
+
+  if (activePhase.id === 'ukur_peluang') {
+    return {
+      priority: null,
+      message:
+        'Nilaimu sudah melampaui passing grade. Tetapkan instansi tujuanmu dan ukur peluang lolosmu di antara pesaing lewat Peluang Formasi.',
+      action: 'Ukur Peluang',
+      href:   '/peluang-formasi',
     };
   }
 

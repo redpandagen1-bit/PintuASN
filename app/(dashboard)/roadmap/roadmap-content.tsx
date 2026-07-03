@@ -84,7 +84,7 @@ export function RoadmapContent({
                 <span className="text-[#F5A623]">SKD CPNS 2026</span>
               </h1>
               <p className="text-sm text-white/60 max-w-md mb-4">
-                Ikuti 9 tahap terstruktur untuk memaksimalkan skor dan peluang kelulusanmu.
+                Ikuti 10 tahap terstruktur untuk memaksimalkan skor dan peluang kelulusanmu.
               </p>
 
               {/* Progress bar */}

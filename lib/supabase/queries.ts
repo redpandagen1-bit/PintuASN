@@ -370,7 +370,8 @@ export async function getRoadmapStats(userId: string) {
       : Promise.resolve(0);
 
   // Step 2: attempts + jumlah materi dibuka (gabungan materi lama & modul baru)
-  const [attemptsRes, mvInfo, mvSkd, mmvInfo, mmvSkd] = await Promise.all([
+  //         + instansi tujuan (untuk tahap "Ukur Peluang Lolos")
+  const [attemptsRes, mvInfo, mvSkd, mmvInfo, mmvSkd, profileRes] = await Promise.all([
     supabase
       .from('attempts')
       .select('score_twk, score_tiu, score_tkp, final_score, completed_at')
@@ -382,6 +383,7 @@ export async function getRoadmapStats(userId: string) {
     viewsCount('material_views', 'material_id', skdIds),
     viewsCount('material_module_views', 'module_id', informasiModuleIds),
     viewsCount('material_module_views', 'module_id', skdModuleIds),
+    supabase.from('profiles').select('target_institution').eq('user_id', userId).maybeSingle(),
   ]);
 
   const { data: attempts, error: attemptsError } = attemptsRes;
@@ -389,6 +391,8 @@ export async function getRoadmapStats(userId: string) {
 
   const informasiCount = mvInfo + mmvInfo;
   const materiCount    = mvSkd + mmvSkd;
+  // Sudah menetapkan instansi tujuan? (dipakai untuk tahap Ukur Peluang Lolos)
+  const hasInstansi    = !!profileRes.data?.target_institution?.trim();
 
   const completed = attempts ?? [];
 
@@ -402,6 +406,7 @@ export async function getRoadmapStats(userId: string) {
       lastAttemptDate:    null as string | null,
       informasiViewCount: informasiCount ?? 0,
       materiViewCount:    materiCount    ?? 0,
+      hasInstansi,
     };
   }
 
@@ -425,6 +430,7 @@ export async function getRoadmapStats(userId: string) {
     lastAttemptDate:    completed[0]?.completed_at ?? null,
     informasiViewCount: informasiCount ?? 0,
     materiViewCount:    materiCount    ?? 0,
+    hasInstansi,
   };
 }
 

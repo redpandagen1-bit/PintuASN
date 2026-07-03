@@ -33,7 +33,7 @@ const FEATURES = [
   { icon: '🏆', title: 'Peringkat Nasional', desc: 'Ukur kemampuanmu secara nyata. Ketahui posisimu di antara ribuan peserta se-Indonesia lewat leaderboard real-time.',
     bullets: ['Posisimu vs ribuan peserta', 'Leaderboard live & per paket', 'Update otomatis tiap tryout'] },
   { icon: '🗺️', title: 'Roadmap Belajar Bertahap', desc: 'Tidak lagi bingung mulai dari mana. Jalur belajar terstruktur dengan target jelas di setiap tahap menuju kelulusan.',
-    bullets: ['9 fase belajar terstruktur', 'Syarat & indikator selesai tiap step', 'Rekomendasi langkah berikutnya'] },
+    bullets: ['10 fase belajar terstruktur', 'Syarat & indikator selesai tiap step', 'Rekomendasi langkah berikutnya'] },
   { icon: '📖', title: 'Review Soal dan Pembahasan', desc: 'Bukan sekadar kunci jawaban. Pahami konsep di balik tiap soal dengan pembahasan lengkap dan filter materi.',
     bullets: ['Pembahasan detail tiap soal', 'Filter benar/salah & per materi', 'Pahami konsep, bukan hafal kunci'] },
 ];

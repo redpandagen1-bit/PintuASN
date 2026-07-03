@@ -11,6 +11,7 @@ export type PhaseId =
   | 'kuasai_materi_lanjut'
   | 'simulasi_intensif'
   | 'capai_passing_grade'
+  | 'ukur_peluang'
   | 'evaluasi_mendalam'
   | 'silver'
   | 'gold';
@@ -53,6 +54,8 @@ export interface RoadmapPageData {
   lastAttemptDate: string | null;
   informasiViewCount: number;
   materiViewCount: number;
+  /** Sudah menetapkan instansi tujuan? (untuk tahap Ukur Peluang Lolos) */
+  hasInstansi: boolean;
 }
 
 // ─── Reminder preference ─────────────────────────────────────

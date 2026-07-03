@@ -121,7 +121,7 @@ export function RoadmapPersiapan({ phases }: RoadmapPersiapanProps) {
               <h2 className="text-sm font-extrabold text-[#1B2B5E]" style={{ fontFamily: 'var(--font-jakarta)' }}>
                 Roadmap Persiapan
               </h2>
-              <p className="text-[11px] text-slate-400 mt-0.5">9 tahap terstruktur menuju kelulusan SKD</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">10 tahap terstruktur menuju kelulusan SKD</p>
             </div>
           </div>
           <div className="flex flex-col items-end flex-shrink-0">
