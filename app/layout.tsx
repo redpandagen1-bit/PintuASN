@@ -75,7 +75,7 @@ export default function RootLayout({
       formFieldInputPlaceholder__lastName:     'Nama belakang',
     } as any}>
       <html lang="id" className={`${inter.variable} ${jakarta.variable}`}>
-        <body className={`${inter.className} tap-none overscroll-none`}>
+        <body className={`${jakarta.className} tap-none overscroll-none`}>
           {children}
           <ServiceWorkerRegister />
           <PwaTracker />

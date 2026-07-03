@@ -13,7 +13,7 @@
   --font-inter: var(--font-inter);
   /* MD3 font roles */
   --font-headline: var(--font-jakarta);  /* Plus Jakarta Sans — display & headlines */
-  --font-body: var(--font-inter);        /* Inter — body, labels, questions */
+  --font-body: var(--font-jakarta);      /* Plus Jakarta Sans — body juga (semula Inter) */
 
   /* ── Slate+Sky+Yellow — legacy aliases ── */
   --color-pn-navy: #1e293b;
