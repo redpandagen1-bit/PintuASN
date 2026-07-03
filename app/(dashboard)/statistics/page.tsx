@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { getUserAttempts } from '@/lib/db/attempts';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getTopicMastery } from '@/lib/supabase/drilling';
-import { getUserTier } from '@/lib/supabase/queries';
 import { getPeluangFormasi, type PeluangFormasi } from '@/lib/supabase/peluang-formasi';
 import StatisticsView from '@/components/statistics/StatisticsView';
 import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
@@ -23,10 +22,9 @@ export default async function StatisticsPage() {
     supabase.rpc('get_score_distribution'),
   ]);
 
-  const [attempts, mastery, userTier, peluang] = await Promise.all([
+  const [attempts, mastery, peluang] = await Promise.all([
     getUserAttempts(userId),
     getTopicMastery(userId),
-    getUserTier(userId),
     getPeluangFormasi(userId).catch(() => null as PeluangFormasi | null),
   ]);
   const ranking      = rankingData?.[0] || null;
@@ -36,12 +34,12 @@ export default async function StatisticsPage() {
     <>
       {/* ── Mobile ── */}
       <MobilePageWrapper>
-        <MobileStatistik data={attempts} ranking={ranking} distribution={distribution} mastery={mastery} userTier={userTier} peluang={peluang} />
+        <MobileStatistik data={attempts} ranking={ranking} distribution={distribution} mastery={mastery} peluang={peluang} />
       </MobilePageWrapper>
 
       {/* ── Desktop ── */}
       <div className="hidden md:block">
-        <StatisticsView data={attempts} ranking={ranking} distribution={distribution} mastery={mastery} userTier={userTier} peluang={peluang} />
+        <StatisticsView data={attempts} ranking={ranking} distribution={distribution} mastery={mastery} peluang={peluang} />
       </div>
     </>
   );

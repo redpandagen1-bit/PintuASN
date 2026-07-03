@@ -12,16 +12,13 @@ import {
   CheckCircle2,
   XCircle,
   Target,
-  BarChart2,
-  Lock
+  BarChart2
 } from 'lucide-react';
 import { TopicMasterySection } from '@/components/statistics/TopicMasterySection';
 import type { TopicMasteryByCategory } from '@/constants/drilling';
 import { StatInfo } from '@/components/shared/StatInfo';
 import { SkorPrediction } from '@/components/statistics/SkorPrediction';
-import { PremiumGate } from '@/components/statistics/PremiumGate';
 import { PeluangProjection } from '@/components/roadmap/PeluangProjection';
-import { canAccess, type SubscriptionTier } from '@/lib/subscription-utils';
 import type { PeluangFormasi } from '@/lib/supabase/peluang-formasi';
 
 // ===== TYPES =====
@@ -53,7 +50,6 @@ interface StatisticsViewProps {
   ranking?: RankingData | null;
   distribution?: ScoreBucket[];
   mastery?: TopicMasteryByCategory;
-  userTier?: SubscriptionTier;
   peluang?: PeluangFormasi | null;
 }
 
@@ -148,8 +144,7 @@ const GapProgress: React.FC<GapProgressProps> = ({ current, threshold, label, ma
 
 // ===== MAIN COMPONENT =====
 
-const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribution, mastery, userTier = 'free', peluang = null }) => {
-  const analyticsLocked = !canAccess(userTier, 'platinum');
+const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribution, mastery, peluang = null }) => {
   const stats = useMemo(() => {
     const completedAttempts = data.filter(attempt => attempt.status === 'completed');
     
@@ -320,25 +315,18 @@ const StatisticsView: React.FC<StatisticsViewProps> = ({ data, ranking, distribu
           />
         </div>
 
-        {/* 1b. Analitik Premium: Prediksi Skor + Peluang Lolos (kunci Platinum) */}
+        {/* 1b. Analitik Lanjutan: Prediksi Skor + Peluang Lolos (gratis) */}
         {hasData && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
               <h2 className="text-lg font-bold text-slate-800">
                 Analitik <span className="text-yellow-500">Lanjutan</span>
               </h2>
-              {analyticsLocked && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                  <Lock size={10} /> Platinum
-                </span>
-              )}
             </div>
-            <PremiumGate locked={analyticsLocked}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <SkorPrediction attempts={data} />
-                <PeluangProjection peluang={peluang} />
-              </div>
-            </PremiumGate>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <SkorPrediction attempts={data} />
+              <PeluangProjection peluang={peluang} />
+            </div>
           </div>
         )}
 
