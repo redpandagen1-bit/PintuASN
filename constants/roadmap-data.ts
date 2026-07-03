@@ -19,6 +19,19 @@ export const PASSING_GRADES = {
   TKP: 166,
 } as const;
 
+// Kategori terlemah = gap terbesar terhadap passing grade (dinormalisasi
+// ke skala passing grade masing-masing). Dipakai untuk mengarahkan latihan.
+export function weakestCategory(data: {
+  avgTwk: number; avgTiu: number; avgTkp: number;
+}): 'TWK' | 'TIU' | 'TKP' {
+  const rel = [
+    { cat: 'TWK' as const, gap: (PASSING_GRADES.TWK - data.avgTwk) / PASSING_GRADES.TWK },
+    { cat: 'TIU' as const, gap: (PASSING_GRADES.TIU - data.avgTiu) / PASSING_GRADES.TIU },
+    { cat: 'TKP' as const, gap: (PASSING_GRADES.TKP - data.avgTkp) / PASSING_GRADES.TKP },
+  ].sort((a, b) => b.gap - a.gap);
+  return rel[0].cat;
+}
+
 // ─────────────────────────────────────────────────────────────
 // THRESHOLD per STEP
 // ─────────────────────────────────────────────────────────────
@@ -212,7 +225,15 @@ export function derivePhases(data: RoadmapPageData): RoadmapPhase[] {
   let previousCompleted = true; // step pertama tidak punya prasyarat
   let foundActive = false;
 
-  return PHASE_DEFINITIONS.map((phase) => {
+  // Tahap Evaluasi: arahkan CTA ke drilling kategori terlemah user.
+  const weakest = weakestCategory(data);
+  const withDynamicCta = (phase: Omit<RoadmapPhase, 'status'>): Omit<RoadmapPhase, 'status'> =>
+    phase.id === 'evaluasi_mendalam'
+      ? { ...phase, ctaLabel: `Latih ${weakest} (Terlemah)`, ctaHref: `/drilling?cat=${weakest}` }
+      : phase;
+
+  return PHASE_DEFINITIONS.map((rawPhase) => {
+    const phase = withDynamicCta(rawPhase);
     // Step ini hanya bisa completed jika step sebelumnya completed
     const isDone = previousCompleted && technicallyDone[phase.id];
 

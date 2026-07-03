@@ -14,12 +14,16 @@ import {
 } from '@/constants/roadmap-data';
 import type { RoadmapStats } from '@/lib/supabase/queries';
 import type { ReminderPreference } from '@/types/roadmap';
+import type { PeluangFormasi } from '@/lib/supabase/peluang-formasi';
+import { ExamCountdown }     from '@/components/roadmap/ExamCountdown';
+import { PeluangProjection } from '@/components/roadmap/PeluangProjection';
+import { StreakCard }        from '@/components/roadmap/StreakCard';
 import {
   ChevronDown, CheckCircle2, Lock, ArrowRight,
   Map, BarChart3, Trophy, CalendarDays,
   Lightbulb, BookOpen, Brain, Heart,
   Bell, BellOff, ChevronLeft, ChevronRight as ChevronRightIcon,
-  Check, Pencil, Target, Flame,
+  Check, Pencil, Target,
 } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────
@@ -28,6 +32,7 @@ interface MobileRoadmapProps {
   stats:            RoadmapStats;
   savedPreference?: ReminderPreference | null;
   studyHistory?:    string[];
+  peluang?:         PeluangFormasi | null;
 }
 
 type ScheduleMode = 1 | 2 | 3 | 4 | 'custom';
@@ -158,7 +163,7 @@ function Section({
 
 // ── Main component ─────────────────────────────────────────────
 
-export function MobileRoadmap({ stats, savedPreference, studyHistory = [] }: MobileRoadmapProps) {
+export function MobileRoadmap({ stats, savedPreference, studyHistory = [], peluang = null }: MobileRoadmapProps) {
   const phases         = useMemo(() => derivePhases(stats),         [stats]);
   const categoryScores = useMemo(() => deriveCategoryScores(stats), [stats]);
   const milestones     = useMemo(() => getMilestones(stats),        [stats]);
@@ -342,6 +347,18 @@ export function MobileRoadmap({ stats, savedPreference, studyHistory = [] }: Mob
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Countdown ujian + target minggu ini ──────────── */}
+      <div className="px-4 pt-4 space-y-3">
+        <ExamCountdown examDate={selectedDate ?? null} stats={stats} />
+        <StreakCard
+          studyHistory={studyHistory}
+          stats={stats}
+          progressPct={progressPct}
+          nationalPercentile={peluang?.nationalPercentile ?? null}
+        />
+        <PeluangProjection peluang={peluang} />
       </div>
 
       {/* ── Rekomendasi Fokus ────────────────────────────── */}

@@ -5,6 +5,7 @@
 import { auth }           from '@clerk/nextjs/server';
 import { redirect }       from 'next/navigation';
 import { getRoadmapStats } from '@/lib/supabase/queries';
+import { getPeluangFormasi, type PeluangFormasi } from '@/lib/supabase/peluang-formasi';
 import { createAdminClient } from '@/lib/supabase/server';
 import { RoadmapContent } from './roadmap-content';
 import type { ReminderPreference } from '@/types/roadmap';
@@ -22,9 +23,11 @@ export default async function RoadmapPage() {
 
   const supabase = await createAdminClient();
 
-  // Fetch stats, reminder preference, dan history secara paralel
-  const [stats, { data: prefData }, { data: historyData }] = await Promise.all([
+  // Fetch stats, peluang, reminder preference, dan history secara paralel.
+  // Peluang dibungkus agar kegagalan RPC tidak menggagalkan seluruh halaman.
+  const [stats, peluang, { data: prefData }, { data: historyData }] = await Promise.all([
     getRoadmapStats(userId),
+    getPeluangFormasi(userId).catch(() => null as PeluangFormasi | null),
 
     supabase
       .from('user_reminder_preferences')
@@ -65,6 +68,7 @@ export default async function RoadmapPage() {
           stats={stats}
           savedPreference={savedPreference}
           studyHistory={studyHistory}
+          peluang={peluang}
         />
       </MobilePageWrapper>
 
@@ -74,6 +78,7 @@ export default async function RoadmapPage() {
           stats={stats}
           savedPreference={savedPreference}
           studyHistory={studyHistory}
+          peluang={peluang}
         />
       </div>
     </>

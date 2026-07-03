@@ -14,18 +14,24 @@ import { RoadmapPersiapan }  from '@/components/roadmap/RoadmapPersiapan';
 import { ProgressMilestone } from '@/components/roadmap/ProgressMilestone';
 import { RekomendasiNext }   from '@/components/roadmap/RekomendasiNext';
 import { StudyCalendar }     from '@/components/roadmap/StudyCalendar';
+import { ExamCountdown }     from '@/components/roadmap/ExamCountdown';
+import { PeluangProjection } from '@/components/roadmap/PeluangProjection';
+import { StreakCard }        from '@/components/roadmap/StreakCard';
+import type { PeluangFormasi } from '@/lib/supabase/peluang-formasi';
 import { Map, Flame, Target } from 'lucide-react';
 
 interface RoadmapContentProps {
   stats:             RoadmapStats;
   savedPreference?:  ReminderPreference | null;
   studyHistory?:     string[];
+  peluang?:          PeluangFormasi | null;
 }
 
 export function RoadmapContent({
   stats,
   savedPreference,
   studyHistory = [],
+  peluang = null,
 }: RoadmapContentProps) {
   const phases         = useMemo(() => derivePhases(stats),         [stats]);
   const categoryScores = useMemo(() => deriveCategoryScores(stats), [stats]);
@@ -133,6 +139,11 @@ export function RoadmapContent({
         </div>
       </div>
 
+      {/* ── Countdown ujian + target minggu ini ─────────────── */}
+      <div className="mb-6">
+        <ExamCountdown examDate={examTargetDate} stats={stats} />
+      </div>
+
       {/* ── 2-COLUMN CONTENT GRID ───────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -148,8 +159,15 @@ export function RoadmapContent({
           <RoadmapPersiapan phases={phases} />
         </div>
 
-        {/* Kolom Kanan (5): Progress + Kalender */}
+        {/* Kolom Kanan (5): Streak + Proyeksi + Progress + Kalender */}
         <div className="lg:col-span-5 space-y-5">
+          <StreakCard
+            studyHistory={studyHistory}
+            stats={stats}
+            progressPct={progressPct}
+            nationalPercentile={peluang?.nationalPercentile ?? null}
+          />
+          <PeluangProjection peluang={peluang} />
           <ProgressMilestone
             categoryScores={categoryScores}
             milestones={milestones}
