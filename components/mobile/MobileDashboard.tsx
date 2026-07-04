@@ -239,34 +239,50 @@ export function MobileDashboard({
 
       {/* ── Mini Statistik Belajar ─────────────────────────────── */}
       <section className="mx-4">
-        <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-2xl p-4 shadow-lg border border-slate-600">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-sm font-bold text-white" style={{ fontFamily: 'var(--font-jakarta)' }}>
-                Statistik <span className="text-yellow-400">Belajar</span>
-              </h2>
-              <p className="text-slate-400 text-[10px] mt-0.5">Pantau perkembangan belajarmu.</p>
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-4 shadow-lg border border-slate-700/60">
+          {/* Blob dekoratif */}
+          <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-yellow-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-14 -left-8 w-36 h-36 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
+
+          {/* Header */}
+          <div className="relative flex items-center justify-between mb-3.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                <BarChart2 size={17} className="text-yellow-400" strokeWidth={2.2} />
+              </div>
+              <div>
+                <h2 className="text-sm font-extrabold text-white leading-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  Statistik <span className="text-yellow-400">Belajar</span>
+                </h2>
+                <p className="text-slate-400 text-[10px] mt-0.5">Pantau perkembangan belajarmu.</p>
+              </div>
             </div>
             <Link href="/statistics">
-              <span className="bg-white/10 border border-white/20 text-white text-[10px] font-semibold px-2.5 py-1.5 rounded-lg flex items-center gap-1">
+              <span className="bg-white/10 border border-white/15 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-0.5 active:scale-95 transition-transform">
                 Detail <ChevronRight size={11} />
               </span>
             </Link>
           </div>
-          <div className="grid grid-cols-4 gap-1.5">
+
+          {/* Stat strip dengan divider + aksen warna per metrik */}
+          <div className="relative grid grid-cols-4 rounded-xl bg-slate-900/40 border border-white/5 divide-x divide-white/[0.06]">
             {[
-              { label: 'Selesai',   value: completedCount, Icon: CheckCircle },
-              { label: 'Rata-rata', value: averageScore,   Icon: BarChart2   },
-              { label: 'Peringkat', value: rankingDisplay, Icon: Award       },
-              { label: 'Terbaik',   value: bestScore,      Icon: TrendingUp  },
-            ].map(({ label, value, Icon }) => (
-              <div key={label} className="bg-slate-700/50 rounded-xl py-2.5 px-1.5 flex flex-col items-center gap-1">
-                <Icon size={13} className="text-yellow-400" strokeWidth={2} />
-                <p className="text-white font-extrabold text-sm leading-none text-center"
-                  style={{ fontFamily: 'var(--font-jakarta)' }}>
+              { label: 'Selesai',   value: completedCount, Icon: CheckCircle, tint: 'bg-emerald-400/15', color: 'text-emerald-400' },
+              { label: 'Rata-rata', value: averageScore,   Icon: BarChart2,   tint: 'bg-sky-400/15',     color: 'text-sky-400'     },
+              { label: 'Peringkat', value: rankingDisplay, Icon: Award,       tint: 'bg-yellow-400/15',  color: 'text-yellow-400', highlight: true },
+              { label: 'Terbaik',   value: bestScore,      Icon: TrendingUp,  tint: 'bg-violet-400/15',  color: 'text-violet-400'  },
+            ].map(({ label, value, Icon, tint, color, highlight }) => (
+              <div key={label} className="flex flex-col items-center gap-1.5 py-3 px-1">
+                <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', tint)}>
+                  <Icon size={13} className={color} strokeWidth={2.2} />
+                </div>
+                <p className={cn(
+                  'font-extrabold text-sm leading-none text-center tabular-nums',
+                  highlight ? 'text-yellow-400' : 'text-white',
+                )} style={{ fontFamily: 'var(--font-jakarta)' }}>
                   {value}
                 </p>
-                <p className="text-slate-400 text-[8px] font-medium leading-tight text-center">
+                <p className="text-slate-400 text-[8px] font-semibold uppercase tracking-wide leading-tight text-center">
                   {label}
                 </p>
               </div>
@@ -336,18 +352,18 @@ export function MobileDashboard({
                     </h3>
                   </div>
 
-                  {/* Meta row — satu baris horizontal */}
-                  <div className="flex items-center gap-3 px-3 pb-2.5 text-[11px] text-slate-400 font-medium">
-                    <span className="flex items-center gap-1">
-                      <BookOpen size={11} />
+                  {/* Meta row — item tidak pecah di tengah; reflow rapi bila sempit */}
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 px-3 pb-2.5 text-[11px] text-slate-400 font-medium">
+                    <span className="flex items-center gap-1 whitespace-nowrap">
+                      <BookOpen size={11} className="flex-shrink-0" />
                       {pkg.total_questions ?? 110}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={11} />
+                    <span className="flex items-center gap-1 whitespace-nowrap">
+                      <Clock size={11} className="flex-shrink-0" />
                       {pkg.duration_minutes ?? 100} mnt
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Users size={11} />
+                    <span className="flex items-center gap-1 whitespace-nowrap">
+                      <Users size={11} className="flex-shrink-0" />
                       {fmtCount(pkg.completedUsersCount)}
                     </span>
                   </div>
