@@ -680,6 +680,10 @@ export async function getPackagesAdmin(includeInactive = false) {
   let query = supabase.from('packages')
     .select('*, package_questions (count)')
     .eq('is_deleted', false)
+    // Paket drilling adalah paket throwaway per-sesi (dibuat otomatis oleh
+    // fitur Drilling), bukan konten yang dikelola admin — sembunyikan dari
+    // daftar Kelola Paket Tryout.
+    .neq('kind', 'drilling')
     .order('created_at', { ascending: false });
   if (!includeInactive) query = query.eq('is_active', true);
   const { data, error } = await query;

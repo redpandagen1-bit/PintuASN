@@ -11,6 +11,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive') === 'true';
+    // Paket drilling adalah paket throwaway per-sesi (dibuat otomatis oleh
+    // fitur Drilling), bukan konten yang dikelola admin. Sembunyikan dari
+    // daftar admin secara default agar tidak bercampur dengan paket tryout.
+    const includeDrilling = searchParams.get('includeDrilling') === 'true';
 
     let query = supabase
       .from('packages')
@@ -23,6 +27,9 @@ export async function GET(request: NextRequest) {
 
     if (!includeInactive) {
       query = query.eq('is_active', true);
+    }
+    if (!includeDrilling) {
+      query = query.neq('kind', 'drilling');
     }
 
     const { data, error } = await query;
