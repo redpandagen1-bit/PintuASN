@@ -4,15 +4,18 @@ import type { CategoryScores } from '@/types/exam';
 export async function calculateAttemptScore(attemptId: string): Promise<CategoryScores> {
   const supabase = await createAdminClient();
   const { data, error } = await supabase.rpc('calculate_attempt_score', { attempt_uuid: attemptId });
-  
+
   if (error) throw error;
-  if (!data) throw new Error('No data returned from calculate_attempt_score');
-  
+  // RPC calculate_attempt_score mengembalikan TABLE (array baris), jadi ambil
+  // baris pertama — sama seperti kontrak yang dipakai di /api/exam/submit.
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) throw new Error('No data returned from calculate_attempt_score');
+
   return {
-    twk: data.twk_score,
-    tiu: data.tiu_score,
-    tkp: data.tkp_score,
-    total: data.total_score,
+    twk: row.twk_score,
+    tiu: row.tiu_score,
+    tkp: row.tkp_score,
+    total: row.total_score,
   };
 }
 

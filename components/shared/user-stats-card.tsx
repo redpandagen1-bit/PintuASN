@@ -148,7 +148,7 @@ export function UserStatsCard({
                     </div>
                   </div>
                   
-                  {attempt.final_score !== null && (
+                  {attempt.final_score != null && (
                     <Badge 
                       variant="outline" 
                       className={getScoreBadgeColor(attempt.final_score)}

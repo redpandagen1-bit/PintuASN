@@ -55,7 +55,7 @@ export function ProfileCard({ profile, onProfileUpdate }: ProfileCardProps) {
           <div className="flex flex-col items-center space-y-4">
             <Avatar
               className="h-24 w-24"
-              src={profile.avatar_url}
+              src={profile.avatar_url ?? undefined}
               alt={profile.full_name || 'User'}
               fallback={getInitials(profile.full_name || '')}
             />

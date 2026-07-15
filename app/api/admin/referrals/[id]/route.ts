@@ -5,7 +5,11 @@ import { createAdminClient }         from '@/lib/supabase/server';
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: NextRequest, { params }: Params) {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
   const { id } = await params;
   const supabase = await createAdminClient();
   const body = await req.json() as { is_active?: boolean };
@@ -22,7 +26,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_: NextRequest, { params }: Params) {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+  }
   const { id } = await params;
   const supabase = await createAdminClient();
 

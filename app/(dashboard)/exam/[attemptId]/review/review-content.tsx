@@ -64,7 +64,7 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
 
   const attempt = reviewData.attempt;
   const startedAt   = attempt.started_at   ? new Date(attempt.started_at)   : null;
-  const submittedAt = attempt.submitted_at  ? new Date(attempt.submitted_at) : startedAt;
+  const submittedAt = attempt.completed_at ? new Date(attempt.completed_at) : startedAt;
 
   const submittedDateStr = submittedAt
     ? submittedAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })

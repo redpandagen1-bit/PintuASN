@@ -22,9 +22,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug)
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
   if (!post) return { title: 'Artikel tidak ditemukan – PintuASN' }
 
   const title = post.meta_title ?? `${post.title} – PintuASN`
@@ -84,8 +85,9 @@ function RelatedCard({ post }: { post: Post }) {
   )
 }
 
-export default async function BlogDetailPage({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug)
+export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const post = await getPostBySlug(slug)
   if (!post) notFound()
 
   // Increment view count (non-blocking)

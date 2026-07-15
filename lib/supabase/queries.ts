@@ -201,9 +201,18 @@ export async function getAttemptById(attemptId: string) {
   }
   if (!attempt) throw new Error('Attempt not found');
 
+  // PENTING (keamanan): JANGAN ambil is_answer / score di sini. Hasil query ini
+  // diteruskan ke <ExamInterface> (client component), sehingga field apa pun di
+  // dalamnya ikut ter-serialize ke payload RSC dan bisa dibaca peserta lewat
+  // DevTools saat ujian berlangsung — yaitu bocornya kunci jawaban. Penilaian
+  // dilakukan sepenuhnya server-side via RPC calculate_attempt_score, jadi
+  // client memang tidak butuh kunci jawaban sama sekali.
+  // Kolom question dipilih eksplisit (bukan `*`) supaya `explanation` /
+  // `explanation_image_url` — yang kerap menyebut jawaban benar — tidak ikut
+  // bocor ke client saat ujian. Pembahasan baru ditampilkan di halaman hasil.
   const { data: packageQuestions, error: questionsError } = await supabase
     .from('package_questions')
-    .select('position, questions ( *, choices ( id, label, content, image_url, is_answer, score ) )')
+    .select('position, questions ( id, category, content, image_url, topic, difficulty, choices ( id, label, content, image_url ) )')
     .eq('package_id', attempt.package_id)
     .order('position');
 

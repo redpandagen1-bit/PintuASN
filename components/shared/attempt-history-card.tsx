@@ -59,9 +59,9 @@ export function AttemptHistoryCard({ attempt, isLocked = false }: AttemptHistory
   };
 
   const passed = isPassed();
-  const isDrilling = (attempt as any).kind === 'drilling';
-  const totalScore = attempt.total_score ?? (attempt as any).final_score ?? null;
-  const completedAt = (attempt as any).completed_at || attempt.started_at;
+  const isDrilling = attempt.kind === 'drilling';
+  const totalScore = attempt.final_score ?? null;
+  const completedAt = attempt.completed_at || attempt.started_at;
   const duration = calculateDuration(attempt.started_at, (attempt as any).completed_at);
 
   const handleCopyLink = async () => {

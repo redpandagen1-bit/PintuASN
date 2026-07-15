@@ -51,3 +51,6 @@ next-env.d.ts
 # Firebase Service Account (JANGAN dicommit — berisi private key)
 firebase-service-account.json
 *-service-account*.json
+
+# Claude Code local config
+.claude/

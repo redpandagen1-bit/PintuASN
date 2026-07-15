@@ -58,7 +58,7 @@ export function validateQuestionRow(row: any): {
     if (error instanceof z.ZodError) {
       return {
         valid: false,
-        errors: error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
+        errors: error.issues.map(e => `${e.path.join('.')}: ${e.message}`),
       };
     }
     return { valid: false, errors: ['Validation error'] };

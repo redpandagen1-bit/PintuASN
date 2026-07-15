@@ -48,7 +48,7 @@ function getTierInfo(tier?: string) {
   }
 }
 
-function getInitials(name?: string) {
+function getInitials(name?: string | null) {
   if (!name) return 'U';
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
 }

@@ -6,19 +6,20 @@ import { checkIsAdmin } from '@/lib/auth/check-admin'
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const isAdmin = await checkIsAdmin()
     if (!isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const { id } = await params
     const supabase = await createAdminClient()
     const body = await req.json()
 
     const { error } = await supabase
       .from('question_reports')
       .update({ status: body.status })
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) throw error
     return NextResponse.json({ success: true })

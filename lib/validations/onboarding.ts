@@ -22,6 +22,6 @@ export const onboardingSchema = z.object({
       message: "Usia minimal 13 tahun"
     }),
   gender: z.enum(['male', 'female'], {
-    errorMap: () => ({ message: "Jenis kelamin wajib diisi" })
+    message: "Jenis kelamin wajib diisi",
   })
 });

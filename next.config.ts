@@ -10,10 +10,16 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   eslint: {
-    ignoreDuringBuilds: true,
+    // Lint diaktifkan di build: 0 error (rule stylistic/React-Compiler
+    // diturunkan ke "warn" di eslint.config.mjs). Build gagal hanya jika ada
+    // error lint baru — mis. rules-of-hooks / exhaustive-deps yang menandai bug.
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // TS diaktifkan kembali di build: seluruh kode app sudah bersih dari error
+    // (supabase/functions Deno di-exclude di tsconfig). Build kini menangkap
+    // regresi tipe secara otomatis alih-alih menyembunyikannya.
+    ignoreBuildErrors: false,
   },
   async headers() {
     return [

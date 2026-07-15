@@ -62,8 +62,8 @@ export function MobilePembahasan({ reviewData }: MobilePembahasanProps) {
   const scoreTKP = attempt.score_tkp ?? 0;
   const isPassed = scoreTWK >= 65 && scoreTIU >= 80 && scoreTKP >= 166;
 
-  const submittedAt = attempt.submitted_at
-    ? new Date(attempt.submitted_at)
+  const submittedAt = attempt.completed_at
+    ? new Date(attempt.completed_at)
     : attempt.started_at ? new Date(attempt.started_at) : null;
 
   const submittedStr = submittedAt

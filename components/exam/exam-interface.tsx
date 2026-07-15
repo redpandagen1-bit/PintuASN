@@ -103,6 +103,10 @@ export function ExamInterface({
 
   const router = useRouter();
   const hasSubmittedRef = useRef(false);
+  // Simpan timeLeft terbaru di ref supaya interval auto-save membacanya tanpa
+  // perlu masuk dependency array (kalau tidak, interval di-reset tiap detik).
+  const timeLeftRef = useRef(timeLeft);
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
   const currentQuestion = questions[currentIndex];
 
   // ── Pencatatan waktu per soal (akumulasi detik tiap soal) ───────────────
@@ -209,42 +213,46 @@ export function ExamInterface({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [currentIndex, questions, prevQuestion, nextQuestion, selectAnswer, toggleFlag]);
 
-  // Auto-save timer (hanya timeRemaining) setiap 10 detik
+  // Auto-save timer (hanya timeRemaining) setiap 10 detik.
+  // Deps sengaja HANYA [attemptId]: interval dibuat sekali dan membaca timeLeft
+  // terbaru via ref, sehingga tidak di-reset tiap detik (bug lama: auto-save
+  // tak pernah tercapai karena effect teardown setiap timeLeft berubah).
   useEffect(() => {
-    if (timeLeft <= 0) return;
     const saveInterval = setInterval(async () => {
-  try {
-    const res = await fetch('/api/exam/save-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) }),
-    });
-    // 401 = token expired karena jaringan putus, silent fail saja
-    // jangan throw agar tidak spam console error
-    if (!res.ok && res.status !== 401) {
-      console.warn('Save-progress failed:', res.status);
-    }
-  } catch {
-    // network error (offline), silent fail
-  }
-}, 10000);
+      const secs = timeLeftRef.current;
+      if (secs <= 0) return;
+      try {
+        const res = await fetch('/api/exam/save-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ attemptId, timeRemaining: Math.floor(secs * 1000) }),
+        });
+        // 401 = token expired karena jaringan putus, silent fail saja
+        // jangan throw agar tidak spam console error
+        if (!res.ok && res.status !== 401) {
+          console.warn('Save-progress failed:', res.status);
+        }
+      } catch {
+        // network error (offline), silent fail
+      }
+    }, 10000);
     return () => clearInterval(saveInterval);
-  }, [timeLeft, attemptId]);
+  }, [attemptId]);
 
-  // beforeunload: save timeRemaining via sendBeacon
+  // beforeunload: save timeRemaining via sendBeacon (baca timeLeft via ref)
   useEffect(() => {
     const handleBeforeUnload = () => {
       navigator.sendBeacon(
         '/api/exam/save-progress',
         new Blob(
-          [JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeft * 1000) })],
+          [JSON.stringify({ attemptId, timeRemaining: Math.floor(timeLeftRef.current * 1000) })],
           { type: 'application/json' }
         )
       );
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [attemptId, timeLeft]);
+  }, [attemptId]);
 
   // bfcache guard (PWA/mobile): jika halaman exam dipulihkan dari back-forward
   // cache, server-side redirect (status completed -> result) TIDAK ikut jalan.
@@ -315,6 +323,10 @@ export function ExamInterface({
       console.error('Submit error:', error);
       toast.error('Gagal mengirim ujian. Silakan coba lagi.', { id: toastId });
       setIsSubmitting(false);
+      // Submit gagal → lepas kunci agar user bisa mencoba lagi DAN agar
+      // auto-submit saat waktu habis tetap bisa berjalan (kalau tidak di-reset,
+      // ref tetap true dan fallback auto-submit tak pernah menembak).
+      hasSubmittedRef.current = false;
     }
   };
 

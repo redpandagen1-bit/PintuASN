@@ -31,7 +31,7 @@ async function DaftarTryoutContent() {
   ]);
 
   // Hitung jumlah user unik yang sudah complete per paket
-  let userCountsByPackage = new Map<string, number>();
+  const userCountsByPackage = new Map<string, number>();
 
   if (packages.length > 0) {
     const supabase   = await createAdminClient();

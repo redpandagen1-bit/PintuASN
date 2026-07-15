@@ -24,7 +24,7 @@ export function ExamInstructionsModal({ packageId }: ExamInstructionsModalProps)
   const [open, setOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleStartExam = async () => {
