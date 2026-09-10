@@ -70,7 +70,7 @@ async function EventsGrid() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
       {events.map(event => (
         <EventPromoCard key={event.id} event={event} />
       ))}
