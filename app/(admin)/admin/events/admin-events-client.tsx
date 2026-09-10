@@ -8,7 +8,7 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import {
   Plus, Trash2, GripVertical, Upload, Save, X,
-  ImageIcon, CalendarDays, Tag, Zap, Ticket,
+  ImageIcon, CalendarDays, Tag, Zap, Ticket, Instagram,
 } from 'lucide-react';
 import { Button }   from '@/components/ui/button';
 import { Input }    from '@/components/ui/input';
@@ -77,6 +77,7 @@ export default function AdminEventsClient({ initialEvents }: Props) {
     cta_link:      '/beli-paket',
     cta_type:      'link',
     cta_package:   null,
+    requires_follow_proof: false,
     start_date:    null,
     end_date:      null,
     quota:         null,
@@ -454,6 +455,25 @@ export default function AdminEventsClient({ initialEvents }: Props) {
                   />
                   <Label htmlFor="ev-active">Tampilkan di halaman pengguna</Label>
                 </div>
+              </div>
+
+              {/* Wajib bukti follow sosmed */}
+              <div className="flex items-center justify-between rounded-xl border-2 border-slate-200 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
+                    <Instagram size={18} />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold cursor-pointer">Wajib Upload Bukti Follow Sosmed</Label>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      User harus upload screenshot follow Instagram/TikTok @pintuasnofficial sebelum bisa klaim promo ini.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={editing.requires_follow_proof}
+                  onCheckedChange={v => patch({ requires_follow_proof: v })}
+                />
               </div>
 
               {error && (

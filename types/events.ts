@@ -16,6 +16,7 @@ export interface Event {
   cta_link: string | null;
   cta_type: 'link' | 'payment';  // 'link' = redirect biasa, 'payment' = langsung ke halaman pembayaran
   cta_package: 'premium' | 'platinum' | null; // wajib diisi jika cta_type === 'payment'
+  requires_follow_proof: boolean; // wajib upload bukti follow sosmed sebelum klaim
   start_date: string | null;     // ISO string
   end_date: string | null;       // ISO string
   quota: number | null;          // null = unlimited

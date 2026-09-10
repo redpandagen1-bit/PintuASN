@@ -49,6 +49,22 @@ export async function POST(req: Request) {
       );
     }
 
+    // Paket ini wajib bukti follow sosmed — pastikan user sudah pernah submit
+    if (pkg.requires_follow_proof) {
+      const { data: proof } = await supabase
+        .from('follow_proof_submissions')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle();
+      if (!proof) {
+        return NextResponse.json(
+          { error: 'Upload bukti follow sosmed dulu sebelum memulai paket ini', code: 'FOLLOW_PROOF_REQUIRED' },
+          { status: 403 }
+        );
+      }
+    }
+
     // Jika sudah ada attempt yang sedang berjalan → LANJUTKAN (resume),
     // jangan hapus. Mencegah kehilangan jawaban saat user/navigasi memicu
     // "mulai" lagi padahal ujian masih berlangsung.

@@ -13,7 +13,12 @@ import {
 } from 'lucide-react';
 import { Badge }    from '@/components/ui/badge';
 import { Button }   from '@/components/ui/button';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { useClaimPromo } from '@/hooks/use-claim-promo';
+import { useFollowProofGate } from '@/hooks/use-follow-proof-gate';
+import { FollowProofUpload } from '@/components/shared/FollowProofUpload';
 import type { Event, EventType } from '@/types/events';
 
 // ── helpers ──────────────────────────────────────────────────
@@ -62,7 +67,14 @@ export default function EventPromoCard({ event }: Props) {
   const [copied,      setCopied]      = useState(false);
   const [termsOpen,   setTermsOpen]   = useState(false);
   const { claim, claiming, error: claimError } = useClaimPromo();
+  const { checked: proofChecked, needsProof } = useFollowProofGate(event.requires_follow_proof);
+  const [showProofGate, setShowProofGate] = useState(false);
   const countdown = useCountdown(event.end_date);
+
+  const handleClaimClick = () => {
+    if (event.requires_follow_proof && needsProof) { setShowProofGate(true); return; }
+    void claim(event);
+  };
   const cfg       = TYPE_CONFIG[event.type] ?? TYPE_CONFIG.promo;
 
   // Status
@@ -252,8 +264,8 @@ export default function EventPromoCard({ event }: Props) {
         {event.cta_type === 'payment' && event.cta_package && !isExpired && !quotaFull && !isComingSoon && (
           <div className="mt-auto pt-1">
             <Button
-              onClick={() => void claim(event)}
-              disabled={claiming}
+              onClick={handleClaimClick}
+              disabled={claiming || !proofChecked}
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11"
             >
               {claiming ? 'Memproses...' : (event.cta_label ?? 'Klaim Sekarang')}
@@ -276,6 +288,20 @@ export default function EventPromoCard({ event }: Props) {
           </div>
         )}
       </div>
+
+      <Dialog open={showProofGate} onOpenChange={setShowProofGate}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bukti Follow Sosmed</DialogTitle>
+            <DialogDescription>Satu langkah lagi sebelum klaim promo ini</DialogDescription>
+          </DialogHeader>
+          <FollowProofUpload
+            context={{ eventId: event.id }}
+            onCancel={() => setShowProofGate(false)}
+            onApproved={() => { setShowProofGate(false); void claim(event); }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

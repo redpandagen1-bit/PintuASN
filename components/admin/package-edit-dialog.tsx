@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Package, Shield, BarChart3, Eye, EyeOff, Sparkles, Flame } from 'lucide-react';
+import { Loader2, Package, Shield, BarChart3, Eye, EyeOff, Sparkles, Flame, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PackageEditDialogProps {
@@ -46,6 +46,7 @@ export function PackageEditDialog({
     tier: packageData.tier || 'free',
     is_hots: packageData.is_hots || false,
     is_active: packageData.is_active || false,
+    requires_follow_proof: packageData.requires_follow_proof || false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -306,6 +307,35 @@ export function PackageEditDialog({
                     className="data-[state=checked]:bg-orange-500"
                   />
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Wajib bukti follow sosmed */}
+          <div
+            className={cn(
+              'relative overflow-hidden rounded-xl border-2 transition-all',
+              formData.requires_follow_proof
+                ? 'bg-gradient-to-br from-pink-50 to-rose-50 border-pink-300'
+                : 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200'
+            )}
+          >
+            <div className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Instagram className={cn('h-5 w-5', formData.requires_follow_proof ? 'text-pink-600' : 'text-slate-400')} />
+                    <Label className="text-base font-semibold cursor-pointer">Wajib Upload Bukti Follow Sosmed</Label>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    User harus upload screenshot follow Instagram/TikTok @pintuasnofficial sebelum bisa mulai paket ini.
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.requires_follow_proof}
+                  onCheckedChange={(checked) => setFormData({ ...formData, requires_follow_proof: checked })}
+                  className="data-[state=checked]:bg-pink-600"
+                />
               </div>
             </div>
           </div>

@@ -22,6 +22,7 @@ interface MobilePackageDetailProps {
   tier?:            string | null;
   hasActiveAttempt: boolean;
   activeAttemptId?: string | null;
+  requiresFollowProof?: boolean;
 }
 
 // ── Constants ─────────────────────────────────────────────────
@@ -59,6 +60,7 @@ export function MobilePackageDetail({
   tier,
   hasActiveAttempt,
   activeAttemptId,
+  requiresFollowProof,
 }: MobilePackageDetailProps) {
   const diffBadge = getDifficultyBadge(difficulty);
   const tierBadge = getTierBadge(tier);
@@ -100,7 +102,7 @@ export function MobilePackageDetail({
                 </Link>
               ) : (
                 <div className="[&_button]:flex [&_button]:items-center [&_button]:gap-2 [&_button]:bg-yellow-400 [&_button:hover]:bg-yellow-500 [&_button:hover]:text-white [&_button]:text-slate-900 [&_button]:font-bold [&_button]:py-2 [&_button]:px-4 [&_button]:rounded-full [&_button]:border-0 [&_button]:text-sm [&_button]:transition-all [&_button]:shadow-[0_4px_14px_rgba(250,204,21,0.45)] [&_button]:whitespace-nowrap">
-                  <ExamInstructionsModal packageId={packageId} />
+                  <ExamInstructionsModal packageId={packageId} requiresFollowProof={requiresFollowProof} />
                 </div>
               )}
             </div>
@@ -253,7 +255,7 @@ export function MobilePackageDetail({
           </Link>
         ) : (
           <div className="[&_button]:w-full [&_button]:bg-yellow-400 [&_button:hover]:bg-yellow-500 [&_button:hover]:text-white [&_button]:text-slate-900 [&_button]:font-extrabold [&_button]:py-3 [&_button]:rounded-xl [&_button]:border-0 [&_button]:text-sm [&_button]:transition-colors">
-            <ExamInstructionsModal packageId={packageId} />
+            <ExamInstructionsModal packageId={packageId} requiresFollowProof={requiresFollowProof} />
           </div>
         )}
       </div>

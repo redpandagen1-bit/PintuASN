@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Instagram } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 export function PackageCreateForm() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export function PackageCreateForm() {
     tier: 'free',
     duration_minutes: 100,
     is_active: true,
+    requires_follow_proof: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -165,6 +167,25 @@ export function PackageCreateForm() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Wajib bukti follow sosmed */}
+          <div className="flex items-center justify-between rounded-xl border-2 border-slate-200 p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
+                <Instagram size={18} />
+              </div>
+              <div>
+                <Label className="text-sm font-semibold cursor-pointer">Wajib Upload Bukti Follow Sosmed</Label>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  User harus upload screenshot follow Instagram/TikTok @pintuasnofficial sebelum bisa mulai paket ini.
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={formData.requires_follow_proof}
+              onCheckedChange={(checked) => setFormData({ ...formData, requires_follow_proof: checked })}
+            />
           </div>
 
           {/* Action Buttons */}

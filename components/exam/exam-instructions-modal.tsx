@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -15,17 +15,34 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { FollowProofUpload } from '@/components/shared/FollowProofUpload';
 
 interface ExamInstructionsModalProps {
   packageId: string;
+  requiresFollowProof?: boolean;
 }
 
-export function ExamInstructionsModal({ packageId }: ExamInstructionsModalProps) {
+export function ExamInstructionsModal({ packageId, requiresFollowProof = false }: ExamInstructionsModalProps) {
   const [open, setOpen] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [needsFollowProof, setNeedsFollowProof] = useState(false);
+  const [showFollowProofStep, setShowFollowProofStep] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!open || !requiresFollowProof) return;
+    fetch('/api/follow-proof/status')
+      .then(r => r.json())
+      .then(d => setNeedsFollowProof(!d.hasSubmitted))
+      .catch(() => setNeedsFollowProof(false));
+  }, [open, requiresFollowProof]);
+
+  const handleStartClick = () => {
+    if (needsFollowProof) { setShowFollowProofStep(true); return; }
+    void handleStartExam();
+  };
 
   const handleStartExam = async () => {
     setIsLoading(true);
@@ -59,13 +76,29 @@ export function ExamInstructionsModal({ packageId }: ExamInstructionsModalProps)
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
+        {showFollowProofStep ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Bukti Follow Sosmed</DialogTitle>
+              <DialogDescription>
+                Satu langkah lagi sebelum tryout dimulai
+              </DialogDescription>
+            </DialogHeader>
+            <FollowProofUpload
+              context={{ packageId }}
+              onCancel={() => setShowFollowProofStep(false)}
+              onApproved={() => void handleStartExam()}
+            />
+          </>
+        ) : (
+        <>
         <DialogHeader>
           <DialogTitle>Petunjuk Ujian</DialogTitle>
           <DialogDescription>
             Mohon baca dan pahami aturan berikut sebelum memulai
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <ul className="space-y-2 text-sm text-slate-700">
             <li>1. Ujian terdiri dari 110 soal dengan durasi 100 menit</li>
@@ -73,15 +106,15 @@ export function ExamInstructionsModal({ packageId }: ExamInstructionsModalProps)
             <li>3. Ujian akan otomatis berakhir jika waktu habis</li>
             <li>4. Jawaban Anda akan tersimpan secara otomatis</li>
           </ul>
-          
+
           <div className="flex items-center space-x-2">
-            <Checkbox 
+            <Checkbox
               id="ready"
               checked={isReady}
               onCheckedChange={(checked) => setIsReady(checked as boolean)}
             />
-            <label 
-              htmlFor="ready" 
+            <label
+              htmlFor="ready"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               Saya sudah siap dan memahami aturan ujian
@@ -97,15 +130,15 @@ export function ExamInstructionsModal({ packageId }: ExamInstructionsModalProps)
         )}
 
         <DialogFooter>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setOpen(false)}
             disabled={isLoading}
           >
             Batal
           </Button>
-          <Button 
-            onClick={handleStartExam}
+          <Button
+            onClick={handleStartClick}
             disabled={!isReady || isLoading}
           >
             {isLoading ? (
@@ -118,6 +151,8 @@ export function ExamInstructionsModal({ packageId }: ExamInstructionsModalProps)
             )}
           </Button>
         </DialogFooter>
+        </>
+        )}
       </DialogContent>
     </Dialog>
   );

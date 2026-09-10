@@ -63,6 +63,7 @@ export default async function PackageDetailPage({
           tier={(packageData as any).tier ?? null}
           hasActiveAttempt={!!activeAttempt}
           activeAttemptId={activeAttempt?.id ?? null}
+          requiresFollowProof={!!(packageData as any).requires_follow_proof}
         />
       </MobilePageWrapper>
       <div className="hidden md:block min-h-screen bg-slate-50 pb-20 md:pb-8">
@@ -111,7 +112,7 @@ export default async function PackageDetailPage({
                 </Link>
               ) : (
                 <div className="w-full md:w-56 [&_button]:w-full [&_button]:bg-yellow-400 [&_button]:hover:bg-yellow-500 [&_button]:text-slate-900 [&_button]:font-bold [&_button]:py-3.5 [&_button]:px-6 [&_button]:rounded-xl [&_button]:border-0 [&_button]:shadow-[0_4px_14px_0_rgba(250,204,21,0.4)] [&_button]:transition-all [&_button]:text-base">
-                  <ExamInstructionsModal packageId={id} />
+                  <ExamInstructionsModal packageId={id} requiresFollowProof={!!(packageData as any).requires_follow_proof} />
                 </div>
               )}
 

@@ -11,7 +11,12 @@ import {
   Tag, Zap, CalendarDays, Ticket, Megaphone,
 } from 'lucide-react';
 import { cn }          from '@/lib/utils';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { useClaimPromo } from '@/hooks/use-claim-promo';
+import { useFollowProofGate } from '@/hooks/use-follow-proof-gate';
+import { FollowProofUpload } from '@/components/shared/FollowProofUpload';
 import type { Event, EventType } from '@/types/events';
 
 // ── Type config (identik desktop) ─────────────────────────────
@@ -61,6 +66,13 @@ function EventCard({ event }: { event: Event }) {
   const [copied,    setCopied]    = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const { claim, claiming, error: claimError } = useClaimPromo();
+  const { checked: proofChecked, needsProof } = useFollowProofGate(event.requires_follow_proof);
+  const [showProofGate, setShowProofGate] = useState(false);
+
+  const handleClaimClick = () => {
+    if (event.requires_follow_proof && needsProof) { setShowProofGate(true); return; }
+    void claim(event);
+  };
 
   const countdown = useCountdown(event.end_date);
   const cfg       = TYPE_CONFIG[event.type] ?? TYPE_CONFIG.promo;
@@ -257,8 +269,8 @@ function EventCard({ event }: { event: Event }) {
         {event.cta_type === 'payment' && event.cta_package && !isExpired && !quotaFull && !isComingSoon && (
           <div>
             <button
-              onClick={() => void claim(event)}
-              disabled={claiming}
+              onClick={handleClaimClick}
+              disabled={claiming || !proofChecked}
               className="w-full py-3 rounded-xl bg-emerald-600 text-white text-sm font-bold active:bg-emerald-700 transition-colors disabled:opacity-60"
             >
               {claiming ? 'Memproses...' : (event.cta_label ?? 'Klaim Sekarang')}
@@ -279,6 +291,20 @@ function EventCard({ event }: { event: Event }) {
           </button>
         )}
       </div>
+
+      <Dialog open={showProofGate} onOpenChange={setShowProofGate}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bukti Follow Sosmed</DialogTitle>
+            <DialogDescription>Satu langkah lagi sebelum klaim promo ini</DialogDescription>
+          </DialogHeader>
+          <FollowProofUpload
+            context={{ eventId: event.id }}
+            onCancel={() => setShowProofGate(false)}
+            onApproved={() => { setShowProofGate(false); void claim(event); }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

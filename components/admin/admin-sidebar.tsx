@@ -17,6 +17,7 @@ import {
   ZapOff,
   RibbonIcon,
   Tag,
+  Instagram,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -32,6 +33,7 @@ const menuItems = [
   { href: '/admin/user-info', label: 'User info', icon: Settings },
   { href: '/admin/events', label: 'Events', icon: Zap },
   { href: '/admin/referrals', label: 'Kode Referral', icon: Tag },
+  { href: '/admin/follow-proofs', label: 'Bukti Follow', icon: Instagram },
   { href: '/admin/blog', label: 'Blog', icon: ZapOff },
   { href: '/admin/masukan', label: 'Masukan', icon: RibbonIcon }
 ];

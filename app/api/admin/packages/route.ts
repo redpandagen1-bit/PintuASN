@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createAdminClient();
     const body = await request.json();
 
-    const { title, description, difficulty, tier, duration_minutes, is_active } = body;
+    const { title, description, difficulty, tier, duration_minutes, is_active, requires_follow_proof } = body;
 
     // Validate required fields
     if (!title || !difficulty || !tier) {
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
         tier,
         duration_minutes: duration_minutes || 100,
         is_active: is_active ?? true,
+        requires_follow_proof: requires_follow_proof ?? false,
         created_by: userId,
       })
       .select()

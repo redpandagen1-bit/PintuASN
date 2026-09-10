@@ -50,6 +50,7 @@ export interface Package {
   is_hots?: boolean;
   is_active: boolean;
   is_deleted: boolean;
+  requires_follow_proof?: boolean;
   created_at: string;
   updated_at: string;
 }

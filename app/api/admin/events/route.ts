@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
         cta_link:     body.cta_link     ?? null,
         cta_type:     body.cta_type     ?? 'link',
         cta_package:  body.cta_type === 'payment' ? (body.cta_package ?? null) : null,
+        requires_follow_proof: body.requires_follow_proof ?? false,
         start_date:   body.start_date   ?? null,
         end_date:     body.end_date     ?? null,
         quota:        body.quota        ?? null,

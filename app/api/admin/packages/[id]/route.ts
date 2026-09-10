@@ -76,6 +76,7 @@ export async function PATCH(
         is_hots: body.is_hots,
         duration_minutes: body.duration_minutes,
         is_active: body.is_active,
+        requires_follow_proof: body.requires_follow_proof,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
