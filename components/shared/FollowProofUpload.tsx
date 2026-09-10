@@ -8,7 +8,7 @@
 
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
-import { Instagram, Upload, X, Loader2, ShieldCheck, ExternalLink } from 'lucide-react';
+import { Instagram, Upload, X, Loader2, ShieldCheck, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function TikTokIcon({ className }: { className?: string }) {
@@ -21,7 +21,8 @@ function TikTokIcon({ className }: { className?: string }) {
 
 const IG_URL   = 'https://instagram.com/pintuasnofficial';
 const TIKTOK_URL = 'https://www.tiktok.com/@pintuasnofficial';
-const REVIEW_DELAY_MS = 3800;
+const REVIEW_DELAY_MS = 8000;
+const SUCCESS_DELAY_MS = 1800;
 
 interface Props {
   context: { packageId?: string; eventId?: string };
@@ -34,6 +35,7 @@ export function FollowProofUpload({ context, onApproved, onCancel }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [success, setSuccess]     = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,7 +67,11 @@ export function FollowProofUpload({ context, onApproved, onCancel }: Props) {
 
       setUploading(false);
       setReviewing(true);
-      setTimeout(() => onApproved(), REVIEW_DELAY_MS);
+      setTimeout(() => {
+        setReviewing(false);
+        setSuccess(true);
+        setTimeout(() => onApproved(), SUCCESS_DELAY_MS);
+      }, REVIEW_DELAY_MS);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Gagal upload screenshot');
       setUploading(false);
@@ -83,6 +89,20 @@ export function FollowProofUpload({ context, onApproved, onCancel }: Props) {
         <div className="space-y-1">
           <p className="font-semibold text-slate-800">Screenshot sedang direview admin</p>
           <p className="text-sm text-slate-500">Mohon tunggu sebentar, ya...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
+        <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center">
+          <CheckCircle2 size={30} className="text-emerald-600" />
+        </div>
+        <div className="space-y-1">
+          <p className="font-semibold text-slate-800">Berhasil!</p>
+          <p className="text-sm text-slate-500">Terima kasih sudah follow @pintuasnofficial 🎉</p>
         </div>
       </div>
     );
