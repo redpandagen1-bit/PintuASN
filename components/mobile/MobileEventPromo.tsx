@@ -295,7 +295,7 @@ function EventCard({ event }: { event: Event }) {
       <Dialog open={showProofGate} onOpenChange={setShowProofGate}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Bukti Follow Sosmed</DialogTitle>
+            <DialogTitle>Follow akun sosmed resmi @pintuasnofficial dan kirim screenshotnya untuk melanjutkan.</DialogTitle>
             <DialogDescription>Satu langkah lagi sebelum klaim promo ini</DialogDescription>
           </DialogHeader>
           <FollowProofUpload

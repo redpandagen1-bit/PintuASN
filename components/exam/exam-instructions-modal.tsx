@@ -79,7 +79,7 @@ export function ExamInstructionsModal({ packageId, requiresFollowProof = false }
         {showFollowProofStep ? (
           <>
             <DialogHeader>
-              <DialogTitle>Bukti Follow Sosmed</DialogTitle>
+              <DialogTitle>Follow akun sosmed resmi @pintuasnofficial dan kirim screenshotnya untuk melanjutkan.</DialogTitle>
               <DialogDescription>
                 Satu langkah lagi sebelum tryout dimulai
               </DialogDescription>

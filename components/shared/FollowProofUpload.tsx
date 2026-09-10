@@ -30,37 +30,32 @@ interface Props {
 }
 
 export function FollowProofUpload({ context, onApproved, onCancel }: Props) {
-  const [igFile, setIgFile]   = useState<File | null>(null);
-  const [ttFile, setTtFile]   = useState<File | null>(null);
-  const [igPreview, setIgPreview] = useState<string | null>(null);
-  const [ttPreview, setTtPreview] = useState<string | null>(null);
+  const [file, setFile]       = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const igInputRef = useRef<HTMLInputElement>(null);
-  const ttInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const pick = (slot: 'ig' | 'tt', file: File | null) => {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { setError('File harus berupa gambar.'); return; }
+  const pick = (picked: File | null) => {
+    if (!picked) return;
+    if (!picked.type.startsWith('image/')) { setError('File harus berupa gambar.'); return; }
     setError(null);
-    const url = URL.createObjectURL(file);
-    if (slot === 'ig') { setIgFile(file); setIgPreview(url); }
-    else               { setTtFile(file); setTtPreview(url); }
+    setFile(picked);
+    setPreview(URL.createObjectURL(picked));
   };
 
   const handleSubmit = async () => {
-    if (!igFile && !ttFile) {
-      setError('Upload minimal 1 screenshot bukti follow.');
+    if (!file) {
+      setError('Upload screenshot bukti follow dulu.');
       return;
     }
     setUploading(true);
     setError(null);
     try {
       const fd = new FormData();
-      if (igFile) fd.append('files', igFile);
-      if (ttFile) fd.append('files', ttFile);
+      fd.append('files', file);
       if (context.packageId) fd.append('packageId', context.packageId);
       if (context.eventId)   fd.append('eventId', context.eventId);
 
@@ -116,66 +111,34 @@ export function FollowProofUpload({ context, onApproved, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {/* Instagram slot */}
-        <button
-          type="button"
-          onClick={() => igInputRef.current?.click()}
-          className="relative aspect-[3/4] rounded-xl border-2 border-dashed border-slate-300 hover:border-fuchsia-400 bg-slate-50 overflow-hidden flex flex-col items-center justify-center gap-1.5 transition-colors"
-        >
-          {igPreview ? (
-            <>
-              <Image src={igPreview} alt="Bukti Instagram" fill className="object-cover" unoptimized />
-              <span
-                role="button"
-                onClick={e => { e.stopPropagation(); setIgFile(null); setIgPreview(null); }}
-                className="absolute top-1.5 right-1.5 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
-              >
-                <X size={12} />
-              </span>
-            </>
-          ) : (
-            <>
-              <Instagram size={20} className="text-fuchsia-500" />
-              <span className="text-[11px] font-semibold text-slate-500 px-2 text-center">Screenshot Instagram</span>
-              <Upload size={13} className="text-slate-400" />
-            </>
-          )}
-        </button>
-        <input ref={igInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-          onChange={e => pick('ig', e.target.files?.[0] ?? null)} />
-
-        {/* TikTok slot */}
-        <button
-          type="button"
-          onClick={() => ttInputRef.current?.click()}
-          className="relative aspect-[3/4] rounded-xl border-2 border-dashed border-slate-300 hover:border-slate-500 bg-slate-50 overflow-hidden flex flex-col items-center justify-center gap-1.5 transition-colors"
-        >
-          {ttPreview ? (
-            <>
-              <Image src={ttPreview} alt="Bukti TikTok" fill className="object-cover" unoptimized />
-              <span
-                role="button"
-                onClick={e => { e.stopPropagation(); setTtFile(null); setTtPreview(null); }}
-                className="absolute top-1.5 right-1.5 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
-              >
-                <X size={12} />
-              </span>
-            </>
-          ) : (
-            <>
-              <TikTokIcon className="w-5 h-5 text-slate-700" />
-              <span className="text-[11px] font-semibold text-slate-500 px-2 text-center">Screenshot TikTok</span>
-              <Upload size={13} className="text-slate-400" />
-            </>
-          )}
-        </button>
-        <input ref={ttInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-          onChange={e => pick('tt', e.target.files?.[0] ?? null)} />
-      </div>
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="relative aspect-[16/10] w-full rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-400 bg-slate-50 overflow-hidden flex flex-col items-center justify-center gap-1.5 transition-colors"
+      >
+        {preview ? (
+          <>
+            <Image src={preview} alt="Bukti follow" fill className="object-contain" unoptimized />
+            <span
+              role="button"
+              onClick={e => { e.stopPropagation(); setFile(null); setPreview(null); }}
+              className="absolute top-1.5 right-1.5 bg-black/60 text-white rounded-full p-1 hover:bg-black/80"
+            >
+              <X size={12} />
+            </span>
+          </>
+        ) : (
+          <>
+            <Upload size={20} className="text-slate-400" />
+            <span className="text-xs font-semibold text-slate-500 px-2 text-center">Klik untuk upload screenshot</span>
+          </>
+        )}
+      </button>
+      <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+        onChange={e => pick(e.target.files?.[0] ?? null)} />
 
       <p className="text-[11px] text-slate-400 flex items-center gap-1">
-        <ShieldCheck size={12} /> Upload minimal 1 screenshot — usahakan lampirkan keduanya ya.
+        <ShieldCheck size={12} /> upload screenshot profil @pintuasnofficial yang telah di follow
       </p>
 
       {error && <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
@@ -186,7 +149,7 @@ export function FollowProofUpload({ context, onApproved, onCancel }: Props) {
             Batal
           </Button>
         )}
-        <Button type="button" onClick={() => void handleSubmit()} disabled={uploading || (!igFile && !ttFile)} className="flex-1">
+        <Button type="button" onClick={() => void handleSubmit()} disabled={uploading || !file} className="flex-1">
           {uploading ? <><Loader2 size={14} className="mr-2 animate-spin" /> Mengupload...</> : 'Kirim Bukti'}
         </Button>
       </div>

@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { rateLimit } from '@/lib/rate-limit';
 
-const MAX_FILES = 4;
+const MAX_FILES = 1;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export async function POST(req: NextRequest) {
