@@ -217,7 +217,7 @@ export default function EventPromoCard({ event }: Props) {
         )}
 
         {/* Referral / Promo Code */}
-        {event.referral_code && (
+        {event.referral_code && event.show_referral_code && (
           <div className="flex items-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 px-4 py-3">
             <div className="flex-1 min-w-0">
               <p className="text-[10px] text-emerald-600 font-semibold uppercase tracking-widest mb-0.5">
@@ -290,7 +290,7 @@ export default function EventPromoCard({ event }: Props) {
       </div>
 
       <Dialog open={showProofGate} onOpenChange={setShowProofGate}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Follow akun sosmed resmi @pintuasnofficial dan kirim screenshotnya untuk melanjutkan.</DialogTitle>
             <DialogDescription>Satu langkah lagi sebelum klaim promo ini</DialogDescription>

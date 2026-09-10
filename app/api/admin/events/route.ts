@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
         description:  body.description  ?? null,
         benefit:      body.benefit      ?? null,
         referral_code: body.referral_code ?? null,
+        show_referral_code: body.show_referral_code ?? true,
         cta_label:    body.cta_label    ?? 'Klaim Sekarang',
         cta_link:     body.cta_link     ?? null,
         cta_type:     body.cta_type     ?? 'link',

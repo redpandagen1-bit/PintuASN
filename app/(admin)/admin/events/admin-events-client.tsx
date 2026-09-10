@@ -73,6 +73,7 @@ export default function AdminEventsClient({ initialEvents }: Props) {
     description:   null,
     benefit:       null,
     referral_code: null,
+    show_referral_code: true,
     cta_label:     'Klaim Sekarang',
     cta_link:      '/beli-paket',
     cta_type:      'link',
@@ -333,6 +334,22 @@ export default function AdminEventsClient({ initialEvents }: Props) {
                   />
                 </div>
               </div>
+
+              {editing.referral_code && (
+                <div className="flex items-center justify-between rounded-xl border-2 border-slate-200 p-4">
+                  <div>
+                    <Label className="text-sm font-semibold cursor-pointer">Tampilkan Kode ke User</Label>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Nonaktifkan kalau kode ini hanya untuk auto-apply lewat tombol klaim (CTA pembayaran), tanpa
+                      diperlihatkan ke user di kartu promo.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={editing.show_referral_code}
+                    onCheckedChange={v => patch({ show_referral_code: v })}
+                  />
+                </div>
+              )}
 
               {/* Description */}
               <div className="space-y-1.5">

@@ -12,6 +12,7 @@ export interface Event {
   description: string | null;
   benefit: string | null;        // e.g. "Diskon 30%" / "Gratis Akses 1 Bulan"
   referral_code: string | null;
+  show_referral_code: boolean; // false = kode tetap dipakai (auto-apply), tapi tidak ditampilkan ke user
   cta_label: string;             // e.g. "Klaim Sekarang"
   cta_link: string | null;
   cta_type: 'link' | 'payment';  // 'link' = redirect biasa, 'payment' = langsung ke halaman pembayaran

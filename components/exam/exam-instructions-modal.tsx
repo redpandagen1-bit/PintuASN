@@ -75,7 +75,7 @@ export function ExamInstructionsModal({ packageId, requiresFollowProof = false }
           Mulai Tryout
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={showFollowProofStep ? 'sm:max-w-2xl' : 'sm:max-w-md'}>
         {showFollowProofStep ? (
           <>
             <DialogHeader>
