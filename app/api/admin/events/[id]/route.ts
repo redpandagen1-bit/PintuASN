@@ -5,6 +5,7 @@
 import { createAdminClient } from '@/lib/supabase/server';
 import { requireAdmin }     from '@/lib/auth/check-admin';
 import { NextResponse }     from 'next/server';
+import { revalidatePath }   from 'next/cache';
 import type { NextRequest } from 'next/server';
 
 interface Ctx { params: Promise<{ id: string }> }
@@ -24,6 +25,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       .single();
 
     if (error) throw error;
+    revalidatePath('/events-promo');
     return NextResponse.json(data);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -56,6 +58,7 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
       }
     }
 
+    revalidatePath('/events-promo');
     return NextResponse.json({ success: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';

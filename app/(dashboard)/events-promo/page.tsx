@@ -11,6 +11,8 @@ import { Megaphone }          from 'lucide-react';
 import { MobilePageWrapper }  from '@/components/mobile/MobilePageWrapper';
 import { MobileEventPromo }   from '@/components/mobile/MobileEventPromo';
 
+export const revalidate = 60;
+
 // ── data fetching ─────────────────────────────────────────────
 async function getActiveEvents(): Promise<Event[]> {
   const supabase = await createAdminClient();

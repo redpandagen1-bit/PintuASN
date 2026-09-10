@@ -1,0 +1,6 @@
+allowBuilds:
+  '@clerk/shared': true
+  '@firebase/util': true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true

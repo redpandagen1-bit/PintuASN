@@ -5,6 +5,7 @@
 import { createAdminClient } from '@/lib/supabase/server';
 import { requireAdmin }   from '@/lib/auth/check-admin';
 import { NextResponse }   from 'next/server';
+import { revalidatePath } from 'next/cache';
 import type { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) throw error;
+    revalidatePath('/events-promo');
     return NextResponse.json(data, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
