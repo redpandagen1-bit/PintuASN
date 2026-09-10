@@ -271,6 +271,25 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
     }
   };
 
+  // Klaim langsung tanpa gateway — dipakai saat harga final Rp0 (diskon 100%),
+  // karena Midtrans menolak transaksi dengan nominal 0.
+  const handleFreeClaim = async () => {
+    setLoadingMethod(true);
+    try {
+      const res = await fetch('/api/payment/free-claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal mengklaim promo');
+      router.push('/dashboard?payment=success');
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+      setLoadingMethod(false);
+    }
+  };
+
   // Bayar via Snap popup (mode Snap). Harga & metode ditangani oleh Snap;
   // aktivasi paket tetap lewat webhook.
   const handleSnapPay = async () => {
@@ -338,6 +357,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
   const adminFee     = selectedMethod?.adminFee ?? order?.adminFee ?? 0;
   const discount     = order?.discountAmount ?? discountAmount;
   const totalDisplay = Math.max(basePrice - discount, 0) + adminFee;
+  const isFree        = (order?.finalPrice ?? basePrice - discount) <= 0;
 
   const activeMethod = PAYMENT_METHODS.find(m => m.id === order?.paymentMethod);
   const instructions =
@@ -553,8 +573,10 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
               </div>
 
               {/* Metode Pembayaran — tombol trigger modal (mode Core API saja;
-                  di mode Snap, pemilihan metode terjadi di dalam popup) */}
-              {!IS_SNAP_MODE && (
+                  di mode Snap, pemilihan metode terjadi di dalam popup).
+                  Disembunyikan kalau order gratis (diskon 100%) — tidak ada
+                  yang perlu dibayar lewat gateway. */}
+              {!IS_SNAP_MODE && !isFree && (
               <div className="bg-white rounded-xl border border-slate-200 p-4">
                 <h2 className="font-bold text-slate-800 text-sm mb-3">Metode Pembayaran</h2>
                 <button
@@ -595,7 +617,17 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
               </div>
               )}
 
-              {IS_SNAP_MODE ? (
+              {isFree ? (
+                <button
+                  onClick={handleFreeClaim}
+                  disabled={loadingMethod || order.status !== 'pending'}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMethod
+                    ? <><Loader2 size={16} className="animate-spin" /> Memproses...</>
+                    : <><CheckCircle2 size={16} /> Klaim Gratis Sekarang</>}
+                </button>
+              ) : IS_SNAP_MODE ? (
                 <button
                   onClick={handleSnapPay}
                   disabled={loadingMethod || order.status !== 'pending'}
