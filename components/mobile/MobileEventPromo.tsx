@@ -11,6 +11,7 @@ import {
   Tag, Zap, CalendarDays, Ticket, Megaphone,
 } from 'lucide-react';
 import { cn }          from '@/lib/utils';
+import { useClaimPromo } from '@/hooks/use-claim-promo';
 import type { Event, EventType } from '@/types/events';
 
 // ── Type config (identik desktop) ─────────────────────────────
@@ -59,6 +60,7 @@ function useCountdown(endDate: string | null) {
 function EventCard({ event }: { event: Event }) {
   const [copied,    setCopied]    = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const { claim, claiming, error: claimError } = useClaimPromo();
 
   const countdown = useCountdown(event.end_date);
   const cfg       = TYPE_CONFIG[event.type] ?? TYPE_CONFIG.promo;
@@ -252,7 +254,19 @@ function EventCard({ event }: { event: Event }) {
         )}
 
         {/* CTA */}
-        {event.cta_link && !isExpired && !quotaFull && !isComingSoon && (
+        {event.cta_type === 'payment' && event.cta_package && !isExpired && !quotaFull && !isComingSoon && (
+          <div>
+            <button
+              onClick={() => void claim(event)}
+              disabled={claiming}
+              className="w-full py-3 rounded-xl bg-emerald-600 text-white text-sm font-bold active:bg-emerald-700 transition-colors disabled:opacity-60"
+            >
+              {claiming ? 'Memproses...' : (event.cta_label ?? 'Klaim Sekarang')}
+            </button>
+            {claimError && <p className="text-xs text-red-500 mt-1.5">{claimError}</p>}
+          </div>
+        )}
+        {event.cta_type !== 'payment' && event.cta_link && !isExpired && !quotaFull && !isComingSoon && (
           <Link href={event.cta_link}>
             <button className="w-full py-3 rounded-xl bg-emerald-600 text-white text-sm font-bold active:bg-emerald-700 transition-colors">
               {event.cta_label ?? 'Klaim Sekarang'}

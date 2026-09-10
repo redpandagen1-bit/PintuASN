@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
     max_uses?: number | null;
     is_active?: boolean;
     expired_at?: string | null;
+    allowed_tiers?: ('premium' | 'platinum')[] | null;
   };
 
   // Cek duplikat kode
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
       max_uses:       body.max_uses ?? null,
       is_active:      body.is_active ?? true,
       expired_at:     body.expired_at ?? null,
+      allowed_tiers:  body.allowed_tiers?.length ? body.allowed_tiers : null,
     })
     .select()
     .single();

@@ -11,6 +11,7 @@ export interface PaymentMethod {
 
 export interface OrderData {
   orderId: string;
+  packageId: string;
   packageName: string;
   basePrice: number;
   adminFee: number;

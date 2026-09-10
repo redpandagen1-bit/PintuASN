@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { code, basePrice } = await req.json();
+    const { code, basePrice, packageId } = await req.json();
 
     if (!code || typeof code !== 'string') {
       return NextResponse.json({ error: 'Kode tidak boleh kosong' }, { status: 400 });
@@ -54,6 +54,11 @@ export async function POST(req: NextRequest) {
     // Cek max uses
     if (referral.max_uses !== null && referral.used_count >= referral.max_uses) {
       return NextResponse.json({ error: 'Kode referral sudah mencapai batas penggunaan' }, { status: 400 });
+    }
+
+    // Cek pembatasan tier (null/kosong = berlaku untuk semua tier)
+    if (referral.allowed_tiers?.length && (!packageId || !referral.allowed_tiers.includes(packageId))) {
+      return NextResponse.json({ error: 'Kode referral tidak berlaku untuk paket ini' }, { status: 400 });
     }
 
     // Hitung diskon

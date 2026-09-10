@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
     if (!body.title || !body.banner_url)
       return NextResponse.json({ error: 'title dan banner_url wajib diisi' }, { status: 400 });
 
+    if (body.cta_type === 'payment' && !body.cta_package)
+      return NextResponse.json({ error: 'Paket tujuan wajib dipilih untuk CTA tipe pembayaran' }, { status: 400 });
+
     const { data, error } = await supabase
       .from('events')
       .insert({
@@ -49,6 +52,8 @@ export async function POST(req: NextRequest) {
         referral_code: body.referral_code ?? null,
         cta_label:    body.cta_label    ?? 'Klaim Sekarang',
         cta_link:     body.cta_link     ?? null,
+        cta_type:     body.cta_type     ?? 'link',
+        cta_package:  body.cta_type === 'payment' ? (body.cta_package ?? null) : null,
         start_date:   body.start_date   ?? null,
         end_date:     body.end_date     ?? null,
         quota:        body.quota        ?? null,

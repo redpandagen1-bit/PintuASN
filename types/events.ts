@@ -14,6 +14,8 @@ export interface Event {
   referral_code: string | null;
   cta_label: string;             // e.g. "Klaim Sekarang"
   cta_link: string | null;
+  cta_type: 'link' | 'payment';  // 'link' = redirect biasa, 'payment' = langsung ke halaman pembayaran
+  cta_package: 'premium' | 'platinum' | null; // wajib diisi jika cta_type === 'payment'
   start_date: string | null;     // ISO string
   end_date: string | null;       // ISO string
   quota: number | null;          // null = unlimited

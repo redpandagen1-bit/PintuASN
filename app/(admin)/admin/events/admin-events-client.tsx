@@ -75,6 +75,8 @@ export default function AdminEventsClient({ initialEvents }: Props) {
     referral_code: null,
     cta_label:     'Klaim Sekarang',
     cta_link:      '/beli-paket',
+    cta_type:      'link',
+    cta_package:   null,
     start_date:    null,
     end_date:      null,
     quota:         null,
@@ -130,6 +132,7 @@ export default function AdminEventsClient({ initialEvents }: Props) {
     if (!editing) return;
     if (!editing.banner_url)    { setError('Upload banner dulu.');  return; }
     if (!editing.title.trim())  { setError('Judul wajib diisi.');   return; }
+    if (editing.cta_type === 'payment' && !editing.cta_package) { setError('Pilih paket tujuan untuk CTA tipe pembayaran.'); return; }
 
     setSaving(true);
     try {
@@ -341,17 +344,52 @@ export default function AdminEventsClient({ initialEvents }: Props) {
                 />
               </div>
 
-              {/* CTA label + link */}
+              {/* CTA label + type */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label>Label Tombol CTA</Label>
                   <Input value={editing.cta_label ?? ''} onChange={e => patch({ cta_label: e.target.value })} placeholder="Klaim Sekarang" />
                 </div>
                 <div className="space-y-1.5">
+                  <Label>Aksi Tombol CTA</Label>
+                  <Select
+                    value={editing.cta_type}
+                    onValueChange={v => patch({
+                      cta_type: v as 'link' | 'payment',
+                      cta_package: v === 'link' ? null : editing.cta_package,
+                    })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="link">Redirect ke Link</SelectItem>
+                      <SelectItem value="payment">Langsung ke Halaman Pembayaran</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {editing.cta_type === 'link' ? (
+                <div className="space-y-1.5">
                   <Label>Link CTA <span className="text-slate-400 font-normal text-xs">(opsional)</span></Label>
                   <Input value={editing.cta_link ?? ''} onChange={e => patch({ cta_link: e.target.value || null })} placeholder="/beli-paket" />
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Label>Paket Tujuan</Label>
+                  <Select value={editing.cta_package ?? ''} onValueChange={v => patch({ cta_package: v as 'premium' | 'platinum' })}>
+                    <SelectTrigger><SelectValue placeholder="Pilih paket" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="premium">Premium</SelectItem>
+                      <SelectItem value="platinum">Platinum</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-400">
+                    User akan diarahkan langsung ke halaman pembayaran paket ini. Jika kolom &quot;Kode Promo / Referral&quot;
+                    di atas diisi, kode tersebut otomatis terpasang — pastikan kodenya sama dengan salah satu kode di
+                    halaman <strong>Kode Referral</strong> supaya diskonnya benar-benar berlaku.
+                  </p>
+                </div>
+              )}
 
               {/* Dates */}
               <div className="grid grid-cols-2 gap-4">

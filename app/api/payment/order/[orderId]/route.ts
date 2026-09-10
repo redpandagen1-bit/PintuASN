@@ -31,6 +31,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ orde
     return NextResponse.json({
       order: {
         orderId:        order.order_id,
+        packageId:      order.package_id,
         packageName:    order.package_name,
         basePrice:      order.base_price,
         adminFee:       order.admin_fee ?? 0,

@@ -168,7 +168,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
       const validateRes = await fetch('/api/payment/referral', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: referralInput.trim(), basePrice: order.basePrice }),
+        body: JSON.stringify({ code: referralInput.trim(), basePrice: order.basePrice, packageId: order.packageId }),
       });
       const validateData = await validateRes.json();
       if (!validateRes.ok) {

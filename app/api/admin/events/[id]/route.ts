@@ -17,6 +17,10 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     const supabase = await createAdminClient();
     const body     = await req.json() as Record<string, unknown>;
 
+    if (body.cta_type === 'payment' && !body.cta_package)
+      return NextResponse.json({ error: 'Paket tujuan wajib dipilih untuk CTA tipe pembayaran' }, { status: 400 });
+    if (body.cta_type === 'link') body.cta_package = null;
+
     const { data, error } = await supabase
       .from('events')
       .update(body)

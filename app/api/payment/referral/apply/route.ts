@@ -58,6 +58,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Kode referral sudah mencapai batas penggunaan' }, { status: 400 });
     }
 
+    // Cek pembatasan tier (null/kosong = berlaku untuk semua tier)
+    if (referral.allowed_tiers?.length && !referral.allowed_tiers.includes(order.package_id)) {
+      return NextResponse.json({ error: 'Kode referral tidak berlaku untuk paket ini' }, { status: 400 });
+    }
+
     // 3. Hitung diskon berdasarkan base_price (bukan final_price — hindari double diskon)
     const basePrice = order.base_price;
     const discountAmount =

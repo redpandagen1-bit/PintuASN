@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Badge }    from '@/components/ui/badge';
 import { Button }   from '@/components/ui/button';
+import { useClaimPromo } from '@/hooks/use-claim-promo';
 import type { Event, EventType } from '@/types/events';
 
 // ── helpers ──────────────────────────────────────────────────
@@ -60,6 +61,7 @@ interface Props { event: Event }
 export default function EventPromoCard({ event }: Props) {
   const [copied,      setCopied]      = useState(false);
   const [termsOpen,   setTermsOpen]   = useState(false);
+  const { claim, claiming, error: claimError } = useClaimPromo();
   const countdown = useCountdown(event.end_date);
   const cfg       = TYPE_CONFIG[event.type] ?? TYPE_CONFIG.promo;
 
@@ -247,7 +249,19 @@ export default function EventPromoCard({ event }: Props) {
         )}
 
         {/* CTA */}
-        {event.cta_link && !isExpired && !quotaFull && !isComingSoon && (
+        {event.cta_type === 'payment' && event.cta_package && !isExpired && !quotaFull && !isComingSoon && (
+          <div className="mt-auto pt-1">
+            <Button
+              onClick={() => void claim(event)}
+              disabled={claiming}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11"
+            >
+              {claiming ? 'Memproses...' : (event.cta_label ?? 'Klaim Sekarang')}
+            </Button>
+            {claimError && <p className="text-xs text-red-500 mt-1.5">{claimError}</p>}
+          </div>
+        )}
+        {event.cta_type !== 'payment' && event.cta_link && !isExpired && !quotaFull && !isComingSoon && (
           <div className="mt-auto pt-1">
             <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl h-11">
               <Link href={event.cta_link}>{event.cta_label ?? 'Klaim Sekarang'}</Link>
