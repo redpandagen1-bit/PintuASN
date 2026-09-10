@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Eye, Trash2, Package, ChevronLeft, ChevronRight, Save, CheckCircle2, Flame } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2, Package, ChevronLeft, ChevronRight, Save, CheckCircle2, Flame, Instagram } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 const PAGE_SIZE = 10;
@@ -42,6 +42,7 @@ interface PackageRow {
   difficulty: 'easy' | 'medium' | 'hard';
   question_count: number;
   is_active: boolean;
+  requires_follow_proof?: boolean;
   [key: string]: any;
 }
 
@@ -49,6 +50,7 @@ interface EditedField {
   tier?: 'free' | 'premium' | 'platinum';
   is_active?: boolean;
   is_hots?: boolean;
+  requires_follow_proof?: boolean;
 }
 
 interface PackageTableProps {
@@ -114,6 +116,19 @@ export function PackageTable({ packages }: PackageTableProps) {
       const newField: EditedField = { ...existing, is_hots: value };
       // Remove if same as original
       if (value === !!original.is_hots) delete newField.is_hots;
+      if (Object.keys(newField).length === 0) {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [id]: newField };
+    });
+  }, []);
+
+  const handleFollowProofChange = useCallback((id: string, value: boolean, original: PackageRow) => {
+    setEdits(prev => {
+      const existing = prev[id] || {};
+      const newField: EditedField = { ...existing, requires_follow_proof: value };
+      if (value === !!original.requires_follow_proof) delete newField.requires_follow_proof;
       if (Object.keys(newField).length === 0) {
         const { [id]: _, ...rest } = prev;
         return rest;
@@ -188,6 +203,8 @@ export function PackageTable({ packages }: PackageTableProps) {
     edits[pkg.id]?.is_active !== undefined ? edits[pkg.id].is_active : pkg.is_active;
   const getHotsValue = (pkg: PackageRow) =>
     edits[pkg.id]?.is_hots !== undefined ? edits[pkg.id].is_hots : !!pkg.is_hots;
+  const getFollowProofValue = (pkg: PackageRow) =>
+    edits[pkg.id]?.requires_follow_proof !== undefined ? edits[pkg.id].requires_follow_proof : !!pkg.requires_follow_proof;
 
   const isRowEdited = (id: string) => !!edits[id] && Object.keys(edits[id]).length > 0;
 
@@ -284,6 +301,7 @@ export function PackageTable({ packages }: PackageTableProps) {
               <TableHead className="w-32">Tingkat</TableHead>
               <TableHead className="w-32">Jumlah Soal</TableHead>
               <TableHead className="w-24">HOTS</TableHead>
+              <TableHead className="w-28">Bukti Follow</TableHead>
               <TableHead className="w-36">Status</TableHead>
               <TableHead className="w-20">Aksi</TableHead>
             </TableRow>
@@ -291,7 +309,7 @@ export function PackageTable({ packages }: PackageTableProps) {
           <TableBody>
             {currentPackages.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-10 text-sm text-slate-500">
+                <TableCell colSpan={9} className="text-center py-10 text-sm text-slate-500">
                   Tidak ada paket yang sesuai filter.
                 </TableCell>
               </TableRow>
@@ -375,6 +393,20 @@ export function PackageTable({ packages }: PackageTableProps) {
                       <Flame
                         className={`h-4 w-4 ${getHotsValue(pkg) ? 'text-orange-500' : 'text-slate-300'}`}
                         fill={getHotsValue(pkg) ? 'currentColor' : 'none'}
+                      />
+                    </div>
+                  </TableCell>
+
+                  {/* Bukti follow toggle */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={getFollowProofValue(pkg)}
+                        onCheckedChange={(checked) => handleFollowProofChange(pkg.id, checked, pkg)}
+                        className="data-[state=checked]:bg-pink-600"
+                      />
+                      <Instagram
+                        className={`h-4 w-4 ${getFollowProofValue(pkg) ? 'text-pink-600' : 'text-slate-300'}`}
                       />
                     </div>
                   </TableCell>
