@@ -60,4 +60,14 @@ export async function openSnapForOrder(orderId: string, callbacks: SnapCallbacks
     onError:   () => callbacks.onError?.(),
     onClose:   () => callbacks.onClose?.(),
   });
+
+  // `.pay()` di atas SINKRON menampilkan popup (tidak menunggu popup ditutup)
+  // — begitu baris ini tercapai, popup Snap sudah tampil dan menutupi halaman
+  // kita. Fungsi ini sengaja langsung resolve di sini, TANPA menunggu
+  // onSuccess/onPending/onClose, supaya pemanggil bisa langsung melepas state
+  // loading tombolnya (popup Snap sendiri yang memblokir interaksi ke
+  // halaman di baliknya selama masih terbuka — bukan tombol kita). Kalau
+  // loading tombol digantungkan ke callback Snap, tombol bisa macet
+  // permanen karena `onClose` tidak selalu terpanggil di semua kondisi
+  // penutupan popup.
 }

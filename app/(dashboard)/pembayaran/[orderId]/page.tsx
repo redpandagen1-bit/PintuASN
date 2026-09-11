@@ -273,11 +273,13 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
         onSuccess: () => router.push('/beli-paket?tab=riwayat'),
         onPending: () => router.push('/beli-paket?tab=riwayat'),
         onClose:   () => router.push('/beli-paket?tab=riwayat'),
-        onError:   () => { alert('Pembayaran gagal. Silakan coba lagi.'); setLoadingMethod(false); },
+        onError:   () => alert('Pembayaran gagal. Silakan coba lagi.'),
       });
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
     } finally {
+      // Popup Snap sudah tampil (atau gagal dibuka) — tombol boleh aktif
+      // lagi di sini juga, tidak menunggu popup ditutup.
       setLoadingMethod(false);
     }
   };

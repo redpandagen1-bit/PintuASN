@@ -184,6 +184,8 @@ function OrderDetailPopup({ orderId, onClose, onChanged }: { orderId: string; on
   const [payLoading, setPayLoading]       = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [statusNotice, setStatusNotice] = useState<{ type: 'success' | 'info'; text: string } | null>(null);
 
   const fetchOrder = useCallback(() => {
     return fetch(`/api/payment/order/${orderId}`)
@@ -209,22 +211,27 @@ function OrderDetailPopup({ orderId, onClose, onChanged }: { orderId: string; on
   // atau pindah ke halaman pembayaran khusus untuk mode Core API.
   const handleContinuePayment = async () => {
     if (!IS_SNAP_MODE) { router.push(`/pembayaran/${orderId}`); return; }
+    setStatusNotice(null);
     setPayLoading(true);
     try {
       await openSnapForOrder(orderId, {
         onSuccess: () => { onChanged(); fetchOrder(); },
         onPending: () => { onChanged(); fetchOrder(); },
-        onClose:   () => { onChanged(); fetchOrder(); setPayLoading(false); },
-        onError:   () => { alert('Pembayaran gagal. Silakan coba lagi.'); setPayLoading(false); },
+        onClose:   () => { onChanged(); fetchOrder(); },
+        onError:   () => alert('Pembayaran gagal. Silakan coba lagi.'),
       });
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+    } finally {
+      // Popup Snap sudah tampil (atau gagal dibuka) — tombol boleh aktif
+      // lagi di sini juga, tidak menunggu popup ditutup.
       setPayLoading(false);
     }
   };
 
   const handleCancelOrder = async () => {
-    if (!confirm('Yakin ingin membatalkan pesanan ini?')) return;
+    setConfirmingCancel(false);
+    setStatusNotice(null);
     setCancelLoading(true);
     try {
       await fetch(`/api/payment/order/${orderId}`, { method: 'DELETE' });
@@ -236,17 +243,21 @@ function OrderDetailPopup({ orderId, onClose, onChanged }: { orderId: string; on
 
   const handleCheckStatus = async () => {
     setStatusLoading(true);
+    setStatusNotice(null);
     try {
       const res  = await fetch(`/api/payment/status/${orderId}`);
       const data = await res.json();
       if (data.status === 'settlement' || data.status === 'capture') {
         await fetchOrder();
         onChanged();
+        setStatusNotice({ type: 'success', text: 'Pembayaran sudah diterima. Paket kamu sudah aktif.' });
       } else {
-        alert('Pembayaran belum diterima. Silakan tunggu beberapa saat.');
+        setStatusNotice({ type: 'info', text: 'Pembayaran belum diterima. Silakan cek lagi beberapa saat.' });
       }
-    } catch (e) { console.error(e); }
-    finally { setStatusLoading(false); }
+    } catch (e) {
+      console.error(e);
+      setStatusNotice({ type: 'info', text: 'Gagal memeriksa status. Coba lagi.' });
+    } finally { setStatusLoading(false); }
   };
 
   return (
@@ -288,24 +299,56 @@ function OrderDetailPopup({ orderId, onClose, onChanged }: { orderId: string; on
                       {payLoading ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
                       Lanjutkan Pembayaran
                     </button>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={handleCheckStatus}
-                        disabled={statusLoading}
-                        className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50"
-                      >
-                        {statusLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                        Cek Status
-                      </button>
-                      <button
-                        onClick={handleCancelOrder}
-                        disabled={cancelLoading}
-                        className="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50"
-                      >
-                        {cancelLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
-                        Batalkan
-                      </button>
-                    </div>
+
+                    {confirmingCancel ? (
+                      <div className="bg-red-50 border border-red-200 rounded-xl p-3 space-y-2">
+                        <p className="text-xs font-semibold text-red-700 text-center">Yakin ingin membatalkan pesanan ini?</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => setConfirmingCancel(false)}
+                            disabled={cancelLoading}
+                            className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold py-2 rounded-lg text-xs transition disabled:opacity-50"
+                          >
+                            Tidak
+                          </button>
+                          <button
+                            onClick={handleCancelOrder}
+                            disabled={cancelLoading}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                          >
+                            {cancelLoading && <Loader2 size={13} className="animate-spin" />}
+                            Ya, Batalkan
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={handleCheckStatus}
+                          disabled={statusLoading}
+                          className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                        >
+                          {statusLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                          Cek Status
+                        </button>
+                        <button
+                          onClick={() => { setStatusNotice(null); setConfirmingCancel(true); }}
+                          disabled={cancelLoading}
+                          className="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                        >
+                          {cancelLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                          Batalkan
+                        </button>
+                      </div>
+                    )}
+
+                    {statusNotice && (
+                      <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-xs font-medium
+                        ${statusNotice.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
+                        {statusNotice.type === 'success' ? <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5" /> : <Clock size={14} className="flex-shrink-0 mt-0.5" />}
+                        <span>{statusNotice.text}</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
