@@ -823,3 +823,62 @@ input[type="password"].cl-formFieldInput,
 .animate-step-in-left {
   animation: onboardingSlideInLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+/* Premium CTA Popup */
+
+/* Footer CTA ikut safe-area supaya tombol tidak ketutup home indicator
+   saat aplikasi dijalankan sebagai PWA standalone di iOS. */
+.cta-safe-bottom {
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Tinggi sheet pakai dvh, bukan vh. Di PWA standalone & browser mobile,
+   100vh menghitung viewport tanpa memperhitungkan bilah sistem sehingga
+   bagian bawah sheet (tombol CTA) bisa terpotong. */
+.cta-sheet {
+  max-height: calc(100dvh - 1.5rem - env(safe-area-inset-top, 0px));
+}
+
+@supports not (height: 100dvh) {
+  .cta-sheet {
+    max-height: 88vh;
+  }
+}
+
+@media (min-width: 640px) {
+  .cta-sheet {
+    max-height: calc(100dvh - 4rem);
+  }
+}
+
+/* Scroll di dalam sheet tidak boleh merembet ke halaman di belakangnya
+   atau memicu pull-to-refresh saat PWA dibuka standalone. */
+.cta-scroll {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes ctaFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ctaPopIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-ctaFadeIn {
+  animation: ctaFadeIn 0.25s ease-out forwards;
+}
+
+.animate-ctaPopIn {
+  animation: ctaPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ctaFadeIn,
+  .animate-ctaPopIn {
+    animation: none;
+  }
+}

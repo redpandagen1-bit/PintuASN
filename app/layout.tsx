@@ -29,8 +29,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'PintuASN – Simulasi CAT SKD CPNS Terpercaya 2026',
-  description: 'Platform tryout SKD CPNS online 99% mirip sistem BKN. Analitik mendalam, ranking nasional, roadmap belajar terstruktur. Daftar gratis sekarang!',
+  title: 'PintuASN – Simulasi CAT SKD CPNS 2026',
+  description: 'Platform tryout SKD CPNS online dengan simulasi yang menyerupai pola CAT BKN. Analitik performa, peringkat antar pengguna, dan roadmap belajar bertahap. Mulai dari paket gratis.',
   verification: {
     google: 'ZhzlrinPB9UdAt8_s6QlU19A8GcbDNcToDC6eBLramI',
   },
@@ -46,8 +46,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: 'PintuASN – Simulasi CAT SKD CPNS Terpercaya 2026',
-    description: 'Tryout SKD CPNS online 99% mirip BKN. Ranking nasional, analitik mendalam.',
+    title: 'PintuASN – Simulasi CAT SKD CPNS 2026',
+    description: 'Tryout SKD CPNS online bergaya CAT BKN. Peringkat antar pengguna dan analitik performa.',
     url: 'https://pintuasn.com',
     siteName: 'PintuASN',
     locale: 'id_ID',

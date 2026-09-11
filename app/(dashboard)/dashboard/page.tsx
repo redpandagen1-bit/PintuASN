@@ -14,6 +14,7 @@ import Link              from 'next/link';
 import { ChevronRight }  from 'lucide-react';
 import { Skeleton }      from '@/components/ui/skeleton';
 import PaymentSuccessToast from '@/components/shared/payment-success-toast';
+import { PremiumCtaPopup }  from '@/components/shared/premium-cta-popup';
 import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
 import { MobileDashboard }   from '@/components/mobile/MobileDashboard';
 import { MobileTopBar }      from '@/components/mobile/MobileTopBar';
@@ -109,6 +110,10 @@ async function DashboardContent() {
 
   return (
     <>
+      {/* Popup CTA berlangganan — hanya di dashboard, hanya user free,
+          sekali per sesi login / per kali aplikasi (termasuk PWA) dibuka. */}
+      <PremiumCtaPopup userTier={userTier} userId={userId} />
+
       {/* ── MOBILE layout (md:hidden via MobilePageWrapper) ── */}
       <MobilePageWrapper>
         {/* Navbar dashboard mobile — download app (kiri) + user (kanan) */}

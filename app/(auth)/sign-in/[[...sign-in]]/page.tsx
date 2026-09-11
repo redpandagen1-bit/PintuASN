@@ -63,6 +63,10 @@ export default function SignInPage() {
                 formButtonPrimary: '!hidden',
                 alternativeMethods: '!hidden',
                 socialButtonsBlockButton: 'h-12 text-[0.95rem] font-semibold',
+                // Sembunyikan badge "Terakhir digunakan" yang Clerk tampilkan
+                // otomatis di atas tombol provider setelah user pernah login lalu
+                // logout — desain kita sengaja sepolos mungkin, jadi tidak perlu.
+                badge: '!hidden',
               },
               layout: { socialButtonsPlacement: 'top', logoPlacement: 'none' },
               variables: {
@@ -109,6 +113,9 @@ const PAGE_CSS = `
 /* Clerk tetap merender <form> kosong (email/password dimatikan di dashboard) —
    sembunyikan supaya tidak menyisakan ruang kosong di bawah tombol Google. */
 .si-form .cl-form{display:none!important}
+/* Cadangan: kalau descriptor badge di atas tidak menangkap versi Clerk
+   yang sedang jalan, paksa sembunyikan lewat class publiknya juga. */
+.si-form .cl-badge{display:none!important}
 .si-form .cl-socialButtonsBlockButton{height:48px!important;border-radius:12px!important;
   border:1px solid #cbd5e1!important;font-weight:600!important}
 .si-form .cl-socialButtonsBlockButton:hover{border-color:#0ea5e9!important;background:#f8fafc!important}

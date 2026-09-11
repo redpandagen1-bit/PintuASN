@@ -4,52 +4,52 @@ import { useEffect, useState, type CSSProperties } from 'react';
 
 // ── Data konten (dipertahankan dari versi lama) ───────────────
 const TICKER = [
-  ['✓', 'Simulasi 99% mirip BKN'], ['⏱', 'Analisis waktu per soal'],
-  ['📊', 'Analitik performa mendalam'], ['🏆', 'Ranking nasional real-time'],
-  ['🗺', 'Roadmap belajar bertahap'], ['📖', 'Pembahasan detail setiap soal'],
-  ['📈', 'Progress tracking visual'], ['🔒', 'Pembayaran aman Midtrans'],
+  ['✓', 'Simulasi bergaya CAT BKN'], ['⏱', 'Analisis waktu per soal'],
+  ['📊', 'Analitik performa per subtes'], ['🏆', 'Peringkat antar pengguna'],
+  ['🗺', 'Roadmap belajar bertahap'], ['📖', 'Pembahasan di setiap soal'],
+  ['📈', 'Pantau progres belajar'], ['🔒', 'Pembayaran via Midtrans'],
 ];
 
 const STATS = [
-  { target: '12186', label: 'Pengguna aktif terdaftar' },
-  { target: '871',   label: 'Bank soal terverifikasi' },
+  { target: '12186', label: 'Pengguna terdaftar' },
+  { target: '871',   label: 'Soal di bank soal' },
   { target: '3204',  label: 'Sesi tryout diselesaikan' },
-  { target: '4.9',   label: 'Rating rata-rata pengguna' },
+  { target: '4.9',   label: 'Rata-rata penilaian pengguna' },
 ];
 
 const PAINS = [
-  { icon: '🤯', title: 'Buta Sistem CAT BKN', desc: 'Panik melihat interface ujian asli. Banyak peserta gagal fokus karena kaget dengan sistem CAT dan manajemen waktu yang buruk saat hari H.' },
-  { icon: '📉', title: 'Belajar Tanpa Data', desc: 'Mengerjakan ribuan soal secara acak tanpa tahu letak kelemahan sesungguhnya, apakah di TWK, penalaran TIU, atau karakteristik TKP.' },
-  { icon: '⏱️', title: 'Tidak Sadar Pemborosan Waktu', desc: 'Tanpa analisis waktu per soal, kamu tidak tahu soal mana yang menyedot waktu terlalu banyak sehingga soal mudah pun tidak sempat dikerjakan.' },
+  { icon: '🤯', title: 'Belum Terbiasa Sistem CAT', desc: 'Baru pertama kali melihat antarmuka CAT justru saat hari ujian. Waktu berharga habis untuk menyesuaikan diri, bukan untuk mengerjakan soal.' },
+  { icon: '📉', title: 'Latihan Tanpa Arah', desc: 'Mengerjakan banyak soal secara acak, tanpa catatan yang menunjukkan bagian mana yang sebenarnya masih lemah: TWK, penalaran TIU, atau karakteristik TKP.' },
+  { icon: '⏱️', title: 'Waktu Habis di Soal yang Keliru', desc: 'Tanpa catatan durasi per soal, sulit tahu soal mana yang paling menyita waktu, sampai-sampai soal yang mudah pun tidak sempat dikerjakan.' },
 ];
 
 const FEATURES = [
-  { icon: '💻', title: 'Simulasi 99% Mirip BKN', desc: 'Rasakan ujian asli sebelum hari H. UI/UX, timer per subtes, dan mekanisme penilaian dibuat persis sistem CAT SSCASN BKN.',
-    bullets: ['Antarmuka & timer identik CAT BKN', 'Penilaian TWK, TIU, TKP otomatis', 'Latihan anti-grogi sebelum ujian'] },
-  { icon: '⏱️', title: 'Analisis Waktu per Soal', badge: 'Eksklusif', desc: 'Tahu persis ke mana waktumu habis. Fitur eksklusif yang merekam durasi pengerjaan tiap soal untuk strategi yang lebih tajam.',
-    bullets: ['Rekam detik pengerjaan tiap soal', 'Deteksi soal "pemborosan waktu"', 'Rekomendasi strategi pengerjaan'] },
-  { icon: '📊', title: 'Analitik Performa Mendalam', desc: 'Ubah data latihan jadi keputusan belajar. Lihat tren skor dan titik lemahmu dengan dashboard analitik yang detail.',
-    bullets: ['Tren skor & gap passing grade', 'Analisis kelemahan per subtes', 'Distribusi skor nasional'] },
-  { icon: '🏆', title: 'Peringkat Nasional', desc: 'Ukur kemampuanmu secara nyata. Ketahui posisimu di antara ribuan peserta se-Indonesia lewat leaderboard real-time.',
-    bullets: ['Posisimu vs ribuan peserta', 'Leaderboard live & per paket', 'Update otomatis tiap tryout'] },
-  { icon: '🗺️', title: 'Roadmap Belajar Bertahap', desc: 'Tidak lagi bingung mulai dari mana. Jalur belajar terstruktur dengan target jelas di setiap tahap menuju kelulusan.',
-    bullets: ['10 fase belajar terstruktur', 'Syarat & indikator selesai tiap step', 'Rekomendasi langkah berikutnya'] },
-  { icon: '📖', title: 'Review Soal dan Pembahasan', desc: 'Bukan sekadar kunci jawaban. Pahami konsep di balik tiap soal dengan pembahasan lengkap dan filter materi.',
-    bullets: ['Pembahasan detail tiap soal', 'Filter benar/salah & per materi', 'Pahami konsep, bukan hafal kunci'] },
+  { icon: '💻', title: 'Simulasi Bergaya CAT BKN', desc: 'Berlatih dalam suasana yang menyerupai ujian. Tata letak, timer per subtes, dan cara penilaian disusun mengikuti pola CAT SKD.',
+    bullets: ['Tata letak & timer menyerupai CAT', 'Penilaian TWK, TIU, TKP otomatis', 'Terbiasa sebelum menghadapi hari H'] },
+  { icon: '⏱️', title: 'Analisis Waktu per Soal', badge: 'Unggulan', desc: 'Lihat ke mana waktumu habis. Durasi pengerjaan setiap soal dicatat, lalu dirangkum jadi bahan menyusun strategi di sesi berikutnya.',
+    bullets: ['Catat durasi pengerjaan tiap soal', 'Tandai soal yang paling menyita waktu', 'Bahan evaluasi strategi pengerjaan'] },
+  { icon: '📊', title: 'Analitik Performa', desc: 'Hasil latihan tidak berhenti di angka skor. Tren nilai dan titik lemahmu dirangkum dalam satu dashboard yang mudah dibaca.',
+    bullets: ['Tren skor & jarak ke passing grade', 'Rincian capaian per subtes', 'Sebaran skor antar pengguna'] },
+  { icon: '🏆', title: 'Peringkat Antar Pengguna', desc: 'Punya pembanding saat berlatih. Lihat posisimu di antara sesama pengguna PintuASN pada setiap paket tryout.',
+    bullets: ['Posisimu di antara sesama pengguna', 'Leaderboard umum & per paket', 'Diperbarui tiap tryout selesai'] },
+  { icon: '🗺️', title: 'Roadmap Belajar Bertahap', desc: 'Tahu harus mulai dari mana. Materi dan latihan disusun bertahap, lengkap dengan target yang jelas di setiap fase.',
+    bullets: ['10 fase belajar berurutan', 'Syarat & penanda selesai tiap tahap', 'Saran langkah berikutnya'] },
+  { icon: '📖', title: 'Review Soal dan Pembahasan', desc: 'Lebih dari sekadar kunci jawaban. Setiap soal disertai pembahasan, dan bisa disaring sesuai materi yang ingin kamu ulang.',
+    bullets: ['Pembahasan di setiap soal', 'Filter benar/salah & per materi', 'Fokus ke konsep, bukan hafalan'] },
 ];
 
 const STEPS = [
-  { n: '01', title: 'Daftar Akun Gratis', desc: 'Buat akun dalam 30 detik. Langsung akses dashboard, roadmap, dan tryout pertamamu tanpa kartu kredit.' },
-  { n: '02', title: 'Kerjakan Tryout', desc: 'Rasakan sensasi ujian asli dengan timer dan antarmuka identik BKN. TWK, TIU, TKP dalam satu sesi penuh.' },
-  { n: '03', title: 'Analisis dan Tingkatkan', desc: 'Dapatkan skor, analitik mendalam, analisis waktu per soal, review pembahasan, dan posisi ranking nasional.' },
+  { n: '01', title: 'Daftar Akun Gratis', desc: 'Cukup daftar dengan email. Dashboard, roadmap, dan tryout paket gratis langsung bisa diakses tanpa kartu kredit.' },
+  { n: '02', title: 'Kerjakan Tryout', desc: 'Berlatih dengan timer dan tata letak yang menyerupai CAT SKD. TWK, TIU, dan TKP dikerjakan dalam satu sesi penuh.' },
+  { n: '03', title: 'Evaluasi dan Perbaiki', desc: 'Begitu sesi selesai, kamu menerima skor, rincian per subtes, catatan waktu per soal, pembahasan, dan posisi peringkatmu.' },
 ];
 
 const FAQS = [
-  { q: 'Apakah simulasi benar-benar mirip sistem BKN?', a: 'Ya! Kami merancang UI/UX, peletakan tombol, ukuran font, hingga sistem timer persis seperti aplikasi CAT BKN. Saat ujian asli, kamu sudah tidak canggung dan bisa fokus penuh pada soal.' },
-  { q: 'Apa itu fitur Analisis Waktu per Soal?', a: 'Fitur eksklusif PintuASN yang merekam berapa detik kamu habiskan untuk tiap soal. Dari data ini, kamu bisa tahu soal mana yang menjadi "pemborosan waktu" dan memperbaiki strategi pengerjaan di sesi berikutnya.' },
-  { q: 'Apakah soal-soalnya update sesuai kisi-kisi terbaru?', a: 'Tentu. Tim akademik kami terus memperbarui bank soal setiap bulan mengikuti Peraturan Menteri PANRB terbaru dan tren soal CPNS tahun-tahun sebelumnya, termasuk soal berstandar HOTS.' },
-  { q: 'Bagaimana cara pembayaran paket Premium/Platinum?', a: 'Kami menerima QRIS, GoPay, OVO, ShopeePay, Transfer Bank (VA BCA, BNI, Mandiri, BRI), hingga Alfamart/Indomaret. Semua diproses melalui Midtrans yang aman dan terenkripsi.' },
-  { q: 'Saya daftar gratis, apakah wajib upgrade?', a: 'Tidak wajib sama sekali. Paket Gratis agar kamu bisa mencoba sistem dan kualitas soal tanpa komitmen apapun. Upgrade bisa kapan saja ketika kamu merasa siap dan membutuhkan fitur lebih lengkap.' },
+  { q: 'Seberapa mirip simulasinya dengan sistem CAT BKN?', a: 'Tata letak, peletakan tombol, alur antar subtes, dan cara kerja timer kami susun mengikuti pola CAT SKD. Tujuannya agar kamu terbiasa dengan ritme pengerjaannya, meski tampilan resmi di hari ujian tetap bisa berbeda.' },
+  { q: 'Apa itu fitur Analisis Waktu per Soal?', a: 'PintuASN mencatat berapa detik yang kamu habiskan di setiap soal. Dari catatan itu kamu bisa melihat soal mana yang paling menyita waktu, lalu menyesuaikan strategi pengerjaan di sesi berikutnya.' },
+  { q: 'Apakah soalnya mengikuti kisi-kisi terbaru?', a: 'Bank soal kami perbarui secara berkala dengan mengacu pada ketentuan SKD yang berlaku dari Kementerian PANRB serta pola soal CPNS tahun-tahun sebelumnya, termasuk soal bertipe penalaran tingkat lanjut (HOTS).' },
+  { q: 'Bagaimana cara pembayaran paket Premium dan Platinum?', a: 'Tersedia QRIS, GoPay, OVO, ShopeePay, transfer bank (VA BCA, BNI, Mandiri, BRI), sampai gerai Alfamart dan Indomaret. Seluruh transaksi diproses lewat Midtrans, sehingga data pembayaranmu tidak melewati server kami.' },
+  { q: 'Kalau daftar gratis, apakah wajib upgrade?', a: 'Tidak. Paket Gratis bisa kamu pakai terus untuk mencoba sistem dan menilai sendiri kualitas soalnya. Upgrade sepenuhnya pilihanmu, kapan pun kamu merasa butuh fitur yang lebih lengkap.' },
 ];
 
 const CSS = `
@@ -117,7 +117,9 @@ html{scroll-behavior:smooth}
   background:radial-gradient(circle,rgba(30,41,59,.16),transparent 65%);
   left:var(--mx,70%);top:var(--my,30%);transform:translate(-50%,-50%);pointer-events:none;transition:left .25s,top .25s;z-index:0}
 .hero-blob{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;z-index:0}
-.hero-grid{position:relative;z-index:2;width:100%;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+.hero-grid{position:relative;z-index:2;width:100%;max-width:1300px;margin:0 auto;display:grid;grid-template-columns:.95fr 1.2fr;gap:50px;align-items:center;padding:0 20px}
+.hero-grid>div:first-child{padding-right:20px}
+.hero-right{padding-left:20px}
 .hero h1{font-size:clamp(34px,5vw,56px);font-weight:800;line-height:1.08;letter-spacing:-1.2px;color:var(--navy)}
 .hero h1 em{font-style:normal;background:linear-gradient(100deg,var(--gold),var(--yellow),var(--gold));background-size:200% auto;
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:lp-shimmer 4s linear infinite}
@@ -148,32 +150,37 @@ html{scroll-behavior:smooth}
 .mock-bar i{width:9px;height:9px;border-radius:50%;display:block}
 .mock-url{flex:1;text-align:center;font-size:9px;color:rgba(255,255,255,.4);font-family:monospace}
 /* exam header (mirip exam page asli) */
-.exam-top{background:var(--navy);padding:9px 14px 11px;display:flex;align-items:center;gap:9px;border-top:1px solid rgba(255,255,255,.06)}
-.exam-cat{font-size:9px;font-weight:800;color:var(--sky-l);border:1px solid rgba(14,165,233,.55);border-radius:50px;padding:2px 9px;flex-shrink:0}
-.exam-title{flex:1;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.exam-timer{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--yellow);background:rgba(245,183,0,.18);padding:3px 9px;border-radius:7px;flex-shrink:0;animation:lp-pulse 2s infinite}
-.exam-sub{padding:11px 14px 0}
-.exam-subrow{display:flex;justify-content:space-between;font-size:9.5px;color:var(--s400);margin-bottom:6px}
-.mock-prog{height:6px;background:var(--s100);border-radius:4px;overflow:hidden}
-.mock-prog i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--gold),var(--yellow));border-radius:4px;animation:lp-bar 1.4s ease both}
-.mock-body{padding:14px}
-.mock-q{background:var(--s50);border:1px solid var(--s100);border-radius:10px;padding:11px 12px;margin-bottom:12px}
-.mock-q b{font-size:9px;color:var(--gold-d);font-weight:800;letter-spacing:.3px}
-.mock-q p{font-size:11px;color:var(--s700);margin-top:4px;line-height:1.45}
-.mock-opt{display:flex;align-items:center;gap:10px;border:1.5px solid var(--s200);border-radius:11px;padding:9px 11px;margin-bottom:8px;font-size:10.5px;color:var(--s600);transition:.2s}
-.mock-opt .lt{flex-shrink:0;width:22px;height:22px;border-radius:50%;border:2px solid var(--s300);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--s500)}
+.exam-top{background:var(--navy);padding:12px 18px 14px;display:flex;align-items:center;gap:11px;border-top:1px solid rgba(255,255,255,.06)}
+.exam-cat{font-size:11px;font-weight:800;color:var(--sky-l);border:1px solid rgba(14,165,233,.55);border-radius:50px;padding:3px 11px;flex-shrink:0}
+.exam-title{flex:1;font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exam-timer{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:800;color:var(--yellow);background:rgba(245,183,0,.18);padding:4px 11px;border-radius:8px;flex-shrink:0;animation:lp-pulse 2s infinite}
+.exam-sub{padding:14px 18px 0}
+.exam-subrow{display:flex;justify-content:space-between;font-size:12px;color:var(--s400);margin-bottom:8px}
+.mock-prog{height:8px;background:var(--s100);border-radius:5px;overflow:hidden}
+.mock-prog i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--gold),var(--yellow));border-radius:5px;animation:lp-bar 1.4s ease both}
+.mock-body{padding:18px}
+.mock-q{background:var(--s50);border:1px solid var(--s100);border-radius:12px;padding:14px 16px;margin-bottom:15px}
+.mock-q b{font-size:11px;color:var(--gold-d);font-weight:800;letter-spacing:.3px}
+.mock-q p{font-size:14px;color:var(--s700);margin-top:6px;line-height:1.45}
+.mock-opt{display:flex;align-items:center;gap:12px;border:1.5px solid var(--s200);border-radius:13px;padding:12px 14px;margin-bottom:10px;font-size:13px;color:var(--s600);transition:.2s}
+.mock-opt .lt{flex-shrink:0;width:28px;height:28px;border-radius:50%;border:2px solid var(--s300);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;color:var(--s500)}
 .mock-opt .tx{flex:1}
-.mock-opt .ck{color:var(--gold);font-weight:800;font-size:12px}
+.mock-opt .ck{color:var(--gold);font-weight:800;font-size:15px}
 .mock-opt.on{border-color:var(--gold);background:rgba(14,165,233,.07);color:#075985;font-weight:600}
 .mock-opt.on .lt{background:var(--gold);border-color:var(--gold);color:#fff}
-.exam-nav{display:flex;justify-content:space-between;gap:8px;margin-top:13px}
-.exam-nav button{flex:1;font-size:10px;font-weight:800;padding:9px;border-radius:9px;border:1px solid var(--s200);background:#fff;color:var(--s500);cursor:default}
+.exam-nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.exam-nav button{flex:1;font-size:12.5px;font-weight:800;padding:12px;border-radius:10px;border:1px solid var(--s200);background:#fff;color:var(--s500);cursor:default}
 .exam-nav .next{background:var(--gold);border-color:var(--gold);color:#fff}
-.float-badge{position:absolute;background:#fff;border:1px solid var(--s200);border-radius:14px;padding:10px 14px;
-  box-shadow:0 14px 34px rgba(30,41,59,.16);display:flex;align-items:center;gap:10px;z-index:3;animation:lp-floatB 5s ease-in-out infinite}
-.float-badge.b1{top:-22px;right:-16px}
-.float-badge.b2{bottom:-18px;left:-18px;background:var(--navy);animation-delay:1s}
-.float-badge .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.float-badge{position:absolute;background:#fff;border:1px solid var(--s200);border-radius:16px;padding:13px 17px;
+  box-shadow:0 14px 34px rgba(30,41,59,.16);display:flex;align-items:center;gap:12px;z-index:3;animation:lp-floatB 5s ease-in-out infinite}
+.float-badge.b1{top:-26px;right:-20px}
+.float-badge.b2{bottom:-22px;left:-22px;background:var(--navy);animation-delay:1s}
+.float-badge .ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.float-badge .fb-trophy{font-size:24px}
+.float-badge .fb-title{font-size:13px}
+.float-badge .fb-big{font-size:19px}
+.float-badge .fb-big .fb-small{font-size:12px}
+.float-badge .fb-sub{font-size:12px}
 
 /* ── ticker ── */
 .ticker{background:var(--navy);overflow:hidden;padding:15px 0;white-space:nowrap;position:relative}
@@ -414,7 +421,9 @@ html{scroll-behavior:smooth}
   .stats-inner{grid-template-columns:repeat(2,1fr);gap:30px}
   .foot-grid{grid-template-columns:1fr 1fr;gap:30px}
   .pcard.prem{transform:none}.pcard.prem:hover{transform:translateY(-8px)}
-  .hero-right{display:flex;justify-content:center;margin-top:20px}
+  .hero-right{display:flex;justify-content:center;margin-top:20px;padding-left:0}
+  .hero-grid{padding:0}
+  .hero-grid>div:first-child{padding-right:0}
   .lp-links,.lp-nav-cta{display:none}
   .lp-mobile-dl{display:inline-flex;align-items:center;gap:6px;margin-left:26px;margin-right:auto;margin-top:-11px;
     background:var(--navy);color:#facc15;font-weight:800;font-size:12.5px;padding:8px 13px;border-radius:10px;
@@ -425,6 +434,34 @@ html{scroll-behavior:smooth}
     padding:16px 24px;box-shadow:0 12px 30px rgba(30,41,59,.1);animation:lp-slidedown .25s ease}
   .lp-mobile a{display:block;padding:12px 0;color:var(--s700);font-weight:700;text-decoration:none;border-bottom:1px solid var(--s100)}
   .lp-mobile .btn-gold{display:block;text-align:center;margin-top:14px;border-bottom:none}
+
+  /* mock card: kembali ke ukuran semula di mobile/PWA */
+  .exam-top{padding:9px 14px 11px;gap:9px}
+  .exam-cat{font-size:9px;padding:2px 9px}
+  .exam-title{font-size:11px}
+  .exam-timer{gap:4px;font-size:11px;padding:3px 9px;border-radius:7px}
+  .exam-sub{padding:11px 14px 0}
+  .exam-subrow{font-size:9.5px;margin-bottom:6px}
+  .mock-prog{height:6px;border-radius:4px}
+  .mock-prog i{border-radius:4px}
+  .mock-body{padding:14px}
+  .mock-q{border-radius:10px;padding:11px 12px;margin-bottom:12px}
+  .mock-q b{font-size:9px}
+  .mock-q p{font-size:11px;margin-top:4px}
+  .mock-opt{gap:10px;border-radius:11px;padding:9px 11px;margin-bottom:8px;font-size:10.5px}
+  .mock-opt .lt{width:22px;height:22px;font-size:10px}
+  .mock-opt .ck{font-size:12px}
+  .exam-nav{gap:8px;margin-top:13px}
+  .exam-nav button{font-size:10px;padding:9px;border-radius:9px}
+  .float-badge{border-radius:14px;padding:10px 14px;gap:10px}
+  .float-badge.b1{top:-22px;right:-16px}
+  .float-badge.b2{bottom:-18px;left:-18px}
+  .float-badge .ico{width:34px;height:34px;border-radius:9px;font-size:16px}
+  .float-badge .fb-trophy{font-size:20px}
+  .float-badge .fb-title{font-size:11px}
+  .float-badge .fb-big{font-size:16px}
+  .float-badge .fb-big .fb-small{font-size:10px}
+  .float-badge .fb-sub{font-size:10px}
 }
 @media(max-width:560px){
   .foot-grid{grid-template-columns:1fr}.foot-bottom{flex-direction:column;gap:8px;text-align:center}
@@ -460,7 +497,7 @@ html{scroll-behavior:smooth}
 }
 `;
 
-const WA_MSGS = ['Yuk gabung grup! 👋', 'Tanya admin via WhatsApp', 'Join komunitas PintuASN'];
+const WA_MSGS = ['Ada yang mau ditanya? 👋', 'Chat admin via WhatsApp', 'Gabung komunitas PintuASN'];
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -625,8 +662,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify({
           '@context': 'https://schema.org', '@type': 'Organization', name: 'PintuASN',
           url: 'https://pintuasn.com', logo: 'https://pintuasn.com/images/Logo.svg',
-          description: 'Platform simulasi CAT SKD CPNS terpercaya di Indonesia',
-          aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '12186' },
+          description: 'Platform latihan simulasi CAT SKD CPNS dengan analitik performa, roadmap belajar, dan pembahasan soal.',
         }) }}
       />
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
@@ -676,12 +712,12 @@ export default function Home() {
         <div className="hero-blob lp-drift2" style={{ width: 360, height: 360, background: 'rgba(245,183,0,.16)', bottom: -80, right: -50 }} />
         <div className="hero-grid">
           <div>
-            <h1 className="reveal">Lulus SKD <span style={{ color: 'var(--gold)' }}>CPNS</span> Bukan Soal <em>Keberuntungan</em></h1>
+            <h1 className="reveal">Hadapi SKD <span style={{ color: 'var(--gold)' }}>CPNS</span> dengan Persiapan, Bukan <em>Keberuntungan</em></h1>
             <p className="hero-sub reveal" style={{ transitionDelay: '.1s' }}>
-              Tempa dirimu dengan simulasi CAT yang <strong>99% identik sistem BKN</strong>, dan biarkan analitik mendalam, roadmap terstruktur, dan ranking nasional menuntun setiap langkahmu menuju NIP impian.
+              Berlatih dengan simulasi CAT yang <strong>menyerupai pola ujian SKD</strong>, lalu manfaatkan analitik performa, roadmap belajar, dan peringkat antar pengguna untuk tahu persis bagian mana yang perlu kamu perbaiki.
             </p>
             <div className="cta-row reveal" style={{ transitionDelay: '.2s' }}>
-              <a href="/sign-up" className="cta-big cta-y">Coba Gratis Sekarang</a>
+              <a href="/sign-up" className="cta-big cta-y">Mulai Gratis Sekarang</a>
               <a href="#fitur" className="cta-big cta-o">Lihat Fitur</a>
             </div>
             <div className="proof reveal" style={{ transitionDelay: '.3s' }}>
@@ -695,7 +731,7 @@ export default function Home() {
               </div>
               <div>
                 <div className="stars">★★★★★</div>
-                <p><strong>12.000+</strong> pejuang NIP bergabung</p>
+                <p><strong>12.000+</strong> pengguna sudah bergabung</p>
               </div>
             </div>
           </div>
@@ -736,15 +772,15 @@ export default function Home() {
               <div className="float-badge b1">
                 <div className="ico" style={{ background: 'var(--navy)', color: '#fff' }}>📊</div>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--navy)' }}>Skor TWK</div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: '#16a34a' }}>85 <span style={{ fontSize: 10, color: 'var(--s400)' }}>/ 150</span></div>
+                  <div className="fb-title" style={{ fontWeight: 800, color: 'var(--navy)' }}>Skor TWK</div>
+                  <div className="fb-big" style={{ fontWeight: 800, color: '#16a34a' }}>85 <span className="fb-small" style={{ color: 'var(--s400)' }}>/ 150</span></div>
                 </div>
               </div>
               <div className="float-badge b2">
-                <div style={{ fontSize: 20 }}>🏆</div>
+                <div className="fb-trophy">🏆</div>
                 <div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>Peringkat Nasional</div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--sky-l)' }}>#247 <span style={{ fontSize: 10, color: 'rgba(255,255,255,.4)' }}>dari 12.842</span></div>
+                  <div className="fb-sub" style={{ color: 'rgba(255,255,255,.5)', fontWeight: 600 }}>Peringkat Pengguna</div>
+                  <div className="fb-big" style={{ fontWeight: 800, color: 'var(--sky-l)' }}>#247 <span className="fb-small" style={{ color: 'rgba(255,255,255,.4)' }}>dari 12.186</span></div>
                 </div>
               </div>
             </div>
@@ -777,9 +813,9 @@ export default function Home() {
       <section className="sec" style={{ background: 'var(--s50)' }}>
         <div className="sec-in">
           <div className="sec-head reveal">
-            <div className="tag">Masalah Nyata</div>
-            <h2 className="sec-title">Mengapa Banyak yang Gagal di SKD?</h2>
-            <p className="sec-sub">Bukan karena kurang pintar, tapi karena strategi dan persiapan yang salah sasaran.</p>
+            <div className="tag">Tantangan Persiapan</div>
+            <h2 className="sec-title">Kendala yang Sering Muncul Saat Menyiapkan SKD</h2>
+            <p className="sec-sub">Sering kali bukan soal kemampuan, melainkan cara berlatih yang belum terarah.</p>
           </div>
           <div className="pain-grid">
             {PAINS.map((p, i) => (
@@ -797,8 +833,8 @@ export default function Home() {
       <section className="showcase">
         <div className="sec-head reveal">
           <div className="tag">Dashboard Performa</div>
-          <h2 className="sec-title">Lihat Progressmu dalam Satu Layar</h2>
-          <p className="sec-sub" style={{ margin: '14px auto 0' }}>Analitik mendalam yang mengubah data latihan menjadi keputusan belajar yang tepat.</p>
+          <h2 className="sec-title">Lihat Progresmu dalam Satu Layar</h2>
+          <p className="sec-sub" style={{ margin: '14px auto 0' }}>Hasil setiap sesi latihan dirangkum jadi gambaran yang mudah dibaca, supaya kamu tahu apa yang perlu dikerjakan berikutnya.</p>
         </div>
         <div className="showcase-stack reveal" style={{ transitionDelay: '.15s' }}>
 
@@ -812,7 +848,7 @@ export default function Home() {
                 <span className="mock-url" style={{ marginLeft: 8 }}>pintuasn.com/statistics</span>
               </div>
               <div className="scr-body">
-                <div className="scr-head"><span className="scr-title">📊 Tren Performa Skor</span><span className="scr-tag">Rata-rata 438</span></div>
+                <div className="scr-head"><span className="scr-title">📊 Tren Skor Latihan</span><span className="scr-tag">Rata-rata 438</span></div>
                 <div className="trend-wrap">
                   <svg className="trend-svg" viewBox="0 0 280 110" preserveAspectRatio="none">
                     <defs>
@@ -854,7 +890,7 @@ export default function Home() {
                 <span className="mock-url" style={{ marginLeft: 8 }}>pintuasn.com/exam/hasil</span>
               </div>
               <div className="scr-body">
-                <div className="scr-head"><span className="scr-title">🎯 Ringkasan Jawaban Kamu</span><span className="scr-tag pass">LULUS</span></div>
+                <div className="scr-head"><span className="scr-title">🎯 Ringkasan Jawabanmu</span><span className="scr-tag pass">LULUS</span></div>
                 <div className="donut-row">
                   <div className="donut">
                     <svg viewBox="0 0 120 120">
@@ -875,7 +911,7 @@ export default function Home() {
                     <div className="lg"><i style={{ background: '#64748b' }} />Kosong <b>6</b></div>
                   </div>
                 </div>
-                <div className="pace-title">⏱ Kecepatan Mengerjakan (detik/soal)</div>
+                <div className="pace-title">⏱ Rata-rata Waktu Pengerjaan (detik/soal)</div>
                 {[
                   ['TWK', '42 dtk', 64, '#38bdf8'],
                   ['TIU', '55 dtk', 84, '#34d399'],
@@ -899,8 +935,8 @@ export default function Home() {
         <div className="sec-in">
           <div className="sec-head reveal">
             <div className="tag">Fitur Unggulan</div>
-            <h2 className="sec-title">Senjata Rahasiamu Menuju NIP 2026</h2>
-            <p className="sec-sub">Setiap fitur dirancang dengan presisi untuk memangkas waktu belajarmu dan memaksimalkan peluang lolos SKD CPNS 2026.</p>
+            <h2 className="sec-title">Perangkat Pendukung Persiapan SKD 2026</h2>
+            <p className="sec-sub">Setiap fitur dibuat untuk satu tujuan: membuat waktu belajarmu lebih terarah, bukan sekadar lebih banyak.</p>
           </div>
           <div className="feat-stack">
             {FEATURES.map((f, i) => (
@@ -930,7 +966,7 @@ export default function Home() {
         <div className="sec-in">
           <div className="sec-head reveal">
             <div className="tag">Cara Kerja</div>
-            <h2 className="sec-title">3 Langkah Mulai Persiapan</h2>
+            <h2 className="sec-title">Tiga Langkah untuk Mulai</h2>
           </div>
           <div className="steps">
             {STEPS.map((s, i) => (
@@ -949,8 +985,8 @@ export default function Home() {
         <div className="sec-in">
           <div className="sec-head reveal">
             <div className="tag">Paket Belajar</div>
-            <h2 className="sec-title">Pilih Paketmu</h2>
-            <p className="sec-sub">Investasi terbaik untuk lolos SKD CPNS 2026. Akses penuh hingga hari ujian selesai.</p>
+            <h2 className="sec-title">Pilih Paket yang Sesuai</h2>
+            <p className="sec-sub">Mulai dari paket gratis tanpa batas waktu. Naik paket kapan pun kamu merasa butuh akses yang lebih lengkap.</p>
           </div>
           <div className="price-grid">
 
@@ -961,18 +997,18 @@ export default function Home() {
                 <div><div className="p-name" style={{ color: 'var(--navy)' }}>Gratis</div><div className="p-period" style={{ color: 'var(--s400)' }}>Selamanya</div></div>
               </div>
               <div className="p-amount" style={{ color: 'var(--navy)' }}>Gratis</div>
-              <div className="p-desc" style={{ color: 'var(--s400)', borderBottom: '1px solid var(--s100)' }}>Cocok untuk mencoba fitur dasar simulasi SKD</div>
+              <div className="p-desc" style={{ color: 'var(--s400)', borderBottom: '1px solid var(--s100)' }}>Untuk mencoba sistem dan menilai sendiri kualitas soalnya</div>
               <ul className="p-feats">
                 {[['Tryout paket gratis', 1], ['Akses Roadmap pembelajaran', 1], ['Akses materi dasar', 1],
                   ['Tryout paket premium', 0], ['Latihan Soal SKD / Mini Try Out', 0], ['Review soal + pembahasan lengkap', 0],
-                  ['Statistik & analisis performa', 0], ['Peringkat nasional', 0]].map(([t, ok]) => (
+                  ['Statistik & analisis performa', 0], ['Peringkat antar pengguna', 0]].map(([t, ok]) => (
                   <li key={t as string}>
                     <span className="chk" style={ok ? { background: '#dcfce7', color: '#16a34a' } : { background: 'var(--s100)', color: 'var(--s400)' }}>{ok ? '✓' : '✗'}</span>
                     <span style={ok ? { color: 'var(--s700)' } : { color: 'var(--s400)', textDecoration: 'line-through' }}>{t}</span>
                   </li>
                 ))}
               </ul>
-              <a href="/sign-in" className="p-btn" style={{ border: '1.5px solid var(--s300)', color: 'var(--s600)' }}>Pakai Gratis</a>
+              <a href="/sign-in" className="p-btn" style={{ border: '1.5px solid var(--s300)', color: 'var(--s600)' }}>Mulai Gratis</a>
             </div>
 
             {/* PREMIUM */}
@@ -984,11 +1020,11 @@ export default function Home() {
               </div>
               <div className="p-orig" style={{ color: 'rgba(255,255,255,.4)' }}>Rp 200.000</div>
               <div className="p-amount" style={{ color: 'var(--sky-l)' }}>Rp 99.000</div>
-              <div className="p-desc" style={{ color: 'rgba(255,255,255,.55)', borderBottom: '1px solid rgba(255,255,255,.12)' }}>Akses penuh untuk persiapan SKD CPNS 2026</div>
+              <div className="p-desc" style={{ color: 'rgba(255,255,255,.55)', borderBottom: '1px solid rgba(255,255,255,.12)' }}>Akses seluruh fitur inti selama masa persiapan</div>
               <ul className="p-feats">
                 {['Tryout paket gratis & premium', 'Latihan Soal SKD / Mini Try Out (TWK, TIU, TKP)', 'Review soal + pembahasan lengkap',
                   'Materi SKD lengkap (TWK, TIU, TKP)', 'Akses Riwayat (3 terbaru)', 'Statistik & analisis performa',
-                  'Peringkat nasional', 'Leaderboard paket'].map(t => (
+                  'Peringkat antar pengguna', 'Leaderboard paket'].map(t => (
                   <li key={t}><span className="chk" style={{ background: 'rgba(14,165,233,.25)', color: '#fff' }}>✓</span><span style={{ color: 'rgba(255,255,255,.9)' }}>{t}</span></li>
                 ))}
               </ul>
@@ -1004,7 +1040,7 @@ export default function Home() {
               </div>
               <div className="p-orig" style={{ color: 'rgba(255,255,255,.35)' }}>Rp 349.000</div>
               <div className="p-amount" style={{ color: '#c4b5fd' }}>Rp 119.000</div>
-              <div className="p-desc" style={{ color: 'rgba(255,255,255,.45)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>Paket lengkap dengan fitur eksklusif dan prioritas</div>
+              <div className="p-desc" style={{ color: 'rgba(255,255,255,.45)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>Paket terlengkap, dengan materi video dan masa aktif setahun</div>
               <ul className="p-feats">
                 {['Semua fitur Premium', 'Akses Riwayat tidak terbatas', 'Tryout paket platinum eksklusif',
                   'Materi platinum + video series SKD', 'Analisis soal dengan waktu terlama', 'Laporan perkembangan belajar',
@@ -1016,7 +1052,7 @@ export default function Home() {
             </div>
 
           </div>
-          <div className="pay-note reveal" style={{ transitionDelay: '.3s' }}>🔒 Pembayaran aman via Midtrans · QRIS · GoPay · Transfer Bank · Alfamart/Indomaret</div>
+          <div className="pay-note reveal" style={{ transitionDelay: '.3s' }}>🔒 Pembayaran diproses oleh Midtrans · QRIS · GoPay · Transfer Bank · Alfamart/Indomaret</div>
         </div>
       </section>
 
@@ -1045,11 +1081,11 @@ export default function Home() {
       <section className="final">
         <div className="hero-blob lp-drift1" style={{ width: 300, height: 300, background: 'rgba(255,255,255,.08)', top: -50, left: '20%' }} />
         <div className="final-in reveal">
-          <div className="final-pill">⏰ Pendaftaran CPNS 2026 semakin dekat</div>
-          <h2>Pesaingmu Sudah Mulai.<br />Kamu Kapan?</h2>
-          <p>Jangan biarkan kursi ASN impianmu diambil orang lain hanya karena kurang persiapan.</p>
-          <a href="/sign-up" className="cta-big cta-y" style={{ fontSize: 17, padding: '16px 38px' }}>Mulai Perjalanan ASN-mu Sekarang</a>
-          <p className="sub">Gratis selamanya · Tanpa kartu kredit</p>
+          <div className="final-pill">🎯 Menuju Seleksi CPNS 2026</div>
+          <h2>Persiapan yang Matang<br />Dimulai Hari Ini</h2>
+          <p>Hasil seleksi tidak ada yang bisa menjamin. Yang bisa kamu kendalikan adalah seberapa siap dirimu saat hari ujian tiba.</p>
+          <a href="/sign-up" className="cta-big cta-y" style={{ fontSize: 17, padding: '16px 38px' }}>Buat Akun Gratis</a>
+          <p className="sub">Paket gratis tanpa batas waktu · Tanpa kartu kredit</p>
         </div>
       </section>
 
@@ -1061,14 +1097,14 @@ export default function Home() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/logo-navbar-sky.svg" alt="PintuASN" className="lp-logo-img" />
             </a>
-            <p style={{ fontSize: 14, color: 'var(--s500)', lineHeight: 1.6, marginTop: 10, maxWidth: 280 }}>Platform simulasi CAT SKD CPNS paling akurat di Indonesia. Partner terpercaya menuju NIP impianmu 2026.</p>
+            <p style={{ fontSize: 14, color: 'var(--s500)', lineHeight: 1.6, marginTop: 10, maxWidth: 280 }}>Platform latihan simulasi CAT SKD CPNS. Teman berlatih untuk menyiapkan diri menghadapi seleksi 2026.</p>
             <div className="social"><div>📸</div><div>🎵</div><div>▶️</div></div>
           </div>
           <div className="foot-col">
             <h4>Platform</h4>
             <a href="/#fitur">Fitur Unggulan</a>
             <a href="/#paket">Harga dan Paket</a>
-            <a href="/sign-up">Simulasi Gratis</a>
+            <a href="/sign-up">Coba Simulasi Gratis</a>
             <a href="/blog">Blog</a>
             <a href="/faq">FAQ</a>
           </div>
