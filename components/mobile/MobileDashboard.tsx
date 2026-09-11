@@ -175,10 +175,13 @@ export function MobileDashboard({
       {/* ── Upgrade / Premium CTA (compact) ─────────────────── */}
       {showOffer && (
         <section className="px-4">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-3 shadow-lg">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-3 shadow-lg">
+            {/* Glow dekoratif, senada dengan popup CTA premium */}
+            <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
 
             {/* Header: icon + judul + deskripsi inline */}
-            <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="relative flex items-start justify-between gap-2 mb-2">
               <div className="flex items-center gap-1.5">
                 <Crown size={13} className="text-yellow-400 flex-shrink-0 mt-px" />
                 <div>
@@ -208,10 +211,10 @@ export function MobileDashboard({
             </div>
 
             {/* Divider */}
-            <div className="h-px bg-white/10 mb-2" />
+            <div className="relative h-px bg-white/10 mb-2" />
 
             {/* Feature grid 3-col compact */}
-            <div className="grid grid-cols-3 gap-1 mb-2.5">
+            <div className="relative grid grid-cols-3 gap-1 mb-2.5">
               {[
                 { val: '∞', label: 'Riwayat' },
                 { val: 'HD', label: isPremium ? 'Materi Video' : 'Materi SKD' },
@@ -227,7 +230,7 @@ export function MobileDashboard({
             </div>
 
             {/* CTA button */}
-            <Link href="/beli-paket">
+            <Link href="/beli-paket" className="relative block">
               <button className="w-full bg-white text-slate-800 font-semibold py-2 px-4 rounded-xl active-press transition-all text-xs shadow-md">
                 Upgrade Sekarang
               </button>
@@ -239,10 +242,10 @@ export function MobileDashboard({
 
       {/* ── Mini Statistik Belajar ─────────────────────────────── */}
       <section className="mx-4">
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl p-4 shadow-lg border border-slate-700/60">
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-4 shadow-lg border border-slate-700/60">
           {/* Blob dekoratif */}
-          <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-yellow-500/10 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-14 -left-8 w-36 h-36 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-blue-500/25 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-14 -left-8 w-36 h-36 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
 
           {/* Header */}
           <div className="relative flex items-center justify-between mb-3.5">

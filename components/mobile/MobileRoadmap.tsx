@@ -296,10 +296,10 @@ export function MobileRoadmap({ stats, savedPreference, studyHistory = [], pelua
     <main className="bg-slate-50 min-h-screen">
 
       {/* ── Hero: compact navy banner ─────────────────────── */}
-      <div className="relative bg-slate-800 overflow-hidden px-4 pt-5 pb-6 mx-4 mt-4 rounded-2xl shadow-lg shadow-slate-800/20">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 px-4 pt-5 pb-6 mx-4 mt-4 rounded-2xl shadow-lg shadow-slate-800/20">
         {/* Decorative circles */}
-        <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/[0.04] pointer-events-none" />
-        <div className="absolute top-3 right-16 w-16 h-16 rounded-full bg-[#F5A623]/10 pointer-events-none" />
+        <div className="pointer-events-none absolute -top-12 -right-10 w-40 h-40 rounded-full bg-blue-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-8 w-40 h-40 rounded-full bg-amber-400/15 blur-3xl" />
 
         <div className="relative">
           {/* Badge */}
@@ -684,8 +684,10 @@ export function MobileRoadmap({ stats, savedPreference, studyHistory = [], pelua
         <div className="px-4 space-y-4">
 
           {/* Target ujian banner */}
-          <div className="bg-slate-800 rounded-2xl px-4 py-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl px-4 py-3.5 flex items-center justify-between">
+            <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+            <div className="relative flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
                 <CalendarDays className="w-4 h-4 text-[#F5A623]" />
               </div>
@@ -702,7 +704,7 @@ export function MobileRoadmap({ stats, savedPreference, studyHistory = [], pelua
             </div>
             {selectedDate && (
               <button onClick={() => setSelectedDate(undefined)}
-                className="text-[10px] text-white/50 hover:text-white border border-white/15 px-2 py-1 rounded-lg transition-colors">
+                className="relative text-[10px] text-white/50 hover:text-white border border-white/15 px-2 py-1 rounded-lg transition-colors">
                 Ubah
               </button>
             )}

@@ -270,9 +270,9 @@ export function MobileHasilSimulasi({
     <main className="pb-16 space-y-4">
 
       {/* ── Hero — dark bg matching desktop ───────────────────── */}
-      <section className="bg-slate-900 relative overflow-hidden mx-3 mt-3 rounded-3xl shadow-xl px-4 pt-6 pb-8">
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-yellow-400/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-sky-500/6 rounded-full blur-3xl pointer-events-none" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 mx-3 mt-3 rounded-3xl shadow-xl px-4 pt-6 pb-8">
+        <div className="pointer-events-none absolute -top-12 -right-10 w-40 h-40 rounded-full bg-blue-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-8 w-40 h-40 rounded-full bg-amber-400/15 blur-3xl" />
 
         <div className="relative z-10">
           {/* Top row: date + button */}
@@ -540,13 +540,15 @@ export function MobileHasilSimulasi({
       {/* ── Leaderboard (disembunyikan untuk drilling) ─────────── */}
       {!isDrilling && leaderboard.length > 0 && (
         <div className="px-4">
-          <div className="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl border border-slate-800 shadow-sm p-4">
+            <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+            <div className="relative flex items-center gap-2 mb-3">
               <Trophy className="h-4 w-4 text-yellow-400" fill="currentColor" />
               <h3 className="font-bold text-white text-sm flex-1">Leaderboard Paket Ini</h3>
               <span className="text-xs text-slate-500">Top {Math.min(leaderboard.length, 10)}</span>
             </div>
-            <div className="space-y-1">
+            <div className="relative space-y-1">
               {leaderboard.slice(0, 10).map((item, idx) => {
                 const isMe = item.user_id === userId;
                 const initials = item.profiles?.full_name

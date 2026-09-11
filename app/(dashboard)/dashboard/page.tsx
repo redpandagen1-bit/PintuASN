@@ -140,8 +140,10 @@ async function DashboardContent() {
         <FeatureGrid />
 
         {/* Statistik Belajar */}
-        <section className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-3xl p-5 md:p-7 shadow-lg border border-slate-600 space-y-5">
-          <div className="flex flex-row items-center justify-between gap-3">
+        <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-3xl p-5 md:p-7 shadow-lg border border-slate-600 space-y-5">
+          <div className="pointer-events-none absolute -top-16 -right-10 w-44 h-44 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 w-44 h-44 rounded-full bg-amber-400/15 blur-3xl" />
+          <div className="relative flex flex-row items-center justify-between gap-3">
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white">
                 Statistik <span className="text-yellow-400">Belajar</span>
@@ -154,7 +156,7 @@ async function DashboardContent() {
               </Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard label="Tryout Selesai"     value={completedAttempts.length} iconName="CheckCircle" iconColor="text-yellow-400" iconBg="bg-slate-800" />
             <StatCard label="Rata-rata Skor"     value={averageScore}             iconName="BarChart2"   iconColor="text-yellow-400" iconBg="bg-slate-800" />
             <StatCard label="Peringkat Nasional" value={rankingDisplay}           iconName="Award"       iconColor="text-yellow-400" iconBg="bg-slate-800" />

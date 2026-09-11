@@ -147,8 +147,9 @@ export default function MateriPageClient({
           {/* Judul + materi digabung dalam satu kontainer */}
           <div className="rounded-2xl border border-slate-200 overflow-hidden">
             {/* Judul (slate-800) */}
-            <div className="bg-slate-800 px-6 pt-6 pb-5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 px-6 pt-6 pb-5">
+              <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
               <div className="relative z-10">
                 <p className="text-yellow-400 text-[11px] font-bold uppercase tracking-wider mb-1.5">{activeTabConfig.label}</p>
                 <h1 className="text-2xl font-extrabold text-white mb-4">{activeGroup.topic}</h1>
@@ -224,8 +225,9 @@ export default function MateriPageClient({
       <div className="space-y-6 pb-10">
 
         {/* HERO */}
-        <div className="bg-slate-800 rounded-2xl px-6 py-7 md:px-8 md:py-8 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl px-6 py-7 md:px-8 md:py-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="pointer-events-none absolute -top-12 -right-10 w-40 h-40 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-14 -left-10 w-40 h-40 rounded-full bg-amber-400/15 blur-3xl" />
           <div className="relative z-10 max-w-xl">
             <h1 className="text-[28px] md:text-4xl font-extrabold text-white leading-tight tracking-tight mb-2.5">
               Pelajari <span className="text-yellow-400">Materinya</span>

@@ -71,14 +71,15 @@ export function MobilePackageDetail({
       {/* ══════════════════════════════════════════════════════
           HERO — bg-slate-800, rounded bottom corners
       ══════════════════════════════════════════════════════ */}
-      <div className="bg-slate-800 relative overflow-hidden rounded-3xl mx-3 mt-3 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-3xl mx-3 mt-3 shadow-xl">
         {/* Decorative glow */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-400 rounded-full opacity-10 blur-3xl pointer-events-none" />
+        <div className="pointer-events-none absolute -top-12 -right-10 w-40 h-40 rounded-full bg-blue-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-8 w-40 h-40 rounded-full bg-amber-400/15 blur-3xl" />
 
         <div className="relative z-10 px-4 pt-4 pb-6">
 
           {/* Badges */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="relative flex items-center gap-2 mb-3">
             <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border', diffBadge.cls)}>
               {diffBadge.label}
             </span>
@@ -88,7 +89,7 @@ export function MobilePackageDetail({
           </div>
 
           {/* Title + Button — same row */}
-          <div className="flex items-start gap-3 mb-2">
+          <div className="relative flex items-start gap-3 mb-2">
             <h1 className="text-xl font-extrabold text-white leading-tight flex-1">
               {title}
             </h1>
@@ -110,7 +111,7 @@ export function MobilePackageDetail({
 
           {/* Description */}
           {description && (
-            <p className="text-slate-400 text-xs leading-relaxed">{description}</p>
+            <p className="relative text-slate-400 text-xs leading-relaxed">{description}</p>
           )}
         </div>
       </div>

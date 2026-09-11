@@ -434,11 +434,13 @@ export function MobilePaketBelajar({ userTier, onSelectPkg }: MobilePaketBelajar
 
       {/* ── Page Headline ─────────────────────────────────────── */}
       <section className="mb-5">
-        <div className="bg-slate-800 rounded-2xl px-5 py-4">
-          <h1 className="text-xl font-extrabold mb-0.5 tracking-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl px-5 py-4">
+          <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+          <h1 className="relative text-xl font-extrabold mb-0.5 tracking-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
             <span className="text-white">Paket </span><span className="text-yellow-400">Belajar</span>
           </h1>
-          <p className="text-slate-300 text-sm">
+          <p className="relative text-slate-300 text-sm">
             Pilih paket terbaik untuk persiapan SKD CPNS 2026.
           </p>
         </div>

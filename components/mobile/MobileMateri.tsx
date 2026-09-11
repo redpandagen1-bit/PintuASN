@@ -128,8 +128,9 @@ export function MobileMateri({
 
           {/* Judul + materi digabung dalam satu kontainer */}
           <div className="rounded-2xl border border-slate-200 overflow-hidden">
-            <div className="bg-slate-800 px-5 pt-5 pb-4 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-36 h-36 bg-yellow-500/10 rounded-full blur-2xl -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 px-5 pt-5 pb-4">
+              <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
               <div className="relative z-10">
                 <h1 className="text-xl font-extrabold text-white mb-3">{activeGroup.topic}</h1>
                 <div className="flex items-center gap-2 mb-1.5 text-[11px] text-slate-300">
@@ -185,8 +186,9 @@ export function MobileMateri({
   return (
     <>
       <div className="px-4 pb-24 space-y-5">
-        <div className="bg-slate-800 rounded-2xl p-5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-44 h-44 bg-yellow-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-5">
+          <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
           <div className="relative z-10">
             <h1 className="text-2xl font-extrabold text-white leading-tight mb-1">Pelajari <span className="text-yellow-400">Materinya</span></h1>
             <p className="text-slate-300 text-xs leading-relaxed">Dirangkum per topik &amp; sub-topik, lengkap dengan kuis tiap halaman.</p>

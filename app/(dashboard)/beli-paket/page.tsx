@@ -838,11 +838,13 @@ export default function BeliPaketPage() {
       {/* ── Desktop ────────────────────────────────────────────── */}
       <div className="hidden md:block min-h-screen bg-slate-50 pt-10 pb-10 px-4">
       <div className="max-w-5xl mx-auto mb-7">
-        <div className="bg-slate-800 rounded-2xl px-6 py-5 text-center">
-          <h1 className="text-xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-jakarta)' }}>
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl px-6 py-5 text-center">
+          <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+          <h1 className="relative text-xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-jakarta)' }}>
             <span className="text-white">Paket </span><span className="text-yellow-400">Belajar</span>
           </h1>
-          <p className="text-slate-300 text-sm max-w-md mx-auto">Pilih paket terbaik untuk persiapan SKD CPNS 2026.</p>
+          <p className="relative text-slate-300 text-sm max-w-md mx-auto">Pilih paket terbaik untuk persiapan SKD CPNS 2026.</p>
         </div>
         {error && <div className="mt-3 text-center"><span className="inline-block bg-red-50 border border-red-200 text-red-700 text-xs px-4 py-2 rounded-lg">{error}</span></div>}
       </div>

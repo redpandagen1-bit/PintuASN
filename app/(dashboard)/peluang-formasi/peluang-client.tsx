@@ -51,8 +51,9 @@ function getVerdict(d: PeluangFormasi): Verdict {
 export function PeluangFormasiClient({ data }: { data: PeluangFormasi }) {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-0 pb-10">
-      <div className="bg-slate-800 rounded-2xl p-3.5 md:p-4 mt-2 md:mt-0 mb-3 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-3">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-3.5 md:p-4 mt-2 md:mt-0 mb-3 shadow-xl border border-slate-700 flex items-center justify-between gap-3">
+        <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-xl md:text-2xl font-extrabold text-white mb-1 tracking-tight">
             Peluang <span className="text-yellow-400">Formasi</span>
@@ -301,8 +302,10 @@ function Result({ data }: { data: PeluangFormasi }) {
       </div>
 
       {/* ── Rekomendasi ──────────────────────────────────────── */}
-      <div className="rounded-2xl bg-slate-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+        <div className="relative text-white">
           <div className="flex items-center gap-2 text-sm font-semibold mb-0.5">
             <Target className="w-4 h-4 text-yellow-400" /> Langkah berikutnya
           </div>
@@ -312,7 +315,7 @@ function Result({ data }: { data: PeluangFormasi }) {
               : <>Prioritaskan kategori yang belum lolos ambang.</>}
           </p>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="relative flex gap-2 flex-shrink-0">
           <Link href={`/drilling?cat=${weakCat}`} className="h-9 px-4 inline-flex items-center rounded-xl bg-yellow-400 text-slate-900 text-sm font-bold hover:bg-yellow-300 transition">Drilling {weakCat}</Link>
           <Link href="/statistics" className="h-9 px-4 inline-flex items-center rounded-xl border border-slate-600 text-slate-200 text-sm font-semibold hover:bg-slate-700 transition">Statistik</Link>
         </div>

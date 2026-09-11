@@ -161,10 +161,10 @@ export function MobileStatistik({ data, ranking, distribution, mastery, peluang 
     <main className="">
 
       {/* ── Page header — matches desktop hero ────────────────── */}
-      <section className="mx-4 mt-4 mb-4 bg-slate-800 rounded-2xl p-5 relative overflow-hidden shadow-xl border border-slate-700 flex items-center justify-between gap-4">
+      <section className="relative overflow-hidden mx-4 mt-4 mb-4 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-5 shadow-xl border border-slate-700 flex items-center justify-between gap-4">
         {/* Decorative blobs */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl translate-y-1/2 pointer-events-none" />
+        <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
 
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-700/50 border border-slate-600 mb-3">

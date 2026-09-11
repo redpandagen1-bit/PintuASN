@@ -99,11 +99,17 @@ function StatCard({ icon, label, value, sub, accent = false }: {
   accent?: boolean;
 }) {
   return (
-    <div className={`rounded-2xl p-5 flex items-start gap-4 ${accent ? 'bg-slate-800 text-white' : 'bg-white border border-slate-100 shadow-sm'}`}>
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accent ? 'bg-white/10' : 'bg-slate-100'}`}>
+    <div className={`relative overflow-hidden rounded-2xl p-5 flex items-start gap-4 ${accent ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-white' : 'bg-white border border-slate-100 shadow-sm'}`}>
+      {accent && (
+        <>
+          <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+        </>
+      )}
+      <div className={`relative w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accent ? 'bg-white/10' : 'bg-slate-100'}`}>
         {icon}
       </div>
-      <div>
+      <div className="relative">
         <p className={`text-xs font-semibold mb-0.5 ${accent ? 'text-slate-400' : 'text-slate-500'}`}>{label}</p>
         <p className={`text-2xl font-extrabold leading-none ${accent ? 'text-white' : 'text-slate-800'}`}>{value}</p>
         {sub && <p className={`text-xs mt-0.5 ${accent ? 'text-slate-400' : 'text-slate-400'}`}>{sub}</p>}
@@ -127,8 +133,10 @@ export default async function PackageStatsPage({ params }: StatsPageProps) {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <div className="bg-slate-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900">
+        <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-6">
           <Link
             href="/daftar-tryout"
             className="inline-flex items-center gap-1.5 text-slate-400 hover:text-white text-sm font-medium transition-colors mb-4"

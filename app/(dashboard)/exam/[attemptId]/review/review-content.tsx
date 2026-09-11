@@ -219,8 +219,9 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
         <div className="max-w-7xl mx-auto w-full">
 
           {/* ── HERO BANNER — diperkecil ─────────────────────────────── */}
-          <div className="bg-slate-800 rounded-xl px-5 py-4 mb-4 relative overflow-hidden shadow-lg border border-slate-700">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-400 rounded-full mix-blend-multiply filter blur-[70px] opacity-25 translate-x-1/3 -translate-y-1/3 pointer-events-none" />
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-xl px-5 py-4 mb-4 shadow-lg border border-slate-700">
+            <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
 
             <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
               {/* Left */}

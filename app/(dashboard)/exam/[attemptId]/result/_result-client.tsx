@@ -805,7 +805,9 @@ export default function ResultClient({
                 <ActionButton icon={<ArrowLeft size={16} />} label="Ke Dashboard" variant="ghost" href="/dashboard" />
               </div>
             </div>
-            <div className="hidden lg:block w-48 h-48 bg-slate-800 rounded-[2rem] relative shadow-xl shadow-slate-200 overflow-hidden border-4 border-white rotate-3 hover:rotate-0 transition-transform duration-300">
+            <div className="hidden lg:block w-48 h-48 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-[2rem] shadow-xl shadow-slate-200 border-4 border-white rotate-3 hover:rotate-0 transition-transform duration-300">
+              <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-5">
                 <div className="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center text-slate-900 mb-3 shadow-lg shadow-yellow-400/30">
                   <GraduationCap size={24} />

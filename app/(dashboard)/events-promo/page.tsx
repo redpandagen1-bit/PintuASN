@@ -104,11 +104,13 @@ export default function EventsPromoPage() {
 
       {/* ── Desktop ── */}
       <div className="hidden md:block max-w-4xl mx-auto px-4 pt-4 pb-8 md:py-8 space-y-6 md:space-y-8">
-        <div className="bg-slate-800 rounded-2xl px-6 py-5">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-jakarta)' }}>
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl px-6 py-5">
+          <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+          <h1 className="relative text-2xl font-bold" style={{ fontFamily: 'var(--font-jakarta)' }}>
             <span className="text-white">Event &amp; </span><span className="text-yellow-400">Promo</span>
           </h1>
-          <p className="text-slate-300 text-sm mt-1">
+          <p className="relative text-slate-300 text-sm mt-1">
             Dapatkan penawaran terbaik untuk persiapan SKD kamu. Jangan sampai kehabisan!
           </p>
         </div>

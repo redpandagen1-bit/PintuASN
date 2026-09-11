@@ -230,8 +230,10 @@ export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier 
 
       <main>
         {/* ── Header + Search ──────────────── */}
-        <div className="bg-slate-800 mx-4 mt-2 rounded-2xl px-4 pt-4 pb-4">
-          <div className="mb-3">
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 mx-4 mt-2 rounded-2xl px-4 pt-4 pb-4">
+          <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+          <div className="relative mb-3">
             <h1 className="text-xl font-extrabold text-white leading-tight">
               Daftar <span className="text-yellow-400">Tryout</span>
             </h1>

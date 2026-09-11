@@ -111,8 +111,10 @@ export function Sidebar() {
 
         {/* FREE */}
         {userTier === 'free' && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center gap-2.5 mb-2">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-4 shadow-lg">
+            <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+            <div className="relative flex items-center gap-2.5 mb-2">
               <img
                 src="/images/icons/tier_gratis.svg"
                 alt="gratis"
@@ -124,11 +126,11 @@ export function Sidebar() {
                 Upgrade ke <span className="text-yellow-400">Premium</span>
               </h3>
             </div>
-            <p className="text-slate-400 text-xs mb-3 leading-relaxed">
+            <p className="relative text-slate-400 text-xs mb-3 leading-relaxed">
               Akses tryout premium & materi video SKD lengkap.
             </p>
-            <div className="h-px bg-white/10 mb-3" />
-            <div className="grid grid-cols-3 gap-1.5 mb-3">
+            <div className="relative h-px bg-white/10 mb-3" />
+            <div className="relative grid grid-cols-3 gap-1.5 mb-3">
               {[
                 { file: 'riwayat_premium', label: 'Riwayat' },
                 { file: 'video_skd_premium', label: 'Materi SKD' },
@@ -149,13 +151,13 @@ export function Sidebar() {
                 </div>
               ))}
             </div>
-            <div className="mb-3">
+            <div className="relative mb-3">
               <p className="text-slate-500 text-xs line-through leading-none mb-0.5">
                 Rp 200.000
               </p>
               <p className="text-white font-bold text-lg leading-none">Rp 99.000</p>
             </div>
-            <Link href="/beli-paket">
+            <Link href="/beli-paket" className="relative block">
               <button className="w-full bg-yellow-400 text-slate-900 font-bold py-2 px-4 rounded-xl hover:bg-yellow-300 transition-all duration-200 text-xs shadow-md">
                 Upgrade Sekarang →
               </button>
@@ -165,8 +167,10 @@ export function Sidebar() {
 
         {/* PREMIUM */}
         {userTier === 'premium' && (
-          <div className="bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center gap-2.5 mb-2">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-4 shadow-lg">
+            <div className="pointer-events-none absolute -top-10 -right-8 w-28 h-28 rounded-full bg-blue-500/25 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 w-28 h-28 rounded-full bg-amber-400/15 blur-3xl" />
+            <div className="relative flex items-center gap-2.5 mb-2">
               <img
                 src="/images/icons/tier_premium.svg"
                 alt="premium"
@@ -178,11 +182,11 @@ export function Sidebar() {
                 Upgrade ke <span className="text-yellow-400">Platinum</span>
               </h3>
             </div>
-            <p className="text-slate-400 text-xs mb-3 leading-relaxed">
+            <p className="relative text-slate-400 text-xs mb-3 leading-relaxed">
               Fitur eksklusif & video series SKD lengkap.
             </p>
-            <div className="h-px bg-white/10 mb-3" />
-            <div className="grid grid-cols-3 gap-1.5 mb-3">
+            <div className="relative h-px bg-white/10 mb-3" />
+            <div className="relative grid grid-cols-3 gap-1.5 mb-3">
               {[
                 { file: 'riwayat_premium', label: 'Riwayat' },
                 { file: 'video_skd_premium', label: 'Materi Video' },
@@ -203,13 +207,13 @@ export function Sidebar() {
                 </div>
               ))}
             </div>
-            <div className="mb-3">
+            <div className="relative mb-3">
               <p className="text-slate-500 text-xs line-through leading-none mb-0.5">
                 Rp 119.000
               </p>
               <p className="text-white font-bold text-lg leading-none">Rp 29.000</p>
             </div>
-            <Link href="/beli-paket">
+            <Link href="/beli-paket" className="relative block">
               <button className="w-full bg-yellow-400 text-slate-900 font-bold py-2 px-4 rounded-xl hover:bg-yellow-300 transition-all duration-200 text-xs shadow-md">
                 Upgrade Sekarang →
               </button>
