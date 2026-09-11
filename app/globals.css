@@ -195,6 +195,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* Selalu sediakan ruang scrollbar vertikal agar lebar halaman tidak
+       berubah saat konten jadi lebih pendek dari viewport (mis. ganti tab
+       filter atau pindah halaman lewat sidebar) — mencegah layout bergeser. */
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
+  }
   body {
     @apply bg-background text-foreground;
   }

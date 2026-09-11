@@ -59,7 +59,7 @@ const MENU_ITEMS = [
   { label: 'Materi',        href: '/materi',        iconFile: 'materi'       },
   { label: 'Peluang Formasi', href: '/peluang-formasi', iconFile: 'peluang_formasi' },
   { label: 'Daftar Tryout', href: '/daftar-tryout', iconFile: 'daftar_tryout' },
-  { label: 'Drilling',      href: '/drilling',      iconFile: 'drilling' },
+  { label: 'Drilling Soal', href: '/drilling',      iconFile: 'drilling' },
   { label: 'Riwayat',       href: '/history',       iconFile: 'riwayat'      },
   { label: 'Beli Paket',    href: '/beli-paket',    iconFile: 'beli_paket'   },
   { label: 'Event & Promo', href: '/events-promo',  iconFile: 'event_promo'  },
@@ -150,7 +150,6 @@ export function MobileDashboard({
                   width={52}
                   height={52}
                   className="transition-all group-active:scale-95"
-                  style={{ opacity: 0.85 }}
                 />
                 <span className="text-[10px] font-semibold text-md-primary text-center leading-tight"
                   style={{ fontFamily: 'var(--font-jakarta)' }}>

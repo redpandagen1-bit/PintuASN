@@ -8,15 +8,14 @@ import { MAIN_MENU_ITEMS, SECONDARY_MENU_ITEMS } from '@/constants/menu-items';
 
 type Tier = 'free' | 'premium' | 'platinum';
 
-function NavIcon({ iconFile, isActive }: { iconFile: string; isActive: boolean }) {
+function NavIcon({ iconFile }: { iconFile: string }) {
   return (
     <img
       src={`/images/icons/${iconFile}.svg`}
       alt={iconFile}
-      width={28}
-      height={28}
+      width={30}
+      height={30}
       className="flex-shrink-0 transition-all duration-200"
-      style={{ opacity: isActive ? 1 : 0.85 }}
     />
   );
 }
@@ -58,12 +57,12 @@ export function Sidebar() {
                 href={item.href}
                 className={`group relative flex items-center gap-3 px-2 py-2 mx-1 rounded-xl transition-all duration-200 font-medium text-sm ${
                   isActive
-                    ? 'bg-slate-800 text-yellow-400 shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-yellow-400 shadow-sm'
+                    : 'text-slate-600 hover:bg-gradient-to-br hover:from-slate-900 hover:via-slate-800 hover:to-blue-900 hover:text-yellow-400'
                 }`}
               >
-                <NavIcon iconFile={item.iconFile} isActive={isActive} />
-                <span className="flex-1 truncate text-[13px]">{item.label}</span>
+                <NavIcon iconFile={item.iconFile} />
+                <span className="flex-1 truncate text-[14px]">{item.label}</span>
                 {isActive && (
                   <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-1 flex-shrink-0" />
                 )}
@@ -84,13 +83,13 @@ export function Sidebar() {
             const isActive = !item.external && pathname === item.href;
             const className = `group relative flex items-center gap-3 px-2 py-2 mx-1 rounded-xl transition-all duration-200 font-medium text-sm ${
               isActive
-                ? 'bg-slate-800 text-yellow-400 shadow-sm'
-                : 'text-slate-600 hover:bg-slate-800 hover:text-white'
+                ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 text-yellow-400 shadow-sm'
+                : 'text-slate-600 hover:bg-gradient-to-br hover:from-slate-900 hover:via-slate-800 hover:to-blue-900 hover:text-yellow-400'
             }`;
             const inner = (
               <>
-                <NavIcon iconFile={item.iconFile} isActive={isActive} />
-                <span className="flex-1 truncate text-[13px]">{item.label}</span>
+                <NavIcon iconFile={item.iconFile} />
+                <span className="flex-1 truncate text-[14px]">{item.label}</span>
               </>
             );
             return item.external ? (
