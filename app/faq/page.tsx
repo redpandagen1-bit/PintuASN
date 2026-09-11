@@ -31,7 +31,7 @@ const categories = [
     items: [
       {
         q: 'Bagaimana cara mendaftar?',
-        a: 'Klik tombol "Daftar Gratis" di halaman utama, masukkan email dan buat kata sandi, atau daftar menggunakan akun Google. Setelah verifikasi email, akun Anda langsung aktif.',
+        a: 'Klik tombol "Coba Gratis" di halaman utama, lalu lanjutkan dengan akun Google Anda. Satu klik saja — tanpa perlu membuat kata sandi, dan akun Anda langsung aktif.',
       },
       {
         q: 'Apakah satu akun boleh digunakan bersama-sama?',

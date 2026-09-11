@@ -16,7 +16,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     max_uses?: number | null;
     expired_at?: string | null;
     allowed_tiers?: ('premium' | 'platinum')[] | null;
+    override_duration_days?: number | null;
   };
+
+  if (body.override_duration_days != null && (!Number.isFinite(body.override_duration_days) || body.override_duration_days <= 0)) {
+    return NextResponse.json({ error: 'Durasi akses khusus harus lebih dari 0 hari' }, { status: 400 });
+  }
 
   const update: Record<string, unknown> = {};
   if (body.is_active      !== undefined) update.is_active      = body.is_active;
@@ -26,6 +31,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (body.max_uses       !== undefined) update.max_uses       = body.max_uses;
   if (body.expired_at     !== undefined) update.expired_at     = body.expired_at;
   if (body.allowed_tiers  !== undefined) update.allowed_tiers  = body.allowed_tiers?.length ? body.allowed_tiers : null;
+  if (body.override_duration_days !== undefined) update.override_duration_days = body.override_duration_days;
 
   const { data, error } = await supabase
     .from('referral_codes')

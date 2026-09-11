@@ -652,7 +652,7 @@ export default function Home() {
         </ul>
         <div className="lp-nav-cta">
           <a href="/sign-in" className="btn-ghost">Masuk</a>
-          <a href="/sign-up" className="btn-gold">Daftar Gratis</a>
+          <a href="/sign-in" className="btn-gold">Coba Gratis</a>
         </div>
         <button className="lp-burger" aria-label="Menu" onClick={() => setMenuOpen(v => !v)}>
           <span /><span /><span />
@@ -666,7 +666,7 @@ export default function Home() {
           <a href="/install" onClick={() => setMenuOpen(false)}>Download Aplikasi</a>
           <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
           <a href="/sign-in" onClick={() => setMenuOpen(false)}>Masuk</a>
-          <a href="/sign-up" className="btn-gold" onClick={() => setMenuOpen(false)}>Daftar Gratis</a>
+          <a href="/sign-in" className="btn-gold" onClick={() => setMenuOpen(false)}>Coba Gratis</a>
         </div>
       )}
 
@@ -972,7 +972,7 @@ export default function Home() {
                   </li>
                 ))}
               </ul>
-              <a href="/sign-up" className="p-btn" style={{ border: '1.5px solid var(--s300)', color: 'var(--s600)' }}>Pakai Gratis</a>
+              <a href="/sign-in" className="p-btn" style={{ border: '1.5px solid var(--s300)', color: 'var(--s600)' }}>Pakai Gratis</a>
             </div>
 
             {/* PREMIUM */}
@@ -992,7 +992,7 @@ export default function Home() {
                   <li key={t}><span className="chk" style={{ background: 'rgba(14,165,233,.25)', color: '#fff' }}>✓</span><span style={{ color: 'rgba(255,255,255,.9)' }}>{t}</span></li>
                 ))}
               </ul>
-              <a href="/sign-up?plan=premium" className="p-btn" style={{ background: 'var(--gold)', color: '#fff' }}>Mulai Premium →</a>
+              <a href="/sign-in?plan=premium" className="p-btn" style={{ background: 'var(--gold)', color: '#fff' }}>Mulai Premium →</a>
             </div>
 
             {/* PLATINUM */}
@@ -1012,7 +1012,7 @@ export default function Home() {
                   <li key={t}><span className="chk" style={{ background: 'rgba(167,139,250,.28)', color: '#fff' }}>✓</span><span style={{ color: 'rgba(255,255,255,.85)' }}>{t}</span></li>
                 ))}
               </ul>
-              <a href="/sign-up?plan=platinum" className="p-btn" style={{ background: '#7c3aed', color: '#fff', border: '1px solid #7c3aed' }}>Mulai Platinum →</a>
+              <a href="/sign-in?plan=platinum" className="p-btn" style={{ background: '#7c3aed', color: '#fff', border: '1px solid #7c3aed' }}>Mulai Platinum →</a>
             </div>
 
           </div>

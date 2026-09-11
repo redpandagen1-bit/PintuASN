@@ -80,7 +80,7 @@ export function LandingNavbar() {
         </ul>
         <div className="lp-nav-cta">
           <a href="/sign-in" className="btn-ghost">Masuk</a>
-          <a href="/sign-up" className="btn-gold">Daftar Gratis</a>
+          <a href="/sign-in" className="btn-gold">Coba Gratis</a>
         </div>
         <button className="lp-burger" aria-label="Menu" onClick={() => setMenuOpen((v) => !v)}>
           <span /><span /><span />
@@ -94,7 +94,7 @@ export function LandingNavbar() {
           <a href="/install" onClick={() => setMenuOpen(false)}>Download Aplikasi</a>
           <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
           <a href="/sign-in" onClick={() => setMenuOpen(false)}>Masuk</a>
-          <a href="/sign-up" className="btn-gold" onClick={() => setMenuOpen(false)}>Daftar Gratis</a>
+          <a href="/sign-in" className="btn-gold" onClick={() => setMenuOpen(false)}>Coba Gratis</a>
         </div>
       )}
     </>

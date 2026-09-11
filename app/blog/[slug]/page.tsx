@@ -334,7 +334,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
             Coba simulasi tryout gratis yang 99% mirip sistem BKN. Analitik mendalam,
             ranking nasional, dan roadmap belajar terstruktur.
           </p>
-          <a href="/sign-up">🎯 Daftar Gratis Sekarang</a>
+          <a href="/sign-in">🎯 Coba Gratis Sekarang</a>
         </div>
       </div>
 

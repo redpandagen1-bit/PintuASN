@@ -30,6 +30,7 @@ const blank = (): Draft => ({
   is_active:      true,
   expired_at:     null,
   allowed_tiers:  null,
+  override_duration_days: null,
 });
 
 function toInputDate(iso: string | null): string {
@@ -73,6 +74,9 @@ export default function AdminReferralsClient({ initialReferrals }: Props) {
     if (!editing) return;
     if (!editing.code.trim())  { setError('Kode wajib diisi.'); return; }
     if (!editing.discount_value || editing.discount_value <= 0) { setError('Nilai diskon wajib diisi.'); return; }
+    if (editing.override_duration_days != null && editing.override_duration_days <= 0) {
+      setError('Durasi akses khusus harus lebih dari 0 hari.'); return;
+    }
 
     setSaving(true);
     try {
@@ -154,6 +158,11 @@ export default function AdminReferralsClient({ initialReferrals }: Props) {
                   <span>
                     Berlaku untuk: {r.allowed_tiers?.length ? r.allowed_tiers.join(', ') : 'Semua tier'}
                   </span>
+                  {r.override_duration_days != null && (
+                    <span className="text-amber-600 font-semibold">
+                      Masa aktif khusus: {r.override_duration_days} hari
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -233,6 +242,21 @@ export default function AdminReferralsClient({ initialReferrals }: Props) {
                     </label>
                   ))}
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Masa Aktif Khusus (hari) <span className="text-slate-400 font-normal text-xs">(kosongkan = pakai durasi normal paket: 6 bulan premium / 1 tahun platinum)</span></Label>
+                <Input
+                  type="number" min={1}
+                  value={editing.override_duration_days ?? ''}
+                  onChange={e => patch({ override_duration_days: e.target.value ? Number(e.target.value) : null })}
+                  placeholder="30"
+                  className="w-40"
+                />
+                <p className="text-xs text-amber-600">
+                  Contoh: isi 30 supaya akses premium/platinum yang diaktifkan lewat kode ini cuma berlaku 1 bulan,
+                  bukan durasi normal.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

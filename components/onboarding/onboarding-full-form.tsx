@@ -54,6 +54,11 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // Segmen form: 1 = data diri, 2 = alamat & sumber informasi
+  const [step, setStep] = useState<1 | 2>(1);
+  // Arah animasi supaya transisi maju/mundur terasa natural
+  const [direction, setDirection] = useState<'forward' | 'back'>('forward');
+
   const [form, setForm] = useState({
     full_name: defaultName,
     phone: '',
@@ -75,24 +80,46 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
     setForm(prev => ({ ...prev, province: value, city: '' }));
   };
 
+  // ── Validasi segmen 1 ──────────────────────────────────────────────────────
+  const validateStep1 = () => {
+    if (!form.full_name.trim()) { toast.error('Nama lengkap wajib diisi'); return false; }
+    if (form.full_name.trim().length < 3) { toast.error('Nama lengkap minimal 3 karakter'); return false; }
+    if (!form.phone.trim()) { toast.error('Nomor WhatsApp wajib diisi'); return false; }
+    if (!/^[0-9+]+$/.test(form.phone)) { toast.error('Nomor WhatsApp hanya boleh berisi angka dan tanda +'); return false; }
+    if (form.phone.length < 9 || form.phone.length > 13) { toast.error('Nomor WhatsApp harus 9–13 karakter'); return false; }
+    if (!form.target_institution) { toast.error('Instansi tujuan wajib dipilih'); return false; }
+    if (!form.gender) { toast.error('Jenis kelamin wajib dipilih'); return false; }
+    if (!form.birth_date) { toast.error('Tanggal lahir wajib diisi'); return false; }
+    if (new Date(form.birth_date).getFullYear() > 2009) { toast.error('Usia minimal 16 tahun untuk mendaftar'); return false; }
+    return true;
+  };
+
+  // ── Validasi segmen 2 ──────────────────────────────────────────────────────
+  const validateStep2 = () => {
+    if (!form.address.trim()) { toast.error('Alamat wajib diisi'); return false; }
+    if (form.address.trim().length < 10) { toast.error('Alamat terlalu singkat, mohon isi dengan lengkap'); return false; }
+    if (!form.province) { toast.error('Provinsi wajib dipilih'); return false; }
+    if (!form.city) { toast.error('Kabupaten/Kota wajib dipilih'); return false; }
+    if (!form.district.trim()) { toast.error('Kecamatan wajib diisi'); return false; }
+    if (!form.postal_code.trim()) { toast.error('Kode pos wajib diisi'); return false; }
+    if (!/^\d{5}$/.test(form.postal_code.trim())) { toast.error('Kode pos harus terdiri dari 5 angka'); return false; }
+    return true;
+  };
+
+  const goToStep2 = () => {
+    if (!validateStep1()) return;
+    setDirection('forward');
+    setStep(2);
+  };
+
+  const goToStep1 = () => {
+    setDirection('back');
+    setStep(1);
+  };
+
   const handleSubmit = async () => {
-    // ── Validasi ─────────────────────────────────────────────────────────────
-    if (!form.full_name.trim()) { toast.error('Nama lengkap wajib diisi'); return; }
-    if (form.full_name.trim().length < 3) { toast.error('Nama lengkap minimal 3 karakter'); return; }
-    if (!form.phone.trim()) { toast.error('Nomor WhatsApp wajib diisi'); return; }
-    if (!/^[0-9+]+$/.test(form.phone)) { toast.error('Nomor WhatsApp hanya boleh berisi angka dan tanda +'); return; }
-    if (form.phone.length < 9 || form.phone.length > 13) { toast.error('Nomor WhatsApp harus 9–13 karakter'); return; }
-    if (!form.target_institution) { toast.error('Instansi tujuan wajib dipilih'); return; }
-    if (!form.gender) { toast.error('Jenis kelamin wajib dipilih'); return; }
-    if (!form.birth_date) { toast.error('Tanggal lahir wajib diisi'); return; }
-    if (new Date(form.birth_date).getFullYear() > 2009) { toast.error('Usia minimal 16 tahun untuk mendaftar'); return; }
-    if (!form.postal_code.trim()) { toast.error('Kode pos wajib diisi'); return; }
-    if (!/^\d{5}$/.test(form.postal_code.trim())) { toast.error('Kode pos harus terdiri dari 5 angka'); return; }
-    if (!form.address.trim()) { toast.error('Alamat wajib diisi'); return; }
-    if (form.address.trim().length < 10) { toast.error('Alamat terlalu singkat, mohon isi dengan lengkap'); return; }
-    if (!form.province) { toast.error('Provinsi wajib dipilih'); return; }
-    if (!form.city) { toast.error('Kabupaten/Kota wajib dipilih'); return; }
-    if (!form.district.trim()) { toast.error('Kecamatan wajib diisi'); return; }
+    if (!validateStep1()) { goToStep1(); return; }
+    if (!validateStep2()) return;
 
     setIsLoading(true);
     try {
@@ -137,6 +164,16 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
     }
   };
 
+  const primaryBtnClass = `flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-50
+    ${plan === 'platinum'
+      ? 'bg-purple-700 hover:bg-purple-800 text-white'
+      : plan === 'premium'
+      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+      : 'bg-slate-800 hover:bg-slate-700 text-white'
+    }`;
+
+  const stepAnimClass = direction === 'forward' ? 'animate-step-in-right' : 'animate-step-in-left';
+
   return (
     <div className="space-y-6">
       {/* Info banner kalau ada plan intent */}
@@ -154,196 +191,225 @@ export default function OnboardingFullForm({ email, defaultName }: Props) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* Wrapper overflow-hidden supaya animasi geser tidak bikin scroll horizontal */}
+      <div className="overflow-hidden">
+        {step === 1 ? (
+          <div key="step-1" className={stepAnimClass}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-        {/* Nama Lengkap */}
-        <Field label="Nama Lengkap">
-          <div className="relative">
-            <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={form.full_name}
-              onChange={e => set('full_name', e.target.value)}
-              placeholder="Nama lengkap"
-              className={iconInputClass}
-            />
-          </div>
-        </Field>
+              {/* Nama Lengkap */}
+              <Field label="Nama Lengkap">
+                <div className="relative">
+                  <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={form.full_name}
+                    onChange={e => set('full_name', e.target.value)}
+                    placeholder="Nama lengkap"
+                    className={iconInputClass}
+                  />
+                </div>
+              </Field>
 
-        {/* Email — readonly */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-slate-700">Email</label>
-          <div className="relative">
-            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="email"
-              value={email}
-              disabled
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500 cursor-not-allowed"
-            />
-          </div>
-        </div>
+              {/* Email — readonly */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-slate-700">Email</label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    disabled
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-500 cursor-not-allowed"
+                  />
+                </div>
+              </div>
 
-        {/* No HP */}
-        <Field label="Nomor WhatsApp">
-          <div className="relative">
-            <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={e => { const val = e.target.value.replace(/[^0-9+]/g, ''); set('phone', val); }}
-              placeholder="08xx-xxxx-xxxx"
-              maxLength={13}
-              className={iconInputClass}
-            />
-          </div>
-        </Field>
+              {/* No HP */}
+              <Field label="Nomor WhatsApp">
+                <div className="relative">
+                  <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={e => { const val = e.target.value.replace(/[^0-9+]/g, ''); set('phone', val); }}
+                    placeholder="08xx-xxxx-xxxx"
+                    maxLength={13}
+                    className={iconInputClass}
+                  />
+                </div>
+              </Field>
 
-        {/* Instansi Tujuan */}
-        <Field label="Instansi Tujuan">
-          <SearchableDropdown
-            value={form.target_institution}
-            onChange={v => set('target_institution', v)}
-            options={INSTANSI}
-            placeholder="Cari instansi tujuan..."
-            pinnedOption="Belum Ditentukan"
-          />
-          <p className="mt-1.5 text-[11px] text-amber-600 leading-relaxed">
-            Wajib diisi sesuai instansi yang benar-benar kamu incar. Data ini dipakai untuk fitur
-            seperti Peluang Formasi dan perbandingan statistik, jadi pastikan pilihanmu tepat.
-          </p>
-        </Field>
+              {/* Instansi Tujuan */}
+              <Field label="Instansi Tujuan">
+                <SearchableDropdown
+                  value={form.target_institution}
+                  onChange={v => set('target_institution', v)}
+                  options={INSTANSI}
+                  placeholder="Cari instansi tujuan..."
+                  pinnedOption="Belum Ditentukan"
+                />
+                <p className="mt-1.5 text-[11px] text-amber-600 leading-relaxed">
+                  Wajib diisi sesuai instansi yang benar-benar kamu incar. Data ini dipakai untuk fitur
+                  seperti Peluang Formasi dan perbandingan statistik, jadi pastikan pilihanmu tepat.
+                </p>
+              </Field>
 
-        {/* Jenis Kelamin */}
-        <div className="space-y-1.5 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700">Jenis Kelamin</label>
-          <div className="grid grid-cols-2 gap-3">
-            {(['Pria', 'Wanita'] as const).map(g => (
+              {/* Jenis Kelamin */}
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-sm font-semibold text-slate-700">Jenis Kelamin</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(['Pria', 'Wanita'] as const).map(g => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => set('gender', g)}
+                      className={`flex flex-col items-center justify-center py-5 border-2 rounded-2xl transition-all duration-200 ${
+                        form.gender === g
+                          ? 'border-slate-800 bg-slate-800 text-white shadow-md'
+                          : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-white'
+                      }`}
+                    >
+                      <span className="text-4xl mb-2">{g === 'Pria' ? '👨🏻‍💼' : '👩🏻‍💼'}</span>
+                      <span className="font-bold text-sm">{g}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tanggal Lahir */}
+              <Field label="Tanggal Lahir">
+                <div className="relative">
+                  <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="date"
+                    value={form.birth_date}
+                    onChange={e => set('birth_date', e.target.value)}
+                    max="2009-12-31"
+                    className={iconInputClass}
+                  />
+                </div>
+              </Field>
+
+            </div>
+
+            <div className="pt-6 flex justify-end">
               <button
-                key={g}
                 type="button"
-                onClick={() => set('gender', g)}
-                className={`flex flex-col items-center justify-center py-5 border-2 rounded-2xl transition-all duration-200 ${
-                  form.gender === g
-                    ? 'border-slate-800 bg-slate-800 text-white shadow-md'
-                    : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-white'
-                }`}
+                onClick={goToStep2}
+                className={primaryBtnClass}
               >
-                <span className="text-4xl mb-2">{g === 'Pria' ? '👨🏻‍💼' : '👩🏻‍💼'}</span>
-                <span className="font-bold text-sm">{g}</span>
+                <Save size={15} />
+                Simpan
               </button>
-            ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div key="step-2" className={stepAnimClass}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-        {/* Tanggal Lahir */}
-        <Field label="Tanggal Lahir">
-          <div className="relative">
-            <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="date"
-              value={form.birth_date}
-              onChange={e => set('birth_date', e.target.value)}
-              max="2009-12-31"
-              className={iconInputClass}
-            />
+              {/* Dari mana tahu PintuAsn */}
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-sm font-semibold text-slate-700">Dari mana tahu PintuAsn?</label>
+                <select
+                  value={form.referral_source}
+                  onChange={e => set('referral_source', e.target.value)}
+                  className={plainInputClass}
+                >
+                  <option value="">-- Pilih sumber --</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="Google">Google</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Youtube">Youtube</option>
+                  <option value="Facebook">Facebook</option>
+                </select>
+              </div>
+
+              {/* Alamat */}
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-sm font-semibold text-slate-700">Alamat</label>
+                <textarea
+                  value={form.address}
+                  onChange={e => set('address', e.target.value)}
+                  placeholder="Alamat lengkap"
+                  rows={3}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400 resize-none"
+                />
+              </div>
+
+              {/* Provinsi */}
+              <Field label="Provinsi">
+                <SearchableDropdown
+                  value={form.province}
+                  onChange={handleProvinceChange}
+                  options={PROVINSI}
+                  placeholder="Cari provinsi..."
+                />
+              </Field>
+
+              {/* Kabupaten/Kota */}
+              <Field label="Kabupaten/Kota">
+                <SearchableDropdown
+                  value={form.city}
+                  onChange={v => set('city', v)}
+                  options={form.province ? (KABUPATEN[form.province] ?? []) : []}
+                  placeholder="Cari kabupaten/kota..."
+                  disabled={!form.province}
+                  disabledPlaceholder="Pilih provinsi terlebih dahulu"
+                />
+              </Field>
+
+              {/* Kecamatan */}
+              <Field label="Kecamatan">
+                <input
+                  type="text"
+                  value={form.district}
+                  onChange={e => set('district', e.target.value)}
+                  placeholder="Nama kecamatan..."
+                  className={plainInputClass}
+                />
+              </Field>
+
+              {/* Kode Pos */}
+              <Field label="Kode Pos">
+                <input
+                  type="text"
+                  value={form.postal_code}
+                  onChange={e => { const val = e.target.value.replace(/[^0-9]/g, ''); set('postal_code', val); }}
+                  placeholder="Contoh: 57311"
+                  maxLength={5}
+                  className={plainInputClass}
+                />
+              </Field>
+
+            </div>
+
+            <div className="pt-6 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={goToStep1}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50"
+              >
+                Kembali
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className={primaryBtnClass}
+              >
+                <Save size={15} />
+                {isLoading
+                  ? 'Menyimpan...'
+                  : plan
+                  ? `Simpan & Lanjut ke Paket ${plan.charAt(0).toUpperCase() + plan.slice(1)}`
+                  : 'Simpan & Mulai'}
+              </button>
+            </div>
           </div>
-        </Field>
-
-        {/* Kode Pos */}
-        <Field label="Kode Pos">
-          <input
-            type="text"
-            value={form.postal_code}
-            onChange={e => { const val = e.target.value.replace(/[^0-9]/g, ''); set('postal_code', val); }}
-            placeholder="Contoh: 57311"
-            maxLength={5}
-            className={plainInputClass}
-          />
-        </Field>
-
-        {/* Alamat */}
-        <div className="space-y-1.5 md:col-span-2">
-          <label className="text-sm font-semibold text-slate-700">Alamat</label>
-          <textarea
-            value={form.address}
-            onChange={e => set('address', e.target.value)}
-            placeholder="Alamat lengkap (nama jalan, nomor rumah, RT/RW)..."
-            rows={3}
-            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:border-slate-400 focus:ring-2 focus:ring-slate-200 outline-none transition-all text-slate-800 placeholder:text-slate-400 resize-none"
-          />
-        </div>
-
-        {/* Provinsi */}
-        <Field label="Provinsi">
-          <SearchableDropdown
-            value={form.province}
-            onChange={handleProvinceChange}
-            options={PROVINSI}
-            placeholder="Cari provinsi..."
-          />
-        </Field>
-
-        {/* Kabupaten/Kota */}
-        <Field label="Kabupaten/Kota">
-          <SearchableDropdown
-            value={form.city}
-            onChange={v => set('city', v)}
-            options={form.province ? (KABUPATEN[form.province] ?? []) : []}
-            placeholder="Cari kabupaten/kota..."
-            disabled={!form.province}
-            disabledPlaceholder="Pilih provinsi terlebih dahulu"
-          />
-        </Field>
-
-        {/* Kecamatan */}
-        <Field label="Kecamatan">
-          <input
-            type="text"
-            value={form.district}
-            onChange={e => set('district', e.target.value)}
-            placeholder="Nama kecamatan..."
-            className={plainInputClass}
-          />
-        </Field>
-
-        {/* Dari mana tahu PintuAsn */}
-        <Field label="Dari mana tahu PintuAsn?">
-          <select
-            value={form.referral_source}
-            onChange={e => set('referral_source', e.target.value)}
-            className={plainInputClass}
-          >
-            <option value="">-- Pilih sumber --</option>
-            <option value="TikTok">TikTok</option>
-            <option value="Google">Google</option>
-            <option value="Instagram">Instagram</option>
-            <option value="Youtube">Youtube</option>
-            <option value="Facebook">Facebook</option>
-          </select>
-        </Field>
-
-      </div>
-
-      <div className="pt-2 flex justify-end">
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading}
-          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-50
-            ${plan === 'platinum'
-              ? 'bg-purple-700 hover:bg-purple-800 text-white'
-              : plan === 'premium'
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-slate-800 hover:bg-slate-700 text-white'
-            }`}
-        >
-          <Save size={15} />
-          {isLoading
-            ? 'Menyimpan...'
-            : plan
-            ? `Simpan & Lanjut ke Paket ${plan.charAt(0).toUpperCase() + plan.slice(1)}`
-            : 'Simpan & Mulai'}
-        </button>
+        )}
       </div>
     </div>
   );

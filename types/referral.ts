@@ -15,5 +15,6 @@ export interface ReferralCode {
   is_active: boolean;
   expired_at: string | null;
   allowed_tiers: PackageTier[] | null; // null/[] = berlaku untuk semua tier
+  override_duration_days: number | null; // null = pakai durasi normal paket (6 bulan premium / 1 tahun platinum)
   created_at: string;
 }

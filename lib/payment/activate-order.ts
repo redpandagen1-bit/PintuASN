@@ -11,8 +11,19 @@ const PACKAGE_TIER: Record<string, 'premium' | 'platinum'> = {
 };
 
 // Masa aktif: premium → 6 bulan dari tanggal beli, platinum → 1 tahun.
-export function getSubscriptionEnd(packageId: string): string {
+// `overrideDurationDays` (dari referral_codes.override_duration_days) — kalau
+// diisi dan bernilai positif, dipakai sebagai masa aktif TERLEPAS dari
+// packageId (mis. promo 100% gratis yang cuma boleh aktif 1 bulan, bukan
+// ikut durasi normal 6 bulan premium).
+export function getSubscriptionEnd(
+  packageId: string,
+  overrideDurationDays?: number | null,
+): string {
   const end = new Date();
+  if (overrideDurationDays != null && overrideDurationDays > 0) {
+    end.setDate(end.getDate() + overrideDurationDays);
+    return end.toISOString();
+  }
   if (packageId === 'premium') {
     end.setMonth(end.getMonth() + 6);
   } else {
@@ -49,6 +60,22 @@ export async function activatePaidOrder(
 
   if (!claimed) return false; // sudah diproses / tidak ada → aman, no-op
 
+  // Kalau order pakai kode referral, ambil datanya SEKALI di sini — dipakai
+  // baik untuk override durasi subscription (di bawah) maupun increment
+  // used_count, supaya tidak query dua kali dan datanya konsisten.
+  let referral: { used_count: number; override_duration_days: number | null } | null = null;
+  if (claimed.referral_code) {
+    const { data: refData, error: refFetchError } = await supabase
+      .from('referral_codes')
+      .select('used_count, override_duration_days')
+      .eq('code', claimed.referral_code)
+      .maybeSingle();
+    if (refFetchError) {
+      console.error('[activate-order] Gagal ambil data referral:', refFetchError.code);
+    }
+    referral = refData;
+  }
+
   // ── Naikkan tier user ────────────────────────────────────────────────
   const newTier = PACKAGE_TIER[claimed.package_id];
   if (newTier) {
@@ -57,7 +84,7 @@ export async function activatePaidOrder(
       .update({
         subscription_tier:  newTier,
         subscription_start: new Date().toISOString(),
-        subscription_end:   getSubscriptionEnd(claimed.package_id),
+        subscription_end:   getSubscriptionEnd(claimed.package_id, referral?.override_duration_days),
         updated_at:         new Date().toISOString(),
       })
       .eq('user_id', claimed.user_id);
@@ -69,20 +96,13 @@ export async function activatePaidOrder(
   }
 
   // ── Increment used_count referral (aman karena guard atomic di atas) ──
-  if (claimed.referral_code) {
-    const { data: ref } = await supabase
+  if (claimed.referral_code && referral) {
+    const { error: refError } = await supabase
       .from('referral_codes')
-      .select('used_count')
-      .eq('code', claimed.referral_code)
-      .single();
-    if (ref) {
-      const { error: refError } = await supabase
-        .from('referral_codes')
-        .update({ used_count: ref.used_count + 1 })
-        .eq('code', claimed.referral_code);
-      if (refError) {
-        console.error('[activate-order] Gagal increment referral:', refError.code);
-      }
+      .update({ used_count: referral.used_count + 1 })
+      .eq('code', claimed.referral_code);
+    if (refError) {
+      console.error('[activate-order] Gagal increment referral:', refError.code);
     }
   }
 

@@ -803,3 +803,23 @@ input[type="password"].cl-formFieldInput,
     max-width: 5rem !important;
   }
 }
+/* ─────────────────────────────────────────────────────────────
+   Onboarding multi-step transitions
+   ───────────────────────────────────────────────────────────── */
+@keyframes onboardingSlideInRight {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes onboardingSlideInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-step-in-right {
+  animation: onboardingSlideInRight 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-step-in-left {
+  animation: onboardingSlideInLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}

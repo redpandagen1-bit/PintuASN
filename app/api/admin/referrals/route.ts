@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     is_active?: boolean;
     expired_at?: string | null;
     allowed_tiers?: ('premium' | 'platinum')[] | null;
+    override_duration_days?: number | null;
   };
 
   // Cek duplikat kode
@@ -44,6 +45,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Kode sudah digunakan, pilih kode lain.' }, { status: 409 });
   }
 
+  if (body.override_duration_days != null && (!Number.isFinite(body.override_duration_days) || body.override_duration_days <= 0)) {
+    return NextResponse.json({ error: 'Durasi akses khusus harus lebih dari 0 hari' }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from('referral_codes')
     .insert({
@@ -55,6 +60,7 @@ export async function POST(req: NextRequest) {
       is_active:      body.is_active ?? true,
       expired_at:     body.expired_at ?? null,
       allowed_tiers:  body.allowed_tiers?.length ? body.allowed_tiers : null,
+      override_duration_days: body.override_duration_days ?? null,
     })
     .select()
     .single();
