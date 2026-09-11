@@ -9,6 +9,17 @@ function sanitizeName(input: string, fallback = 'PintuASN User'): string {
   return cleaned || fallback;
 }
 
+// Format waktu yang diwajibkan Midtrans untuk `expiry.start_time`:
+// "yyyy-MM-dd HH:mm:ss Z" (mis. "2026-09-10 22:32:12 +0000").
+function formatMidtransTime(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const offsetMin = -d.getTimezoneOffset();
+  const sign = offsetMin >= 0 ? '+' : '-';
+  const offH = pad(Math.floor(Math.abs(offsetMin) / 60));
+  const offM = pad(Math.abs(offsetMin) % 60);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${sign}${offH}${offM}`;
+}
+
 /**
  * Membuat Snap transaction token untuk dibayar via popup (window.snap.pay).
  *
@@ -107,6 +118,14 @@ export async function POST(req: NextRequest) {
     const midtransOrderId = `${orderId}-${Date.now().toString(36)}`;
     const encodedKey = Buffer.from(`${serverKey}:`).toString('base64');
 
+    // Samakan masa berlaku popup Snap dengan countdown yang kita tampilkan
+    // sendiri (order.expired_at) — supaya dua-duanya tidak beda waktu.
+    const startTime = formatMidtransTime(new Date());
+    const durationMinutes = Math.max(
+      5,
+      Math.round((new Date(order.expired_at).getTime() - Date.now()) / 60000)
+    );
+
     const snapBody = {
       transaction_details: {
         order_id: midtransOrderId,
@@ -121,8 +140,13 @@ export async function POST(req: NextRequest) {
         },
       ],
       customer_details: customerDetails,
+      expiry: {
+        start_time: startTime,
+        unit: 'minutes',
+        duration: durationMinutes,
+      },
       callbacks: {
-        finish: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+        finish: `${process.env.NEXT_PUBLIC_APP_URL}/beli-paket?tab=riwayat`,
       },
     };
 
@@ -147,7 +171,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Pembayaran gagal: ${msg}` }, { status: 400 });
     }
 
-    // Tandai metode = snap & simpan referensi order Midtrans
+    // Tandai metode = snap & simpan referensi order Midtrans.
+    // midtrans_transaction_id diisi `midtransOrderId` (bukan UUID transaksi,
+    // karena Snap belum tentu langsung punya itu sebelum user bayar) — dipakai
+    // /api/payment/status/[orderId] untuk query GET /v2/{id}/status ke Midtrans.
     await supabase
       .from('payment_orders')
       .update({
@@ -156,6 +183,7 @@ export async function POST(req: NextRequest) {
         admin_fee: 0,
         snap_token: data.token,
         snap_redirect_url: data.redirect_url ?? null,
+        midtrans_transaction_id: midtransOrderId,
         updated_at: new Date().toISOString(),
       })
       .eq('order_id', orderId)

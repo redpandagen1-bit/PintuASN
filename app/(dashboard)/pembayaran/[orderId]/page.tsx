@@ -17,6 +17,8 @@ import {
   type PaymentMethod, type OrderData,
 } from '@/constants/payment';
 import PaymentMethodModal from '@/components/payment/PaymentMethodModal';
+import { IS_SNAP_MODE, openSnapForOrder } from '@/lib/payment/snap-client';
+import { copyToClipboard } from '@/lib/utils';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,37 +48,6 @@ function useCountdown(expiredAt: string, active: boolean) {
     return () => clearInterval(t);
   }, [calc, active]);
   return time;
-}
-
-// ─── Snap (popup) ───────────────────────────────────────────────────────────
-
-const IS_SNAP_MODE = process.env.NEXT_PUBLIC_PAYMENT_MODE === 'snap';
-
-declare global {
-  interface Window {
-    snap?: { pay: (token: string, options: Record<string, () => void>) => void };
-  }
-}
-
-// Muat snap.js sekali, lalu resolve saat siap dipakai.
-function ensureSnapLoaded(snapUrl: string, clientKey: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') return reject(new Error('No window'));
-    if (window.snap) return resolve();
-    const existing = document.getElementById('midtrans-snap') as HTMLScriptElement | null;
-    if (existing) {
-      existing.addEventListener('load', () => resolve());
-      existing.addEventListener('error', () => reject(new Error('Gagal memuat Snap')));
-      return;
-    }
-    const s = document.createElement('script');
-    s.id = 'midtrans-snap';
-    s.src = snapUrl;
-    s.setAttribute('data-client-key', clientKey);
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error('Gagal memuat Snap'));
-    document.body.appendChild(s);
-  });
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -291,27 +262,18 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
   };
 
   // Bayar via Snap popup (mode Snap). Harga & metode ditangani oleh Snap;
-  // aktivasi paket tetap lewat webhook.
+  // aktivasi paket tetap lewat webhook. Berhasil, pending, atau ditutup
+  // begitu saja — semuanya balik ke tab Riwayat supaya user langsung lihat
+  // status terbaru pesanannya di sana.
   const handleSnapPay = async () => {
     if (!order) return;
     setLoadingMethod(true);
     try {
-      const res = await fetch('/api/payment/snap-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal memproses pembayaran');
-
-      await ensureSnapLoaded(data.snapUrl, data.clientKey);
-      if (!window.snap) throw new Error('Snap belum siap. Coba lagi.');
-
-      window.snap.pay(data.token, {
-        onSuccess: () => router.push('/dashboard?payment=success'),
-        onPending: () => router.push('/dashboard?payment=pending'),
+      await openSnapForOrder(orderId, {
+        onSuccess: () => router.push('/beli-paket?tab=riwayat'),
+        onPending: () => router.push('/beli-paket?tab=riwayat'),
+        onClose:   () => router.push('/beli-paket?tab=riwayat'),
         onError:   () => { alert('Pembayaran gagal. Silakan coba lagi.'); setLoadingMethod(false); },
-        onClose:   () => setLoadingMethod(false),
       });
     } catch (e: unknown) {
       alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
@@ -321,7 +283,7 @@ export default function PembayaranPage({ params }: { params: Promise<{ orderId: 
   };
 
   const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
+    copyToClipboard(text);
     setCopied(text);
     setTimeout(() => setCopied(null), 2000);
   };

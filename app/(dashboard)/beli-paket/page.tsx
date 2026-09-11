@@ -7,11 +7,13 @@ import { MobilePaketBelajar } from '@/components/mobile/MobilePaketBelajar';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
 import {
   Check, Zap, Shield, Crown, ArrowRight, Loader2,
-  ShoppingBag, History, PackageCheck, Copy, CheckCheck,
+  ShoppingBag, History, PackageCheck, Copy,
   X, Clock, Tag, CheckCircle2, XCircle,
-  ChevronDown, ChevronUp, Lock, CreditCard,
+  ChevronDown, ChevronUp, Lock, CreditCard, RefreshCw,
 } from 'lucide-react';
 import Image from 'next/image';
+import { IS_SNAP_MODE, openSnapForOrder } from '@/lib/payment/snap-client';
+import { copyToClipboard } from '@/lib/utils';
 
 // ─── Master feature list ──────────────────────────────────────────────────────
 
@@ -173,28 +175,79 @@ function useCountdown(expiredAt: string) {
 
 // ─── Order Detail Popup ───────────────────────────────────────────────────────
 
-function OrderDetailPopup({ orderId, onClose }: { orderId: string; onClose: () => void }) {
+function OrderDetailPopup({ orderId, onClose, onChanged }: { orderId: string; onClose: () => void; onChanged: () => void }) {
   const router = useRouter();
   const [order, setOrder]         = useState<OrderDetail | null>(null);
   const [loading, setLoading]     = useState(true);
   const [copied, setCopied]       = useState<string | null>(null);
   const [openInstr, setOpenInstr] = useState<number | null>(0);
+  const [payLoading, setPayLoading]       = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
+
+  const fetchOrder = useCallback(() => {
+    return fetch(`/api/payment/order/${orderId}`)
+      .then(r => r.json()).then(d => { if (d.order) setOrder(d.order); })
+      .catch(console.error);
+  }, [orderId]);
 
   useEffect(() => {
-    fetch(`/api/payment/order/${orderId}`)
-      .then(r => r.json()).then(d => { if (d.order) setOrder(d.order); })
-      .catch(console.error).finally(() => setLoading(false));
-  }, [orderId]);
+    fetchOrder().finally(() => setLoading(false));
+  }, [fetchOrder]);
 
   // Jangan pakai fallback Date.now()+24jam — itu bikin countdown "balik ke 24 jam"
   // saat order belum kemuat. Pakai expiredAt asli; kalau kosong, countdown netral.
   const countdown = useCountdown(order?.expiredAt ?? '');
-  const copy = (text: string) => { navigator.clipboard.writeText(text); setCopied(text); setTimeout(() => setCopied(null), 2000); };
+  const copy = (text: string) => { copyToClipboard(text); setCopied(text); setTimeout(() => setCopied(null), 2000); };
 
   const isPending  = order?.status === 'pending';
   const methodKey  = order?.paymentMethod ?? '';
   const methodName = METHOD_NAMES[methodKey] ?? methodKey;
   const methodLogo = METHOD_LOGOS[methodKey] ?? null;
+
+  // Lanjutkan pembayaran — buka popup Snap langsung di sini (mode Snap),
+  // atau pindah ke halaman pembayaran khusus untuk mode Core API.
+  const handleContinuePayment = async () => {
+    if (!IS_SNAP_MODE) { router.push(`/pembayaran/${orderId}`); return; }
+    setPayLoading(true);
+    try {
+      await openSnapForOrder(orderId, {
+        onSuccess: () => { onChanged(); fetchOrder(); },
+        onPending: () => { onChanged(); fetchOrder(); },
+        onClose:   () => { onChanged(); fetchOrder(); setPayLoading(false); },
+        onError:   () => { alert('Pembayaran gagal. Silakan coba lagi.'); setPayLoading(false); },
+      });
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+      setPayLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!confirm('Yakin ingin membatalkan pesanan ini?')) return;
+    setCancelLoading(true);
+    try {
+      await fetch(`/api/payment/order/${orderId}`, { method: 'DELETE' });
+      await fetchOrder();
+      onChanged();
+    } catch (e) { console.error(e); }
+    finally { setCancelLoading(false); }
+  };
+
+  const handleCheckStatus = async () => {
+    setStatusLoading(true);
+    try {
+      const res  = await fetch(`/api/payment/status/${orderId}`);
+      const data = await res.json();
+      if (data.status === 'settlement' || data.status === 'capture') {
+        await fetchOrder();
+        onChanged();
+      } else {
+        alert('Pembayaran belum diterima. Silakan tunggu beberapa saat.');
+      }
+    } catch (e) { console.error(e); }
+    finally { setStatusLoading(false); }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -226,12 +279,34 @@ function OrderDetailPopup({ orderId, onClose }: { orderId: string; onClose: () =
                   </div>
                 )}
                 {isPending && !countdown.expired && (
-                  <button
-                    onClick={() => router.push(`/pembayaran/${orderId}`)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition"
-                  >
-                    <CreditCard size={16} /> Lanjutkan Pembayaran
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      onClick={handleContinuePayment}
+                      disabled={payLoading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition disabled:opacity-50"
+                    >
+                      {payLoading ? <Loader2 size={16} className="animate-spin" /> : <CreditCard size={16} />}
+                      Lanjutkan Pembayaran
+                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={handleCheckStatus}
+                        disabled={statusLoading}
+                        className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                      >
+                        {statusLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                        Cek Status
+                      </button>
+                      <button
+                        onClick={handleCancelOrder}
+                        disabled={cancelLoading}
+                        className="w-full bg-white border border-red-200 hover:bg-red-50 text-red-600 font-semibold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50"
+                      >
+                        {cancelLoading ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                        Batalkan
+                      </button>
+                    </div>
+                  </div>
                 )}
                 <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                   <div className="px-4 pt-4 pb-3 border-b border-slate-100">
@@ -578,42 +653,41 @@ function BeliPaketTab({ onError, userTier }: { onError: (msg: string | null) => 
 function RiwayatTab() {
   const [history, setHistory]          = useState<HistoryItem[]>([]);
   const [loading, setLoading]          = useState(true);
-  const [copied, setCopied]            = useState<string | null>(null);
   const [selectedOrderId, setSelected] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch('/api/payment/history').then(r => r.json()).then(d => { if (d.orders) setHistory(d.orders); })
-      .catch(console.error).finally(() => setLoading(false));
+  const fetchHistory = useCallback(() => {
+    return fetch('/api/payment/history').then(r => r.json()).then(d => { if (d.orders) setHistory(d.orders); })
+      .catch(console.error);
   }, []);
 
-  const handleCopy = (text: string, e: React.MouseEvent) => {
-    e.stopPropagation(); navigator.clipboard.writeText(text);
-    setCopied(text); setTimeout(() => setCopied(null), 2000);
-  };
+  useEffect(() => {
+    fetchHistory().finally(() => setLoading(false));
+  }, [fetchHistory]);
 
   if (loading) return <div className="flex items-center justify-center py-16"><Loader2 size={28} className="animate-spin text-blue-500" /></div>;
   if (!history.length) return <div className="text-center py-16 text-slate-400"><History size={36} className="mx-auto mb-3 opacity-30" /><p className="text-sm">Belum ada riwayat pembelian.</p></div>;
 
   return (
     <>
-      {selectedOrderId && <OrderDetailPopup orderId={selectedOrderId} onClose={() => setSelected(null)} />}
+      {selectedOrderId && (
+        <OrderDetailPopup orderId={selectedOrderId} onClose={() => setSelected(null)} onChanged={fetchHistory} />
+      )}
       <div className="space-y-4">
         {history.map((item) => (
           <div key={item.id} onClick={() => setSelected(item.orderId)}
             className="bg-white rounded-2xl border border-slate-200 p-5 cursor-pointer hover:border-blue-300 hover:shadow-md transition-all group">
-            <div className="mb-3">
-              <p className="font-bold text-slate-900 text-sm">{item.name}</p>
-              <button onClick={(e) => handleCopy(item.orderId, e)} className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 hover:text-blue-600 transition-colors">
-                {copied === item.orderId ? <CheckCheck size={12} className="text-green-500" /> : <Copy size={12} />} #{item.orderId}
-              </button>
-            </div>
+            <p className="font-bold text-slate-900 text-sm mb-3">{item.name}</p>
             <div className="h-px bg-slate-100 mb-4" />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
               <div><p className="text-xs text-slate-400 mb-1">Metode Pembayaran</p><p className="font-semibold text-slate-800">{item.method || '-'}</p>{item.methodDetail && <p className="text-slate-500 text-xs mt-0.5 font-mono truncate">{item.methodDetail}</p>}</div>
               <div><p className="text-xs text-slate-400 mb-1">Waktu Transaksi</p><p className="font-semibold text-slate-800">{item.date}</p></div>
               <div><p className="text-xs text-slate-400 mb-1">Status</p><span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${STATUS_STYLE[item.status] ?? 'bg-slate-100 text-slate-500'}`}>{STATUS_LABEL[item.status] ?? item.status}</span></div>
             </div>
-            <p className="text-xs text-slate-400 mt-3 group-hover:text-blue-500 transition-colors text-right">Klik untuk lihat detail →</p>
+            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+              <span className="text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors">
+                Lihat Detail
+              </span>
+            </div>
           </div>
         ))}
       </div>
@@ -671,6 +745,14 @@ export default function BeliPaketPage() {
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState<Tab>('beli');
   const [error, setError]         = useState<string | null>(null);
+
+  // Dukung deep-link ?tab=riwayat (dipakai redirect setelah popup Snap
+  // ditutup/selesai) — baca langsung dari URL, tanpa useSearchParams supaya
+  // tidak perlu bungkus <Suspense> di halaman client ini.
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab === 'riwayat' || tab === 'beli' || tab === 'aktif') setActiveTab(tab);
+  }, []);
   // Fetch user tier once at page level — passed down as prop, no extra requests
   const [userTier, setUserTier]   = useState<Tier>('free');
   const [tierLoading, setTierLoading] = useState(true);
