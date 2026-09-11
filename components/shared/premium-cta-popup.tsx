@@ -58,7 +58,7 @@ const PLANS: Record<Plan, {
     features: [
       'Semua fitur Premium, tanpa terkecuali',
       'Tryout & materi Platinum eksklusif',
-      'Video series SKD + laporan perkembangan',
+      'Laporan perkembangan belajar',
       'Riwayat tanpa batas & analisis waktu pengerjaan',
     ],
   },

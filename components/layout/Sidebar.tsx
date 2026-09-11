@@ -126,7 +126,7 @@ export function Sidebar() {
               </h3>
             </div>
             <p className="relative text-slate-400 text-xs mb-3 leading-relaxed">
-              Akses tryout premium & materi video SKD lengkap.
+              Akses tryout premium & materi SKD lengkap.
             </p>
             <div className="relative h-px bg-white/10 mb-3" />
             <div className="relative grid grid-cols-3 gap-1.5 mb-3">
@@ -182,13 +182,13 @@ export function Sidebar() {
               </h3>
             </div>
             <p className="relative text-slate-400 text-xs mb-3 leading-relaxed">
-              Fitur eksklusif & video series SKD lengkap.
+              Fitur eksklusif & materi Platinum lengkap.
             </p>
             <div className="relative h-px bg-white/10 mb-3" />
             <div className="relative grid grid-cols-3 gap-1.5 mb-3">
               {[
                 { file: 'riwayat_premium', label: 'Riwayat' },
-                { file: 'video_skd_premium', label: 'Materi Video' },
+                { file: 'video_skd_premium', label: 'Materi Platinum' },
                 { file: 'analisis_premium', label: 'Analisis' },
               ].map(({ file, label }) => (
                 <div
@@ -242,13 +242,13 @@ export function Sidebar() {
             <div className="flex items-start gap-2 mb-3">
               <Sparkles size={12} className="text-yellow-400 flex-shrink-0 mt-0.5" />
               <p className="text-slate-300 text-xs leading-relaxed">
-                Kamu sudah di puncak! Maksimalkan analisis, video SKD, dan riwayat tak terbatas.
+                Kamu sudah di puncak! Maksimalkan analisis dan riwayat tak terbatas.
               </p>
             </div>
             <div className="grid grid-cols-3 gap-1.5">
               {[
                 ['∞', 'Riwayat'],
-                ['HD', 'Video SKD'],
+                ['Top', 'Materi'],
                 ['Pro', 'Analisis'],
               ].map(([val, lbl]) => (
                 <div

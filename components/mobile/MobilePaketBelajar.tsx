@@ -25,7 +25,7 @@ const ALL_FEATURES: { label: string; free: boolean; premium: boolean; platinum: 
   { label: 'Leaderboard paket',                                free: false, premium: true,  platinum: true  },
   { label: 'Akses Riwayat tidak terbatas',                     free: false, premium: false, platinum: true  },
   { label: 'Tryout paket platinum eksklusif',                  free: false, premium: false, platinum: true  },
-  { label: 'Materi platinum + video series SKD',               free: false, premium: false, platinum: true  },
+  { label: 'Materi Platinum',               free: false, premium: false, platinum: true  },
   { label: 'Analisis soal dengan waktu pengerjaan terlama',    free: false, premium: false, platinum: true  },
   { label: 'Laporan perkembangan belajar',                     free: false, premium: false, platinum: true  },
   { label: 'Masa aktif 1 tahun',                               free: false, premium: false, platinum: true  },
@@ -363,7 +363,7 @@ function PaketAktifTab({ userTier }: { userTier: SubscriptionTier }) {
   const features  = {
     free:     ['Tryout paket gratis', 'Akses Roadmap pembelajaran', 'Akses materi dasar'],
     premium:  ['Tryout paket gratis & premium', 'Latihan Soal SKD / Mini Try Out', 'Review soal + pembahasan lengkap', 'Materi SKD lengkap (TWK, TIU, TKP)', 'Akses Riwayat (3 terbaru)', 'Statistik & analisis performa', 'Peringkat nasional'],
-    platinum: ['Semua fitur Premium', 'Akses Riwayat tidak terbatas', 'Tryout paket platinum eksklusif', 'Materi platinum + video series SKD', 'Analisis soal dengan waktu pengerjaan terlama', 'Masa aktif 1 tahun'],
+    platinum: ['Semua fitur Premium', 'Akses Riwayat tidak terbatas', 'Tryout paket platinum eksklusif', 'Materi Platinum', 'Analisis soal dengan waktu pengerjaan terlama', 'Masa aktif 1 tahun'],
   }[userTier];
 
   return (

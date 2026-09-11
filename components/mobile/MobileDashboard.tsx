@@ -193,8 +193,8 @@ export function MobileDashboard({
                   </h3>
                   <p className="text-slate-400 text-[10px] leading-tight mt-0.5">
                     {isPremium
-                      ? 'Akses fitur eksklusif & video SKD lengkap.'
-                      : 'Tryout Premium + Materi video lengkap.'}
+                      ? 'Akses fitur eksklusif & materi Platinum lengkap.'
+                      : 'Tryout Premium + Materi SKD lengkap.'}
                   </p>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function MobileDashboard({
             <div className="relative grid grid-cols-3 gap-1 mb-2.5">
               {[
                 { val: '∞', label: 'Riwayat' },
-                { val: 'HD', label: isPremium ? 'Materi Video' : 'Materi SKD' },
+                { val: 'HD', label: isPremium ? 'Materi Platinum' : 'Materi SKD' },
                 { val: 'Pro', label: 'Analisis' },
               ].map(({ val, label }) => (
                 <div key={label} className="bg-white/5 border border-white/10 rounded-md py-1 text-center">

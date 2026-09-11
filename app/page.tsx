@@ -1040,10 +1040,10 @@ export default function Home() {
               </div>
               <div className="p-orig" style={{ color: 'rgba(255,255,255,.35)' }}>Rp 349.000</div>
               <div className="p-amount" style={{ color: '#c4b5fd' }}>Rp 119.000</div>
-              <div className="p-desc" style={{ color: 'rgba(255,255,255,.45)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>Paket terlengkap, dengan materi video dan masa aktif setahun</div>
+              <div className="p-desc" style={{ color: 'rgba(255,255,255,.45)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>Paket terlengkap, dengan materi Platinum dan masa aktif setahun</div>
               <ul className="p-feats">
                 {['Semua fitur Premium', 'Akses Riwayat tidak terbatas', 'Tryout paket platinum eksklusif',
-                  'Materi platinum + video series SKD', 'Analisis soal dengan waktu terlama', 'Laporan perkembangan belajar',
+                  'Materi Platinum', 'Analisis soal dengan waktu terlama', 'Laporan perkembangan belajar',
                   'Masa aktif 1 tahun'].map(t => (
                   <li key={t}><span className="chk" style={{ background: 'rgba(167,139,250,.28)', color: '#fff' }}>✓</span><span style={{ color: 'rgba(255,255,255,.85)' }}>{t}</span></li>
                 ))}

@@ -2,7 +2,7 @@
 // Service worker tunggal PintuASN: cache aset statis + Firebase Cloud Messaging.
 // Satu SW di scope '/' agar tidak bentrok antar registrasi.
 
-const CACHE_NAME = 'pintuasn-v4';
+const CACHE_NAME = 'pintuasn-v5';
 // Hanya aset statis & ringan yang di-precache. HTML/API TIDAK di-cache.
 const STATIC_ASSETS = [
   '/manifest.json',
