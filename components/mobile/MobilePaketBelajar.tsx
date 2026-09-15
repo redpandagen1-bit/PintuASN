@@ -4,11 +4,10 @@
 // Mobile-only paket belajar — mirrors desktop feature list, simplified layout
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2, Lock, ArrowRight, ChevronDown, CreditCard } from 'lucide-react';
+import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2, Lock, ArrowRight, ChevronDown, ReceiptText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
-import { IS_SNAP_MODE, openSnapForOrder } from '@/lib/payment/snap-client';
+import { OrderDetailPopup } from '@/components/payment/OrderDetailPopup';
 
 // ── Feature list (same as desktop) ───────────────────────────
 
@@ -279,48 +278,26 @@ const STATUS_LABEL: Record<string, string> = {
 // ── Riwayat Tab ───────────────────────────────────────────────
 
 function RiwayatPembayaranTab() {
-  const router = useRouter();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied]   = useState<string | null>(null);
-  const [payLoadingId, setPayLoadingId] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch('/api/payment/history')
+  const fetchHistory = () => {
+    return fetch('/api/payment/history')
       .then(r => r.json())
       .then(d => { if (d.orders) setHistory(d.orders); })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchHistory().finally(() => setLoading(false));
   }, []);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(text);
     setTimeout(() => setCopied(null), 2000);
-  };
-
-  const refetchHistory = () => {
-    fetch('/api/payment/history')
-      .then(r => r.json())
-      .then(d => { if (d.orders) setHistory(d.orders); })
-      .catch(() => {});
-  };
-
-  const handleContinuePayment = async (orderId: string) => {
-    if (!IS_SNAP_MODE) { router.push(`/pembayaran/${orderId}`); return; }
-    setPayLoadingId(orderId);
-    try {
-      await openSnapForOrder(orderId, {
-        onSuccess: refetchHistory,
-        onPending: refetchHistory,
-        onClose:   refetchHistory,
-        onError:   () => alert('Pembayaran gagal. Silakan coba lagi.'),
-      });
-    } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
-    } finally {
-      setPayLoadingId(null);
-    }
   };
 
   if (loading) return (
@@ -337,50 +314,53 @@ function RiwayatPembayaranTab() {
   );
 
   return (
-    <div className="space-y-4">
-      {history.map(item => (
-        <div key={item.id} className="bg-white rounded-2xl p-5 shadow-md3-sm border border-slate-100">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-slate-800 text-sm truncate">{item.name}</p>
-              <button
-                onClick={() => handleCopy(item.orderId)}
-                className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 active-press"
-              >
-                {copied === item.orderId
-                  ? <CheckCheck size={11} className="text-emerald-500" />
-                  : <Copy size={11} />
-                }
-                #{item.orderId}
-              </button>
+    <>
+      {selectedOrderId && (
+        <OrderDetailPopup
+          orderId={selectedOrderId}
+          onClose={() => setSelectedOrderId(null)}
+          onChanged={fetchHistory}
+        />
+      )}
+      <div className="space-y-4">
+        {history.map(item => (
+          <div key={item.id} className="bg-white rounded-2xl p-5 shadow-md3-sm border border-slate-100">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-slate-800 text-sm truncate">{item.name}</p>
+                <button
+                  onClick={() => handleCopy(item.orderId)}
+                  className="flex items-center gap-1.5 text-xs text-slate-400 mt-1 active-press"
+                >
+                  {copied === item.orderId
+                    ? <CheckCheck size={11} className="text-emerald-500" />
+                    : <Copy size={11} />
+                  }
+                  #{item.orderId}
+                </button>
+              </div>
+              <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full ml-2 flex-shrink-0', STATUS_STYLE[item.status.toUpperCase()] ?? STATUS_STYLE.PENDING)}>
+                {STATUS_LABEL[item.status.toUpperCase()] ?? item.status}
+              </span>
             </div>
-            <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full ml-2 flex-shrink-0', STATUS_STYLE[item.status.toUpperCase()] ?? STATUS_STYLE.PENDING)}>
-              {STATUS_LABEL[item.status.toUpperCase()] ?? item.status}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="truncate mr-2">{item.method}</span>
-            <span className="flex-shrink-0">{item.date}</span>
-          </div>
-          {item.methodDetail && (
-            <p className="text-xs font-mono text-slate-500 mt-1 truncate">{item.methodDetail}</p>
-          )}
-          {item.status.toUpperCase() === 'PENDING' && (
+            <div className="flex items-center justify-between text-xs text-slate-400">
+              <span className="truncate mr-2">{item.method}</span>
+              <span className="flex-shrink-0">{item.date}</span>
+            </div>
+            {item.methodDetail && (
+              <p className="text-xs font-mono text-slate-500 mt-1 truncate">{item.methodDetail}</p>
+            )}
             <button
-              onClick={() => handleContinuePayment(item.orderId)}
-              disabled={payLoadingId === item.orderId}
-              className="w-full mt-3 py-2.5 bg-sky-50 text-sky-600 text-xs font-bold rounded-xl active-press border border-sky-100 flex items-center justify-center gap-1.5 disabled:opacity-50"
+              onClick={() => setSelectedOrderId(item.orderId)}
+              className="w-full mt-3 py-2.5 bg-sky-50 text-sky-600 text-xs font-bold rounded-xl active-press border border-sky-100 flex items-center justify-center gap-1.5"
             >
-              {payLoadingId === item.orderId
-                ? <Loader2 size={13} className="animate-spin" />
-                : <CreditCard size={13} />
-              }
-              Lanjutkan Pembayaran
+              <ReceiptText size={13} />
+              Detail Pembayaran
             </button>
-          )}
-        </div>
-      ))}
-    </div>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
