@@ -60,8 +60,8 @@ export function Navbar() {
               <Image
                 src="/images/logo-navbar-sky.svg"
                 alt="PintuASN"
-                width={90}
-                height={28}
+                width={106}
+                height={19}
                 className="transition-transform duration-300 group-hover:scale-105"
                 unoptimized
                 priority

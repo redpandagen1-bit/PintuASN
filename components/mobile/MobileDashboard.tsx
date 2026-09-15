@@ -416,7 +416,7 @@ export function MobileDashboard({
       {materiTerbaru.length > 0 && (
         <section className="space-y-3 px-4">
           <div className="flex justify-between items-end">
-            <h2 className="text-base font-bold text-md-primary" style={{ fontFamily: 'var(--font-jakarta)' }}>
+            <h2 className="text-base font-bold text-black" style={{ fontFamily: 'var(--font-jakarta)' }}>
               Materi Terbaru
             </h2>
             <Link href="/materi" className="text-xs font-semibold text-md-on-surface-variant uppercase tracking-wide flex items-center gap-1">

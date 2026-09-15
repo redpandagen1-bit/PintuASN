@@ -177,8 +177,8 @@ async function DashboardContent() {
         <section className="bg-white rounded-3xl p-5 md:p-7 shadow-sm border border-slate-100 space-y-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold text-slate-800">
-                Materi <span className="text-yellow-500">Terbaru</span>
+              <h2 className="text-xl font-bold text-black">
+                Materi Terbaru
               </h2>
               <p className="text-slate-500 text-xs mt-0.5">Modul belajar persiapan CPNS 2026, langsung baca.</p>
             </div>

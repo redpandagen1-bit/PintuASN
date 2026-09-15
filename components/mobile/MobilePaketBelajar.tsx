@@ -4,10 +4,11 @@
 // Mobile-only paket belajar — mirrors desktop feature list, simplified layout
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2, Lock, ArrowRight, ChevronDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Check, X, ShoppingBag, History, PackageCheck, Star, Copy, CheckCheck, Loader2, Lock, ArrowRight, ChevronDown, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SubscriptionTier } from '@/lib/subscription-utils';
+import { IS_SNAP_MODE, openSnapForOrder } from '@/lib/payment/snap-client';
 
 // ── Feature list (same as desktop) ───────────────────────────
 
@@ -278,9 +279,11 @@ const STATUS_LABEL: Record<string, string> = {
 // ── Riwayat Tab ───────────────────────────────────────────────
 
 function RiwayatPembayaranTab() {
+  const router = useRouter();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied]   = useState<string | null>(null);
+  const [payLoadingId, setPayLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/payment/history')
@@ -294,6 +297,30 @@ function RiwayatPembayaranTab() {
     navigator.clipboard.writeText(text);
     setCopied(text);
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const refetchHistory = () => {
+    fetch('/api/payment/history')
+      .then(r => r.json())
+      .then(d => { if (d.orders) setHistory(d.orders); })
+      .catch(() => {});
+  };
+
+  const handleContinuePayment = async (orderId: string) => {
+    if (!IS_SNAP_MODE) { router.push(`/pembayaran/${orderId}`); return; }
+    setPayLoadingId(orderId);
+    try {
+      await openSnapForOrder(orderId, {
+        onSuccess: refetchHistory,
+        onPending: refetchHistory,
+        onClose:   refetchHistory,
+        onError:   () => alert('Pembayaran gagal. Silakan coba lagi.'),
+      });
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Terjadi kesalahan');
+    } finally {
+      setPayLoadingId(null);
+    }
   };
 
   if (loading) return (
@@ -339,11 +366,17 @@ function RiwayatPembayaranTab() {
             <p className="text-xs font-mono text-slate-500 mt-1 truncate">{item.methodDetail}</p>
           )}
           {item.status.toUpperCase() === 'PENDING' && (
-            <Link href={`/pembayaran/${item.orderId}`} className="block mt-3">
-              <button className="w-full py-2.5 bg-sky-50 text-sky-600 text-xs font-bold rounded-xl active-press border border-sky-100">
-                Lanjutkan Pembayaran
-              </button>
-            </Link>
+            <button
+              onClick={() => handleContinuePayment(item.orderId)}
+              disabled={payLoadingId === item.orderId}
+              className="w-full mt-3 py-2.5 bg-sky-50 text-sky-600 text-xs font-bold rounded-xl active-press border border-sky-100 flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              {payLoadingId === item.orderId
+                ? <Loader2 size={13} className="animate-spin" />
+                : <CreditCard size={13} />
+              }
+              Lanjutkan Pembayaran
+            </button>
           )}
         </div>
       ))}
