@@ -12,6 +12,14 @@ import {
 } from '@/lib/supabase/blog-queries'
 import type { Post } from '@/types/blog'
 
+// ISR: revalidasi berkala sebagai jaring pengaman. Tanpa ini, halaman
+// di-generate statis sekali saat build; artikel yang dipublish setelah build
+// tidak pernah dibuatkan halamannya (404). generateStaticParams tetap dipakai
+// untuk pra-render artikel yang sudah ada; slug baru dirender on-demand lalu
+// disegarkan tiap interval ini. Revalidasi instan saat publish ditangani
+// revalidatePath di route admin blog.
+export const revalidate = 300
+
 // Generate static params untuk semua published posts
 export async function generateStaticParams() {
   const slugs = await getAllPublishedSlugs()

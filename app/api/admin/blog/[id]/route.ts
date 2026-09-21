@@ -1,6 +1,7 @@
 // app/api/admin/blog/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { checkIsAdmin } from '@/lib/auth/check-admin'
 import {
   getPostByIdAdmin,
@@ -8,6 +9,13 @@ import {
   deletePost,
   checkSlugExists,
 } from '@/lib/supabase/blog-queries'
+
+// Segarkan daftar blog dan semua halaman artikel setelah update/hapus, agar
+// perubahan (mis. draft -> published) langsung tampil di halaman publik.
+function revalidateBlog() {
+  revalidatePath('/blog')
+  revalidatePath('/blog/[slug]', 'page')
+}
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -45,6 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     const post = await updatePost(id, body)
+    revalidateBlog()
     return NextResponse.json({ post })
   } catch (error) {
     console.error('[BLOG POST ERROR]', error)
@@ -59,6 +68,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const { id } = await params
     await deletePost(id)
+    revalidateBlog()
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[BLOG POST ERROR]', error)

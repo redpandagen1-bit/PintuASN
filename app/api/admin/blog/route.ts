@@ -1,8 +1,17 @@
 // app/api/admin/blog/route.ts
 
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { checkIsAdmin } from '@/lib/auth/check-admin'
 import { getAllPostsAdmin, createPost, checkSlugExists } from '@/lib/supabase/blog-queries'
+
+// Segarkan daftar blog dan seluruh halaman artikel setelah perubahan konten,
+// agar artikel yang baru dibuat/dipublish langsung tampil (bukan menunggu ISR
+// atau rebuild). 'page' pada [slug] merevalidasi semua halaman artikel dinamis.
+function revalidateBlog() {
+  revalidatePath('/blog')
+  revalidatePath('/blog/[slug]', 'page')
+}
 
 export async function GET() {
   try {
@@ -42,6 +51,7 @@ export async function POST(req: NextRequest) {
     }
 
     const post = await createPost(body)
+    revalidateBlog()
     return NextResponse.json({ post }, { status: 201 })
   } catch (error) {
     console.error('[BLOG POST ERROR]', error)

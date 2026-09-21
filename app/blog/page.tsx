@@ -7,6 +7,11 @@ import { getPublishedPosts } from '@/lib/supabase/blog-queries'
 import { BLOG_CATEGORIES } from '@/types/blog'
 import type { Post } from '@/types/blog'
 
+// ISR: daftar blog disegarkan berkala agar artikel yang baru dipublish muncul
+// tanpa perlu rebuild. Revalidasi instan saat publish ditangani revalidatePath
+// di route admin blog.
+export const revalidate = 300
+
 export const metadata: Metadata = {
   title: 'Blog Tips CPNS & SKD – PintuASN',
   description:
