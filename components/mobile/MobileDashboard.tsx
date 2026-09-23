@@ -55,13 +55,15 @@ interface MobileDashboardProps {
 
 // ── Menu grid items (icons sama dengan sidebar desktop) ───────
 
+// Daftar Tryout dihapus dari grid ini — sekarang jadi FAB tengah di BottomNav.
+// Beli Paket pindah ke slot lama Daftar Tryout; Roadmap pindah ke slot lama Beli Paket.
 const MENU_ITEMS = [
   { label: 'Materi',        href: '/materi',        iconFile: 'materi'       },
   { label: 'Peluang Formasi', href: '/peluang-formasi', iconFile: 'peluang_formasi' },
-  { label: 'Daftar Tryout', href: '/daftar-tryout', iconFile: 'daftar_tryout' },
+  { label: 'Beli Paket',    href: '/beli-paket',    iconFile: 'beli_paket'   },
   { label: 'Drilling Soal', href: '/drilling',      iconFile: 'drilling' },
   { label: 'Riwayat',       href: '/history',       iconFile: 'riwayat'      },
-  { label: 'Beli Paket',    href: '/beli-paket',    iconFile: 'beli_paket'   },
+  { label: 'Roadmap',       href: '/roadmap',       iconFile: 'roadmap' },
   { label: 'Event & Promo', href: '/events-promo',  iconFile: 'event_promo'  },
   { label: 'Grup',          href: 'https://wa.me/6285190868980?text=halo%20admin%20pintuASN%2C%20saya%20ingin%20join%20grup', iconFile: 'grup' },
 ] as const;
@@ -240,39 +242,38 @@ export function MobileDashboard({
       )}
 
       {/* ── Mini Statistik Belajar ─────────────────────────────── */}
+      {/* Surface putih (bukan gradient navy) — supaya beda dari kartu "Upgrade Premium"
+          di atasnya yang juga navy; data statistik pribadi & iklan upgrade jadi gak
+          kebaca sama beratnya lagi. */}
       <section className="mx-4">
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-4 shadow-lg border border-slate-700/60">
-          {/* Blob dekoratif */}
-          <div className="absolute -top-12 -right-10 w-40 h-40 rounded-full bg-blue-500/25 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-14 -left-8 w-36 h-36 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
-
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
           {/* Header */}
-          <div className="relative flex items-center justify-between mb-3.5">
+          <div className="flex items-center justify-between mb-3.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-yellow-400/15 border border-yellow-400/20 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0">
                 <BarChart2 size={17} className="text-yellow-400" strokeWidth={2.2} />
               </div>
               <div>
-                <h2 className="text-sm font-extrabold text-white leading-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
-                  Statistik <span className="text-yellow-400">Belajar</span>
+                <h2 className="text-sm font-extrabold text-slate-900 leading-tight" style={{ fontFamily: 'var(--font-jakarta)' }}>
+                  Statistik <span className="text-sky-600">Belajar</span>
                 </h2>
-                <p className="text-slate-400 text-[10px] mt-0.5">Pantau perkembangan belajarmu.</p>
+                <p className="text-slate-500 text-[10px] mt-0.5">Pantau perkembangan belajarmu.</p>
               </div>
             </div>
             <Link href="/statistics">
-              <span className="bg-white/10 border border-white/15 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-0.5 active:scale-95 transition-transform">
+              <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-0.5 active:scale-95 transition-transform">
                 Detail <ChevronRight size={11} />
               </span>
             </Link>
           </div>
 
           {/* Stat strip dengan divider + aksen warna per metrik */}
-          <div className="relative grid grid-cols-4 rounded-xl bg-slate-900/40 border border-white/5 divide-x divide-white/[0.06]">
+          <div className="grid grid-cols-4 rounded-xl bg-slate-50 border border-slate-100 divide-x divide-slate-100">
             {[
-              { label: 'Selesai',   value: completedCount, Icon: CheckCircle, tint: 'bg-emerald-400/15', color: 'text-emerald-400' },
-              { label: 'Rata-rata', value: averageScore,   Icon: BarChart2,   tint: 'bg-sky-400/15',     color: 'text-sky-400'     },
-              { label: 'Peringkat', value: rankingDisplay, Icon: Award,       tint: 'bg-yellow-400/15',  color: 'text-yellow-400', highlight: true },
-              { label: 'Terbaik',   value: bestScore,      Icon: TrendingUp,  tint: 'bg-violet-400/15',  color: 'text-violet-400'  },
+              { label: 'Selesai',   value: completedCount, Icon: CheckCircle, tint: 'bg-emerald-100', color: 'text-emerald-600' },
+              { label: 'Rata-rata', value: averageScore,   Icon: BarChart2,   tint: 'bg-sky-100',     color: 'text-sky-600'     },
+              { label: 'Peringkat', value: rankingDisplay, Icon: Award,       tint: 'bg-amber-100',   color: 'text-amber-600', highlight: true },
+              { label: 'Terbaik',   value: bestScore,      Icon: TrendingUp,  tint: 'bg-violet-100',  color: 'text-violet-600'  },
             ].map(({ label, value, Icon, tint, color, highlight }) => (
               <div key={label} className="flex flex-col items-center gap-1.5 py-3 px-1">
                 <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', tint)}>
@@ -280,11 +281,11 @@ export function MobileDashboard({
                 </div>
                 <p className={cn(
                   'font-extrabold text-sm leading-none text-center tabular-nums',
-                  highlight ? 'text-yellow-400' : 'text-white',
+                  highlight ? 'text-amber-600' : 'text-slate-900',
                 )} style={{ fontFamily: 'var(--font-jakarta)' }}>
                   {value}
                 </p>
-                <p className="text-slate-400 text-[8px] font-semibold uppercase tracking-wide leading-tight text-center">
+                <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wide leading-tight text-center">
                   {label}
                 </p>
               </div>

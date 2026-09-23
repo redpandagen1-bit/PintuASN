@@ -68,7 +68,8 @@ export function BottomNav() {
     );
   };
 
-  const roadmapActive = isItemActive('/roadmap');
+  // FAB tengah: "Mulai Tryout" → /daftar-tryout (dulu Roadmap).
+  const tryoutActive = isItemActive('/daftar-tryout') || isItemActive('/packages');
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
@@ -77,33 +78,40 @@ export function BottomNav() {
         {/* Kiri */}
         {LEFT_ITEMS.map((item) => <NavItem key={item.id} {...item} />)}
 
-        {/* ── Tengah: Roadmap FAB (melayang) + label sejajar item lain ── */}
+        {/* ── Tengah: Mulai Tryout FAB (melayang) + label sejajar item lain ── */}
         <Link
-          href="/roadmap"
+          href="/daftar-tryout"
           className="relative flex flex-1 flex-col items-center justify-center gap-1 active:scale-95 transition-transform"
         >
-          {/* Spacer seukuran ikon item lain → label "Roadmap" sejajar */}
+          {/* Spacer seukuran ikon item lain → label sejajar */}
           <div className="w-8 h-8" aria-hidden />
-          {/* FAB di-absolute, melayang ke atas; tidak mengganggu posisi label */}
+          {/* FAB di-absolute, melayang ke atas; tidak mengganggu posisi label.
+              Icon daftar_tryout.svg sudah full-color (kotak navy-emas dengan gradient,
+              sama seperti di menu grid) — dulu di-GOLD_FILTER (filter buat ikon garis
+              monokrom) sehingga detailnya hilang jadi blok kuning polos. Sekarang
+              ditampilkan apa adanya, tanpa filter. rounded-full (bukan rounded-2xl) —
+              balik ke bentuk bulat/setengah-lingkaran seperti FAB Roadmap sebelumnya;
+              sudut ikon aslinya yang transparan (rounded-square) otomatis kepotong rapi
+              oleh clip lingkaran, jadi tetap penuh tanpa celah. */}
           <div
-            className={`absolute left-1/2 -translate-x-1/2 -top-5 w-[50px] h-[50px] rounded-full ring-4 ring-white shadow-lg shadow-slate-900/25 flex items-center justify-center ${
-              roadmapActive ? 'bg-slate-900' : 'bg-slate-800'
+            className={`absolute left-1/2 -translate-x-1/2 -top-5 w-[54px] h-[54px] rounded-full ring-4 shadow-lg shadow-slate-900/25 overflow-hidden transition-all ${
+              tryoutActive ? 'ring-amber-300' : 'ring-white'
             }`}
           >
             <img
-              src="/images/icons/nav_roadmap.svg"
-              alt="Roadmap"
-              width={24}
-              height={24}
-              style={{ filter: GOLD_FILTER }}
+              src="/images/icons/daftar_tryout.svg"
+              alt="Mulai Tryout"
+              width={54}
+              height={54}
+              className="w-full h-full object-cover"
             />
           </div>
           <span
             className={`text-[9px] font-bold leading-none ${
-              roadmapActive ? 'text-slate-900' : 'text-slate-800'
+              tryoutActive ? 'text-slate-900' : 'text-slate-800'
             }`}
           >
-            Roadmap
+            Tryout
           </span>
         </Link>
 
