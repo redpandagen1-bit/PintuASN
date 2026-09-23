@@ -7,6 +7,7 @@
 // ============================================================
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   BookOpen, FileText, ChevronRight,
   Clock, Lock, CheckCircle2, GraduationCap, Layers, ArrowRight,
@@ -44,8 +45,17 @@ export default function MateriPageClient({
   modules:  MaterialModule[];
   userTier: SubscriptionTier;
 }) {
-  const [activeTab,    setActiveTab]    = useState<string>('INFORMASI');
-  const [openTopic,    setOpenTopic]    = useState<string | null>(null);
+  // Deep-link: /materi?cat=TIU&topic=Deret%20Angka (dipakai Roadmap)
+  const searchParams = useSearchParams();
+  const linkCat   = searchParams.get('cat');
+  const linkTopic = searchParams.get('topic');
+  const linkValid = !!linkCat && TABS.some(t => t.id === linkCat);
+
+  const [activeTab,    setActiveTab]    = useState<string>(linkValid ? linkCat! : 'INFORMASI');
+  const [openTopic,    setOpenTopic]    = useState<string | null>(
+    linkValid && linkTopic && modules.some(m => m.category === linkCat && m.topic === linkTopic)
+      ? linkTopic : null,
+  );
   const [openModuleId, setOpenModuleId] = useState<string | null>(null);
   const [upgradeOpen,  setUpgradeOpen]  = useState(false);
   const [upgradeTier,  setUpgradeTier]  = useState<'premium' | 'platinum'>('premium');

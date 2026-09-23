@@ -58,6 +58,53 @@ export interface RoadmapPageData {
   hasInstansi: boolean;
 }
 
+// ─── Peta Perjalanan (visual path roadmap) ────────────────────
+export type PathNodeKind = 'reading' | 'quiz' | 'tryout' | 'target' | 'trophy';
+export type ContentTier  = 'free' | 'premium' | 'platinum';
+export type PathZone     = ContentTier;
+
+export interface PathNode {
+  id: string;
+  label: string;
+  tooltip: string;
+  kind: PathNodeKind;
+  href: string;
+  status: PhaseStatus;
+  tier: ContentTier;
+  /** Tier user belum cukup untuk mengakses konten spot ini. */
+  needsUpgrade: boolean;
+}
+
+export interface PathSection {
+  id: string;
+  title: string;
+  zone: PathZone;
+  countLabel: string;
+  nodes: PathNode[];
+}
+
+/** Progres mentah user untuk menghitung status tiap spot roadmap. */
+export interface RoadmapProgress {
+  modules: {
+    id: string;
+    category: string;
+    topic: string;
+    title: string;
+    tier: ContentTier;
+    is_placeholder: boolean;
+  }[];
+  viewedModuleIds: string[];
+  /** 'CATEGORY|Topic' yang pernah tercakup di sesi drilling yang selesai. */
+  drilledTopics: string[];
+  /** Satu entri per paket tryout (unik) yang pernah diselesaikan. */
+  tryoutsDone: { tier: ContentTier; isHots: boolean }[];
+  avgTwk: number;
+  avgTiu: number;
+  avgTkp: number;
+  bestFinalScore: number;
+  hasInstansi: boolean;
+}
+
 // ─── Reminder preference ─────────────────────────────────────
 export interface ReminderPreference {
   enabled:      boolean;

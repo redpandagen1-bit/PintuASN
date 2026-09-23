@@ -4,11 +4,10 @@
 
 import { auth }           from '@clerk/nextjs/server';
 import { redirect }       from 'next/navigation';
-import { getRoadmapStats } from '@/lib/supabase/queries';
-import { getPeluangFormasi, type PeluangFormasi } from '@/lib/supabase/peluang-formasi';
-import { createAdminClient } from '@/lib/supabase/server';
+import { getUserTier }    from '@/lib/supabase/queries';
+import { getRoadmapProgress } from '@/lib/supabase/roadmap-progress';
+import { buildPathSections }  from '@/constants/roadmap-path-data';
 import { RoadmapContent } from './roadmap-content';
-import type { ReminderPreference } from '@/types/roadmap';
 import { MobilePageWrapper } from '@/components/mobile/MobilePageWrapper';
 import { MobileRoadmap }     from '@/components/mobile/MobileRoadmap';
 
@@ -21,65 +20,22 @@ export default async function RoadmapPage() {
   const { userId } = await auth();
   if (!userId) redirect('/sign-in');
 
-  const supabase = await createAdminClient();
-
-  // Fetch stats, peluang, reminder preference, dan history secara paralel.
-  // Peluang dibungkus agar kegagalan RPC tidak menggagalkan seluruh halaman.
-  const [stats, peluang, { data: prefData }, { data: historyData }] = await Promise.all([
-    getRoadmapStats(userId),
-    getPeluangFormasi(userId).catch(() => null as PeluangFormasi | null),
-
-    supabase
-      .from('user_reminder_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .single(),
-
-    // Ambil tanggal-tanggal di mana user mengerjakan tryout (attempt selesai)
-    // Gunakan tabel attempts yang sudah ada di project
-    supabase
-      .from('attempts')
-      .select('created_at')
-      .eq('user_id', userId)
-      .eq('status', 'completed')
-      .order('created_at', { ascending: false }),
+  const [progress, userTier] = await Promise.all([
+    getRoadmapProgress(userId),
+    getUserTier(userId),
   ]);
-
-  const savedPreference: ReminderPreference | null = prefData
-    ? {
-        enabled:      prefData.enabled,
-        intervalDays: prefData.interval_days,
-        customDays:   prefData.custom_days   ?? null,
-        examDate:     prefData.exam_date     ?? null,
-        lastNotifAt:  prefData.last_notif_at ?? null,
-      }
-    : null;
-
-  // ISO string per tanggal attempt selesai
-  const studyHistory: string[] = (historyData ?? []).map(
-    (row: { created_at: string }) => row.created_at,
-  );
+  const sections = buildPathSections(progress, userTier);
 
   return (
     <>
       {/* ── Mobile ── */}
       <MobilePageWrapper>
-        <MobileRoadmap
-          stats={stats}
-          savedPreference={savedPreference}
-          studyHistory={studyHistory}
-          peluang={peluang}
-        />
+        <MobileRoadmap sections={sections} />
       </MobilePageWrapper>
 
       {/* ── Desktop ── */}
       <div className="hidden md:block">
-        <RoadmapContent
-          stats={stats}
-          savedPreference={savedPreference}
-          studyHistory={studyHistory}
-          peluang={peluang}
-        />
+        <RoadmapContent sections={sections} />
       </div>
     </>
   );

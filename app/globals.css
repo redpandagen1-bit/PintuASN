@@ -284,6 +284,95 @@
   animation: swing 0.5s ease-in-out;
 }
 
+/* Roadmap "Peta Perjalanan" path map */
+.path-map-bg {
+  background-color: #fbfaf6;
+  background-image:
+    linear-gradient(rgba(27, 43, 94, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 43, 94, 0.045) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+
+.path-node {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  transition: opacity 0.45s cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: opacity, transform;
+}
+
+.path-node.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.path-progress {
+  transform-origin: 0 0;
+  transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Perangkat sentuh (PWA Android/iOS) tidak punya hover → judul spot selalu tampil */
+@media (hover: none) {
+  .spot-label {
+    opacity: 1 !important;
+  }
+}
+
+@keyframes spotBob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, -6px); }
+}
+
+.spot-marker {
+  transform: translate(-50%, 0);
+  animation: spotBob 1.6s ease-in-out infinite;
+}
+
+@keyframes spotShake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px) rotate(-4deg); }
+  40%      { transform: translateX(6px) rotate(4deg); }
+  60%      { transform: translateX(-4px) rotate(-2deg); }
+  80%      { transform: translateX(4px) rotate(2deg); }
+}
+
+.spot-shake {
+  animation: spotShake 0.45s ease-in-out;
+}
+
+@keyframes spotCardIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.spot-card {
+  transform-origin: top center;
+  animation: spotCardIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes pathPulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.45); }
+  70%  { box-shadow: 0 0 0 14px rgba(245, 166, 35, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0); }
+}
+
+.path-node-pulse {
+  animation: pathPulseRing 2.2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .path-node {
+    transition: opacity 0.2s linear;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .path-node-pulse,
+  .spot-marker,
+  .spot-shake,
+  .spot-card {
+    animation: none;
+  }
+}
+
 @keyframes shrink {
   0%   { width: 100%; }
   100% { width: 0%; }

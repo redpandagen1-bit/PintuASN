@@ -3,6 +3,7 @@
 // components/mobile/MobileDaftarTryout.tsx
 
 import { useState, useMemo }     from 'react';
+import { useSearchParams }       from 'next/navigation';
 import Link                      from 'next/link';
 import {
   Search, X, BookOpen, Clock, Users,
@@ -194,7 +195,11 @@ function TryoutCard({
 
 export function MobileDaftarTryout({ packages, packageIdsWithAttempts, userTier }: MobileDaftarTryoutProps) {
   const [search,      setSearch]      = useState('');
-  const [tierFilter,  setTierFilter]  = useState<TierFilter>('Semua');
+  // Deep-link: /daftar-tryout?tier=premium (dipakai Roadmap)
+  const tierParam = useSearchParams().get('tier');
+  const [tierFilter,  setTierFilter]  = useState<TierFilter>(
+    () => TIER_FILTERS.find(f => f !== 'Semua' && TIER_MAP[f] === tierParam) ?? 'Semua',
+  );
   const [modalOpen,   setModalOpen]   = useState(false);
   const [modalTier,   setModalTier]   = useState<'premium' | 'platinum'>('premium');
   const [modalTitle,  setModalTitle]  = useState('');

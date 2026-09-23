@@ -5,6 +5,7 @@
 // ============================================================
 
 import { useState, useMemo }        from 'react';
+import { useSearchParams }          from 'next/navigation';
 import Link                         from 'next/link';
 import { Lock, TrendingUp, Search, X,
          BookOpen, Clock, Users, ChevronRight,
@@ -173,7 +174,11 @@ function PackageCard({
 // ─────────────────────────────────────────────────────────────
 
 export function DaftarTryoutClient({ packages, packageIdsWithAttempts, userTier }: DaftarTryoutClientProps) {
-  const [activeFilter, setActiveFilter] = useState<TierFilter>('Semua');
+  // Deep-link: /daftar-tryout?tier=premium (dipakai Roadmap)
+  const tierParam = useSearchParams().get('tier');
+  const [activeFilter, setActiveFilter] = useState<TierFilter>(
+    () => (Object.keys(TIER_MAP) as TierFilter[]).find(f => f !== 'Semua' && TIER_MAP[f] === tierParam) ?? 'Semua',
+  );
   const [search,       setSearch]       = useState('');
   const [modalOpen,    setModalOpen]    = useState(false);
   const [modalTier,    setModalTier]    = useState<'premium' | 'platinum'>('premium');

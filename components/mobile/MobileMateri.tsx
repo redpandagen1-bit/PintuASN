@@ -4,6 +4,7 @@
 // Mobile materi modul — Tab → Topik → Sub-topik → Reader. Tanpa video.
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   BookOpen, ChevronRight, Lock, CheckCircle2,
 } from 'lucide-react';
@@ -34,8 +35,17 @@ export function MobileMateri({
   modules:  MaterialModule[];
   userTier: SubscriptionTier;
 }) {
-  const [activeTab,    setActiveTab]    = useState<TabId>('INFORMASI');
-  const [openTopic,    setOpenTopic]    = useState<string | null>(null);
+  // Deep-link: /materi?cat=TIU&topic=Deret%20Angka (dipakai Roadmap)
+  const searchParams = useSearchParams();
+  const linkCat   = searchParams.get('cat') as TabId | null;
+  const linkTopic = searchParams.get('topic');
+  const linkValid = !!linkCat && TABS.some(t => t.id === linkCat);
+
+  const [activeTab,    setActiveTab]    = useState<TabId>(linkValid ? linkCat! : 'INFORMASI');
+  const [openTopic,    setOpenTopic]    = useState<string | null>(
+    linkValid && linkTopic && modules.some(m => m.category === linkCat && m.topic === linkTopic)
+      ? linkTopic : null,
+  );
   const [openModuleId, setOpenModuleId] = useState<string | null>(null);
   const [upgradeOpen,  setUpgradeOpen]  = useState(false);
   const [upgradeTier,  setUpgradeTier]  = useState<'premium' | 'platinum'>('premium');

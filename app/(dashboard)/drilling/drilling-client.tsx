@@ -81,9 +81,8 @@ export function DrillingClient({
       TKP: new Set<string>(),
     };
     const c = searchParams.get('cat') as DrillingCategory | null;
-    const t = searchParams.get('topic');
-    if (c && c in DRILLING_TOPICS && t && DRILLING_TOPICS[c].includes(t)) {
-      base[c] = new Set([t]);
+    if (c && c in DRILLING_TOPICS) {
+      base[c] = new Set(searchParams.getAll('topic').filter(t => DRILLING_TOPICS[c].includes(t)));
     }
     return base;
   });
