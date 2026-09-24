@@ -421,6 +421,7 @@ export async function getReviewData(attemptId: string) {
       userAnswer: userAnswer ?? null, isCorrect, score,
       userChoice: userChoice ?? null, correctChoice: correctChoice ?? null,
       isFlagged: userAnswer?.is_flagged ?? false,
+      timeSpentSeconds: typeof userAnswer?.time_spent_seconds === 'number' ? userAnswer.time_spent_seconds : null,
     };
   });
 
@@ -490,6 +491,7 @@ export async function getReviewDataAdmin(attemptId: string, userId: string) {
       userAnswer: userAnswer ?? null, isCorrect, score,
       userChoice: userChoice ?? null, correctChoice: correctChoice ?? null,
       isFlagged: userAnswer?.is_flagged ?? false,
+      timeSpentSeconds: typeof userAnswer?.time_spent_seconds === 'number' ? userAnswer.time_spent_seconds : null,
     };
   });
 

@@ -40,6 +40,21 @@ export async function POST(req: Request) {
       );
     }
 
+    // attempts.user_id → FK ke profiles. Kalau profile belum/tidak ada lagi
+    // (mis. terhapus), insert attempt pasti gagal — arahkan user ke onboarding
+    // (halaman onboarding akan membuat ulang profile-nya).
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (!profile) {
+      return NextResponse.json(
+        { error: 'Profil kamu belum lengkap. Lengkapi profil dulu sebelum memulai tryout.', code: 'PROFILE_REQUIRED' },
+        { status: 409 }
+      );
+    }
+
     // Check user's subscription tier against package requirement
     const userTier = await getUserTier(userId);
     if (!canAccess(userTier, pkg.tier)) {

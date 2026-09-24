@@ -56,8 +56,12 @@ export function ExamInstructionsModal({ packageId, requiresFollowProof = false }
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to start exam');
+        const data = await response.json().catch(() => ({}));
+        if (data.code === 'PROFILE_REQUIRED') {
+          router.push('/onboarding');
+          return;
+        }
+        throw new Error(data.error || 'Gagal memulai tryout');
       }
 
       const { attemptId } = await response.json();
@@ -87,8 +91,27 @@ export function ExamInstructionsModal({ packageId, requiresFollowProof = false }
             <FollowProofUpload
               context={{ packageId }}
               onCancel={() => setShowFollowProofStep(false)}
-              onApproved={() => void handleStartExam()}
+              onApproved={() => { setNeedsFollowProof(false); void handleStartExam(); }}
             />
+            {/* Status memulai tryout setelah bukti follow diterima —
+                tanpa ini, kegagalan /api/exam/start membuat layar diam di "Berhasil!" */}
+            {isLoading && (
+              <p className="flex items-center justify-center gap-2 text-sm text-slate-500">
+                <Loader2 className="h-4 w-4 animate-spin" /> Menyiapkan tryout...
+              </p>
+            )}
+            {error && (
+              <>
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setOpen(false)}>Tutup</Button>
+                  <Button onClick={() => void handleStartExam()}>Coba Lagi</Button>
+                </DialogFooter>
+              </>
+            )}
           </>
         ) : (
         <>

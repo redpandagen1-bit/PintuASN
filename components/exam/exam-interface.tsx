@@ -509,7 +509,8 @@ export function ExamInterface({
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── QUESTION AREA ───────────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto bg-white">
+        <main className="flex-1 flex flex-col overflow-hidden bg-white">
+          <div className="flex-1 overflow-y-auto">
           <div className="max-w-3xl mx-auto py-4 px-4 md:py-6 md:px-8">
 
             {/* Meta + aksi — MOBILE (di atas soal): counter, tandai, laporkan, batal, selesai */}
@@ -703,8 +704,14 @@ export function ExamInterface({
               </div>
             )}
 
-            {/* Navigasi bawah pilihan — DESKTOP: Sebelumnya | Laporkan | Selanjutnya */}
-            <div className="hidden md:flex items-center justify-between gap-3 mt-8 pt-5 border-t border-slate-100">
+          </div>
+          </div>
+
+          {/* Navigasi bawah — DESKTOP: Sebelumnya | Laporkan | Selanjutnya.
+              Di luar area scroll agar selalu menempel di bawah seperti bottom bar,
+              tidak ikut bergeser mengikuti panjang soal. */}
+          <div className="hidden md:block flex-shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur shadow-[0_-4px_12px_-6px_rgba(15,23,42,0.12)]">
+            <div className="max-w-3xl mx-auto px-8 py-3 flex items-center justify-between gap-3">
               <button
                 onClick={prevQuestion}
                 disabled={currentIndex === 0}
@@ -736,7 +743,6 @@ export function ExamInterface({
                 Selanjutnya <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-
           </div>
         </main>
 
@@ -879,8 +885,10 @@ export function ExamInterface({
           </div>
 
           {/* Scrollable question grid — HANYA grid nomor soal yang scroll */}
-          <div className="flex-1 overflow-y-auto px-4 pb-3">
-            <div className="grid grid-cols-6 gap-1">
+          {/* px-3 + p-1 di grid: beri ruang agar ring hover/aktif di kolom pinggir
+              tidak terpotong oleh overflow container. */}
+          <div className="flex-1 overflow-y-auto px-3 pb-3">
+            <div className="grid grid-cols-6 gap-1 p-1">
               {questions.map((q, index) => {
                 const isAnswered = answers.has(q.id);
                 const isMarked = flaggedQuestions.has(q.id);
@@ -891,7 +899,8 @@ export function ExamInterface({
                     onClick={() => goToQuestion(index)}
                     aria-label={`Soal ${index + 1}${isAnswered ? ', dijawab' : ''}${isMarked ? ', ditandai' : ''}${isCurrent ? ', aktif' : ''}`}
                     className={cn(
-                      'aspect-square rounded text-[11px] font-semibold transition-all',
+                      'h-7 rounded-md text-[11px] font-semibold transition-all',
+                      'hover:ring-2 hover:ring-sky-300 hover:ring-offset-1',
                       isCurrent && 'border-2 border-sky-500 bg-sky-50 text-sky-700',
                       !isCurrent && isMarked && 'bg-yellow-400 text-white hover:bg-yellow-500',
                       !isCurrent && !isMarked && isAnswered && 'bg-sky-500 text-white hover:bg-sky-600',

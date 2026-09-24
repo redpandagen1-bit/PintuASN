@@ -142,12 +142,15 @@ export interface ReviewQuestion {
     choice_id: string;
     is_flagged: boolean;
     answered_at: string;
+    time_spent_seconds?: number | null;
   } | null;
   isCorrect: boolean | null;
   score: number | null;
   userChoice: ReviewChoice | null;
   correctChoice: ReviewChoice | null;
   isFlagged: boolean;
+  /** Waktu pengerjaan soal (detik). Null jika tidak tercatat / user bukan Platinum. */
+  timeSpentSeconds: number | null;
 }
 
 export interface ReviewData {

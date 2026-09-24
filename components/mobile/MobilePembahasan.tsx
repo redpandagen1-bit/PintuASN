@@ -18,9 +18,11 @@ type StatusFilter = 'semua' | 'benar' | 'salah' | 'kosong';
 
 interface MobilePembahasanProps {
   reviewData: ReviewData;
+  isPlatinum?: boolean;
+  avgTimeSeconds?: number | null;
 }
 
-export function MobilePembahasan({ reviewData }: MobilePembahasanProps) {
+export function MobilePembahasan({ reviewData, isPlatinum = false, avgTimeSeconds = null }: MobilePembahasanProps) {
   const [activeIndex, setActiveIndex]       = useState(0);
   const [statusFilter, setStatusFilter]     = useState<StatusFilter>('semua');
   const [showGrid, setShowGrid]             = useState(false);
@@ -419,7 +421,7 @@ export function MobilePembahasan({ reviewData }: MobilePembahasanProps) {
               </div>
 
               {/* ReviewQuestionCard — same as desktop */}
-              <ReviewQuestionCard question={activeQ} />
+              <ReviewQuestionCard question={activeQ} isPlatinum={isPlatinum} avgTimeSeconds={avgTimeSeconds} />
             </>
           ) : (
             <div className="text-center py-16 flex flex-col items-center gap-3">

@@ -1,16 +1,91 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { MathText } from '@/components/ui/math-text';
-import { CheckCircle2, XCircle, AlertCircle, Info, ChevronDown } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Info, ChevronDown, Clock, Lock } from 'lucide-react';
 import type { ReviewQuestion, ReviewChoice } from '@/types/database';
 
 interface ReviewQuestionCardProps {
   question: ReviewQuestion & { status?: 'benar' | 'salah' | 'kosong' };
+  /** Waktu pengerjaan hanya tampil untuk Platinum; selain itu diblur + dikunci. */
+  isPlatinum?: boolean;
+  /** Rata-rata waktu per soal pada attempt ini (detik), untuk perbandingan. */
+  avgTimeSeconds?: number | null;
 }
 
-export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
+function formatDuration(totalSeconds: number) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  if (m === 0) return `${s} dtk`;
+  return s === 0 ? `${m} mnt` : `${m} mnt ${s} dtk`;
+}
+
+function TimeSpentRow({
+  seconds, avgSeconds, isPlatinum,
+}: {
+  seconds: number | null;
+  avgSeconds: number | null;
+  isPlatinum: boolean;
+}) {
+  if (!isPlatinum) {
+    return (
+      <div className="relative mb-4 rounded-lg border border-purple-200 bg-purple-50/60 px-3 py-2.5 overflow-hidden">
+        {/* Konten dummy yang diblur — data asli tidak dikirim ke client */}
+        <div className="flex items-center gap-2 blur-[5px] pointer-events-none select-none" aria-hidden>
+          <Clock className="w-4 h-4 text-slate-500" />
+          <span className="text-xs font-bold text-slate-600">Waktu Pengerjaan</span>
+          <span className="text-sm font-extrabold text-slate-800">1 mnt 24 dtk</span>
+          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Lebih lama dari rata-rata</span>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-between gap-2 px-3 bg-white/40">
+          <span className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+            <span className="w-6 h-6 rounded-md bg-gradient-to-br from-purple-600 to-violet-700 flex items-center justify-center flex-shrink-0">
+              <Lock className="w-3 h-3 text-white" />
+            </span>
+            Waktu Pengerjaan
+          </span>
+          <Link
+            href="/beli-paket"
+            className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white rounded-lg text-[11px] font-bold transition-colors shadow-sm shadow-purple-600/25 flex-shrink-0"
+          >
+            Buka dengan Platinum →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const hasTime = seconds !== null && seconds > 0;
+  let compare: { label: string; className: string } | null = null;
+  if (hasTime && avgSeconds && avgSeconds > 0) {
+    const ratio = seconds! / avgSeconds;
+    if (ratio >= 1.5)      compare = { label: 'Lebih lama dari rata-rata', className: 'bg-amber-100 text-amber-700 border-amber-200' };
+    else if (ratio <= 0.5) compare = { label: 'Lebih cepat dari rata-rata', className: 'bg-sky-100 text-sky-700 border-sky-200' };
+    else                   compare = { label: 'Sesuai rata-rata', className: 'bg-slate-100 text-slate-600 border-slate-200' };
+  }
+
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+      <Clock className="w-4 h-4 text-slate-500 flex-shrink-0" />
+      <span className="text-xs font-bold text-slate-600">Waktu Pengerjaan</span>
+      <span className="text-sm font-extrabold text-slate-800">
+        {hasTime ? formatDuration(seconds!) : 'Tidak tercatat'}
+      </span>
+      {compare && (
+        <span
+          className={cn('sm:ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border', compare.className)}
+          title={`Rata-rata kamu: ${formatDuration(avgSeconds!)} per soal`}
+        >
+          {compare.label} ({formatDuration(avgSeconds!)})
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function ReviewQuestionCard({ question, isPlatinum = false, avgTimeSeconds = null }: ReviewQuestionCardProps) {
   const [showDiscussion, setShowDiscussion] = useState(true);
 
   const getCategoryBadge = (category: string) => {
@@ -103,6 +178,13 @@ export function ReviewQuestionCard({ question }: ReviewQuestionCardProps) {
           {statusBadge()}
         </div>
       </div>
+
+      {/* Waktu pengerjaan — Platinum only */}
+      <TimeSpentRow
+        seconds={question.timeSpentSeconds}
+        avgSeconds={avgTimeSeconds}
+        isPlatinum={isPlatinum}
+      />
 
       {/* Question text */}
       <div className="text-slate-800 text-sm md:text-base leading-relaxed mb-5 font-medium">

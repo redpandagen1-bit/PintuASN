@@ -12,7 +12,13 @@ import { ReviewQuestionCard } from '@/components/exam/review-question-card';
 
 type StatusFilter = 'semua' | 'benar' | 'salah' | 'kosong';
 
-export default function ReviewContent({ reviewData }: { reviewData: ReviewData }) {
+export default function ReviewContent({
+  reviewData, isPlatinum = false, avgTimeSeconds = null,
+}: {
+  reviewData: ReviewData;
+  isPlatinum?: boolean;
+  avgTimeSeconds?: number | null;
+}) {
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('semua');
   const mainRef = useRef<HTMLDivElement>(null);
@@ -297,36 +303,7 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
             {/* ── LEFT: ACTIVE QUESTION ─────────────────────────────── */}
             <div className="flex-1 flex flex-col gap-3 w-full min-w-0">
               {activeQuestion ? (
-                <>
-                  <ReviewQuestionCard question={activeQuestion} />
-
-                  {/* Nav + Report row */}
-                  <div className="flex items-center justify-between pb-4 lg:pb-2">
-                    <button onClick={handlePrev} disabled={activeQuestionIndex === 0}
-                      className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shadow-sm transition-all">
-                      <ChevronLeft className="w-4 h-4" />
-                      <span className="hidden md:inline">Sebelumnya</span>
-                    </button>
-
-                    <div className="flex items-center gap-3">
-                      {/* Laporkan button */}
-                      <button onClick={() => setReportOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-red-200 text-red-500 text-xs font-bold hover:bg-red-50 transition-all shadow-sm">
-                        <Flag className="w-3.5 h-3.5" />
-                        Laporkan
-                      </button>
-                      <span className="text-sm text-slate-500 font-medium">
-                        {activeQuestionIndex + 1} / {filteredQuestions.length}
-                      </span>
-                    </div>
-
-                    <button onClick={handleNext} disabled={activeQuestionIndex === filteredQuestions.length - 1}
-                      className="px-4 py-2 rounded-xl bg-yellow-400 border border-yellow-500 text-slate-900 text-sm font-bold hover:bg-yellow-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shadow-sm transition-all">
-                      <span className="hidden md:inline">Selanjutnya</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </>
+                <ReviewQuestionCard question={activeQuestion} isPlatinum={isPlatinum} avgTimeSeconds={avgTimeSeconds} />
               ) : (
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-10 text-center">
                   <p className="text-slate-400 font-medium text-sm mb-4">Tidak ada soal yang sesuai filter ini.</p>
@@ -374,8 +351,9 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
                   </span>
                 </div>
 
-                <div className="overflow-y-auto flex-1 pr-0.5" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
-                  <div className="grid grid-cols-6 gap-1">
+                {/* -mx-1 + p-1: ruang untuk ring aktif/hover di kolom pinggir agar tidak terpotong */}
+                <div className="overflow-y-auto flex-1 -mx-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
+                  <div className="grid grid-cols-6 gap-1 p-1">
                     {filteredQuestions.map((q, idx) => {
                       const isActive = idx === activeQuestionIndex;
                       return (
@@ -385,8 +363,9 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
                           }}
                           title={`${q.category} - ${q.status}`}
                           className={cn(
-                            'aspect-square rounded-md text-[10px] font-bold flex items-center justify-center transition-all border',
-                            isActive && 'ring-2 ring-yellow-400 ring-offset-1 border-transparent scale-105',
+                            'h-7 rounded-md text-[10px] font-bold flex items-center justify-center transition-all border',
+                            'hover:ring-2 hover:ring-slate-300 hover:ring-offset-1',
+                            isActive && 'ring-2 ring-yellow-400 ring-offset-1 border-transparent hover:ring-yellow-400',
                             !isActive && q.status === 'benar'  && 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100',
                             !isActive && q.status === 'salah'  && 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100',
                             !isActive && q.status === 'kosong' && 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50',
@@ -416,6 +395,41 @@ export default function ReviewContent({ reviewData }: { reviewData: ReviewData }
           </div>
         </div>
       </main>
+
+      {/* ── BOTTOM BAR — Sebelumnya | Laporkan | Selanjutnya ────────────
+          Di luar area scroll agar selalu menempel di bawah layar,
+          tidak bergeser mengikuti panjang soal/jawaban. */}
+      {activeQuestion && (
+        <div className="flex-shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur shadow-[0_-4px_12px_-6px_rgba(15,23,42,0.15)]">
+          <div className="max-w-7xl mx-auto w-full px-3 md:px-5 lg:pr-[calc(16rem+2.25rem)]">
+            <div className="flex items-center justify-between py-2.5">
+              <button onClick={handlePrev} disabled={activeQuestionIndex === 0}
+                className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shadow-sm transition-all">
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden md:inline">Sebelumnya</span>
+              </button>
+
+              <div className="flex items-center gap-3">
+                {/* Laporkan button */}
+                <button onClick={() => setReportOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-red-200 text-red-500 text-xs font-bold hover:bg-red-50 transition-all shadow-sm">
+                  <Flag className="w-3.5 h-3.5" />
+                  Laporkan
+                </button>
+                <span className="text-sm text-slate-500 font-medium">
+                  {activeQuestionIndex + 1} / {filteredQuestions.length}
+                </span>
+              </div>
+
+              <button onClick={handleNext} disabled={activeQuestionIndex === filteredQuestions.length - 1}
+                className="px-4 py-2 rounded-xl bg-yellow-400 border border-yellow-500 text-slate-900 text-sm font-bold hover:bg-yellow-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shadow-sm transition-all">
+                <span className="hidden md:inline">Selanjutnya</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

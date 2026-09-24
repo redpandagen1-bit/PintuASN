@@ -105,8 +105,8 @@ export function StatInfo({
         {showPreview && (
           <div className="border-t border-slate-100 bg-slate-50 p-3.5">
             <div className="flex items-center gap-1.5 mb-2">
-              <Lock className="h-3 w-3 text-amber-500" />
-              <span className="text-[11px] font-bold uppercase tracking-wide text-amber-600">
+              <Lock className="h-3 w-3 text-purple-500" />
+              <span className="text-[11px] font-bold uppercase tracking-wide text-purple-600">
                 Contoh tampilan
               </span>
             </div>
@@ -126,7 +126,7 @@ export function StatInfo({
             </p>
             <Link
               href={upgradeHref}
-              className="mt-2.5 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-yellow-400 px-3 py-1.5 text-[11px] font-bold text-slate-900 transition-colors hover:bg-yellow-300"
+              className="mt-2.5 inline-flex w-full items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 px-3 py-1.5 text-[11px] font-bold text-white transition-colors hover:from-purple-500 hover:to-violet-500"
             >
               Upgrade {tierLabel} →
             </Link>

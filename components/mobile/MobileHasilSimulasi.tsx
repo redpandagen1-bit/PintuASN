@@ -130,7 +130,7 @@ function LockedSection({
             <StatInfo locked={locked} explanation={explanation} preview={preview} />
           )}
           {locked && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
               <Lock size={9} />Platinum
             </span>
           )}
@@ -142,8 +142,8 @@ function LockedSection({
         </div>
         {locked && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2.5 px-4 text-center">
-            <div className="w-11 h-11 rounded-2xl bg-slate-800 flex items-center justify-center shadow-lg">
-              <Lock size={18} className="text-yellow-400" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-600 to-violet-700 flex items-center justify-center shadow-lg shadow-purple-600/25">
+              <Lock size={18} className="text-white" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-800">Fitur Eksklusif Platinum</p>
@@ -151,7 +151,7 @@ function LockedSection({
             </div>
             <Link
               href="/beli-paket"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-yellow-400 text-slate-900 rounded-xl text-xs font-bold shadow-sm shadow-yellow-400/20"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold transition-colors shadow-sm shadow-purple-600/25"
             >
               Upgrade Platinum →
             </Link>
